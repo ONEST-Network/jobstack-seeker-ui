@@ -25,6 +25,15 @@ const JobListView: React.FC<JobListViewProps> = ({
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
   const [detailJob, setDetailJob] = useState<JobItem | null>(null);
   const { user } = useAuth();
+
+  // Prevent unauthenticated users from opening the job detail dialog
+  const handleViewDetails = (job: JobItem) => {
+    if (!user) {
+      onPromptLogin?.();
+      return;
+    }
+    setDetailJob(job);
+  };
   
   const { 
     jobs, 
@@ -217,7 +226,7 @@ const JobListView: React.FC<JobListViewProps> = ({
                     key={job.id} 
                     job={job} 
                     onApply={handleApply} 
-                    onViewDetails={setDetailJob} 
+                    onViewDetails={handleViewDetails} 
                   />
                 ))
               ) : (
