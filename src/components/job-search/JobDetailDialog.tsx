@@ -20,7 +20,6 @@ interface SubsectionData {
 }
 
 const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose, onApply }) => {
-  const [showAllDetails, setShowAllDetails] = useState(false);
   const [expandedSubsections, setExpandedSubsections] = useState<Set<string>>(new Set());
   
   if (!job) return null;
@@ -222,13 +221,9 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
     title: string, 
     data: any[], 
     subsections: SubsectionData[], 
-    icon: React.ReactNode, 
-    showMore = false
+    icon: React.ReactNode
   ) => {
     if (data.length === 0 && subsections.length === 0) return null;
-
-    const displayData = showMore ? data : data.slice(0, 6);
-    const hasMore = data.length > 6;
 
     return (
       <Card>
@@ -239,9 +234,9 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
           </div>
           
           {/* Regular data items */}
-          {displayData.length > 0 && (
+          {data.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {displayData.map((item, index) => (
+              {data.map((item, index) => (
                 <div key={index} className="flex flex-col p-3 bg-gray-50 rounded-lg">
                   <div className="text-sm font-medium text-foreground mb-1">
                     {item.value}
@@ -259,29 +254,6 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
             <div className="space-y-3">
               <h4 className="text-md font-medium text-gray-700 mb-3">Subsections</h4>
               {subsections.map(renderSubsection)}
-            </div>
-          )}
-
-          {hasMore && (
-            <div className="flex justify-center pt-4 border-t mt-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowAllDetails(!showAllDetails)}
-                className="text-primary hover:text-primary/80"
-              >
-                {showAllDetails ? (
-                  <>
-                    <ChevronUp className="h-4 w-4 mr-1" />
-                    Show Less
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-4 w-4 mr-1" />
-                    View More ({data.length - 6} more)
-                  </>
-                )}
-              </Button>
             </div>
           )}
         </CardContent>
@@ -320,10 +292,10 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowAllDetails(!showAllDetails)}
+                onClick={() => setExpandedSubsections(new Set(expandedSubsections))}
                 className="text-primary hover:text-primary/80"
               >
-                {showAllDetails ? (
+                {expandedSubsections.has(title) ? (
                   <>
                     <ChevronUp className="h-4 w-4 mr-1" />
                     Show Less
