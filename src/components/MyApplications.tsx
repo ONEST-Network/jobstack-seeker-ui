@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ApplicationTabs from './my-applications/ApplicationTabs';
 
@@ -11,6 +10,7 @@ interface JobApplication {
   salary: string;
   appliedDate: string;
   status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
+  raw?: any;
   media?: Array<{
     type: 'image' | 'video';
     url: string;
@@ -20,69 +20,68 @@ interface JobApplication {
   }>;
 }
 
-const MyApplications = () => {
-  const applications: JobApplication[] = [
-    {
-      id: '1',
-      jobId: '1',
-      jobTitle: 'Electrician',
-      company: 'PowerTech Solutions',
-      location: 'Mumbai, Maharashtra',
-      salary: '₹25,000 - ₹35,000',
-      appliedDate: '2024-01-20',
-      status: 'shortlisted',
-      media: [{
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=200&fit=crop',
-        alt: 'Electrician work'
-      }]
-    },
-    {
-      id: '2',
-      jobId: '2',
-      jobTitle: 'Welder',
-      company: 'MetalWorks Industries',
-      location: 'Pune, Maharashtra',
-      salary: '₹22,000 - ₹30,000',
-      appliedDate: '2024-01-18',
-      status: 'viewed',
-      media: [{
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&h=200&fit=crop',
-        alt: 'Welder work'
-      }]
-    },
-    {
-      id: '3',
-      jobId: '3',
-      jobTitle: 'Security Guard',
-      company: 'SecureNation Services',
-      location: 'Delhi, NCR',
-      salary: '₹18,000 - ₹22,000',
-      appliedDate: '2024-01-15',
-      status: 'applied',
-      media: [{
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=200&fit=crop',
-        alt: 'Security work'
-      }]
-    }
-  ];
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from 'react';
 
-  const activeApplications = applications.filter(app => 
-    !['hired', 'rejected'].includes(app.status)
-  );
-  const completedApplications = applications.filter(app => 
-    ['hired', 'rejected'].includes(app.status)
-  );
+
+const MyApplications = () => {
+  const { user } = useAuth();
+  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      if (!user?.id) return;
+      setIsLoading(true);
+      try {
+        const url = `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${user.id}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        const mapped: JobApplication[] = (data?.applications || []).map((app: any) => {
+          const item = app?.metadata?.message?.order?.items?.[0] || {};
+          const provider = app?.metadata?.message?.order?.provider || {};
+          const locationObj = (provider.locations && provider.locations[0]) || {};
+          const tag = item?.tag || {};
+          const basicInfo = tag?.basicInfo || {};
+          const jobDetails = tag?.jobDetails || {};
+
+          return {
+            id: app.order_id ?? app.transaction_id ?? app.job_id,
+            jobId: item.id ?? app.job_id,
+            jobTitle: item?.descriptor?.name ?? 'Unknown',
+            company: basicInfo?.jobProviderName ?? provider?.descriptor?.name ?? 'Unknown',
+            location: `${locationObj.city ?? ''}${locationObj.state ? ', ' + locationObj.state : ''}`.trim(),
+            salary: jobDetails?.salaryCTC ? `₹${jobDetails.salaryCTC.toLocaleString()}` : 'N/A',
+            appliedDate: app?.metadata?.context?.timestamp ?? new Date().toISOString(),
+            status: (app.status as JobApplication['status']) ?? 'applied',
+            raw: app,
+            media: [],
+          } as JobApplication;
+        });
+        setApplications(mapped);
+      } catch (error) {
+        console.error('Failed to fetch job applications', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, [user]);
+
+  const activeApplications = applications.filter(app => !['hired', 'rejected'].includes(app.status));
+  const completedApplications = applications.filter(app => ['hired', 'rejected'].includes(app.status));
 
   return (
     <div className="space-y-6">
-
-      <ApplicationTabs 
+      {isLoading ? (
+        <p className="text-center text-muted-foreground">Loading applications...</p>
+      ) : (
+        <ApplicationTabs 
         activeApplications={activeApplications}
         completedApplications={completedApplications}
-      />
+        />
+      )}
     </div>
   );
 };

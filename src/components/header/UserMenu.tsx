@@ -62,7 +62,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
               Complete Profile
             </DropdownMenuItem>
           )}
-          {user.role === 'individual' && (
+          {(user.role === 'individual' || !user.role) && (
             <>
               <DropdownMenuItem onClick={handleMyApplications}>
                 <FileText className="h-4 w-4 mr-2" />

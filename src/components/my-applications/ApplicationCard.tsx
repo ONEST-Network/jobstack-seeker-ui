@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Calendar } from 'lucide-react';
 import JobMediaCarousel from '@/components/JobMediaCarousel';
 import ApplicationStatusBadge from './ApplicationStatusBadge';
+import ApplicationDetailDialog from './ApplicationDetailDialog';
+import { useState } from 'react';
 
 interface JobApplication {
   id: string;
@@ -15,6 +17,7 @@ interface JobApplication {
   salary: string;
   appliedDate: string;
   status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
+  raw?: any;
   media?: Array<{
     type: 'image' | 'video';
     url: string;
@@ -30,6 +33,7 @@ interface ApplicationCardProps {
 }
 
 const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, isCompleted = false }) => {
+  const [dialogOpen, setDialogOpen] = useState(false);
   const cardStyle = isCompleted 
     ? `hover:shadow-md transition-shadow ${
         application.status === 'hired' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
@@ -74,13 +78,18 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, isComple
 
             <div className="flex items-center justify-between">
               <ApplicationStatusBadge status={application.status} />
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
                 View Details
               </Button>
             </div>
           </div>
         </div>
       </CardContent>
+      <ApplicationDetailDialog
+        application={application.raw ?? application}
+        isOpen={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+      />
     </Card>
   );
 };

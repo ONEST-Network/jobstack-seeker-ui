@@ -9,12 +9,11 @@ const Navigation = () => {
   const isMobile = useIsMobile();
 
   const handleFindJobs = () => {
-    navigate('/seeker');
+    // Always navigate to the Discover tab so that the "Jobs for You" list is rendered
+    navigate('/seeker?tab=discover');
   };
 
-  const handlePostJobs = () => {
-    navigate('/provider');
-  };
+
 
   return (
     <nav className="flex items-center gap-2 sm:gap-6">
@@ -25,13 +24,7 @@ const Navigation = () => {
       >
         {isMobile ? 'Jobs' : 'Find Jobs'}
       </Button>
-      <Button 
-        variant="ghost" 
-        className="text-foreground hover:text-primary text-sm sm:text-base px-2 sm:px-4"
-        onClick={handlePostJobs}
-      >
-        {isMobile ? 'Post' : 'Post Jobs'}
-      </Button>
+
     </nav>
   );
 };
