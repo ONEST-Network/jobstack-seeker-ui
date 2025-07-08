@@ -1,0 +1,136 @@
+import React from 'react';
+import { useProfileForm } from '../ProfileFormProvider';
+import { getSchemaDescription, getSchemaSections } from '@/schemas';
+import EducationQualificationCard from '../EducationQualificationCard';
+import SkillCertificationCard from '../SkillCertificationCard';
+import WorkExperienceCard from '../WorkExperienceCard';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { getFieldConfig } from '@/schemas';
+
+const WhatIHaveStep: React.FC = () => {
+  const { profile, setProfile } = useProfileForm();
+  const stepName = 'whatIHave';
+  const description = getSchemaDescription(stepName, profile.interestedRole);
+  const sections = getSchemaSections(stepName, profile.interestedRole);
+
+  const handleMachineToggle = (machine: string, checked: boolean) => {
+    setProfile(prevProfile => {
+      if (!prevProfile) {
+        return prevProfile;
+      }
+      const currentMachines = prevProfile.machinesOperated || [];
+      const newMachines = checked
+        ? [...currentMachines, machine]
+        : currentMachines.filter((m) => m !== machine);
+      return { ...prevProfile, machinesOperated: newMachines };
+    });
+  };
+
+  const renderCardComponent = (componentName: string) => {
+    switch (componentName) {
+      case 'EducationQualificationCard':
+        return <EducationQualificationCard education={profile.education || []} onChange={(edu) => setProfile(p => ({...p, education: edu}))} />;
+      case 'SkillCertificationCard':
+        return <SkillCertificationCard certifications={profile.skillCertifications || []} onChange={(cert) => setProfile(p => ({...p, skillCertifications: cert}))} />;
+      case 'WorkExperienceCard':
+        return <WorkExperienceCard experiences={profile.workExperience || []} onChange={(exp) => setProfile(p => ({...p, workExperience: exp}))} />;
+      default:
+        return null;
+    }
+  }
+
+  if (!sections || sections.length === 0) {
+    return <div>Schema not found for WhatIHave step</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      {sections.map((section, index) => (
+        <div key={index} className="bg-card p-6 rounded-lg shadow-sm border">
+          {/* <h4 className="text-lg font-semibold mb-4">{section.title}</h4> */}
+          {section.component ? (
+            renderCardComponent(section.component)
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {section.fields?.map(fieldName => {
+                const fieldConfig = getFieldConfig(stepName, fieldName, profile.interestedRole);
+                if (!fieldConfig) return null;
+
+                const value = profile[fieldName as keyof typeof profile];
+
+                if (fieldConfig['ui:widget'] === 'experience-duration') {
+                    const experienceValue = typeof value === 'number' ? value : 0;
+                    return (
+                        <div className="md:col-span-2" key={fieldName}>
+                        <Label htmlFor={fieldName}>{fieldConfig.title}</Label>
+                        <div className="flex gap-2">
+                            <div className="flex-1">
+                            <Input
+                                type="number"
+                                value={Math.floor(experienceValue / 12)}
+                                onChange={e => {
+                                const years = parseInt(e.target.value) || 0;
+                                const months = experienceValue % 12;
+                                setProfile(p => ({...p, [fieldName]: years * 12 + months}));
+                                }}
+                                placeholder="Years"
+                                min="0"
+                            />
+                            <Label className="text-xs text-muted-foreground">{fieldConfig['ui:yearsLabel']}</Label>
+                            </div>
+                            <div className="flex-1">
+                            <Input
+                                type="number"
+                                value={experienceValue % 12}
+                                onChange={e => {
+                                const months = parseInt(e.target.value) || 0;
+                                const years = Math.floor(experienceValue / 12);
+                                setProfile(p => ({...p, [fieldName]: years * 12 + months}));
+                                }}
+                                placeholder="Months"
+                                min="0"
+                                max={fieldConfig['ui:monthsMax']}
+                            />
+                            <Label className="text-xs text-muted-foreground">{fieldConfig['ui:monthsLabel']}</Label>
+                            </div>
+                        </div>
+                        </div>
+                    );
+                }
+
+                if (fieldConfig['ui:widget'] === 'checkbox-group' && fieldConfig['ui:options']?.choices) {
+                  return (
+                    <div className="md:col-span-2" key={fieldName}>
+                      <h4 className="text-base font-medium mb-3">{fieldConfig['ui:options'].title}</h4>
+                      <Label>{fieldConfig.title}</Label>
+                      <div className={`grid grid-cols-${fieldConfig['ui:options'].gridCols || 2} gap-2 mt-2`}>
+                        {fieldConfig['ui:options'].choices.map((choice: string) => (
+                          <div key={choice} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={choice}
+                              checked={(profile.machinesOperated || []).includes(choice)}
+                              onCheckedChange={checked => handleMachineToggle(choice, !!checked)}
+                            />
+                            <Label htmlFor={choice} className="text-sm">{choice}</Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                }
+                return null;
+              })}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default WhatIHaveStep;

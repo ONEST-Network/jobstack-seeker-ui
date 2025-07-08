@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "What I Have - Qualifications & Experience",
+  "description": "Schema for qualifications, skills, and work experience step",
+  "type": "object",
+  "properties": {
+    "skillCertifications": {
+      "type": "array",
+      "title": "Skill Certifications",
+      "description": "Your skill certifications and training",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string", "title": "Certification Name" },
+          "issuer": { "type": "string", "title": "Issuing Organization" },
+          "issueDate": { "type": "string", "title": "Issue Date", "format": "date" },
+          "expiryDate": { "type": "string", "title": "Expiry Date", "format": "date" },
+          "skillLevel": {
+            "type": "string",
+            "title": "Skill Level",
+            "enum": ["beginner", "intermediate", "advanced", "expert"],
+            "enumNames": ["Beginner", "Intermediate", "Advanced", "Expert"]
+          },
+          "isVerified": { "type": "boolean", "default": false }
+        }
+      },
+      "ui:component": "SkillCertificationCard"
+    },
+    "workExperience": {
+      "type": "array",
+      "title": "Work Experience",
+      "description": "Your previous work experience",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "company": { "type": "string", "title": "Company Name" },
+          "position": { "type": "string", "title": "Position/Designation" },
+          "location": { "type": "string", "title": "Work Location" },
+          "startDate": { "type": "string", "title": "Start Date", "format": "date" },
+          "endDate": { "type": "string", "title": "End Date", "format": "date" },
+          "description": { "type": "string", "title": "Job Description" },
+          "isVerified": { "type": "boolean", "default": false }
+        }
+      },
+      "ui:component": "WorkExperienceCard"
+    },
+    "experienceMonths": {
+      "type": "integer",
+      "title": "Total Work Experience",
+      "description": "Total work experience in months",
+      "minimum": 0,
+      "ui:widget": "experience-duration",
+      "ui:yearsLabel": "Years",
+      "ui:monthsLabel": "Months",
+      "ui:yearsPlaceholder": "Years",
+      "ui:monthsPlaceholder": "Months",
+      "ui:monthsMax": 11
+    },
+    "machinesOperated": {
+      "type": "array",
+      "title": "Machines You Can Operate",
+      "description": "Select the machines you can operate",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "ui:widget": "checkbox-group",
+      "ui:options": {
+        "title": "Role Specific Information",
+        "layout": "grid",
+        "gridCols": 2,
+        "choices": [
+          "Single Needle Lock Stitch",
+          "Over Lock Machine",
+          "Chain Stitch Machine",
+          "Button Hole Machine",
+          "Button Attach Machine",
+          "Blind Hem Machine",
+          "Flat Lock Machine",
+          "Zig Zag Machine"
+        ]
+      }
+    },
+    "education": {
+      "type": "array",
+      "title": "Education Qualification",
+      "description": "Your educational background",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "institution": { "type": "string", "title": "Institution Name" },
+          "degree": { "type": "string", "title": "Degree/Course" },
+          "fieldOfStudy": { "type": "string", "title": "Field of Study" },
+          "startDate": { "type": "string", "title": "Start Date", "format": "date" },
+          "endDate": { "type": "string", "title": "End Date", "format": "date" },
+          "percentage": { "type": "number", "title": "Percentage/Grade" },
+          "isVerified": { "type": "boolean", "default": false }
+        }
+      },
+      "ui:component": "EducationQualificationCard"
+    }
+  },
+  "ui": {
+    "order": [
+      "skillCertifications",
+      "workExperience",
+      "experienceMonths",
+      "machinesOperated",
+      "education"
+    ],
+    "description": "Add your qualifications, skills, and work history",
+    "sections": [
+      {
+        "title": "Skill Certifications",
+        "component": "SkillCertificationCard"
+      },
+      {
+        "title": "Work Experience",
+        "component": "WorkExperienceCard"
+      },
+      {
+        "title": "Additional Work Details",
+        "fields": ["experienceMonths", "machinesOperated"]
+      },
+      {
+        "title": "Education Qualification",
+        "component": "EducationQualificationCard"
+      }
+    ]
+  }
+} 

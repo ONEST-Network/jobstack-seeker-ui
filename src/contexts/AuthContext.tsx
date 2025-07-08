@@ -1,0 +1,721 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiClient, type AuthResponse, type SignUpResponse, type SessionResponse } from '@/lib/api';
+
+export interface User {
+  id: string;
+  email?: string;
+  phone?: string;
+  name?: string;
+  role: 'individual' | 'organization';
+  isVerified: boolean;
+  emailVerified?: boolean;
+  image?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  profile?: UserProfile | OrganizationProfile;
+  managedEmployers: EmployerProfile[];
+  selectedEmployerId?: string;
+  managedCandidates: CandidateProfile[];
+  selectedCandidateId?: string;
+}
+
+export interface UserProfile {
+  // Who I Am
+  name: string;
+  dateOfBirth?: string;
+  age?: number;
+  gender?: 'male' | 'female' | 'other';
+  hometown?: string;
+  aadharNumber?: string;
+  phone?: string;
+  isNameVerified: boolean;
+  isAgeVerified: boolean;
+  currentLocation: string;
+  desiredLocation: string;
+  
+  // What I Have
+  basicLiteracy?: 'below-8th' | '8th-pass' | '10th-pass' | '12th-pass' | 'graduate';
+  skillProofVideo?: string;
+  qualityProofImage?: string;
+  hasWorkExperience?: boolean;
+  previousCompany?: string;
+  previousLocation?: string;
+  experienceMonths?: number;
+  machinesOperated?: string[];
+  
+  // What I Want
+  salaryFrequency?: 'weekly' | 'monthly';
+  advanceMonthsAvailable?: number;
+  advanceFrequency?: 'monthly' | 'quarterly' | 'half-yearly';
+  monthlySalary?: number;
+  pfDeduction?: number;
+  esicDeduction?: number;
+  inHandSalary?: number;
+  housingFacility?: boolean;
+  foodFacility?: boolean;
+  workHoursPerDay?: number;
+  overtimeAvailable?: boolean;
+  overtimePayMultiplier?: number;
+  gradeUpgradation?: boolean;
+  factoryTrustScore?: number;
+  
+  // Legacy fields for backward compatibility
+  interestedRole?: string;
+  interestedIndustry?: string;
+  experience: Experience[];
+  skills: string[];
+  certificates: Certificate[];
+  assessmentScores?: AssessmentScore[];
+  documentVerificationStatus?: DocumentVerification[];
+}
+
+export interface CandidateProfile {
+  id: string;
+  // Who I Am
+  name: string;
+  dateOfBirth?: string;
+  age?: number;
+  gender?: 'male' | 'female' | 'other';
+  hometown?: string;
+  aadharNumber?: string;
+  phone?: string;
+  isNameVerified: boolean;
+  isAgeVerified: boolean;
+  currentLocation: string;
+  desiredLocation: string;
+  
+  // What I Have
+  basicLiteracy?: 'below-8th' | '8th-pass' | '10th-pass' | '12th-pass' | 'graduate';
+  skillProofVideo?: string;
+  qualityProofImage?: string;
+  hasWorkExperience?: boolean;
+  previousCompany?: string;
+  previousLocation?: string;
+  experienceMonths?: number;
+  machinesOperated?: string[];
+  
+  // What I Want
+  salaryFrequency?: 'weekly' | 'monthly';
+  advanceMonthsAvailable?: number;
+  advanceFrequency?: 'monthly' | 'quarterly' | 'half-yearly';
+  monthlySalary?: number;
+  pfDeduction?: number;
+  esicDeduction?: number;
+  inHandSalary?: number;
+  housingFacility?: boolean;
+  foodFacility?: boolean;
+  workHoursPerDay?: number;
+  overtimeAvailable?: boolean;
+  overtimePayMultiplier?: number;
+  gradeUpgradation?: boolean;
+  factoryTrustScore?: number;
+  
+  // Legacy and metadata fields
+  interestedRole?: string;
+  interestedIndustry?: string;
+  experience: Experience[];
+  skills: string[];
+  certificates: Certificate[];
+  assessmentScores?: AssessmentScore[];
+  documentVerificationStatus?: DocumentVerification[];
+  createdAt: string;
+  isActive: boolean;
+  profileImage?: string;
+  nickname?: string;
+}
+
+export interface AssessmentScore {
+  id: string;
+  assessmentType: string;
+  score: number;
+  maxScore: number;
+  completedAt: string;
+  isVerified: boolean;
+}
+
+export interface DocumentVerification {
+  id: string;
+  documentType: string;
+  isVerified: boolean;
+  verifiedAt?: string;
+  trustScore: number;
+}
+
+export interface Experience {
+  id: string;
+  designation: string;
+  company: string;
+  location: string;
+  duration: string;
+  workType: 'full-time' | 'part-time' | 'contract' | 'internship';
+  description: string;
+}
+
+export interface Certificate {
+  id: string;
+  name: string;
+  issuer: string;
+  issueDate: string;
+  isVerified: boolean;
+  documentUrl?: string;
+}
+
+export interface OrganizationProfile {
+  name: string;
+  address: string;
+  gstNumber: string;
+  logo?: string;
+  contactPersonName: string;
+  contactEmail: string;
+  contactPhone: string;
+  website?: string;
+  description: string;
+}
+
+export interface EmployerProfile {
+  id: string;
+  name: string;
+  address: string;
+  gstNumber: string;
+  logo?: string;
+  contactPersonName: string;
+  contactEmail: string;
+  contactPhone: string;
+  website?: string;
+  description: string;
+  createdAt: string;
+  isActive: boolean;
+}
+
+interface AuthContextType {
+  user: User | null;
+  login: (identifier: string, password: string, intendedRole?: 'individual' | 'organization') => Promise<void>;
+  register: (data: { email?: string; phone?: string; name?: string; password?: string; role: 'individual' | 'organization'; callbackURL?: string }) => Promise<void>;
+  // verifyOTP: (otp: string) => Promise<void>; // Commented out for magic link verification
+  logout: () => void;
+  updateProfile: (profile: UserProfile | OrganizationProfile) => void;
+  addEmployer: (employer: Omit<EmployerProfile, 'id' | 'createdAt'>) => void;
+  updateEmployer: (employerId: string, employer: Partial<EmployerProfile>) => void;
+  deleteEmployer: (employerId: string) => void;
+  selectEmployer: (employerId: string) => void;
+  getSelectedEmployer: () => EmployerProfile | null;
+  addCandidate: (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>) => void;
+  updateCandidate: (candidateId: string, candidate: Partial<CandidateProfile>) => void;
+  deleteCandidate: (candidateId: string) => void;
+  selectCandidate: (candidateId: string) => void;
+  getSelectedCandidate: () => CandidateProfile | null;
+  isLoading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Check for existing session with backend
+    const checkSession = async () => {
+      try {
+        const sessionData = await apiClient.getSession() as SessionResponse;
+        if (sessionData.user && sessionData.session) {
+          const backendUser = sessionData.user;
+          
+          // Transform backend user to our User interface
+          const transformedUser: User = {
+            id: backendUser.id,
+            email: backendUser.email,
+            name: backendUser.name,
+            role: 'organization', // Default role, can be updated based on user data
+            isVerified: backendUser.emailVerified,
+            emailVerified: backendUser.emailVerified,
+            image: backendUser.image,
+            createdAt: backendUser.createdAt,
+            updatedAt: backendUser.updatedAt,
+            managedEmployers: [],
+            selectedEmployerId: undefined,
+            managedCandidates: [],
+            selectedCandidateId: undefined
+          };
+
+          // Check for saved local data and merge
+          const savedUser = localStorage.getItem('user');
+          if (savedUser) {
+            const parsedUser = JSON.parse(savedUser);
+            
+            // Merge local profile data with backend user
+            transformedUser.profile = parsedUser.profile;
+            transformedUser.managedEmployers = parsedUser.managedEmployers || [];
+            transformedUser.selectedEmployerId = parsedUser.selectedEmployerId;
+            transformedUser.managedCandidates = parsedUser.managedCandidates || [];
+            transformedUser.selectedCandidateId = parsedUser.selectedCandidateId;
+            transformedUser.role = parsedUser.role || 'organization';
+          }
+          
+          // Handle backward compatibility - create default employer if none exists but org profile exists
+          if (transformedUser.profile && transformedUser.role === 'organization' && transformedUser.managedEmployers.length === 0) {
+            const defaultEmployer = createDefaultEmployerFromProfile(transformedUser.profile as OrganizationProfile);
+            transformedUser.managedEmployers = [defaultEmployer];
+            transformedUser.selectedEmployerId = defaultEmployer.id;
+          }
+          
+          // Handle backward compatibility - create default candidate if none exists but user profile exists
+          if (transformedUser.profile && transformedUser.role === 'individual' && transformedUser.managedCandidates.length === 0) {
+            const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
+            transformedUser.managedCandidates = [defaultCandidate];
+            transformedUser.selectedCandidateId = defaultCandidate.id;
+          }
+          
+          localStorage.setItem('user', JSON.stringify(transformedUser));
+          setUser(transformedUser);
+        } else {
+          // No valid session, check localStorage for fallback (development mode)
+          const savedUser = localStorage.getItem('user');
+          if (savedUser) {
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+          }
+        }
+      } catch (error) {
+        console.log('No active session found');
+        // Clear any invalid session data
+        localStorage.removeItem('user');
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  const createDefaultEmployerFromProfile = (orgProfile: OrganizationProfile): EmployerProfile => {
+    return {
+      id: 'default-employer',
+      name: orgProfile.name,
+      address: orgProfile.address,
+      gstNumber: orgProfile.gstNumber,
+      logo: orgProfile.logo,
+      contactPersonName: orgProfile.contactPersonName,
+      contactEmail: orgProfile.contactEmail,
+      contactPhone: orgProfile.contactPhone,
+      website: orgProfile.website,
+      description: orgProfile.description,
+      createdAt: new Date().toISOString(),
+      isActive: true
+    };
+  };
+
+  const createDefaultCandidateFromProfile = (userProfile: UserProfile): CandidateProfile => {
+    return {
+      id: 'default-candidate',
+      name: userProfile.name,
+      age: userProfile.age,
+      isNameVerified: userProfile.isNameVerified,
+      isAgeVerified: userProfile.isAgeVerified,
+      currentLocation: userProfile.currentLocation,
+      desiredLocation: userProfile.desiredLocation,
+      interestedRole: userProfile.interestedRole,
+      interestedIndustry: userProfile.interestedIndustry,
+      experience: userProfile.experience,
+      skills: userProfile.skills,
+      certificates: userProfile.certificates,
+      assessmentScores: userProfile.assessmentScores,
+      documentVerificationStatus: userProfile.documentVerificationStatus,
+      createdAt: new Date().toISOString(),
+      isActive: true,
+      nickname: 'Main Profile'
+    };
+  };
+
+  const login = async (identifier: string, password: string, intendedRole?: 'individual' | 'organization') => {
+    setIsLoading(true);
+    try {
+      // Determine if identifier is email or phone
+      const isEmail = identifier.includes('@');
+      
+      if (isEmail) {
+        const authResponse = await apiClient.signIn({
+          email: identifier,
+          password: password
+        }) as AuthResponse;
+        
+        const backendUser = authResponse.user;
+        
+        // Transform backend user to our User interface
+        const transformedUser: User = {
+          id: backendUser.id,
+          email: backendUser.email,
+          name: backendUser.name,
+          role: intendedRole || 'organization',
+          isVerified: backendUser.emailVerified,
+          emailVerified: backendUser.emailVerified,
+          image: backendUser.image,
+          createdAt: backendUser.createdAt,
+          updatedAt: backendUser.updatedAt,
+          managedEmployers: [],
+          selectedEmployerId: undefined,
+          managedCandidates: [],
+          selectedCandidateId: undefined
+        };
+        
+        setUser(transformedUser);
+        localStorage.setItem('user', JSON.stringify(transformedUser));
+      } else {
+        // Phone login not implemented in backend yet, fallback to mock
+        throw new Error('Phone login not yet supported. Please use email.');
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (data: { email?: string; phone?: string; name?: string; password?: string; role: 'individual' | 'organization'; callbackURL?: string }) => {
+    setIsLoading(true);
+    try {
+      if (data.email && data.password && data.name) {
+        const signUpResponse = await apiClient.signUp({
+          email: data.email,
+          name: data.name,
+          password: data.password,
+          callbackURL: data.callbackURL
+        }) as SignUpResponse;
+        
+        const backendUser = signUpResponse.user;
+        
+        // Transform backend user to our User interface
+        const transformedUser: User = {
+          id: backendUser.id,
+          email: backendUser.email,
+          name: backendUser.name,
+          role: data.role,
+          isVerified: backendUser.emailVerified,
+          emailVerified: backendUser.emailVerified,
+          image: backendUser.image,
+          createdAt: backendUser.createdAt,
+          updatedAt: backendUser.updatedAt,
+          managedEmployers: [],
+          selectedEmployerId: undefined,
+          managedCandidates: [],
+          selectedCandidateId: undefined
+        };
+        
+        // Store user data but don't set as current user until email is verified
+        localStorage.setItem('pendingUser', JSON.stringify(transformedUser));
+        
+        // If already verified (e.g., in development), set as current user
+        if (backendUser.emailVerified) {
+          setUser(transformedUser);
+          localStorage.setItem('user', JSON.stringify(transformedUser));
+        }
+      } else if (data.phone) {
+        // Phone registration not implemented in backend yet
+        throw new Error('Phone registration not yet supported. Please use email.');
+      } else {
+        throw new Error('Email, name and password are required for registration.');
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // OTP verification commented out for magic link verification
+  // const verifyOTP = async (otp: string) => {
+  //   setIsLoading(true);
+  //   // Mock OTP verification
+  //   await new Promise(resolve => setTimeout(resolve, 1000));
+  //   
+  //   if (otp === '123456') {
+  //     const pendingUser = localStorage.getItem('pendingUser');
+  //     if (pendingUser) {
+  //       const verifiedUser = { ...JSON.parse(pendingUser), isVerified: true };
+  //       setUser(verifiedUser);
+  //       localStorage.setItem('user', JSON.stringify(verifiedUser));
+  //       localStorage.removeItem('pendingUser');
+  //     }
+  //   } else {
+  //     throw new Error('Invalid OTP');
+  //   }
+  //   setIsLoading(false);
+  // };
+
+  const logout = async () => {
+    try {
+      await apiClient.signOut();
+    } catch (error) {
+      console.log('Logout error:', error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('pendingUser');
+    }
+  };
+
+  const updateProfile = (profile: UserProfile | OrganizationProfile) => {
+    if (user) {
+      const updatedUser = { ...user, profile };
+      
+      // If this is an organization profile, create/update default employer
+      if (user.role === 'organization') {
+        const orgProfile = profile as OrganizationProfile;
+        const defaultEmployer = createDefaultEmployerFromProfile(orgProfile);
+        
+        // Check if default employer already exists
+        const existingDefaultIndex = updatedUser.managedEmployers.findIndex(emp => emp.id === 'default-employer');
+        
+        if (existingDefaultIndex >= 0) {
+          // Update existing default employer
+          updatedUser.managedEmployers[existingDefaultIndex] = defaultEmployer;
+        } else {
+          // Add new default employer at the beginning
+          updatedUser.managedEmployers = [defaultEmployer, ...updatedUser.managedEmployers];
+        }
+        
+        // Set as selected if no employer is currently selected
+        if (!updatedUser.selectedEmployerId) {
+          updatedUser.selectedEmployerId = defaultEmployer.id;
+        }
+      }
+      
+      // If this is an individual profile, create/update default candidate
+      if (user.role === 'individual') {
+        const userProfile = profile as UserProfile;
+        const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
+        
+        // Check if default candidate already exists
+        const existingDefaultIndex = updatedUser.managedCandidates.findIndex(cand => cand.id === 'default-candidate');
+        
+        if (existingDefaultIndex >= 0) {
+          // Update existing default candidate
+          updatedUser.managedCandidates[existingDefaultIndex] = defaultCandidate;
+        } else {
+          // Add new default candidate at the beginning
+          updatedUser.managedCandidates = [defaultCandidate, ...updatedUser.managedCandidates];
+        }
+        
+        // Set as selected if no candidate is currently selected
+        if (!updatedUser.selectedCandidateId) {
+          updatedUser.selectedCandidateId = defaultCandidate.id;
+        }
+      }
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const addEmployer = (employer: Omit<EmployerProfile, 'id' | 'createdAt'>) => {
+    if (user) {
+      const newEmployer: EmployerProfile = {
+        ...employer,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        isActive: true
+      };
+      
+      const updatedUser = {
+        ...user,
+        managedEmployers: [...user.managedEmployers, newEmployer],
+        selectedEmployerId: user.selectedEmployerId || newEmployer.id
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const updateEmployer = (employerId: string, employerUpdate: Partial<EmployerProfile>) => {
+    if (user) {
+      const updatedEmployers = user.managedEmployers.map(emp => 
+        emp.id === employerId ? { ...emp, ...employerUpdate } : emp
+      );
+      
+      const updatedUser = { ...user, managedEmployers: updatedEmployers };
+      
+      // If updating the default employer, also update the organization profile
+      if (employerId === 'default-employer' && user.profile && user.role === 'organization') {
+        const updatedEmployer = updatedEmployers.find(emp => emp.id === 'default-employer');
+        if (updatedEmployer) {
+          const updatedOrgProfile: OrganizationProfile = {
+            ...user.profile as OrganizationProfile,
+            name: updatedEmployer.name,
+            address: updatedEmployer.address,
+            gstNumber: updatedEmployer.gstNumber,
+            logo: updatedEmployer.logo,
+            contactPersonName: updatedEmployer.contactPersonName,
+            contactEmail: updatedEmployer.contactEmail,
+            contactPhone: updatedEmployer.contactPhone,
+            website: updatedEmployer.website,
+            description: updatedEmployer.description
+          };
+          updatedUser.profile = updatedOrgProfile;
+        }
+      }
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const deleteEmployer = (employerId: string) => {
+    if (user) {
+      // Prevent deletion of default employer
+      if (employerId === 'default-employer') {
+        return;
+      }
+      
+      const updatedEmployers = user.managedEmployers.filter(emp => emp.id !== employerId);
+      const updatedUser = {
+        ...user,
+        managedEmployers: updatedEmployers,
+        selectedEmployerId: user.selectedEmployerId === employerId 
+          ? (updatedEmployers.length > 0 ? updatedEmployers[0].id : undefined)
+          : user.selectedEmployerId
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const selectEmployer = (employerId: string) => {
+    if (user) {
+      const updatedUser = { ...user, selectedEmployerId: employerId };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const getSelectedEmployer = (): EmployerProfile | null => {
+    if (user && user.selectedEmployerId) {
+      return user.managedEmployers.find(emp => emp.id === user.selectedEmployerId) || null;
+    }
+    return null;
+  };
+
+  const addCandidate = (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>) => {
+    if (user) {
+      const newCandidate: CandidateProfile = {
+        ...candidate,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        isActive: true
+      };
+      
+      const updatedUser = {
+        ...user,
+        managedCandidates: [...user.managedCandidates, newCandidate],
+        selectedCandidateId: user.selectedCandidateId || newCandidate.id
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const updateCandidate = (candidateId: string, candidateUpdate: Partial<CandidateProfile>) => {
+    if (user) {
+      const updatedCandidates = user.managedCandidates.map(cand => 
+        cand.id === candidateId ? { ...cand, ...candidateUpdate } : cand
+      );
+      
+      const updatedUser = { ...user, managedCandidates: updatedCandidates };
+      
+      // If updating the default candidate, also update the user profile
+      if (candidateId === 'default-candidate' && user.profile && user.role === 'individual') {
+        const updatedCandidate = updatedCandidates.find(cand => cand.id === 'default-candidate');
+        if (updatedCandidate) {
+          const updatedUserProfile: UserProfile = {
+            ...user.profile as UserProfile,
+            name: updatedCandidate.name,
+            age: updatedCandidate.age,
+            isNameVerified: updatedCandidate.isNameVerified,
+            isAgeVerified: updatedCandidate.isAgeVerified,
+            currentLocation: updatedCandidate.currentLocation,
+            desiredLocation: updatedCandidate.desiredLocation,
+            interestedRole: updatedCandidate.interestedRole,
+            interestedIndustry: updatedCandidate.interestedIndustry,
+            experience: updatedCandidate.experience,
+            skills: updatedCandidate.skills,
+            certificates: updatedCandidate.certificates,
+            assessmentScores: updatedCandidate.assessmentScores,
+            documentVerificationStatus: updatedCandidate.documentVerificationStatus
+          };
+          updatedUser.profile = updatedUserProfile;
+        }
+      }
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const deleteCandidate = (candidateId: string) => {
+    if (user) {
+      // Prevent deletion of default candidate
+      if (candidateId === 'default-candidate') {
+        return;
+      }
+      
+      const updatedCandidates = user.managedCandidates.filter(cand => cand.id !== candidateId);
+      const updatedUser = {
+        ...user,
+        managedCandidates: updatedCandidates,
+        selectedCandidateId: user.selectedCandidateId === candidateId 
+          ? (updatedCandidates.length > 0 ? updatedCandidates[0].id : undefined)
+          : user.selectedCandidateId
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const selectCandidate = (candidateId: string) => {
+    if (user) {
+      const updatedUser = { ...user, selectedCandidateId: candidateId };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const getSelectedCandidate = (): CandidateProfile | null => {
+    if (user && user.selectedCandidateId) {
+      return user.managedCandidates.find(cand => cand.id === user.selectedCandidateId) || null;
+    }
+    return null;
+  };
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      login,
+      register,
+      // verifyOTP, // Commented out for magic link verification
+      logout,
+      updateProfile,
+      addEmployer,
+      updateEmployer,
+      deleteEmployer,
+      selectEmployer,
+      getSelectedEmployer,
+      addCandidate,
+      updateCandidate,
+      deleteCandidate,
+      selectCandidate,
+      getSelectedCandidate,
+      isLoading
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};

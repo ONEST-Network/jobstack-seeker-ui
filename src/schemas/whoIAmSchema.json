@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Who I Am - Basic Information",
+  "description": "Schema for basic personal information step",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Full Name",
+      "description": "Enter your full name",
+      "required": true,
+      "ui:widget": "text",
+      "ui:placeholder": "Enter your full name",
+      "ui:disabled": false,
+      "ui:verified": false,
+      "ui:verificationMessage": "✓ Verified from DigiLocker"
+    },
+    "dateOfBirth": {
+      "type": "string",
+      "title": "Date of Birth",
+      "description": "Your date of birth",
+      "format": "date",
+      "ui:widget": "date",
+      "ui:disabled": false,
+      "ui:verified": false,
+      "ui:verificationMessage": "✓ Verified from DigiLocker"
+    },
+    "age": {
+      "type": "integer",
+      "title": "Age",
+      "description": "Your age (auto-calculated from DOB)",
+      "minimum": 0,
+      "maximum": 120,
+      "ui:widget": "number",
+      "ui:placeholder": "Age (auto-calculated from DOB)",
+      "ui:disabled": false,
+      "ui:verified": false,
+      "ui:verificationMessage": "✓ Verified from DigiLocker"
+    },
+    "gender": {
+      "type": "string",
+      "title": "Gender",
+      "description": "Select your gender",
+      "enum": ["male", "female", "other"],
+      "enumNames": ["Male", "Female", "Other"],
+      "ui:widget": "select",
+      "ui:placeholder": "Select gender",
+      "ui:disabled": false,
+      "ui:verified": false,
+      "ui:verificationMessage": "✓ Verified from DigiLocker"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Phone Number",
+      "description": "Your contact phone number",
+      "pattern": "^[0-9]{10}$",
+      "ui:widget": "tel",
+      "ui:placeholder": "Enter phone number",
+      "ui:disabled": false,
+      "ui:verified": false
+    },
+    "hometown": {
+      "type": "string",
+      "title": "Hometown/Village",
+      "description": "Your hometown or village",
+      "ui:widget": "text",
+      "ui:placeholder": "Enter your hometown",
+      "ui:disabled": false,
+      "ui:verified": false,
+      "ui:verificationMessage": "✓ Verified from DigiLocker"
+    },
+    "aadharNumber": {
+      "type": "string",
+      "title": "Aadhar Number",
+      "description": "Your 12-digit Aadhar number",
+      "pattern": "^[0-9]{12}$",
+      "minLength": 12,
+      "maxLength": 12,
+      "ui:widget": "number",
+      "ui:placeholder": "Enter 12-digit Aadhar number",
+      "ui:disabled": false,
+      "ui:verified": false,
+      "ui:verificationMessage": "✓ Verified from DigiLocker",
+      "ui:masked": true
+    },
+    "currentLocation": {
+      "type": "string",
+      "title": "Current Location",
+      "description": "Your current location",
+      "ui:widget": "text",
+      "ui:placeholder": "Enter your current location",
+      "ui:disabled": false,
+      "ui:hasLocationButton": true
+    },
+    "desiredLocation": {
+      "type": "string",
+      "title": "Preferred Work Location",
+      "description": "Where would you like to work?",
+      "ui:widget": "text",
+      "ui:placeholder": "Where would you like to work?",
+      "ui:disabled": false
+    }
+  },
+  "required": ["name"],
+  "ui": {
+    "order": [
+      "name",
+      "dateOfBirth",
+      "age",
+      "gender",
+      "phone",
+      "hometown",
+      "aadharNumber",
+      "currentLocation",
+      "desiredLocation"
+    ],
+    "description": "Enter your basic details or import from DigiLocker for quick setup",
+    "showDigiLocker": true,
+    "digiLockerConfig": {
+      "title": "Quick Import from DigiLocker",
+      "description": "Import verified documents to auto-fill your profile information",
+      "buttonText": "Import from DigiLocker",
+      "footerText": "This will import your AADHAAR, name, date of birth and other verified details"
+    }
+  }
+} 

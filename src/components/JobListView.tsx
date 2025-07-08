@@ -1,0 +1,324 @@
+import React, { useState, useEffect } from 'react';
+import JobApplicationDialog from './JobApplicationDialog';
+import JobDetailDialog from './job-search/JobDetailDialog';
+import JobCard from './job-search/JobCard';
+import JobCardSkeleton from '@/components/ui/job-card-skeleton';
+import { LoadingMessage, EmptyState } from '@/components/ui/loading-states';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RefreshCw, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { useJobSearch, JobItem, LoadingState } from '@/hooks/useJobSearch';
+import { useJobApplication, JobApplicationData } from '@/hooks/useJobApplication';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface JobListViewProps {
+  searchQuery: string;
+  onPromptLogin?: () => void;
+}
+
+const JobListView: React.FC<JobListViewProps> = ({
+  searchQuery,
+  onPromptLogin
+}) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
+  const [detailJob, setDetailJob] = useState<JobItem | null>(null);
+  const { user } = useAuth();
+  
+  const { 
+    jobs, 
+    loading, 
+    loadingState,
+    error, 
+    pagination, 
+    refetch, 
+    retryCount, 
+    findProviderAndJobIds,
+    isInitialLoad,
+    lastFetchTime
+  } = useJobSearch();
+  const { applyToJob, applying } = useJobApplication();
+
+  // Filter jobs based on search query
+  const filteredJobs = (jobs || []).filter(job => 
+    job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.industry?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Pagination logic
+  const jobsPerPage = 5;
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+  const startIndex = (currentPage - 1) * jobsPerPage;
+  const paginatedJobs = filteredJobs.slice(startIndex, startIndex + jobsPerPage);
+
+  const handleApply = (job: JobItem) => {
+    if (!user) {
+      onPromptLogin?.();
+      return;
+    }
+    setSelectedJob(job);
+  };
+
+  const handleJobApplicationSubmit = async (applicationData: JobApplicationData) => {
+    if (!selectedJob) return;
+
+    // Find provider and job IDs from the original API response
+    const ids = findProviderAndJobIds(selectedJob.id);
+    if (!ids) {
+      console.error('Could not find provider and job IDs for job:', selectedJob.id);
+      return;
+    }
+
+    const result = await applyToJob(ids.jobId, ids.providerId, applicationData);
+    
+    if (result.success) {
+      // Close the application dialog on success
+      setSelectedJob(null);
+    }
+  };
+
+  const handleRetry = () => {
+    refetch(true); // Force refresh
+  };
+
+  const handleRefresh = () => {
+    refetch(true); // Force refresh
+  };
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Helper function to format last fetch time
+  const formatLastFetchTime = () => {
+    if (!lastFetchTime) return null;
+    const now = Date.now();
+    const diff = now - lastFetchTime;
+    const minutes = Math.floor(diff / 60000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes === 1) return '1 minute ago';
+    if (minutes < 60) return `${minutes} minutes ago`;
+    
+    const hours = Math.floor(minutes / 60);
+    if (hours === 1) return '1 hour ago';
+    return `${hours} hours ago`;
+  };
+
+  return (
+    <div className="p-6 space-y-8 bg-background min-h-screen">
+      <div className="space-y-4">
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-2xl font-bold text-foreground">Jobs for You</h2>
+            {!loading && jobs.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRefresh}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Refresh
+                </Button>
+                {lastFetchTime && (
+                  <span className="text-xs text-muted-foreground">
+                    Last updated: {formatLastFetchTime()}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          {!loading && (
+            <p className="text-sm text-muted-foreground">
+              {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''} found
+              {searchQuery && ` for "${searchQuery}"`}
+            </p>
+          )}
+        </div>
+
+        {/* Error State */}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <div>
+                <span>{error}</span>
+                {retryCount > 0 && (
+                  <p className="text-xs mt-1">
+                    Retried {retryCount} time{retryCount !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRetry}
+                className="ml-4"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {/* Loading State */}
+        {loading && (
+          <div className="space-y-4">
+            <LoadingMessage 
+              loadingState={loadingState}
+              retryCount={retryCount}
+              onRetry={handleRetry}
+            />
+
+            {/* Show existing jobs if available during refresh */}
+            {!isInitialLoad && jobs.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Showing cached results while refreshing...
+                </p>
+                <div className="space-y-4">
+                  {paginatedJobs.map(job => (
+                    <JobCard 
+                      key={job.id} 
+                      job={job} 
+                      onApply={handleApply} 
+                      onViewDetails={setDetailJob} 
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Loading skeletons */}
+            {isInitialLoad && (
+              <div className="space-y-4">
+                {Array.from({ length: 3 }, (_, i) => (
+                  <JobCardSkeleton key={i} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Jobs List */}
+        {!loading && !error && (
+          <>
+            <div className="space-y-4">
+              {paginatedJobs.length > 0 ? (
+                paginatedJobs.map(job => (
+                  <JobCard 
+                    key={job.id} 
+                    job={job} 
+                    onApply={handleApply} 
+                    onViewDetails={setDetailJob} 
+                  />
+                ))
+              ) : (
+                <EmptyState
+                  title={
+                    searchQuery 
+                      ? `No jobs found for "${searchQuery}"`
+                      : jobs.length === 0 
+                        ? 'Unable to load jobs'
+                        : 'No matching jobs'
+                  }
+                  description={
+                    searchQuery 
+                      ? 'Try adjusting your search terms or browse all available jobs.'
+                      : jobs.length === 0 
+                        ? 'There was an issue connecting to the job database. Please try again.'
+                        : 'No jobs match your current search criteria.'
+                  }
+                  icon={
+                    jobs.length === 0 ? (
+                      <WifiOff className="h-12 w-12 text-muted-foreground" />
+                    ) : (
+                      <Wifi className="h-12 w-12 text-muted-foreground" />
+                    )
+                  }
+                  action={
+                    jobs.length === 0 ? {
+                      label: 'Try again',
+                      onClick: handleRetry
+                    } : searchQuery ? {
+                      label: 'Clear search',
+                      onClick: () => window.location.reload()
+                    } : undefined
+                  }
+                />
+              )}
+            </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center pt-8">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} 
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} 
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <PaginationItem key={page}>
+                        <PaginationLink 
+                          onClick={() => setCurrentPage(page)} 
+                          isActive={currentPage === page} 
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} 
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} 
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Job Application Dialog */}
+      {selectedJob && (
+        <JobApplicationDialog 
+          job={selectedJob} 
+          isOpen={!!selectedJob} 
+          onClose={() => setSelectedJob(null)}
+          onSubmit={handleJobApplicationSubmit}
+          applying={applying}
+        />
+      )}
+
+      {/* Job Detail Dialog */}
+      {detailJob && (
+        <JobDetailDialog 
+          job={detailJob} 
+          isOpen={!!detailJob} 
+          onClose={() => setDetailJob(null)} 
+          onApply={job => {
+            setDetailJob(null);
+            setSelectedJob(job);
+          }} 
+        />
+      )}
+    </div>
+  );
+};
+
+export default JobListView;
