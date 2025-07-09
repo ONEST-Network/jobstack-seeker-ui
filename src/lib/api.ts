@@ -29,6 +29,13 @@ class ApiClient {
       ...options,
     };
 
+    console.log('🌐 API Request:', {
+      url,
+      method: config.method,
+      endpoint,
+      hasBody: !!config.body
+    });
+
     const response = await fetch(url, config);
     
     if (!response.ok) {
@@ -91,6 +98,93 @@ class ApiClient {
     return this.request('/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  // Profile creation method
+  async createProfile(profileData: {
+    type: string;
+    metadata: {
+      notes?: string;
+      role?: string;
+      industry?: string;
+      [key: string]: any;
+    };
+    location: {
+      tag: string;
+      address: string;
+      city: string;
+      state: string;
+      country: string;
+      gps?: {
+        lat: number;
+        lng: number;
+      };
+    };
+    contact: {
+      tag: string;
+      email: string;
+      phoneNumber: string[];
+      website?: string[];
+    };
+  }) {
+    return this.request('/profile/', {
+      method: 'POST',
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  // Profile fetching method
+  async getProfile(): Promise<ProfileResponse> {
+    return this.request('/profile', {
+      method: 'GET',
+    });
+  }
+
+  // Profile update method
+  async updateProfile(profileId: string, profileData: {
+    type: string;
+    metadata: {
+      notes?: string;
+      role?: string;
+      industry?: string;
+      [key: string]: any;
+    };
+    location?: {
+      tag: string;
+      address: string;
+      city: string;
+      state: string;
+      country: string;
+      gps?: {
+        lat: number;
+        lng: number;
+      };
+    };
+    contact?: {
+      tag: string;
+      email: string;
+      phoneNumber: string[];
+      website?: string[];
+    };
+  }) {
+    console.log('🔧 updateProfile called with:', {
+      profileId,
+      method: 'PUT',
+      endpoint: `/profile/${profileId}`,
+      profileData
+    });
+    
+    return this.request(`/profile/${profileId}`, {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  // Get all profiles for the user
+  async getProfiles(): Promise<ProfilesResponse> {
+    return this.request('/profile', {
+      method: 'GET',
     });
   }
 
@@ -325,6 +419,102 @@ class ApiClient {
   }
 }
 
+// Utility function to transform profile data for API
+export const transformProfileForAPI = (profile: any, userEmail?: string) => {
+  // Extract location information - check both legacy and nested structures
+  const currentLocation = profile.currentLocation || profile.whoIAm?.location || '';
+  const locationParts = currentLocation?.split(', ') || [];
+  const city = locationParts[0] || '';
+  const state = locationParts[1] || '';
+  
+  // Extract phone number - check both legacy and nested structures
+  const phoneNumber = (profile.phone || profile.whoIAm?.phone) ? [profile.phone || profile.whoIAm?.phone] : [];
+  
+  // Use user email if available, otherwise use profile email or a placeholder
+  const email = userEmail || profile.email || 'user@jobbridge.in';
+  
+  // Get name from both legacy and nested structures
+  const name = profile.name || profile.whoIAm?.name;
+  
+  // Build metadata object with all profile details
+  const metadata: Record<string, any> = {
+    notes: "Profile created via JobBridge platform",
+    role: profile.interestedRole,
+    industry: profile.interestedIndustry,
+    // Who I Am data
+    name: name,
+    dateOfBirth: profile.dateOfBirth || profile.whoIAm?.dateOfBirth,
+    age: profile.age || profile.whoIAm?.age,
+    gender: profile.gender || profile.whoIAm?.gender,
+    hometown: profile.hometown || profile.whoIAm?.hometown,
+    aadharNumber: profile.aadharNumber || profile.whoIAm?.aadharNumber,
+    // What I Have data
+    basicLiteracy: profile.basicLiteracy || profile.whatIHave?.basicLiteracy,
+    skillProofVideo: profile.skillProofVideo || profile.whatIHave?.skillProofVideo,
+    qualityProofImage: profile.qualityProofImage || profile.whatIHave?.qualityProofImage,
+    hasWorkExperience: profile.hasWorkExperience || profile.whatIHave?.hasWorkExperience,
+    previousCompany: profile.previousCompany || profile.whatIHave?.previousCompany,
+    previousLocation: profile.previousLocation || profile.whatIHave?.previousLocation,
+    experienceMonths: profile.experienceMonths || profile.whatIHave?.experienceMonths,
+    machinesOperated: profile.machinesOperated || profile.whatIHave?.machinesOperated,
+    // What I Want data
+    salaryFrequency: profile.salaryFrequency || profile.whatIWant?.salaryFrequency,
+    advanceMonthsAvailable: profile.advanceMonthsAvailable || profile.whatIWant?.advanceMonthsAvailable,
+    advanceFrequency: profile.advanceFrequency || profile.whatIWant?.advanceFrequency,
+    monthlySalary: profile.monthlySalary || profile.whatIWant?.monthlySalary,
+    pfDeduction: profile.pfDeduction || profile.whatIWant?.pfDeduction,
+    esicDeduction: profile.esicDeduction || profile.whatIWant?.esicDeduction,
+    inHandSalary: profile.inHandSalary || profile.whatIWant?.inHandSalary,
+    housingFacility: profile.housingFacility || profile.whatIWant?.housingFacility,
+    foodFacility: profile.foodFacility || profile.whatIWant?.foodFacility,
+    workHoursPerDay: profile.workHoursPerDay || profile.whatIWant?.workHoursPerDay,
+    overtimeAvailable: profile.overtimeAvailable || profile.whatIWant?.overtimeAvailable,
+    overtimePayMultiplier: profile.overtimePayMultiplier || profile.whatIWant?.overtimePayMultiplier,
+    gradeUpgradation: profile.gradeUpgradation || profile.whatIWant?.gradeUpgradation,
+    factoryTrustScore: profile.factoryTrustScore || profile.whatIWant?.factoryTrustScore,
+    // Legacy fields
+    experience: profile.experience,
+    skills: profile.skills,
+    certificates: profile.certificates,
+    // Unified schema data
+    whoIAm: profile.whoIAm,
+    whatIHave: profile.whatIHave,
+    whatIWant: profile.whatIWant,
+    // Education and certifications
+    education: profile.education,
+    skillCertifications: profile.skillCertifications,
+    workExperience: profile.workExperience,
+    // Verification status
+    isNameVerified: profile.isNameVerified,
+    isAgeVerified: profile.isAgeVerified,
+    isGenderVerified: profile.isGenderVerified,
+    isAadharVerified: profile.isAadharVerified,
+    isHometownVerified: profile.isHometownVerified,
+  };
+
+  return {
+    type: "personal",
+    metadata,
+    location: {
+      tag: "home",
+      address: currentLocation || "",
+      city: city,
+      state: state,
+      country: "India",
+      gps: {
+        lat: 19.0760, // Default to Mumbai coordinates
+        lng: 72.8777
+      }
+    },
+    contact: {
+      tag: "personal",
+      email: email,
+      phoneNumber: phoneNumber,
+      website: []
+    }
+  };
+};
+
 // Create a singleton instance
 export const apiClient = new ApiClient(API_BASE_URL);
 
@@ -387,4 +577,123 @@ export interface SessionResponse {
     createdAt: string;
     updatedAt: string;
   } | null;
+}
+
+export interface ProfileResponse {
+  data: {
+    id: string;
+    type: string;
+    metadata: {
+      notes?: string;
+      role?: string;
+      industry?: string;
+      name?: string;
+      dateOfBirth?: string;
+      age?: number;
+      gender?: string;
+      hometown?: string;
+      aadharNumber?: string;
+      basicLiteracy?: string;
+      skillProofVideo?: string;
+      qualityProofImage?: string;
+      hasWorkExperience?: boolean;
+      previousCompany?: string;
+      previousLocation?: string;
+      experienceMonths?: number;
+      machinesOperated?: string[];
+      salaryFrequency?: string;
+      advanceMonthsAvailable?: number;
+      advanceFrequency?: string;
+      monthlySalary?: number;
+      pfDeduction?: number;
+      esicDeduction?: number;
+      inHandSalary?: number;
+      housingFacility?: boolean;
+      foodFacility?: boolean;
+      workHoursPerDay?: number;
+      overtimeAvailable?: boolean;
+      overtimePayMultiplier?: number;
+      gradeUpgradation?: boolean;
+      factoryTrustScore?: number;
+      experience?: any[];
+      skills?: string[];
+      certificates?: any[];
+      assessmentScores?: any[];
+      documentVerificationStatus?: any[];
+      isNameVerified?: boolean;
+      isAgeVerified?: boolean;
+      desiredLocation?: string;
+      [key: string]: any;
+    };
+    location: {
+      tag: string;
+      address: string;
+      city: string;
+      state: string;
+      country: string;
+      gps?: {
+        lat: number;
+        lng: number;
+      };
+    };
+    contact: {
+      tag: string;
+      email: string;
+      phoneNumber: string[];
+      website?: string[];
+    };
+  };
+} 
+
+export interface ProfilesResponse {
+  statusCode: number;
+  message: string;
+  data: Array<{
+    id: string;
+    userId: string;
+    type: string;
+    metadata: {
+      name?: string;
+      role?: string;
+      industry?: string;
+      notes?: string;
+      skills?: string[];
+      whoIAm?: {
+        name?: string;
+        phone?: string;
+        location?: string;
+        [key: string]: any;
+      };
+      whatIHave?: {
+        age?: number;
+        qualityScore?: number;
+        stitchingSpeed?: number;
+        jukiMachineExperience?: string;
+        [key: string]: any;
+      };
+      whatIWant?: {
+        monthlyPFESIC?: string;
+        readyToMigrate?: string;
+        stayPreferences?: string;
+        workHoursPerDay?: number;
+        maxCostPerSharingBed?: number;
+        monthlyOTExpectation?: number;
+        monthlyInHandPreferred?: number;
+        [key: string]: any;
+      };
+      education?: any[];
+      experience?: any[];
+      certificates?: any[];
+      workExperience?: any[];
+      skillCertifications?: any[];
+      isAgeVerified?: boolean;
+      isNameVerified?: boolean;
+      isAadharVerified?: boolean;
+      isGenderVerified?: boolean;
+      isHometownVerified?: boolean;
+      [key: string]: any;
+    };
+    createdAt: string;
+    updatedAt: string;
+  }>;
 } 

@@ -39,6 +39,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   }
 
   const stepData = (profile[stepName as keyof typeof profile] as Record<string, any>) || {};
+  
   const setStepData = (newData: Record<string, any>) => {
     setProfile(prev => ({
       ...prev,
