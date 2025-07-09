@@ -12,12 +12,29 @@ interface UserMenuProps {
 
 const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
   const navigate = useNavigate();
-  const { user, logout, getSelectedCandidate } = useAuth();
+  const { user, logout, getSelectedCandidate, refreshProfileData } = useAuth();
   const selectedCandidate = getSelectedCandidate();
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
+  const [profileMode, setProfileMode] = useState<'add' | 'edit'>('add');
 
   const handleCompleteProfile = () => {
     if (user?.role === 'individual') {
+      setProfileMode('add');
+      setShowCompleteProfile(true);
+    } else if (user?.role === 'organization') {
+      // This will be handled by parent component
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    if (user?.role === 'individual') {
+      // Refresh profile data from API to ensure we have the latest data
+      try {
+        await refreshProfileData();
+      } catch (error) {
+        console.log('Error refreshing profile data:', error);
+      }
+      setProfileMode('edit');
       setShowCompleteProfile(true);
     } else if (user?.role === 'organization') {
       // This will be handled by parent component
@@ -45,6 +62,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
     );
   }
 
+  const hasProfileName =
+    (selectedCandidate && selectedCandidate.name) ||
+    (user.profile && user.profile.name);
+
   return (
     <>
       <DropdownMenu>
@@ -57,9 +78,13 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {(!user.profile || !user.profile.name) && (
+          {!hasProfileName ? (
             <DropdownMenuItem onClick={handleCompleteProfile}>
               Complete Profile
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onClick={handleUpdateProfile}>
+              Update Profile
             </DropdownMenuItem>
           )}
           {(user.role === 'individual' || !user.role) && (
@@ -95,7 +120,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
         <CandidateProfileDialog
           isOpen={showCompleteProfile}
           onClose={() => setShowCompleteProfile(false)}
-          mode="add"
+          mode={profileMode}
+          isUpdate={profileMode === 'edit'}
+          profileId={user.profileId}
         />
       )}
     </>

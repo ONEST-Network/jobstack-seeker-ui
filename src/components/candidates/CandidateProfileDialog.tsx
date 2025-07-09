@@ -9,20 +9,24 @@ interface CandidateProfileDialogProps {
   onClose: () => void;
   mode: 'add' | 'edit';
   candidateId?: string;
+  isUpdate?: boolean;
+  profileId?: string;
 }
 
 const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
   isOpen,
   onClose,
   mode,
-  candidateId
+  candidateId,
+  isUpdate,
+  profileId
 }) => {
-  const { user, addCandidate, updateCandidate } = useAuth();
+  const { user, addCandidate, updateCandidate, getSelectedCandidate } = useAuth();
   const { toast } = useToast();
 
   const existingCandidate = candidateId 
     ? user?.managedCandidates.find(c => c.id === candidateId)
-    : null;
+    : mode === 'edit' ? getSelectedCandidate() : null;
 
   const handleProfileComplete = (profileData: any) => {
     const candidateData: Omit<CandidateProfile, 'id' | 'createdAt'> = {
@@ -40,7 +44,19 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       assessmentScores: profileData.assessmentScores,
       documentVerificationStatus: profileData.documentVerificationStatus,
       isActive: true,
-      nickname: profileData.nickname || `${profileData.interestedRole || 'Profile'} - ${new Date().toLocaleDateString()}`
+      nickname: profileData.nickname || `${profileData.interestedRole || 'Profile'} - ${new Date().toLocaleDateString()}`,
+      // Unified schema data
+      whoIAm: profileData.whoIAm,
+      whatIHave: profileData.whatIHave,
+      whatIWant: profileData.whatIWant,
+      // Verification status
+      isGenderVerified: profileData.isGenderVerified || false,
+      isAadharVerified: profileData.isAadharVerified || false,
+      isHometownVerified: profileData.isHometownVerified || false,
+      // Education and certifications
+      education: profileData.education || [],
+      skillCertifications: profileData.skillCertifications || [],
+      workExperience: profileData.workExperience || [],
     };
 
     if (mode === 'add') {
@@ -49,12 +65,15 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
         title: "Profile Created",
         description: "New candidate profile has been created successfully."
       });
-    } else if (candidateId) {
-      updateCandidate(candidateId, candidateData);
-      toast({
-        title: "Profile Updated",
-        description: "Candidate profile has been updated successfully."
-      });
+    } else if (mode === 'edit') {
+      const candidateToUpdate = candidateId || existingCandidate?.id;
+      if (candidateToUpdate) {
+        updateCandidate(candidateToUpdate, candidateData);
+        toast({
+          title: "Profile Updated",
+          description: "Candidate profile has been updated successfully."
+        });
+      }
     }
 
     onClose();
@@ -62,25 +81,44 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
 
   // Convert candidate profile to user profile format for the dialog
   const getInitialProfile = () => {
-    if (!existingCandidate) return undefined;
+    // If we have an existing candidate, use that data
+    if (existingCandidate) {
+      return {
+        name: existingCandidate.name,
+        age: existingCandidate.age,
+        isNameVerified: existingCandidate.isNameVerified,
+        isAgeVerified: existingCandidate.isAgeVerified,
+        currentLocation: existingCandidate.currentLocation,
+        desiredLocation: existingCandidate.desiredLocation,
+        interestedRole: existingCandidate.interestedRole,
+        interestedIndustry: existingCandidate.interestedIndustry,
+        experience: existingCandidate.experience,
+        skills: existingCandidate.skills,
+        certificates: existingCandidate.certificates,
+        assessmentScores: existingCandidate.assessmentScores,
+        documentVerificationStatus: existingCandidate.documentVerificationStatus,
+        nickname: existingCandidate.nickname,
+        // Unified schema data
+        whoIAm: existingCandidate.whoIAm,
+        whatIHave: existingCandidate.whatIHave,
+        whatIWant: existingCandidate.whatIWant,
+        // Verification status
+        isGenderVerified: existingCandidate.isGenderVerified,
+        isAadharVerified: existingCandidate.isAadharVerified,
+        isHometownVerified: existingCandidate.isHometownVerified,
+        // Education and certifications
+        education: existingCandidate.education,
+        skillCertifications: existingCandidate.skillCertifications,
+        workExperience: existingCandidate.workExperience,
+      };
+    }
     
-    return {
-      name: existingCandidate.name,
-      age: existingCandidate.age,
-      isNameVerified: existingCandidate.isNameVerified,
-      isAgeVerified: existingCandidate.isAgeVerified,
-      currentLocation: existingCandidate.currentLocation,
-      desiredLocation: existingCandidate.desiredLocation,
-      interestedRole: existingCandidate.interestedRole,
-      interestedIndustry: existingCandidate.interestedIndustry,
-      experience: existingCandidate.experience,
-      skills: existingCandidate.skills,
-      certificates: existingCandidate.certificates,
-      assessmentScores: existingCandidate.assessmentScores,
-      documentVerificationStatus: existingCandidate.documentVerificationStatus,
-      nickname: existingCandidate.nickname
-    };
+
+    
+    return undefined;
   };
+
+
 
   return (
     <UserProfileDialog
@@ -89,6 +127,8 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       onComplete={handleProfileComplete}
       mode="candidate"
       initialProfile={getInitialProfile()}
+      isUpdate={isUpdate}
+      profileId={profileId}
     />
   );
 };

@@ -59,6 +59,10 @@ export const getUnifiedSchema = (role?: string): any => {
   if (role === 'Recruitment Associate') {
     return recruitmentAssociateSchema;
   }
+  // For roles without specific schemas, fall back to Industrial Tailor
+  if (role === 'Field Sales Executive' || role === 'In Store Promoter') {
+    return industrialTailorSchema;
+  }
   return null;
 };
 

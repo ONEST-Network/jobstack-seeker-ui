@@ -48,7 +48,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
     try {
       await apiClient.forgotPassword({
         email,
-        callbackURL: `${window.location.origin}/seeker`
+        callbackURL: `${window.location.origin}/seeker?tab=discover`
       });
       setIsEmailSent(true);
       toast({

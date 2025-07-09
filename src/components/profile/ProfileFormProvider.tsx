@@ -97,13 +97,13 @@ export const ProfileFormProvider: React.FC<ProfileFormProviderProps> = ({
     isAadharVerified: false,
     isHometownVerified: false,
     
-    // Unified schema support - initialize as empty objects
-    whoIAm: {},
-    whatIHave: {},
-    whatIWant: {},
+    // Unified schema support - initialize with proper merging
+    whoIAm: initialProfile?.whoIAm || {},
+    whatIHave: initialProfile?.whatIHave || {},
+    whatIWant: initialProfile?.whatIWant || {},
     
-    // Apply initial profile if provided
-    ...initialProfile
+    // Apply initial profile if provided - ensure proper merging
+    ...(initialProfile || {})
   });
 
   const [newExperience, setNewExperience] = useState<Partial<Experience>>({
