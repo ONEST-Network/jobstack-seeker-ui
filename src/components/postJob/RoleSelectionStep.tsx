@@ -38,7 +38,7 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   // Priority roles to show at top
   const priorityRoles = [
     'Industrial Tailor',
-    'Warehouse Loader and Picker', 
+    'Warehouse Loader & Picker', 
     'Field Sales Executive',
     'In Store Promoter',
     'Recruitment Associate'

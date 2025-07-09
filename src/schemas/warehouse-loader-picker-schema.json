@@ -1,0 +1,314 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Warehouse Loader & Picker Profile Schema",
+  "description": "Complete profile schema for warehouse loader and picker role",
+  "type": "object",
+  "properties": {
+    "whoIAm": {
+      "type": "object",
+      "title": "Who I Am",
+      "description": "Basic personal information",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Full Name",
+          "description": "Enter your full name",
+          "required": true,
+          "ui:widget": "text",
+          "ui:placeholder": "Enter your full name",
+          "ui:disabled": false,
+          "ui:verified": false,
+          "ui:verificationMessage": "✓ Verified from DigiLocker"
+        },
+        "location": {
+          "type": "string",
+          "title": "Location",
+          "description": "Your current location",
+          "required": true,
+          "ui:widget": "text",
+          "ui:placeholder": "Enter your current location",
+          "ui:disabled": false,
+          "ui:hasLocationButton": true
+        },
+        "phone": {
+          "type": "string",
+          "title": "Phone Number",
+          "description": "Your contact phone number",
+          "required": true,
+          "pattern": "^[0-9]{10}$",
+          "ui:widget": "tel",
+          "ui:placeholder": "Enter phone number",
+          "ui:disabled": false,
+          "ui:verified": false
+        }
+      },
+      "required": ["name", "location", "phone"],
+      "ui": {
+        "order": ["name", "location", "phone"],
+        "description": "Enter your basic details or import from DigiLocker for quick setup",
+        "showDigiLocker": true,
+        "digiLockerConfig": {
+          "title": "Quick Import from DigiLocker",
+          "description": "Import verified documents to auto-fill your profile information",
+          "buttonText": "Import from DigiLocker",
+          "footerText": "This will import your AADHAAR, name, date of birth and other verified details"
+        }
+      }
+    },
+    "whatIHave": {
+      "type": "object",
+      "title": "What I Have",
+      "description": "Your qualifications, skills, and experience",
+      "properties": {
+        "age": {
+          "type": "integer",
+          "title": "Age",
+          "description": "Your age",
+          "required": true,
+          "minimum": 18,
+          "maximum": 65,
+          "ui:widget": "number",
+          "ui:placeholder": "Enter your age",
+          "ui:disabled": false
+        },
+        "warehouseExperience": {
+          "type": "string",
+          "title": "Worked in a warehouse or any high stamina needing role before",
+          "description": "Do you have experience working in warehouses or similar roles?",
+          "required": true,
+          "enum": ["Yes", "No"],
+          "enumNames": ["Yes", "No"],
+          "ui:widget": "select",
+          "ui:placeholder": "Select your experience",
+          "ui:disabled": false
+        },
+        "englishComprehension": {
+          "type": "string",
+          "title": "Can read and comprehend basic english words occuring on labels?",
+          "description": "Are you able to read and understand basic English words on labels?",
+          "required": true,
+          "enum": ["Yes", "No"],
+          "enumNames": ["Yes", "No"],
+          "ui:widget": "select",
+          "ui:placeholder": "Select your reading ability",
+          "ui:disabled": false
+        },
+        "physicallyFit": {
+          "type": "string",
+          "title": "Physically fit for the role?",
+          "description": "Are you physically fit for warehouse work?",
+          "required": true,
+          "enum": ["Yes", "No"],
+          "enumNames": ["Yes", "No"],
+          "ui:widget": "select",
+          "ui:placeholder": "Select your fitness level",
+          "ui:disabled": false
+        },
+        "additionalComments": {
+          "type": "string",
+          "title": "Additional comments",
+          "description": "Any additional information you'd like to share",
+          "ui:widget": "textarea",
+          "ui:placeholder": "Enter any additional comments",
+          "ui:disabled": false
+        },
+        "taskVideo": {
+          "type": "string",
+          "title": "Task Video",
+          "description": "Upload a video showing your work",
+          "ui:widget": "video-upload",
+          "ui:placeholder": "Upload video showing your work",
+          "ui:disabled": false
+        },
+        "qrCodeScan": {
+          "type": "string",
+          "title": "Scan QR code",
+          "description": "Scan QR code for additional information",
+          "ui:widget": "qr-scanner",
+          "ui:placeholder": "Scan QR code",
+          "ui:disabled": false
+        }
+      },
+      "required": ["age", "warehouseExperience", "englishComprehension", "physicallyFit"],
+      "ui": {
+        "order": [
+          "age",
+          "warehouseExperience",
+          "englishComprehension",
+          "physicallyFit",
+          "additionalComments",
+          "taskVideo",
+          "qrCodeScan"
+        ],
+        "description": "Add your qualifications, skills, and work history",
+        "sections": [
+          {
+            "title": "Basic Information",
+            "fields": ["age"]
+          },
+          {
+            "title": "Experience & Skills",
+            "fields": ["warehouseExperience", "englishComprehension", "physicallyFit", "additionalComments"]
+          },
+          {
+            "title": "Media & Verification",
+            "fields": ["taskVideo", "qrCodeScan"]
+          }
+        ]
+      }
+    },
+    "whatIWant": {
+      "type": "object",
+      "title": "What I Want",
+      "description": "Your salary expectations and work preferences",
+      "properties": {
+        "readyToMigrate": {
+          "type": "string",
+          "title": "Ready to migrate",
+          "description": "How far are you willing to migrate for work?",
+          "required": true,
+          "enum": [
+            "No - <= 50 kms",
+            "Yes - <=100 Kms",
+            "Yes <= 500 Kms",
+            "Yes - <= 1000 Kms",
+            "Yes - > 1000 Kms"
+          ],
+          "enumNames": [
+            "No - <= 50 kms",
+            "Yes - <=100 Kms",
+            "Yes <= 500 Kms",
+            "Yes - <= 1000 Kms",
+            "Yes - > 1000 Kms"
+          ],
+          "ui:widget": "select",
+          "ui:placeholder": "Select migration preference",
+          "ui:disabled": false
+        },
+        "workHoursPerDay": {
+          "type": "integer",
+          "title": "Number hours willing to work / day",
+          "description": "How many hours are you willing to work per day?",
+          "required": true,
+          "minimum": 1,
+          "maximum": 24,
+          "ui:widget": "number",
+          "ui:placeholder": "Enter hours per day",
+          "ui:disabled": false
+        },
+        "monthlyInHandPreferred": {
+          "type": "integer",
+          "title": "Monthly In-hand Preferred (INR)",
+          "description": "Your expected monthly in-hand salary in INR",
+          "required": true,
+          "minimum": 0,
+          "ui:widget": "number",
+          "ui:placeholder": "Enter expected monthly salary",
+          "ui:currency": "₹",
+          "ui:disabled": false
+        },
+        "monthlyOTExpectation": {
+          "type": "integer",
+          "title": "Monthly OT expectation (INR)",
+          "description": "Your expected monthly overtime earnings in INR",
+          "required": true,
+          "minimum": 0,
+          "ui:widget": "number",
+          "ui:placeholder": "Enter expected monthly OT earnings",
+          "ui:currency": "₹",
+          "ui:disabled": false
+        },
+        "monthlyPFESIC": {
+          "type": "string",
+          "title": "Monthly PF & ESIC",
+          "description": "Do you want PF & ESIC deductions?",
+          "required": true,
+          "enum": ["Yes", "No"],
+          "enumNames": ["Yes", "No"],
+          "ui:widget": "select",
+          "ui:placeholder": "Select PF & ESIC preference",
+          "ui:disabled": false
+        },
+        "stayPreferences": {
+          "type": "string",
+          "title": "Stay Preferences",
+          "description": "What type of accommodation do you prefer?",
+          "required": true,
+          "enum": ["No preferences", "Free-Provided", "Paid-Provided"],
+          "enumNames": ["No preferences", "Free-Provided", "Paid-Provided"],
+          "ui:widget": "select",
+          "ui:placeholder": "Select stay preference",
+          "ui:disabled": false
+        },
+        "maxCostPerSharingBed": {
+          "type": "integer",
+          "title": "Max Cost per sharing bed, willing to spend",
+          "description": "Maximum amount you're willing to spend on shared accommodation",
+          "required": true,
+          "minimum": 0,
+          "ui:widget": "number",
+          "ui:placeholder": "Enter maximum cost for shared accommodation",
+          "ui:currency": "₹",
+          "ui:disabled": false
+        }
+      },
+      "required": [
+        "readyToMigrate",
+        "workHoursPerDay",
+        "monthlyInHandPreferred",
+        "monthlyOTExpectation",
+        "monthlyPFESIC",
+        "stayPreferences",
+        "maxCostPerSharingBed"
+      ],
+      "ui": {
+        "order": [
+          "readyToMigrate",
+          "workHoursPerDay",
+          "monthlyInHandPreferred",
+          "monthlyOTExpectation",
+          "monthlyPFESIC",
+          "stayPreferences",
+          "maxCostPerSharingBed"
+        ],
+        "description": "Tell us about your salary expectations and work preferences",
+        "sections": [
+          {
+            "title": "Migration & Work Preferences",
+            "fields": ["readyToMigrate", "workHoursPerDay"]
+          },
+          {
+            "title": "Salary Expectations",
+            "fields": ["monthlyInHandPreferred", "monthlyOTExpectation", "monthlyPFESIC"]
+          },
+          {
+            "title": "Accommodation Preferences",
+            "fields": ["stayPreferences", "maxCostPerSharingBed"]
+          }
+        ]
+      }
+    }
+  },
+  "ui": {
+    "steps": [
+      {
+        "id": "whoIAm",
+        "title": "Who I Am",
+        "description": "Basic personal information",
+        "icon": "User"
+      },
+      {
+        "id": "whatIHave",
+        "title": "What I Have",
+        "description": "Qualifications, skills, and experience",
+        "icon": "Briefcase"
+      },
+      {
+        "id": "whatIWant",
+        "title": "What I Want",
+        "description": "Salary expectations and preferences",
+        "icon": "Target"
+      }
+    ]
+  }
+} 

@@ -1,32 +1,22 @@
 {
   "jobRoles": {
     "Industrial Tailor": {
-      "whatIHaveSchemaFile": "whatIHave-industrial-tailor.json",
-      "whatIWantSchemaFile": "whatIWant-industrial-tailor.json",
       "industry": "Textile Industry",
       "description": "Manufacturing and garment industry positions"
     },
-    "Warehouse Loader and Picker": {
-      "whatIHaveSchemaFile": "whatIHave-warehouse-loader-picker.json",
-      "whatIWantSchemaFile": "whatIWant-warehouse-loader-picker.json",
+    "Warehouse Loader & Picker": {
       "industry": "Warehousing Industry",
       "description": "Logistics and warehouse operations"
     },
     "Field Sales Executive": {
-      "whatIHaveSchemaFile": "whatIHave-field-sales-executive.json",
-      "whatIWantSchemaFile": "whatIWant-field-sales-executive.json",
       "industry": "Sales",
       "description": "Sales and business development roles"
     },
     "In Store Promoter": {
-      "whatIHaveSchemaFile": "whatIHave-in-store-promoter.json",
-      "whatIWantSchemaFile": "whatIWant-in-store-promoter.json",
       "industry": "Retail",
       "description": "Retail and promotional activities"
     },
     "Recruitment Associate": {
-      "whatIHaveSchemaFile": "whatIHave-recruitment-associate.json",
-      "whatIWantSchemaFile": "whatIWant-recruitment-associate.json",
       "industry": "Human Resources",
       "description": "HR and talent acquisition positions"
     }

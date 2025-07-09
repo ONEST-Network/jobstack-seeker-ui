@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,6 +10,8 @@ import RoleSelectionStep from './steps/RoleSelectionStep';
 import WhoIAmStep from './steps/WhoIAmStep';
 import WhatIHaveStep from './steps/WhatIHaveStep';
 import WhatIWantStep from './steps/WhatIWantStep';
+import DynamicFormStep from './DynamicFormStep';
+import { getUnifiedSchema } from '@/schemas';
 
 interface UserProfileDialogProps {
   isOpen: boolean;
@@ -31,6 +33,23 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   
   const [step, setStep] = useState(0); // Start with role selection
   const [showVoiceDialog, setShowVoiceDialog] = useState(false);
+  const [previousRole, setPreviousRole] = useState<string>('');
+
+  // Reset step when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setStep(0);
+      setPreviousRole('');
+    }
+  }, [isOpen]);
+
+  // Handle role change - don't auto-advance
+  useEffect(() => {
+    if (profile.interestedRole && profile.interestedRole !== previousRole) {
+      setPreviousRole(profile.interestedRole);
+      // Don't auto-advance - let user click Next
+    }
+  }, [profile.interestedRole, previousRole]);
 
   const handleSave = () => {
     // Calculate derived fields
@@ -58,39 +77,140 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   };
 
   const renderStep = () => {
-    switch (step) {
-      case 0:
-        return <RoleSelectionStep onVoiceStart={() => setShowVoiceDialog(true)} />;
-      case 1:
-        return <WhoIAmStep onVoiceStart={() => setShowVoiceDialog(true)} />;
-      case 2:
-        return <WhatIHaveStep />;
-      case 3:
-        return <WhatIWantStep />;
-      default:
-        return null;
+    // Step 0 is ALWAYS role selection, regardless of unified schema
+    if (step === 0) {
+      return <RoleSelectionStep onVoiceStart={() => setShowVoiceDialog(true)} />;
     }
+    
+    // For steps 1+, check if we have a unified schema for the selected role
+    const unifiedSchema = getUnifiedSchema(profile.interestedRole);
+    
+    if (unifiedSchema && profile.interestedRole) {
+      // Use unified schema steps (but offset by 1 since step 0 is role selection)
+      const steps = unifiedSchema.ui?.steps || [];
+      const unifiedStepIndex = step - 1; // Offset by 1 since step 0 is role selection
+      
+      if (unifiedStepIndex >= 0 && unifiedStepIndex < steps.length) {
+        const currentStep = steps[unifiedStepIndex];
+        return (
+          <DynamicFormStep 
+            stepName={currentStep.id} 
+            role={profile.interestedRole}
+          />
+        );
+      }
+    } else {
+      // Use legacy steps
+      switch (step) {
+        case 1:
+          return <WhoIAmStep onVoiceStart={() => setShowVoiceDialog(true)} />;
+        case 2:
+          return <WhatIHaveStep />;
+        case 3:
+          return <WhatIWantStep />;
+        default:
+          return null;
+      }
+    }
+    return null;
   };
 
   const getStepTitle = () => {
     const profileType = mode === 'candidate' ? 'Candidate Profile' : 'Your Profile';
-    const stepTitles = ['Role Selection', 'Basic Personal Information', 'Education, Skills, and Work Experience', 'Job Preferences'];
-    return `${profileType} - ${stepTitles[step]} (${step + 1} of 4)`;
+    
+    // Step 0 is always role selection
+    if (step === 0) {
+      return `${profileType} - Role Selection (1 of ${getTotalSteps()})`;
+    }
+    
+    // For steps 1+, check if we have a unified schema for the selected role
+    const unifiedSchema = getUnifiedSchema(profile.interestedRole);
+    
+    if (unifiedSchema && profile.interestedRole) {
+      const steps = unifiedSchema.ui?.steps || [];
+      const unifiedStepIndex = step - 1; // Offset by 1 since step 0 is role selection
+      
+      if (unifiedStepIndex >= 0 && unifiedStepIndex < steps.length) {
+        const currentStep = steps[unifiedStepIndex];
+        return `${profileType} - ${currentStep.title} (${step + 1} of ${getTotalSteps()})`;
+      }
+    } else {
+      // Legacy step titles (offset by 1)
+      const stepTitles = ['Basic Personal Information', 'Education, Skills, and Work Experience', 'Job Preferences'];
+      const legacyStepIndex = step - 1;
+      if (legacyStepIndex >= 0 && legacyStepIndex < stepTitles.length) {
+        return `${profileType} - ${stepTitles[legacyStepIndex]} (${step + 1} of ${getTotalSteps()})`;
+      }
+    }
+    
+    return `${profileType} - Step ${step + 1}`;
+  };
+
+  const getTotalSteps = () => {
+    const unifiedSchema = getUnifiedSchema(profile.interestedRole);
+    if (unifiedSchema && profile.interestedRole) {
+      const steps = unifiedSchema.ui?.steps || [];
+      return steps.length + 1; // +1 for role selection step
+    } else {
+      return 4; // Role selection + 3 legacy steps
+    }
   };
 
   const canProceed = () => {
-    switch (step) {
-      case 0: // Role selection - optional, can always proceed
-        return true;
-      case 1: // Basic Personal Information - require name
-        return profile.name?.trim() !== '';
-      case 2: // Education, Skills, and Work Experience - optional
-        return true;
-      case 3: // Job Preferences - optional
-        return true;
-      default:
-        return false;
+    
+    // Step 0 is always role selection - require a role to be selected
+    if (step === 0) {
+      const hasRole = profile.interestedRole?.trim() !== '';
+      return hasRole;
     }
+    
+    // For steps 1+, check if we have a unified schema for the selected role
+    const unifiedSchema = getUnifiedSchema(profile.interestedRole);
+    
+    if (unifiedSchema && profile.interestedRole) {
+      const steps = unifiedSchema.ui?.steps || [];
+      const unifiedStepIndex = step - 1; // Offset by 1 since step 0 is role selection
+      
+      if (unifiedStepIndex >= 0 && unifiedStepIndex < steps.length) {
+        const currentStep = steps[unifiedStepIndex];
+        const stepData = (profile[currentStep.id as keyof typeof profile] as Record<string, any>) || {};
+        
+        // Check required fields for the current step
+        const stepSchema = unifiedSchema.properties?.[currentStep.id];
+        if (stepSchema?.required) {
+          const canProceedResult = stepSchema.required.every((field: string) => {
+            const value = stepData[field];
+            const hasValue = value !== undefined && value !== null && value !== '';
+            return hasValue;
+          });
+          return canProceedResult;
+        }
+        return true; // If no required fields, can always proceed
+      }
+    } else {
+      // Legacy validation (offset by 1)
+      switch (step) {
+        case 1: // Basic Personal Information - require name
+          const hasName = profile.name?.trim() !== '';
+          return hasName;
+        case 2: // Education, Skills, and Work Experience - optional
+          return true;
+        case 3: // Job Preferences - optional
+          return true;
+        default:
+          return false;
+      }
+    }
+    
+    return false;
+  };
+
+  const handleNext = () => {
+    setStep(step + 1);
+  };
+
+  const handlePrevious = () => {
+    setStep(Math.max(0, step - 1));
   };
 
   return (
@@ -108,24 +228,33 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           <div className="flex-shrink-0 flex justify-between pt-4 border-t">
             <Button
               variant="outline"
-              onClick={() => setStep(Math.max(0, step - 1))}
+              onClick={handlePrevious}
               disabled={step === 0}
             >
               Previous
             </Button>
             
-            {step < 3 ? (
-              <Button 
-                onClick={() => setStep(step + 1)}
-                disabled={!canProceed()}
-              >
-                Next
-              </Button>
-            ) : (
-              <Button onClick={handleSave} disabled={!canProceed()}>
-                Save Profile
-              </Button>
-            )}
+            {(() => {
+              // Check if we're at the last step
+              const maxSteps = getTotalSteps();
+              
+              if (step < maxSteps - 1) {
+                return (
+                  <Button 
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                  >
+                    Next
+                  </Button>
+                );
+              } else {
+                return (
+                  <Button onClick={handleSave} disabled={!canProceed()}>
+                    Save Profile
+                  </Button>
+                );
+              }
+            })()}
           </div>
         </DialogContent>
       </Dialog>
@@ -151,9 +280,8 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
       <UserProfileDialogContent 
         isOpen={isOpen} 
         onClose={onClose} 
-        onComplete={onComplete}
+        onComplete={onComplete} 
         mode={mode}
-        initialProfile={initialProfile}
       />
     </ProfileFormProvider>
   );

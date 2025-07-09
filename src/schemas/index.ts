@@ -1,8 +1,6 @@
-import whoIAmSchema from './whoIAmSchema.json';
-import whatIHaveTailorSchema from './whatIHave-industrial-tailor.json';
-import whatIWantTailorSchema from './whatIWant-industrial-tailor.json';
-import whatIHaveLoaderPickerSchema from './whatIHave-warehouse-loader-picker.json';
-import whatIWantLoaderPickerSchema from './whatIWant-warehouse-loader-picker.json';
+import industrialTailorSchema from './industrial-tailor-schema.json';
+import warehouseLoaderPickerSchema from './warehouse-loader-picker-schema.json';
+import recruitmentAssociateSchema from './recruitment-associate-schema.json';
 import jobRolesConfig from './job-roles-config.json';
 
 export interface ProfileStepSchema {
@@ -40,70 +38,75 @@ export interface ProfileStepSchema {
 }
 
 const schemas: Record<string, any> = {
-  whoIAm: whoIAmSchema,
-  'whatIHave-industrial-tailor': whatIHaveTailorSchema,
-  'whatIWant-industrial-tailor': whatIWantTailorSchema,
-  'whatIHave-warehouse-loader-picker': whatIHaveLoaderPickerSchema,
-  'whatIWant-warehouse-loader-picker': whatIWantLoaderPickerSchema,
+  'industrial-tailor': industrialTailorSchema,
+  'warehouse-loader-picker': warehouseLoaderPickerSchema,
+  'recruitment-associate': recruitmentAssociateSchema,
 };
 
 export const getSchema = (stepName: string, role?: string): ProfileStepSchema | null => {
-  if (stepName === 'whoIAm') {
-    return whoIAmSchema as ProfileStepSchema;
-  }
+  // This function is deprecated - use getUnifiedSchemaStep instead
+  console.warn('getSchema is deprecated. Use getUnifiedSchemaStep instead.');
+  return getUnifiedSchemaStep(role, stepName);
+};
 
-  if (role && (stepName === 'whatIHave' || stepName === 'whatIWant')) {
-    const roleConfig = (jobRolesConfig.jobRoles as any)[role];
-    if (roleConfig) {
-      const schemaFile = stepName === 'whatIHave' ? roleConfig.whatIHaveSchemaFile : roleConfig.whatIWantSchemaFile;
-      const schemaKey = schemaFile.replace('.json', '');
-      return schemas[schemaKey] as ProfileStepSchema || null;
-    }
+export const getUnifiedSchema = (role?: string): any => {
+  if (role === 'Industrial Tailor') {
+    return industrialTailorSchema;
   }
-
-  // Fallback for older logic or if role not found, default to industrial tailor
-  if (stepName === 'whatIHave') {
-    return whatIHaveTailorSchema as ProfileStepSchema;
+  if (role === 'Warehouse Loader & Picker') {
+    return warehouseLoaderPickerSchema;
   }
-  if (stepName === 'whatIWant') {
-    return whatIWantTailorSchema as ProfileStepSchema;
+  if (role === 'Recruitment Associate') {
+    return recruitmentAssociateSchema;
   }
-
   return null;
 };
 
-export const getAllSchemas = (): Record<string, ProfileStepSchema> => {
+export const getUnifiedSchemaStep = (role?: string, stepName?: string): ProfileStepSchema | null => {
+  const unifiedSchema = getUnifiedSchema(role);
+  if (!unifiedSchema || !stepName) return null;
+
+  const stepSchema = unifiedSchema.properties?.[stepName];
+  if (!stepSchema) return null;
+
   return {
-    whoIAm: whoIAmSchema as ProfileStepSchema,
-    whatIHaveTailor: whatIHaveTailorSchema as ProfileStepSchema,
-    whatIWantTailor: whatIWantTailorSchema as ProfileStepSchema,
-    whatIHaveLoaderPicker: whatIHaveLoaderPickerSchema as ProfileStepSchema,
-    whatIWantLoaderPicker: whatIWantLoaderPickerSchema as ProfileStepSchema,
-  };
+    $schema: unifiedSchema.$schema,
+    title: stepSchema.title,
+    description: stepSchema.description,
+    type: stepSchema.type,
+    properties: stepSchema.properties,
+    required: stepSchema.required,
+    ui: stepSchema.ui
+  } as ProfileStepSchema;
+};
+
+export const getAllSchemas = (): Record<string, ProfileStepSchema> => {
+  console.warn('getAllSchemas is deprecated. Use getUnifiedSchema instead.');
+  return {};
 };
 
 export const getSchemaFields = (stepName: string, role?: string): string[] => {
-  const schema = getSchema(stepName, role);
+  const schema = getUnifiedSchemaStep(role, stepName);
   return schema?.ui?.order || Object.keys(schema?.properties || {});
 };
 
 export const getSchemaDescription = (stepName: string, role?: string): string => {
-  const schema = getSchema(stepName, role);
+  const schema = getUnifiedSchemaStep(role, stepName);
   return schema?.ui?.description || schema?.description || '';
 };
 
 export const getSchemaSections = (stepName: string, role?: string) => {
-  const schema = getSchema(stepName, role);
+  const schema = getUnifiedSchemaStep(role, stepName);
   return schema?.ui?.sections || [];
 };
 
 export const getFieldConfig = (stepName: string, fieldName: string, role?: string) => {
-  const schema = getSchema(stepName, role);
+  const schema = getUnifiedSchemaStep(role, stepName);
   return schema?.properties?.[fieldName] || null;
 };
 
 export const getRequiredFields = (stepName: string, role?: string): string[] => {
-  const schema = getSchema(stepName, role);
+  const schema = getUnifiedSchemaStep(role, stepName);
   return schema?.required || [];
 };
 
