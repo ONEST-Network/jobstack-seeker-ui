@@ -13,6 +13,11 @@ interface ProfileFormContextType {
     isGenderVerified?: boolean;
     isAadharVerified?: boolean;
     isHometownVerified?: boolean;
+    // Unified schema support
+    whoIAm?: Record<string, any>;
+    whatIHave?: Record<string, any>;
+    whatIWant?: Record<string, any>;
+    [key: string]: any; // Allow dynamic step data
   };
   setProfile: React.Dispatch<React.SetStateAction<UserProfile & {
     education?: Education[];
@@ -23,6 +28,11 @@ interface ProfileFormContextType {
     isGenderVerified?: boolean;
     isAadharVerified?: boolean;
     isHometownVerified?: boolean;
+    // Unified schema support
+    whoIAm?: Record<string, any>;
+    whatIHave?: Record<string, any>;
+    whatIWant?: Record<string, any>;
+    [key: string]: any; // Allow dynamic step data
   }>>;
   newExperience: Partial<Experience>;
   setNewExperience: React.Dispatch<React.SetStateAction<Partial<Experience>>>;
@@ -58,6 +68,11 @@ export const ProfileFormProvider: React.FC<ProfileFormProviderProps> = ({
     isGenderVerified?: boolean;
     isAadharVerified?: boolean;
     isHometownVerified?: boolean;
+    // Unified schema support
+    whoIAm?: Record<string, any>;
+    whatIHave?: Record<string, any>;
+    whatIWant?: Record<string, any>;
+    [key: string]: any; // Allow dynamic step data
   }>({
     // Who I Am - Basic Personal Information
     name: '',
@@ -81,6 +96,11 @@ export const ProfileFormProvider: React.FC<ProfileFormProviderProps> = ({
     isGenderVerified: false,
     isAadharVerified: false,
     isHometownVerified: false,
+    
+    // Unified schema support - initialize as empty objects
+    whoIAm: {},
+    whatIHave: {},
+    whatIWant: {},
     
     // Apply initial profile if provided
     ...initialProfile

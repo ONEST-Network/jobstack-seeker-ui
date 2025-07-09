@@ -60,7 +60,7 @@ export const mockJobCategories = [
       },
       {
         id: 7,
-        title: "Warehouse Loader and Picker",
+        title: "Warehouse Loader & Picker",
         company: "LogiCorp Solutions",
         location: "Gurgaon, Haryana",
         salary: "₹16,000 - ₹22,000",
