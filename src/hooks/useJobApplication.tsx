@@ -21,6 +21,12 @@ export interface JobApplicationData {
     state: string;
     country: string;
   };
+  profileData?: {
+    whoIAm?: Record<string, any>;
+    whatIHave?: Record<string, any>;
+    whatIWant?: Record<string, any>;
+    [key: string]: any;
+  };
 }
 
 export const useJobApplication = () => {
@@ -49,7 +55,8 @@ export const useJobApplication = () => {
         providerId,
         jobId,
         userId: user.id,
-        userData: applicationData
+        userData: applicationData,
+        profileData: applicationData.profileData
       });
 
       // If server indicates the user has already applied, show an info toast and short-circuit

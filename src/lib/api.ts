@@ -281,6 +281,12 @@ class ApiClient {
         country: string;
       };
     };
+    profileData?: {
+      whoIAm?: Record<string, any>;
+      whatIHave?: Record<string, any>;
+      whatIWant?: Record<string, any>;
+      [key: string]: any;
+    };
   }) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v1/apply`;
@@ -326,6 +332,12 @@ class ApiClient {
                       name: "English"
                     }
                   ],
+                  metadata: applyData.profileData ? {
+                    whoIAm: applyData.profileData.whoIAm || {},
+                    whatIHave: applyData.profileData.whatIHave || {},
+                    whatIWant: applyData.profileData.whatIWant || {},
+                    ...applyData.profileData
+                  } : undefined,
                   tags: [
                     {
                       descriptor: {

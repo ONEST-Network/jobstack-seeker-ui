@@ -225,7 +225,14 @@ const CandidateProfileApplicationContent: React.FC<CandidateProfileApplicationPr
       ],
       languages: [
         { code: "en", name: "English" }
-      ]
+      ],
+      profileData: {
+        whoIAm: profile.whoIAm || {},
+        whatIHave: profile.whatIHave || {},
+        whatIWant: profile.whatIWant || {},
+        // Include all profile data for completeness
+        ...profile
+      }
     };
     
     await onSubmit(applicationData);
