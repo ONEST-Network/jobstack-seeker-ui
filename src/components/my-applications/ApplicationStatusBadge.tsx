@@ -35,6 +35,10 @@ const ApplicationStatusBadge: React.FC<ApplicationStatusBadgeProps> = ({ status 
         return <XCircle className="h-4 w-4" />;
       case 'viewed':
         return <Eye className="h-4 w-4" />;
+      case 'shortlisted':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'interview':
+        return <Eye className="h-4 w-4" />;
       default:
         return <Clock className="h-4 w-4" />;
     }
