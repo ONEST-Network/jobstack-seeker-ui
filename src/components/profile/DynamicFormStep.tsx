@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { MapPin, Upload, QrCode } from 'lucide-react';
+import { MapPin, Upload, QrCode, Shield, Lock } from 'lucide-react';
 import DigiLockerModal from './DigiLockerModal';
 import QRCodeScannerDialog from './QRCodeScannerDialog';
 
@@ -47,19 +47,99 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     }));
   };
 
+  // For fields that should be accessed from global profile state (like age, name)
+  const getFieldValue = (fieldName: string) => {
+    // Check if the field exists in global profile state first
+    if (profile[fieldName as keyof typeof profile] !== undefined) {
+      return profile[fieldName as keyof typeof profile];
+    }
+    // Fallback to step data
+    return stepData[fieldName];
+  };
+
   const handleFieldChange = (fieldName: string, value: any) => {
+    // Update step data
     setStepData({ [fieldName]: value });
+    
+    // Also update global profile state for fields that should be accessible globally
+    if (['name', 'age', 'gender', 'hometown', 'aadharNumber'].includes(fieldName)) {
+      setProfile(prev => ({
+        ...prev,
+        [fieldName]: value
+      }));
+    }
   };
 
   const handleDigiLockerSuccess = (data: any) => {
-    // Map DigiLocker data to step fields
+    // Extract only the properties we care about from the DigiLocker response
+    // Prefer common naming variations if they exist
+    const fullName: string | undefined =
+      data?.name || data?.fullName || [data?.firstName, data?.lastName].filter(Boolean).join(' ').trim();
+
+    // Calculate age more accurately from date of birth
+    let derivedAge: number | undefined;
+    const dob: string | undefined = data?.dateOfBirth || data?.dob || data?.birthDate;
+
+    if (dob) {
+      const birthDate = new Date(dob);
+      const today = new Date();
+      derivedAge = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        derivedAge--;
+      }
+    } else if (typeof data?.age === 'number') {
+      derivedAge = data.age;
+    }
+
+
+
+    // Update both the step data and the global profile state
     const mappedData: Record<string, any> = {};
-    if (data.name) mappedData.name = data.name;
-    if (data.location) mappedData.location = data.location;
-    if (data.phone) mappedData.phone = data.phone;
-    if (data.age) mappedData.age = data.age;
-    
+    const verificationFlags: Record<string, any> = {};
+
+    if (fullName) {
+      mappedData.name = fullName;
+      verificationFlags.isNameVerified = true;
+    }
+
+    if (derivedAge !== undefined) {
+      mappedData.age = derivedAge;
+      verificationFlags.isAgeVerified = true;
+    }
+
+    if (data?.gender) {
+      mappedData.gender = data.gender;
+      verificationFlags.isGenderVerified = true;
+    }
+
+    if (data?.hometown) {
+      mappedData.hometown = data.hometown;
+      verificationFlags.isHometownVerified = true;
+    }
+
+    if (data?.aadharNumber) {
+      mappedData.aadharNumber = data.aadharNumber;
+      verificationFlags.isAadharVerified = true;
+    }
+
+    // Update step data
     setStepData(mappedData);
+
+    // Update global profile state with verification flags
+    setProfile(prevProfile => {
+      const updatedProfile = {
+        ...prevProfile,
+        ...mappedData,
+        ...verificationFlags
+      };
+      
+
+      
+      return updatedProfile;
+    });
+
+    setShowDigiLocker(false);
   };
 
   const handleQRScanComplete = (data: any) => {
@@ -69,15 +149,19 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   };
 
   const renderField = (fieldName: string, fieldConfig: any) => {
-    const value = stepData[fieldName];
+    const value = getFieldValue(fieldName);
     const isRequired = schema.required?.includes(fieldName);
     const widget = fieldConfig['ui:widget'];
     const placeholder = fieldConfig['ui:placeholder'];
     const disabled = fieldConfig['ui:disabled'];
-    const verified = fieldConfig['ui:verified'];
     const verificationMessage = fieldConfig['ui:verificationMessage'];
     const hasLocationButton = fieldConfig['ui:hasLocationButton'];
     const currency = fieldConfig['ui:currency'];
+
+    // Check if field is verified from global profile state
+    const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
+
+
 
     const handleLocationDetection = () => {
       if (navigator.geolocation) {
@@ -127,8 +211,8 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 value={value || ''}
                 onChange={(e) => handleFieldChange(fieldName, e.target.value)}
                 placeholder={placeholder}
-                disabled={disabled}
-                className={verified ? 'border-green-500' : ''}
+                disabled={disabled || isVerified}
+                className={isVerified ? 'border-green-500' : ''}
               />
               {hasLocationButton && (
                 <Button
@@ -141,9 +225,17 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                   <MapPin className="h-4 w-4" />
                 </Button>
               )}
+              {isVerified && (
+                <div className="absolute right-2 top-2 flex items-center gap-1">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                </div>
+              )}
             </div>
-            {verified && verificationMessage && (
-              <p className="text-xs text-green-600">{verificationMessage}</p>
+            {isVerified && (
+              <p className="text-xs text-green-600">
+                {verificationMessage || `Verified via DigiLocker`}
+              </p>
             )}
             {fieldConfig.description && (
               <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
@@ -187,16 +279,28 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 value={value || ''}
                 onChange={(e) => handleFieldChange(fieldName, parseInt(e.target.value) || 0)}
                 placeholder={placeholder}
-                disabled={disabled}
+                disabled={disabled || isVerified}
                 min={fieldConfig.minimum}
                 max={fieldConfig.maximum}
+                className={isVerified ? 'border-green-500' : ''}
               />
               {currency && (
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
                   {currency}
                 </span>
               )}
+              {isVerified && (
+                <div className="absolute right-2 top-2 flex items-center gap-1">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                </div>
+              )}
             </div>
+            {isVerified && (
+              <p className="text-xs text-green-600">
+                {verificationMessage || `Verified via DigiLocker`}
+              </p>
+            )}
             {fieldConfig.description && (
               <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
             )}
@@ -210,22 +314,35 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               {fieldConfig.title}
               {isRequired && <span className="text-red-500 ml-1">*</span>}
             </Label>
-            <Select
-              value={value || ''}
-              onValueChange={(val) => handleFieldChange(fieldName, val)}
-              disabled={disabled}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={placeholder} />
-              </SelectTrigger>
-              <SelectContent>
-                {fieldConfig.enum?.map((option: string, index: number) => (
-                  <SelectItem key={option} value={option}>
-                    {fieldConfig.enumNames?.[index] || option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="relative">
+              <Select
+                value={value || ''}
+                onValueChange={(val) => handleFieldChange(fieldName, val)}
+                disabled={disabled || isVerified}
+              >
+                <SelectTrigger className={isVerified ? 'border-green-500' : ''}>
+                  <SelectValue placeholder={placeholder} />
+                </SelectTrigger>
+                <SelectContent>
+                  {fieldConfig.enum?.map((option: string, index: number) => (
+                    <SelectItem key={option} value={option}>
+                      {fieldConfig.enumNames?.[index] || option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {isVerified && (
+                <div className="absolute right-2 top-2 flex items-center gap-1">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                </div>
+              )}
+            </div>
+            {isVerified && (
+              <p className="text-xs text-green-600">
+                {verificationMessage || `Verified via DigiLocker`}
+              </p>
+            )}
             {fieldConfig.description && (
               <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
             )}
@@ -523,6 +640,8 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         <h3 className="text-lg font-semibold">{schema.title}</h3>
         <p className="text-sm text-muted-foreground">{schema.description}</p>
       </div>
+
+
 
       {/* DigiLocker Integration */}
       {schema.ui?.showDigiLocker && (

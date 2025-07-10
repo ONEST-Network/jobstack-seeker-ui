@@ -28,8 +28,10 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
   const [showDigiLockerModal, setShowDigiLockerModal] = useState(false);
 
   // Get schema data
-  const schema = getSchema('whoIAm');
-  const description = getSchemaDescription('whoIAm');
+  const schema = getSchema('whoIAm', profile.interestedRole);
+  const description = getSchemaDescription('whoIAm', profile.interestedRole);
+
+
 
   const handleDateOfBirthChange = (dob: string) => {
     const age = dob ? new Date().getFullYear() - new Date(dob).getFullYear() : undefined;
@@ -56,10 +58,36 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
   };
 
   const handleDigiLockerSuccess = (data: any) => {
-    setProfile({
-      ...profile,
-      ...data
-    });
+    // Extract only the properties we care about from the DigiLocker response
+    // Prefer common naming variations if they exist
+    const fullName: string | undefined =
+      data?.name || data?.fullName || [data?.firstName, data?.lastName].filter(Boolean).join(' ').trim();
+
+    // Calculate age more accurately from date of birth
+    let derivedAge: number | undefined;
+    const dob: string | undefined = data?.dateOfBirth || data?.dob || data?.birthDate;
+
+    if (dob) {
+      const birthDate = new Date(dob);
+      const today = new Date();
+      derivedAge = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        derivedAge--;
+      }
+    } else if (typeof data?.age === 'number') {
+      derivedAge = data.age;
+    }
+
+
+
+    // Update both name (in WhoIAm) and age (in WhatIHave) and mark them verified
+    setProfile(prevProfile => ({
+      ...prevProfile,
+      ...(fullName ? { name: fullName, isNameVerified: true } : {}),
+      ...(derivedAge !== undefined ? { age: derivedAge, isAgeVerified: true } : {})
+    }));
+
     setShowDigiLockerModal(false);
   };
 
@@ -83,6 +111,8 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
 
     const value = profile[fieldName as keyof typeof profile];
     const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
+
+
 
     // Type-safe value handling
     const getStringValue = () => {
@@ -209,7 +239,9 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
 
         {/* Verification message */}
         {isVerified && (
-          <p className="text-xs text-green-600 mt-1">{verificationMessage}</p>
+          <p className="text-xs text-green-600 mt-1">
+            {verificationMessage || `Verified via DigiLocker`}
+          </p>
         )}
       </div>
     );
@@ -250,17 +282,28 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
             <p className="text-xs text-muted-foreground mt-2">
               {schema.ui?.digiLockerConfig?.footerText}
             </p>
+            
+            {/* Test button for development */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button 
+                onClick={() => handleDigiLockerSuccess({
+                  name: 'John Doe',
+                  dateOfBirth: '1990-05-15',
+                  age: 33,
+                  gender: 'male',
+                  hometown: 'Mumbai, Maharashtra'
+                })} 
+                variant="outline" 
+                className="w-full mt-2"
+              >
+                Test DigiLocker Import
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
       
-      {/* Debug: Show schema info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="text-xs text-muted-foreground p-2 bg-gray-50 rounded">
-          Debug: Schema loaded - Fields: {fieldOrder.length}, Available: {availableFields.length}, 
-          ShowDigiLocker: {schema.ui?.showDigiLocker ? 'Yes' : 'No'}
-        </div>
-      )}
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {fieldOrder.length > 0 ? (

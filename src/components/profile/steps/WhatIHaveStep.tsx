@@ -5,6 +5,7 @@ import EducationQualificationCard from '../EducationQualificationCard';
 import SkillCertificationCard from '../SkillCertificationCard';
 import WorkExperienceCard from '../WorkExperienceCard';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Shield, Lock } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { getFieldConfig } from '@/schemas';
@@ -50,6 +51,9 @@ const WhatIHaveStep: React.FC = () => {
       <div className="text-center mb-6">
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
+
+
+
       {sections.map((section, index) => (
         <div key={index} className="bg-card p-6 rounded-lg shadow-sm border">
           {/* <h4 className="text-lg font-semibold mb-4">{section.title}</h4> */}
@@ -123,7 +127,54 @@ const WhatIHaveStep: React.FC = () => {
                     </div>
                   )
                 }
-                return null;
+                // Default rendering for simple text/number widgets (e.g., age)
+                const widget = fieldConfig['ui:widget'];
+                const placeholder = fieldConfig['ui:placeholder'];
+                const disabled = fieldConfig['ui:disabled'];
+                const verificationMessage = fieldConfig['ui:verificationMessage'];
+
+                const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
+
+
+
+                const getStringValue = () => {
+                  if (typeof value === 'string') return value;
+                  if (typeof value === 'number') return value.toString();
+                  return '';
+                };
+
+                return (
+                  <div key={fieldName}>
+                    <Label htmlFor={fieldName}>
+                      {fieldConfig.title}
+                      {fieldConfig.required && <span className="text-red-500 ml-1">*</span>}
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id={fieldName}
+                        type={widget === 'number' ? 'number' : 'text'}
+                        value={getStringValue()}
+                        onChange={e => setProfile({
+                          ...profile,
+                          [fieldName]: widget === 'number' ? parseInt(e.target.value) || 0 : e.target.value
+                        })}
+                        placeholder={placeholder}
+                        disabled={disabled || isVerified}
+                      />
+                      {isVerified && (
+                        <div className="absolute right-2 top-2 flex items-center gap-1">
+                          <Shield className="h-4 w-4 text-green-600" />
+                          <Lock className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    {isVerified && (
+                      <p className="text-xs text-green-600 mt-1">
+                        {verificationMessage || `Verified via DigiLocker`}
+                      </p>
+                    )}
+                  </div>
+                );
               })}
             </div>
           )}
