@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { QrCode, Camera, Upload } from 'lucide-react';
+// @ts-ignore
 import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 
 interface QRCodeScannerDialogProps {
