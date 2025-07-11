@@ -1,15 +1,14 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { QrCode, Camera, Upload } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 
 interface QRCodeScannerDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onScanComplete: (data: any) => void;
+  onScanComplete: (data: string) => void;
   type: 'education' | 'skill' | 'experience';
 }
 
@@ -20,62 +19,106 @@ const QRCodeScannerDialog: React.FC<QRCodeScannerDialogProps> = ({
   type
 }) => {
   const [isScanning, setIsScanning] = useState(false);
-  const { toast } = useToast();
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerId = "html5qr-code-full-region";
 
-  const handleScan = () => {
+  const startCameraScan = () => {
     setIsScanning(true);
-    // Simulate QR code scanning
-    setTimeout(() => {
-      const mockData = {
-        education: {
-          institution: 'ABC Technical Institute',
-          degree: 'Diploma',
-          fieldOfStudy: 'Electrical Engineering',
-          startYear: 2018,
-          endYear: 2020,
-          percentage: 85,
-          isVerified: true
-        },
-        skill: {
-          name: 'Industrial Sewing Machine Operation',
-          issuer: 'National Skill Development Corporation',
-          issueDate: '2023-06-15',
-          credentialId: 'NSDC-123456',
-          skillLevel: 'intermediate',
-          isVerified: true
-        },
-        experience: {
-          company: 'XYZ Garments Ltd',
-          position: 'Machine Operator',
-          location: 'Mumbai, Maharashtra',
-          startDate: '2020-07-01',
-          endDate: '2023-05-31',
-          description: 'Operated industrial sewing machines for garment production',
-          isVerified: true
-        }
-      };
-
-      onScanComplete(mockData[type]);
-      setIsScanning(false);
-      toast({
-        title: "Certificate Scanned",
-        description: `${type} certificate imported successfully!`
-      });
-      onClose();
-    }, 2000);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Simulate file processing
-      toast({
-        title: "File Uploaded",
-        description: "Certificate uploaded and processing..."
-      });
-      handleScan();
+  const parseResultToVc = async (url: string, fromScanner: boolean) => {
+    const pattern = /^https:\/\/dway\.io\/jobs\/([0-9a-fA-F-]{36})$/;
+    const match = url.match(pattern);
+
+    if (match) {
+      const uuid = match[1];
+      const vcUrl = `https://verify.jobs.onest.dhiway.net/jobs/${uuid}.json`
+      // Do whatever you want with uuid here:
+      onScanComplete(vcUrl);
+    } else {
+      console.log('URL does not match expected pattern.');
+    }
+
+    if (fromScanner) {
+      onClose();
+    } else {
+      stopScanning();
     }
   };
+
+  const stopScanning = async () => {
+    if (scannerRef.current) {
+      if (scannerRef.current.getState() === Html5QrcodeScannerState.SCANNING) {
+        await scannerRef.current.stop();
+      }
+      scannerRef.current.clear();
+    }
+    setIsScanning(false);
+    onClose();
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!scannerRef.current) {
+        scannerRef.current = new Html5Qrcode(scannerId);
+      }
+
+      try {
+        const result = await scannerRef.current.scanFile(file, true);
+        await parseResultToVc(result, false)
+      } catch (err) {
+        console.error("Scan failed", err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const runScanner = async () => {
+      if (isScanning) {
+        if (!scannerRef.current) {
+          scannerRef.current = new Html5Qrcode(scannerId);
+        }
+
+        try {
+          await scannerRef.current.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 }
+            },
+            async (decodedText) => {
+              await parseResultToVc(decodedText, true)
+            },
+            (_errorMessage) => {
+              /* console.warn("QR Scan Error:", errorMessage); */
+            }
+          );
+        } catch (err) {
+          console.error("Unable to start scanning", err);
+          stopScanning();
+        }
+      }
+    };
+
+    runScanner();
+
+    return () => {
+      if (scannerRef.current) {
+        try {
+          scannerRef.current.clear();
+        } catch (err) {
+          console.log('scanner error: ', err)
+        }
+      }
+    };
+  }, [isScanning]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      stopScanning();
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -86,53 +129,50 @@ const QRCodeScannerDialog: React.FC<QRCodeScannerDialogProps> = ({
 
         <div className="space-y-4">
           <Card>
-            <CardContent className="p-6 text-center">
-              <QrCode className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="font-semibold mb-2">Scan QR Code</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Point your camera at the QR code on your certificate
-              </p>
-              <Button 
-                onClick={handleScan} 
-                disabled={isScanning}
-                className="w-full"
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                {isScanning ? 'Scanning...' : 'Start Camera'}
-              </Button>
-            </CardContent>
+            < div id={scannerId} className="relative h-full w-full aspect-[4/3]">
+              {isScanning ? <></> :
+                <CardContent className="p-6 text-center">
+                  <QrCode className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="font-semibold mb-2">Scan QR Code</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Point your camera at the QR code on your certificate
+                  </p>
+                  <Button
+                    onClick={startCameraScan}
+                    disabled={isScanning}
+                    className="w-full"
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    {isScanning ? 'Scanning...' : 'Start Camera'}
+                  </Button>
+                </CardContent>
+              }
+            </div>
           </Card>
 
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">Or upload certificate image</p>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="file-upload"
-            />
-            <label htmlFor="file-upload">
-              <Button variant="outline" className="w-full" asChild>
-                <span>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Image
-                </span>
-              </Button>
-            </label>
-          </div>
-
-          {isScanning && (
-            <div className="bg-blue-50 p-4 rounded-lg text-center">
-              <div className="animate-pulse">
-                <Camera className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                <p className="text-sm text-blue-800">Scanning certificate...</p>
-              </div>
+          {!isScanning && (
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">Or upload certificate image</p>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+              />
+              <label htmlFor="file-upload">
+                <Button variant="outline" className="w-full" asChild>
+                  <span>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Image
+                  </span>
+                </Button>
+              </label>
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </DialogContent >
+    </Dialog >
   );
 };
 
