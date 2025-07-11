@@ -3,8 +3,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Upload, X, FileVideo, FileImage, File as FileIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getPresignedUrl, uploadFileToPresignedUrl } from '@/lib/api';
-import { useToast } from '@/hooks/use-toast';
+import { apiClient } from '@/lib/api';
+import { toast } from '@/hooks/use-toast';
 
 interface FileUploadFieldProps {
   label: string;
@@ -35,7 +35,6 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
 }) => {
   const [previews, setPreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const { toast } = useToast();
 
   // Handle current value
   const currentFiles = multiple && Array.isArray(value) ? value : (value ? [value] : []);
@@ -66,21 +65,21 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
     } else {
       setPreviews([]);
     }
-  }, [value, fileType]);
+  }, [value, fileType, currentFiles]);
 
   const uploadFileWithPresignedUrl = async (file: File): Promise<string> => {
     // Generate unique object key
     const objectKey = `${objectKeyPrefix}/id${Date.now()}`;
     
     // Get presigned URL
-    const presignedUrlResponse = await getPresignedUrl({
+    const presignedUrlResponse = await apiClient.getPresignedUrl({
       bucketName: 'onest-job-storage',
       contentType: file.type,
       objectKey: objectKey
     });
     
     // Upload file to presigned URL
-    await uploadFileToPresignedUrl(presignedUrlResponse.uploadUrl, file);
+    await apiClient.uploadFileToPresignedUrl(presignedUrlResponse.uploadUrl, file);
     
     // Return the access URL
     return presignedUrlResponse.accessUrl;
@@ -102,7 +101,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
           
           if (totalFiles > maxFiles) {
             toast({
-              title: "Too many files",
+              title: "Upload Error",
               description: `You can only upload up to ${maxFiles} files. Selected ${files.length} files, but you already have ${existingFiles.length}.`,
               variant: "destructive"
             });
@@ -117,8 +116,8 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
           onChange(newFiles as string[]);
           
           toast({
-            title: "Files uploaded successfully",
-            description: "Your files have been uploaded successfully."
+            title: "Upload Success",
+            description: "Files uploaded successfully"
           });
         } else {
           const file = files[0];
@@ -126,14 +125,14 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
           onChange(accessUrl);
           
           toast({
-            title: "File uploaded successfully",
-            description: "Your file has been uploaded successfully."
+            title: "Upload Success",
+            description: "File uploaded successfully"
           });
         }
       } catch (error) {
         console.error('File upload failed:', error);
         toast({
-          title: "Upload failed",
+          title: "Upload Failed",
           description: "Failed to upload file. Please try again.",
           variant: "destructive"
         });
@@ -147,7 +146,11 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
         const totalFiles = existingFiles.length + files.length;
         
         if (totalFiles > maxFiles) {
-          alert(`You can only upload up to ${maxFiles} files. Selected ${files.length} files, but you already have ${existingFiles.length}.`);
+          toast({
+            title: "Upload Error",
+            description: `You can only upload up to ${maxFiles} files. Selected ${files.length} files, but you already have ${existingFiles.length}.`,
+            variant: "destructive"
+          });
           return;
         }
         

@@ -47,6 +47,11 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                       src={item.url}
                       alt={item.alt || `${title} workplace image ${index + 1}`}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Hide image if it fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
                     />
                   ) : (
                     <div 
@@ -57,6 +62,11 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                         src={item.thumbnail || item.url}
                         alt={item.alt || `${title} job video ${index + 1}`}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Hide thumbnail if it fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center group-hover:bg-opacity-40 transition-all">
                         <div className="bg-white rounded-full p-3 shadow-lg">
@@ -93,6 +103,10 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
               autoPlay
               className="w-full h-auto rounded-lg"
               src={selectedVideo.url}
+              onError={(e) => {
+                console.error('Video failed to load:', selectedVideo.url);
+                // You could show an error message here
+              }}
             >
               Your browser does not support the video tag.
             </video>

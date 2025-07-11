@@ -4,11 +4,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Mic, Square } from 'lucide-react';
+import { FileUploadField } from '@/components/ui/file-upload-field';
 interface ApplicationQuestionsProps {
   formData: {
     experience: string;
     whyJoin: string;
     previousWork: string;
+    taskVideo?: string;
   };
   setFormData: React.Dispatch<React.SetStateAction<any>>;
   isRecording: boolean;
@@ -68,6 +70,25 @@ const ApplicationQuestions: React.FC<ApplicationQuestionsProps> = ({
             {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
           </Button>
         </div>
+      </div>
+
+      <div>
+        <Label className="text-base mb-2 block">
+          Task Video (Optional)
+        </Label>
+        <FileUploadField
+          label=""
+          description="Upload a video showing your work skills (optional)"
+          accept="video/*"
+          fileType="video"
+          value={formData.taskVideo}
+          onChange={(file) => setFormData(prev => ({
+            ...prev,
+            taskVideo: file
+          }))}
+          usePresignedUrl={true}
+          objectKeyPrefix="application"
+        />
       </div>
     </div>;
 };

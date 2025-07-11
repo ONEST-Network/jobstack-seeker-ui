@@ -238,6 +238,126 @@ export const useJobSearch = () => {
             phone: tags.hiringManager.phoneNo || 'Not specified'
           } : undefined;
 
+          // Extract media from tags
+          const media: Array<{
+            type: 'image' | 'video';
+            url: string;
+            thumbnail?: string;
+            alt?: string;
+            duration?: string;
+          }> = [];
+
+          // Extract company logo
+          if (tags?.basicInfo?.jobProviderLogo) {
+            media.push({
+              type: 'image',
+              url: tags.basicInfo.jobProviderLogo,
+              alt: `${tags.basicInfo.jobProviderName || 'Company'} logo`
+            });
+          }
+
+          // Extract job details video
+          if (tags?.jobDetails?.jobDetailsVideo) {
+            media.push({
+              type: 'video',
+              url: tags.jobDetails.jobDetailsVideo,
+              alt: `${item.descriptor.name} job details video`
+            });
+          }
+
+          // Extract job location photos
+          if (tags?.jobDetails?.jobLocationPhotos && Array.isArray(tags.jobDetails.jobLocationPhotos)) {
+            tags.jobDetails.jobLocationPhotos.forEach((photoUrl: string, index: number) => {
+              if (photoUrl) {
+                media.push({
+                  type: 'image',
+                  url: photoUrl,
+                  alt: `${item.descriptor.name} location photo ${index + 1}`
+                });
+              }
+            });
+          }
+
+          // Extract sample task video
+          if (tags?.jobNeeds?.sampleTaskVideo) {
+            media.push({
+              type: 'video',
+              url: tags.jobNeeds.sampleTaskVideo,
+              alt: `${item.descriptor.name} sample task video`
+            });
+          }
+
+          // Extract sample task image
+          if (tags?.jobNeeds?.sampleTaskImage) {
+            media.push({
+              type: 'image',
+              url: tags.jobNeeds.sampleTaskImage,
+              alt: `${item.descriptor.name} sample task image`
+            });
+          }
+
+          // Extract speed proof documents and sample media
+          if (tags?.jobNeeds?.jukiSpeedSubsection) {
+            const speedSubsection = tags.jobNeeds.jukiSpeedSubsection;
+            
+            // Speed proof documents
+            if (speedSubsection.uploadSpeedProof && Array.isArray(speedSubsection.uploadSpeedProof)) {
+              speedSubsection.uploadSpeedProof.forEach((docUrl: string, index: number) => {
+                if (docUrl) {
+                  media.push({
+                    type: 'image',
+                    url: docUrl,
+                    alt: `Speed proof document ${index + 1}`
+                  });
+                }
+              });
+            }
+
+            // Speed sample media
+            if (speedSubsection.uploadSpeedSampleMedia && Array.isArray(speedSubsection.uploadSpeedSampleMedia)) {
+              speedSubsection.uploadSpeedSampleMedia.forEach((mediaUrl: string, index: number) => {
+                if (mediaUrl) {
+                  media.push({
+                    type: 'video',
+                    url: mediaUrl,
+                    alt: `Speed sample media ${index + 1}`
+                  });
+                }
+              });
+            }
+          }
+
+          // Extract error proof documents and sample media
+          if (tags?.jobNeeds?.jukiErrorSubsection) {
+            const errorSubsection = tags.jobNeeds.jukiErrorSubsection;
+            
+            // Error proof documents
+            if (errorSubsection.uploadErrorProof && Array.isArray(errorSubsection.uploadErrorProof)) {
+              errorSubsection.uploadErrorProof.forEach((docUrl: string, index: number) => {
+                if (docUrl) {
+                  media.push({
+                    type: 'image',
+                    url: docUrl,
+                    alt: `Error proof document ${index + 1}`
+                  });
+                }
+              });
+            }
+
+            // Error sample media
+            if (errorSubsection.uploadErrorSampleMedia && Array.isArray(errorSubsection.uploadErrorSampleMedia)) {
+              errorSubsection.uploadErrorSampleMedia.forEach((mediaUrl: string, index: number) => {
+                if (mediaUrl) {
+                  media.push({
+                    type: 'video',
+                    url: mediaUrl,
+                    alt: `Error sample media ${index + 1}`
+                  });
+                }
+              });
+            }
+          }
+
           const transformedJob: JobItem = {
             id: item.id,
             title: item.descriptor.name,
@@ -262,7 +382,8 @@ export const useJobSearch = () => {
             jobProviderName: tags?.basicInfo?.jobProviderName || provider.descriptor?.name || 'Unknown Company',
             jobProviderLocation: tags?.jobProviderLocation || location,
             jobDetails,
-            tags
+            tags,
+            media
           };
 
           transformedJobs.push(transformedJob);

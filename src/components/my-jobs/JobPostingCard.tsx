@@ -1,32 +1,15 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Calendar, Users, Building } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MapPin, Calendar, Users, Eye, Edit, Trash2 } from 'lucide-react';
 import JobMediaCarousel from '@/components/JobMediaCarousel';
-
-interface JobPosting {
-  id: string;
-  title: string;
-  location: string;
-  postedDate: string;
-  salary: string;
-  jobType: string;
-  status: string;
-  applicationsCount: number;
-  media?: Array<{
-    type: 'image' | 'video';
-    url: string;
-    thumbnail?: string;
-    alt?: string;
-    duration?: string;
-  }>;
-  logo?: string; // Add logo field
-}
+import ApplicationList from './ApplicationList';
 
 interface JobPostingCardProps {
-  job: JobPosting;
+  job: any;
   onViewCandidate: (candidate: any) => void;
   getStatusColor: (status: string) => string;
   getApplicationStatusColor: (status: string) => string;
@@ -38,33 +21,6 @@ const JobPostingCard: React.FC<JobPostingCardProps> = ({
   getStatusColor, 
   getApplicationStatusColor 
 }) => {
-  // Helper function to render company logo
-  const renderCompanyLogo = () => {
-    // Check if job has a logo URL (from GCS storage)
-    if (job.logo && typeof job.logo === 'string' && job.logo.startsWith('http')) {
-      return (
-        <img 
-          src={job.logo} 
-          alt="Company logo"
-          className="w-10 h-10 object-cover rounded-lg"
-          onError={(e) => {
-            // Fallback to building icon if image fails to load
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            target.nextElementSibling?.classList.remove('hidden');
-          }}
-        />
-      );
-    }
-    
-    // Fallback to building icon
-    return (
-      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-        <Building className="h-5 w-5 text-gray-600" />
-      </div>
-    );
-  };
-
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -103,20 +59,57 @@ const JobPostingCard: React.FC<JobPostingCardProps> = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {renderCompanyLogo()}
+          <div className="flex gap-2 flex-shrink-0">
+            <Button variant="outline" size="sm">
+              <Eye className="h-4 w-4 mr-2" />
+              View
+            </Button>
+            <Button variant="outline" size="sm">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+            <Button variant="outline" size="sm">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
           </div>
         </div>
       </CardHeader>
+
       <CardContent>
-        <div className="flex justify-end">
-          <Button 
-            variant="outline" 
-            onClick={() => onViewCandidate({ jobId: job.id, jobTitle: job.title })}
-          >
-            View Applications
-          </Button>
-        </div>
+        <Tabs defaultValue="applications" className="w-full">
+          <TabsList>
+            <TabsTrigger value="applications">
+              Applications ({job.applications.length})
+            </TabsTrigger>
+            <TabsTrigger value="details">Job Details</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="applications" className="space-y-4">
+            <ApplicationList 
+              applications={job.applications}
+              onViewCandidate={onViewCandidate}
+              getApplicationStatusColor={getApplicationStatusColor}
+            />
+          </TabsContent>
+
+          <TabsContent value="details" className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium">Job Type:</span> {job.jobType}
+              </div>
+              <div>
+                <span className="font-medium">Salary:</span> {job.salary}
+              </div>
+              <div>
+                <span className="font-medium">Location:</span> {job.location}
+              </div>
+              <div>
+                <span className="font-medium">Status:</span> {job.status}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

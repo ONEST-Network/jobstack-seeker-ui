@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Upload, QrCode, Shield, Lock } from 'lucide-react';
 import DigiLockerModal from './DigiLockerModal';
 import QRCodeScannerDialog from './QRCodeScannerDialog';
+import { FileUploadField } from '@/components/ui/file-upload-field';
 
 interface DynamicFormStepProps {
   stepName: string;
@@ -179,16 +180,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     };
 
     const handleVideoUpload = () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'video/*';
-      input.onchange = (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) {
-          handleFieldChange(fieldName, URL.createObjectURL(file));
-        }
-      };
-      input.click();
+      // This function is now handled by FileUploadField component
     };
 
     const handleQRScan = () => {
@@ -551,32 +543,16 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
       case 'video-upload':
         return (
           <div key={fieldName} className="space-y-2">
-            <Label htmlFor={fieldName} className="text-sm font-medium">
-              {fieldConfig.title}
-              {isRequired && <span className="text-red-500 ml-1">*</span>}
-            </Label>
-            <div className="space-y-2">
-              {value && (
-                <video
-                  src={value}
-                  controls
-                  className="w-full max-w-md rounded-lg border"
-                />
-              )}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleVideoUpload}
-                disabled={disabled}
-                className="w-full"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                {value ? 'Change Video' : 'Upload Video'}
-              </Button>
-            </div>
-            {fieldConfig.description && (
-              <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
-            )}
+            <FileUploadField
+              label={fieldConfig.title}
+              description={fieldConfig.description}
+              accept="video/*"
+              fileType="video"
+              value={value}
+              onChange={(file) => handleFieldChange(fieldName, file)}
+              usePresignedUrl={true}
+              objectKeyPrefix="profile"
+            />
           </div>
         );
 

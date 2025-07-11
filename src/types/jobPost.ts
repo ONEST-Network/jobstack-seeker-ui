@@ -38,8 +38,8 @@ export interface JobData {
   overtimePay: '1x' | '1.5x' | '2x';
   gradeUpgradation: boolean;
   factoryTrustScore: number; // computed
-  factoryWalkthroughVideo?: File;
-  workerTestimonialVideo?: File;
+  factoryWalkthroughVideo?: File | string;
+  workerTestimonialVideo?: File | string;
   
   // What I Want
   basicLiteracy: '8th-pass' | '10th-pass' | '12th-pass' | 'graduate';

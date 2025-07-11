@@ -90,33 +90,6 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
     );
   };
 
-  // Helper function to render company logo
-  const renderCompanyLogo = () => {
-    // Check if job has a logo URL (from GCS storage)
-    if (job.logo && typeof job.logo === 'string' && job.logo.startsWith('http')) {
-      return (
-        <img 
-          src={job.logo} 
-          alt={`${job.company} logo`}
-          className="w-8 h-8 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
-          onError={(e) => {
-            // Fallback to building icon if image fails to load
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            target.nextElementSibling?.classList.remove('hidden');
-          }}
-        />
-      );
-    }
-    
-    // Fallback to building icon
-    return (
-      <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-        <Building className="h-4 w-4 sm:h-6 sm:w-6 text-gray-600" />
-      </div>
-    );
-  };
-
   return (
     <Card 
       className="hover:shadow-lg transition-shadow duration-300 border border-border cursor-pointer" 
@@ -136,7 +109,22 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
 
         {/* Logo, Company Name and Verified */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {renderCompanyLogo()}
+          <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {job.jobProviderLogo ? (
+              <img 
+                src={job.jobProviderLogo} 
+                alt={`${job.company} logo`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to building icon if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <Building className={`h-4 w-4 sm:h-6 sm:w-6 text-gray-600 ${job.jobProviderLogo ? 'hidden' : ''}`} />
+          </div>
           <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
             <span className="font-medium text-sm sm:text-base text-foreground truncate">{job.company}</span>
             {job.verified && (
