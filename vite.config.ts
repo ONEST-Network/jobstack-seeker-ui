@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
-      external: ['html5-qrcode'],
+      // Removed html5-qrcode from externals to allow proper bundling
     },
   },
 }));
