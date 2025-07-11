@@ -1,129 +1,98 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, Building, Users, Star, Home, Banknote, BedDouble, ChevronDown, ChevronUp } from 'lucide-react';
-import JobMediaCarousel from '@/components/JobMediaCarousel';
+import { Badge } from '@/components/ui/badge';
+import { Building, MapPin, Clock, Users, Star } from 'lucide-react';
+import { JobItem } from '@/hooks/useJobSearch';
+import JobMediaCarousel from '../JobMediaCarousel';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface JobCardProps {
-  job: any;
-  onApply: (job: any) => void;
-  onViewDetails: (job: any) => void;
+  job: JobItem;
+  onApply: (job: JobItem) => void;
+  onViewDetails: (job: JobItem) => void;
 }
 
 const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
-  const [showAllDetails, setShowAllDetails] = useState(false);
-  
-  // Extract job details from the job object
-  const jobDetails = job.jobDetails || {};
-  
-  // Convert job details to array of key-value pairs, excluding positions (already shown in title)
-  const jobDetailsArray = Object.entries(jobDetails)
-    .filter(([key, value]) => key !== 'positions' && value !== null && value !== undefined && value !== '')
-    .map(([key, value]) => ({
-      key: key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
-      value: typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
-    }));
+  const { user } = useAuth();
 
-  const hasJobDetails = jobDetailsArray.length > 0;
-  const hasMoreDetails = jobDetailsArray.length > 8;
-  const displayDetails = showAllDetails ? jobDetailsArray : jobDetailsArray.slice(0, 8);
-
-  // Helper function to render job details in 2-column grid
   const renderJobDetails = () => {
-    if (!hasJobDetails) {
-      return (
-        <div className="grid grid-cols-2 gap-2 sm:gap-4">
-          <div className="md:col-span-2 text-center py-4">
-            <div className="text-sm sm:text-base font-semibold text-muted-foreground">
-              Contact job provider
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">
-              No additional details available
-            </div>
-          </div>
-        </div>
-      );
+    const details = [];
+
+    if (job.monthlyInHand && job.monthlyInHand !== 'Not specified') {
+      details.push({
+        label: 'Monthly In-Hand',
+        value: job.monthlyInHand,
+        icon: <Star className="h-4 w-4" />
+      });
     }
 
-    return (
-      <>
-        <div className="grid grid-cols-2 gap-2 sm:gap-4">
-          {displayDetails.map((detail, index) => (
-            <div key={index}>
-              <div className="text-sm sm:text-base font-semibold text-foreground">
-                {detail.value}
-              </div>
-              <div className="text-xs sm:text-sm text-muted-foreground">
-                {detail.key}
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        {hasMoreDetails && (
-          <div className="flex justify-center pt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowAllDetails(!showAllDetails);
-              }}
-              className="text-primary hover:text-primary/80"
-            >
-              {showAllDetails ? (
-                <>
-                  <ChevronUp className="h-4 w-4 mr-1" />
-                  Show Less
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-4 w-4 mr-1" />
-                  View More ({jobDetailsArray.length - 8} more)
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-      </>
-    );
+    if (job.monthlyPfEsic && job.monthlyPfEsic !== 'Included') {
+      details.push({
+        label: 'PF & ESIC',
+        value: job.monthlyPfEsic,
+        icon: <Users className="h-4 w-4" />
+      });
+    }
+
+    if (job.monthlyOvertime && job.monthlyOvertime !== 'Not specified') {
+      details.push({
+        label: 'Overtime',
+        value: job.monthlyOvertime,
+        icon: <Clock className="h-4 w-4" />
+      });
+    }
+
+    if (job.stayProvided) {
+      details.push({
+        label: 'Stay Provided',
+        value: 'Yes',
+        icon: <Building className="h-4 w-4" />
+      });
+    }
+
+    if (job.costPerSharingBed && job.costPerSharingBed !== 'Not specified') {
+      details.push({
+        label: 'Cost per Bed',
+        value: job.costPerSharingBed,
+        icon: <MapPin className="h-4 w-4" />
+      });
+    }
+
+    return details.map((detail, index) => (
+      <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+        {detail.icon}
+        <span className="font-medium">{detail.label}:</span>
+        <span>{detail.value}</span>
+      </div>
+    ));
   };
 
+  // Determine if we should show real trust scores
+  const shouldShowRealScores = user && user.profile;
+  
+  // Get display scores - show 0 if user not logged in, real scores if logged in
+  const displayTrustScore = shouldShowRealScores ? job.trustScore : 0;
+  const displayMatchScore = shouldShowRealScores ? job.matchScore : 0;
+
   return (
-    <Card 
-      className="hover:shadow-lg transition-shadow duration-300 border border-border cursor-pointer" 
-      onClick={() => onViewDetails(job)}
-    >
-      <CardContent className="p-4 space-y-4">
-        {/* Job Name with Openings and Location */}
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">
-            {job.title} {job.openings && `(${job.openings})`}
+    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onViewDetails(job)}>
+      <CardContent className="p-4 sm:p-6 space-y-4">
+        {/* Job Title */}
+        <div className="space-y-2">
+          <h3 className="text-lg sm:text-xl font-semibold text-foreground line-clamp-2">
+            {job.title}
           </h3>
-          <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground flex-shrink-0">
-            <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="truncate">{job.location}</span>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4" />
+            {job.location}
           </div>
         </div>
 
-        {/* Logo, Company Name and Verified */}
+        {/* Company Info */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-            {job.jobProviderLogo ? (
-              <img 
-                src={job.jobProviderLogo} 
-                alt={`${job.company} logo`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // Fallback to building icon if image fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <Building className={`h-4 w-4 sm:h-6 sm:w-6 text-gray-600 ${job.jobProviderLogo ? 'hidden' : ''}`} />
+            <Building className="h-4 w-4 sm:h-6 sm:w-6 text-gray-600" />
           </div>
           <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
             <span className="font-medium text-sm sm:text-base text-foreground truncate">{job.company}</span>
@@ -147,15 +116,21 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
         {/* Dynamic Job Details Section */}
         {renderJobDetails()}
 
-        {/* Trust Score & Match Score (if user is logged in) */}
+        {/* Trust Score & Match Score */}
         <div className="flex gap-2 sm:gap-4">
           <div className="bg-blue-50 rounded-lg p-2 sm:p-3 flex-1 text-center">
             <div className="text-xs text-blue-600">Trust Score</div>
-            <div className="text-sm sm:text-base font-bold text-blue-700">{job.trustScore}/10</div>
+            <div className="text-sm sm:text-base font-bold text-blue-700">{displayTrustScore}/10</div>
+            {!shouldShowRealScores && (
+              <div className="text-xs text-blue-500 mt-1">Login to see</div>
+            )}
           </div>
           <div className="bg-green-50 rounded-lg p-2 sm:p-3 flex-1 text-center">
             <div className="text-xs text-green-600">Match Score</div>
-            <div className="text-sm sm:text-base font-bold text-green-700">{job.matchScore}/10</div>
+            <div className="text-sm sm:text-base font-bold text-green-700">{displayMatchScore}/10</div>
+            {!shouldShowRealScores && (
+              <div className="text-xs text-green-500 mt-1">Login to see</div>
+            )}
           </div>
         </div>
 

@@ -24,6 +24,8 @@ const JobListView: React.FC<JobListViewProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
   const [detailJob, setDetailJob] = useState<JobItem | null>(null);
+  const [jobsWithScores, setJobsWithScores] = useState<JobItem[]>([]);
+  const [scoredJobIds, setScoredJobIds] = useState<Set<string>>(new Set());
   const { user } = useAuth();
 
   // Prevent unauthenticated users from opening the job detail dialog
@@ -45,7 +47,9 @@ const JobListView: React.FC<JobListViewProps> = ({
     retryCount, 
     findProviderAndJobIds,
     isInitialLoad,
-    lastFetchTime
+    lastFetchTime,
+    scoresLoading,
+    fetchScoresForJobs
   } = useJobSearch();
   const { applyToJob, applying } = useJobApplication();
 
@@ -62,6 +66,66 @@ const JobListView: React.FC<JobListViewProps> = ({
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
   const startIndex = (currentPage - 1) * jobsPerPage;
   const paginatedJobs = filteredJobs.slice(startIndex, startIndex + jobsPerPage);
+
+  // Function to fetch trust and match scores for current page
+  const fetchScoresForCurrentPage = async () => {
+    if (!user || !user.profile || paginatedJobs.length === 0) {
+      return;
+    }
+
+    // Check if we already have scores for all jobs on this page
+    const jobsNeedingScores = paginatedJobs.filter(job => !scoredJobIds.has(job.id));
+    
+    if (jobsNeedingScores.length === 0) {
+      return;
+    }
+
+    try {
+      const jobsWithScores = await fetchScoresForJobs(jobsNeedingScores);
+      
+      // Update the jobs with scores
+      setJobsWithScores(prev => {
+        const updated = [...prev];
+        jobsWithScores.forEach(jobWithScore => {
+          const index = updated.findIndex(j => j.id === jobWithScore.id);
+          if (index !== -1) {
+            updated[index] = jobWithScore;
+          } else {
+            updated.push(jobWithScore);
+          }
+        });
+        return updated;
+      });
+
+      // Mark these jobs as scored
+      setScoredJobIds(prev => {
+        const newSet = new Set(prev);
+        jobsWithScores.forEach(job => newSet.add(job.id));
+        return newSet;
+      });
+    } catch (error) {
+      console.error('Failed to fetch trust and match scores for current page:', error);
+    }
+  };
+
+  // Fetch trust and match scores when page changes or user logs in
+  useEffect(() => {
+    if (user && user.profile && paginatedJobs.length > 0) {
+      fetchScoresForCurrentPage();
+    }
+  }, [currentPage, user?.profile, paginatedJobs]);
+
+  // Update jobsWithScores when jobs change
+  useEffect(() => {
+    setJobsWithScores(jobs);
+    setScoredJobIds(new Set()); // Reset scored jobs when jobs change
+  }, [jobs]);
+
+  // Get jobs to display (use scored jobs if available, otherwise use original jobs)
+  const displayJobs = paginatedJobs.map(job => {
+    const scoredJob = jobsWithScores.find(s => s.id === job.id);
+    return scoredJob || job;
+  });
 
   const handleApply = (job: JobItem) => {
     if (!user) {
@@ -90,11 +154,11 @@ const JobListView: React.FC<JobListViewProps> = ({
   };
 
   const handleRetry = () => {
-    refetch(true); // Force refresh
+    refetch(); // Force refresh
   };
 
   const handleRefresh = () => {
-    refetch(true); // Force refresh
+    refetch(); // Force refresh
   };
 
   // Reset to first page when search query changes
@@ -126,6 +190,12 @@ const JobListView: React.FC<JobListViewProps> = ({
             <h2 className="text-2xl font-bold text-foreground">Jobs for You</h2>
             {!loading && jobs.length > 0 && (
               <div className="flex items-center gap-2">
+                {scoresLoading && (
+                  <div className="flex items-center gap-2 text-sm text-blue-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    Calculating trust & match scores...
+                  </div>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -193,7 +263,7 @@ const JobListView: React.FC<JobListViewProps> = ({
                   Showing cached results while refreshing...
                 </p>
                 <div className="space-y-4">
-                  {paginatedJobs.map(job => (
+                  {displayJobs.map(job => (
                     <JobCard 
                       key={job.id} 
                       job={job} 
@@ -220,8 +290,8 @@ const JobListView: React.FC<JobListViewProps> = ({
         {!loading && !error && (
           <>
             <div className="space-y-4">
-              {paginatedJobs.length > 0 ? (
-                paginatedJobs.map(job => (
+              {displayJobs.length > 0 ? (
+                displayJobs.map(job => (
                   <JobCard 
                     key={job.id} 
                     job={job} 

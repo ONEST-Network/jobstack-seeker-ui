@@ -430,6 +430,148 @@ class ApiClient {
     }
   }
 
+  // Trust Score API
+  async getTrustScore(jobData: any, seekerData: any): Promise<{ trustScore: number; matchScore: number }> {
+    const TRUST_SCORE_URL = import.meta.env.VITE_TRUST_MATCH_SCORE_URL;
+    
+    if (!TRUST_SCORE_URL) {
+      console.warn('Trust score URL not configured, returning default scores');
+      return { trustScore: 0, matchScore: 0 };
+    }
+
+    const url = `${TRUST_SCORE_URL}/trust-score`;
+    
+    const payload = {
+      job: jobData,
+      seeker: seekerData
+    };
+
+    // Debug: Log the payload structure
+    console.log('Trust Score API Payload:', {
+      jobKeys: jobData ? Object.keys(jobData) : 'null/undefined',
+      seekerKeys: seekerData ? Object.keys(seekerData) : 'null/undefined',
+      seekerIsArray: Array.isArray(seekerData),
+      payload: payload
+    });
+
+    try {
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Trust Score API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText
+        });
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      
+      // Validate the response structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from trust score API');
+      }
+
+      return {
+        trustScore: data.trustScore || 0,
+        matchScore: data.matchScore || 0
+      };
+    } catch (error) {
+      console.error('Trust Score API Error:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+      // Return default scores on error
+      return { trustScore: 0, matchScore: 0 };
+    }
+  }
+
+  // Match Score API
+  async getMatchScore(jobData: any, seekerData: any): Promise<{ trustScore: number; matchScore: number }> {
+    const TRUST_SCORE_URL = import.meta.env.VITE_TRUST_MATCH_SCORE_URL;
+    
+    if (!TRUST_SCORE_URL) {
+      console.warn('Trust score URL not configured, returning default scores');
+      return { trustScore: 0, matchScore: 0 };
+    }
+
+    const url = `${TRUST_SCORE_URL}/match-score`;
+    
+    const payload = {
+      job: jobData,
+      seeker: seekerData
+    };
+
+    // Debug: Log the payload structure
+    console.log('Match Score API Payload:', {
+      jobKeys: jobData ? Object.keys(jobData) : 'null/undefined',
+      seekerKeys: seekerData ? Object.keys(seekerData) : 'null/undefined',
+      seekerIsArray: Array.isArray(seekerData),
+      payload: payload
+    });
+
+    try {
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Match Score API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText
+        });
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      
+      // Validate the response structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from match score API');
+      }
+
+      return {
+        trustScore: data.trustScore || 0,
+        matchScore: data.matchScore || 0
+      };
+    } catch (error) {
+      console.error('Match Score API Error:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+      // Return default scores on error
+      return { trustScore: 0, matchScore: 0 };
+    }
+  }
+
   // Storage/Presigned URL methods
   async getPresignedUrl(request: {
     bucketName: string;

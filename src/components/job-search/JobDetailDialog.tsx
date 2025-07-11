@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Clock, Building, Users, Star, Briefcase, ChevronDown, ChevronUp, Info, Briefcase as BriefcaseIcon, User, Settings, AlertTriangle, Video, Image as ImageIcon } from 'lucide-react';
-import JobMediaCarousel from '@/components/JobMediaCarousel';
+import { MapPin, Clock, Users, Star, Building, Calendar, DollarSign, Home, BedDouble, Award, Phone, Mail, Globe } from 'lucide-react';
+import { JobItem } from '@/hooks/useJobSearch';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface JobDetailDialogProps {
-  job: any;
+  job: JobItem;
   isOpen: boolean;
   onClose: () => void;
-  onApply: (job: any) => void;
+  onApply: (job: JobItem) => void;
 }
 
 interface SubsectionData {
@@ -21,6 +21,7 @@ interface SubsectionData {
 
 const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose, onApply }) => {
   const [expandedSubsections, setExpandedSubsections] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
   
   if (!job) return null;
 
@@ -74,114 +75,80 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
     return true;
   };
 
-  // Helper function to get icon for subsection
+  // Helper function to get subsection icon
   const getSubsectionIcon = (subsectionName: string): React.ReactNode => {
-    const lowerName = subsectionName.toLowerCase();
-    if (lowerName.includes('error') || lowerName.includes('issue')) {
-      return <AlertTriangle className="h-4 w-4 text-red-600" />;
-    }
-    if (lowerName.includes('juki')) {
-      return <Settings className="h-4 w-4 text-blue-600" />;
-    }
-    if (lowerName.includes('machine') || lowerName.includes('equipment')) {
-      return <Settings className="h-4 w-4 text-purple-600" />;
-    }
-    if (lowerName.includes('quality') || lowerName.includes('inspection')) {
-      return <Star className="h-4 w-4 text-yellow-600" />;
-    }
-    return <Info className="h-4 w-4 text-gray-600" />;
+    const iconMap: Record<string, React.ReactNode> = {
+      'basicInfo': <Building className="h-4 w-4" />,
+      'jobDetails': <Award className="h-4 w-4" />,
+      'jobNeeds': <Users className="h-4 w-4" />,
+      'industrialTailorDetails': <Star className="h-4 w-4" />,
+      'hiringManager': <Phone className="h-4 w-4" />,
+      'jobProviderLocation': <MapPin className="h-4 w-4" />,
+      'jobDescription': <Globe className="h-4 w-4" />
+    };
+    return iconMap[subsectionName] || <Star className="h-4 w-4" />;
   };
 
   // Helper function to render media field
   const renderMediaField = (label: string, mediaUrl: string, type: 'video' | 'image', icon?: React.ReactNode) => {
-    if (!mediaUrl) return null;
-    
     return (
-      <div className="flex items-start gap-3 py-2">
-        {icon && <div className="text-muted-foreground mt-0.5">{icon}</div>}
-        <div className="flex-1">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <div className="mt-2">
-            {type === 'video' ? (
-              <video 
-                controls 
-                className="w-full max-w-md rounded-lg border"
-                src={mediaUrl}
-              >
-                Your browser does not support the video tag.
-              </video>
-            ) : (
-              <img 
-                src={mediaUrl} 
-                alt={label}
-                className="w-full max-w-md rounded-lg border"
-                onError={(e) => {
-                  // Hide image if it fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }}
-              />
-            )}
-          </div>
-        </div>
+      <div key={label} className="flex items-center gap-2 text-sm">
+        {icon || <Star className="h-4 w-4" />}
+        <span className="font-medium">{label}:</span>
+        <a 
+          href={mediaUrl} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline"
+        >
+          View {type}
+        </a>
       </div>
     );
   };
 
   // Helper function to render media array
   const renderMediaArray = (label: string, mediaUrls: string[], type: 'video' | 'image', icon?: React.ReactNode) => {
-    if (!mediaUrls || mediaUrls.length === 0) return null;
-    
     return (
-      <div className="flex items-start gap-3 py-2">
-        {icon && <div className="text-muted-foreground mt-0.5">{icon}</div>}
-        <div className="flex-1">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {mediaUrls.map((url, index) => (
-              <div key={index}>
-                {type === 'video' ? (
-                  <video 
-                    controls 
-                    className="w-full rounded-lg border"
-                    src={url}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                ) : (
-                  <img 
-                    src={url} 
-                    alt={`${label} ${index + 1}`}
-                    className="w-full rounded-lg border"
-                    onError={(e) => {
-                      // Hide image if it fails to load
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+      <div key={label} className="space-y-2">
+        <div className="flex items-center gap-2 text-sm">
+          {icon || <Star className="h-4 w-4" />}
+          <span className="font-medium">{label}:</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {mediaUrls.map((url, index) => (
+            <a 
+              key={index}
+              href={url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline text-xs"
+            >
+              {type} {index + 1}
+            </a>
+          ))}
         </div>
       </div>
     );
   };
 
-  // Function to process nested subsections
+  // Process subsections from tags
   const processSubsections = (data: any): SubsectionData[] => {
     const subsections: SubsectionData[] = [];
     
     Object.entries(data).forEach(([key, value]) => {
-      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-        // This is a subsection
-        const subsectionData = Object.entries(value)
-          .filter(([subKey, subValue]) => shouldDisplayValue(subValue))
-          .map(([subKey, subValue]) => ({
-            key: formatFieldName(subKey),
-            value: formatFieldValue(subValue)
-          }));
-
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        const subsectionData: Array<{ key: string; value: string }> = [];
+        
+        Object.entries(value).forEach(([subKey, subValue]) => {
+          if (shouldDisplayValue(subValue)) {
+            subsectionData.push({
+              key: formatFieldName(subKey),
+              value: formatFieldValue(subValue)
+            });
+          }
+        });
+        
         if (subsectionData.length > 0) {
           subsections.push({
             title: formatFieldName(key),
@@ -191,62 +158,18 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
         }
       }
     });
-
+    
     return subsections;
   };
 
-  // Convert objects to displayable arrays (excluding subsections)
-  const basicInfoArray = Object.entries(basicInfo)
-    .filter(([key, value]) => shouldDisplayValue(value) && typeof value !== 'object')
-    .map(([key, value]) => ({
-      key: formatFieldName(key),
-      value: formatFieldValue(value)
-    }));
-
-  const jobDetailsArray = Object.entries(jobDetails)
-    .filter(([key, value]) => shouldDisplayValue(value) && typeof value !== 'object')
-    .map(([key, value]) => ({
-      key: formatFieldName(key),
-      value: formatFieldValue(value)
-    }));
-
-  const jobNeedsArray = Object.entries(jobNeeds)
-    .filter(([key, value]) => shouldDisplayValue(value) && typeof value !== 'object')
-    .map(([key, value]) => ({
-      key: formatFieldName(key),
-      value: formatFieldValue(value)
-    }));
-
-  const industrialTailorArray = Object.entries(industrialTailorDetails)
-    .filter(([key, value]) => shouldDisplayValue(value) && typeof value !== 'object')
-    .map(([key, value]) => ({
-      key: formatFieldName(key),
-      value: formatFieldValue(value)
-    }));
-
-  const hiringManagerArray = Object.entries(hiringManager)
-    .filter(([key, value]) => shouldDisplayValue(value))
-    .map(([key, value]) => ({
-      key: formatFieldName(key),
-      value: formatFieldValue(value)
-    }));
-
-  // Process subsections
-  const basicInfoSubsections = processSubsections(basicInfo);
-  const jobDetailsSubsections = processSubsections(jobDetails);
-  const jobNeedsSubsections = processSubsections(jobNeeds);
-  const industrialTailorSubsections = processSubsections(industrialTailorDetails);
-
-  // Helper component to render a subsection
+  // Render subsection
   const renderSubsection = (subsection: SubsectionData) => {
     const isExpanded = expandedSubsections.has(subsection.title);
-    const displayData = isExpanded ? subsection.data : subsection.data.slice(0, 3);
-    const hasMore = subsection.data.length > 3;
-
+    
     return (
-      <div key={subsection.title} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+      <div key={subsection.title} className="border rounded-lg p-4">
         <div 
-          className="flex items-center justify-between cursor-pointer mb-3"
+          className="flex items-center justify-between cursor-pointer"
           onClick={() => {
             const newExpanded = new Set(expandedSubsections);
             if (isExpanded) {
@@ -259,380 +182,209 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
         >
           <div className="flex items-center gap-2">
             {subsection.icon}
-            <h4 className="font-semibold text-sm text-gray-800">{subsection.title}</h4>
+            <h4 className="font-semibold">{subsection.title}</h4>
           </div>
-          {hasMore && (
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-              {isExpanded ? (
-                <ChevronUp className="h-3 w-3" />
-              ) : (
-                <ChevronDown className="h-3 w-3" />
-              )}
-            </Button>
-          )}
+          <Button variant="ghost" size="sm">
+            {isExpanded ? '▼' : '▶'}
+          </Button>
         </div>
         
-        <div className="space-y-2">
-          {displayData.map((item, index) => (
-            <div key={index} className="flex justify-between items-center py-2 px-3 bg-white rounded border">
-              <span className="text-sm font-medium text-gray-700">{item.key}:</span>
-              <span className="text-sm text-gray-600">{item.value}</span>
-            </div>
-          ))}
-        </div>
-        
-        {hasMore && !isExpanded && (
-          <div className="text-center mt-2">
-            <span className="text-xs text-gray-500">
-              +{subsection.data.length - 3} more items
-            </span>
+        {isExpanded && (
+          <div className="mt-4 space-y-2">
+            {subsection.data.map((item, index) => (
+              <div key={index} className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{item.key}:</span>
+                <span className="font-medium">{item.value}</span>
+              </div>
+            ))}
           </div>
         )}
       </div>
     );
   };
 
-  // Helper component to render a section with subsections
+  // Render section with subsections
   const renderSectionWithSubsections = (
     title: string, 
     data: any[], 
     subsections: SubsectionData[], 
     icon: React.ReactNode
   ) => {
-    if (data.length === 0 && subsections.length === 0) return null;
-
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            {icon}
-            <h3 className="text-lg font-semibold">{title}</h3>
-          </div>
-          
-          {/* Regular data items */}
-          {data.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {data.map((item, index) => (
-                <div key={index} className="flex flex-col p-3 bg-gray-50 rounded-lg">
-                  <div className="text-sm font-medium text-foreground mb-1">
-                    {item.value}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {item.key}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Subsections */}
-          {subsections.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="text-md font-medium text-gray-700 mb-3">Subsections</h4>
-              {subsections.map(renderSubsection)}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
-
-  // Helper component to render a section (backward compatibility)
-  const renderSection = (title: string, data: any[], icon: React.ReactNode, showMore = false) => {
-    if (data.length === 0) return null;
-
-    const displayData = showMore ? data : data.slice(0, 6);
-    const hasMore = data.length > 6;
-
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            {icon}
-            <h3 className="text-lg font-semibold">{title}</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {displayData.map((item, index) => (
-              <div key={index} className="flex flex-col p-3 bg-gray-50 rounded-lg">
-                <div className="text-sm font-medium text-foreground mb-1">
-                  {item.value}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {item.key}
-                </div>
+      <div key={title} className="space-y-4">
+        <div className="flex items-center gap-2">
+          {icon}
+          <h3 className="text-lg font-semibold">{title}</h3>
+        </div>
+        
+        {data.length > 0 && (
+          <div className="grid grid-cols-2 gap-4">
+            {data.map((item, index) => (
+              <div key={index} className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{item.key}:</span>
+                <span className="font-medium">{item.value}</span>
               </div>
             ))}
           </div>
-          {hasMore && (
-            <div className="flex justify-center pt-4 border-t mt-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setExpandedSubsections(new Set(expandedSubsections))}
-                className="text-primary hover:text-primary/80"
-              >
-                {expandedSubsections.has(title) ? (
-                  <>
-                    <ChevronUp className="h-4 w-4 mr-1" />
-                    Show Less
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-4 w-4 mr-1" />
-                    View More ({data.length - 6} more)
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+        
+        {subsections.length > 0 && (
+          <div className="space-y-3">
+            {subsections.map(renderSubsection)}
+          </div>
+        )}
+      </div>
     );
   };
 
+  // Render section
+  const renderSection = (title: string, data: any[], icon: React.ReactNode, showMore = false) => {
+    return (
+      <div key={title} className="space-y-4">
+        <div className="flex items-center gap-2">
+          {icon}
+          <h3 className="text-lg font-semibold">{title}</h3>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          {data.map((item, index) => (
+            <div key={index} className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{item.key}:</span>
+              <span className="font-medium">{item.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Determine if we should show real trust scores
+  const shouldShowRealScores = user && user.profile;
+  
+  // Get display scores - show 0 if user not logged in, real scores if logged in
+  const displayTrustScore = shouldShowRealScores ? job.trustScore : 0;
+  const displayMatchScore = shouldShowRealScores ? job.matchScore : 0;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-4xl h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0 border-b pb-4">
-          <DialogTitle className="text-2xl">{job.title}</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">{job.title}</DialogTitle>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto py-4">
-          <div className="space-y-6">
-            {/* Job Overview Card */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-4 flex-1">
-                    <div className="w-40 flex-shrink-0">
-                      <JobMediaCarousel 
-                        media={job.media || []} 
-                        title={job.title}
-                        className="w-full"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h2 className="text-2xl font-bold text-foreground">{job.title}</h2>
-                        {job.verified && (
-                          <Badge variant="secondary" className="bg-green-100 text-green-800">
-                            ✓ Verified
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-muted-foreground mb-3">
-                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                          {job.jobProviderLogo ? (
-                            <img 
-                              src={job.jobProviderLogo} 
-                              alt={`${job.company} logo`}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                // Fallback to building icon if image fails to load
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.nextElementSibling?.classList.remove('hidden');
-                              }}
-                            />
-                          ) : null}
-                          <Building className={`h-4 w-4 text-gray-600 ${job.jobProviderLogo ? 'hidden' : ''}`} />
-                        </div>
-                        <span className="font-medium text-lg">{job.company}</span>
-                      </div>
-                      <div className="flex items-center gap-6 text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          <span>{job.location}</span>
-                        </div>
-                        {job.openings && (
-                          <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4" />
-                            <span>{job.openings} openings</span>
-                          </div>
-                        )}
-                        {job.workingHours && (
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            <span>{job.workingHours}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right flex-shrink-0 ml-4">
-                    <div className="bg-green-50 rounded-lg p-4 mb-3 border border-green-200">
-                      <div className="text-3xl font-bold text-green-700 mb-1">{jobDetails.salaryCTC || job.salary}</div>
-                      <div className="text-sm text-green-600 font-medium">Total Salary</div>
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="bg-blue-50 rounded-md px-3 py-2">
-                        <div className="text-xs text-blue-600">Trust</div>
-                        <div className="font-bold text-blue-700">{job.trustScore}/10</div>
-                      </div>
-                      <div className="bg-green-50 rounded-md px-3 py-2">
-                        <div className="text-xs text-green-600">Match</div>
-                        <div className="font-bold text-green-700">{job.matchScore}/10</div>
-                      </div>
-                    </div>
-                  </div>
+        <div className="space-y-6">
+          {/* Header with basic info */}
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Building className="h-5 w-5 text-muted-foreground" />
+                <span className="font-semibold">{job.company}</span>
+                {job.verified && (
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    ✓ Verified
+                  </Badge>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-6 text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  <span>{job.location}</span>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Job Description */}
-            {job.description && (
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-3">Job Description</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {job.description}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Company Information Section */}
-            {renderSectionWithSubsections(
-              "Company Information", 
-              basicInfoArray, 
-              basicInfoSubsections,
-              <Building className="h-5 w-5 text-blue-600" />
-            )}
-
-            {/* Job Details Section */}
-            {renderSectionWithSubsections(
-              "Job Details", 
-              jobDetailsArray, 
-              jobDetailsSubsections,
-              <BriefcaseIcon className="h-5 w-5 text-green-600" />
-            )}
-
-            {/* Media Section */}
-            {job.media && job.media.length > 0 && (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <ImageIcon className="h-5 w-5 text-blue-600" />
-                    <h3 className="text-lg font-semibold">Job Media</h3>
+                {job.openings && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>{job.openings} openings</span>
                   </div>
-                  <div className="space-y-4">
-                    {/* Company Logo */}
-                    {job.tags?.basicInfo?.jobProviderLogo && 
-                      renderMediaField('Company Logo', job.tags.basicInfo.jobProviderLogo, 'image', <ImageIcon className="h-4 w-4" />)
-                    }
-                    
-                    {/* Job Details Video */}
-                    {job.tags?.jobDetails?.jobDetailsVideo && 
-                      renderMediaField('Job Details Video', job.tags.jobDetails.jobDetailsVideo, 'video', <Video className="h-4 w-4" />)
-                    }
-                    
-                    {/* Job Location Photos */}
-                    {job.tags?.jobDetails?.jobLocationPhotos && Array.isArray(job.tags.jobDetails.jobLocationPhotos) && 
-                      renderMediaArray('Job Location Photos', job.tags.jobDetails.jobLocationPhotos, 'image', <ImageIcon className="h-4 w-4" />)
-                    }
-                    
-                    {/* Sample Task Video */}
-                    {job.tags?.jobNeeds?.sampleTaskVideo && 
-                      renderMediaField('Sample Task Video', job.tags.jobNeeds.sampleTaskVideo, 'video', <Video className="h-4 w-4" />)
-                    }
-                    
-                    {/* Sample Task Image */}
-                    {job.tags?.jobNeeds?.sampleTaskImage && 
-                      renderMediaField('Sample Task Image', job.tags.jobNeeds.sampleTaskImage, 'image', <ImageIcon className="h-4 w-4" />)
-                    }
-                    
-                    {/* Speed Proof Documents */}
-                    {job.tags?.jobNeeds?.jukiSpeedSubsection?.uploadSpeedProof && Array.isArray(job.tags.jobNeeds.jukiSpeedSubsection.uploadSpeedProof) && 
-                      renderMediaArray('Speed Proof Documents', job.tags.jobNeeds.jukiSpeedSubsection.uploadSpeedProof, 'image', <ImageIcon className="h-4 w-4" />)
-                    }
-                    
-                    {/* Speed Sample Media */}
-                    {job.tags?.jobNeeds?.jukiSpeedSubsection?.uploadSpeedSampleMedia && Array.isArray(job.tags.jobNeeds.jukiSpeedSubsection.uploadSpeedSampleMedia) && 
-                      renderMediaArray('Speed Sample Media', job.tags.jobNeeds.jukiSpeedSubsection.uploadSpeedSampleMedia, 'video', <Video className="h-4 w-4" />)
-                    }
-                    
-                    {/* Error Proof Documents */}
-                    {job.tags?.jobNeeds?.jukiErrorSubsection?.uploadErrorProof && Array.isArray(job.tags.jobNeeds.jukiErrorSubsection.uploadErrorProof) && 
-                      renderMediaArray('Error Proof Documents', job.tags.jobNeeds.jukiErrorSubsection.uploadErrorProof, 'image', <ImageIcon className="h-4 w-4" />)
-                    }
-                    
-                    {/* Error Sample Media */}
-                    {job.tags?.jobNeeds?.jukiErrorSubsection?.uploadErrorSampleMedia && Array.isArray(job.tags.jobNeeds.jukiErrorSubsection.uploadErrorSampleMedia) && 
-                      renderMediaArray('Error Sample Media', job.tags.jobNeeds.jukiErrorSubsection.uploadErrorSampleMedia, 'video', <Video className="h-4 w-4" />)
-                    }
+                )}
+                {job.workingHours && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>{job.workingHours}</span>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </div>
+            </div>
+            
+            <div className="text-right flex-shrink-0 ml-4">
+              <div className="bg-green-50 rounded-lg p-4 mb-3 border border-green-200">
+                <div className="text-3xl font-bold text-green-700 mb-1">{jobDetails.salaryCTC || job.salary}</div>
+                <div className="text-sm text-green-600 font-medium">Total Salary</div>
+              </div>
+              <div className="flex gap-2">
+                <div className="bg-blue-50 rounded-md px-3 py-2">
+                  <div className="text-xs text-blue-600">Trust</div>
+                  <div className="font-bold text-blue-700">{displayTrustScore}/10</div>
+                  {!shouldShowRealScores && (
+                    <div className="text-xs text-blue-500">Login to see</div>
+                  )}
+                </div>
+                <div className="bg-green-50 rounded-md px-3 py-2">
+                  <div className="text-xs text-green-600">Match</div>
+                  <div className="font-bold text-green-700">{displayMatchScore}/10</div>
+                  {!shouldShowRealScores && (
+                    <div className="text-xs text-green-500">Login to see</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Job Details */}
+          <div className="space-y-6">
+            {/* Basic Info */}
+            {Object.keys(basicInfo).length > 0 && renderSectionWithSubsections(
+              'Basic Information',
+              [],
+              processSubsections(basicInfo),
+              <Building className="h-5 w-5" />
             )}
 
-            {/* Job Requirements Section */}
-            {renderSectionWithSubsections(
-              "Job Requirements", 
-              jobNeedsArray, 
-              jobNeedsSubsections,
-              <Info className="h-5 w-5 text-purple-600" />
+            {/* Job Details */}
+            {Object.keys(jobDetails).length > 0 && renderSectionWithSubsections(
+              'Job Details',
+              [],
+              processSubsections(jobDetails),
+              <Award className="h-5 w-5" />
             )}
 
-            {/* Industrial Details Section */}
-            {renderSectionWithSubsections(
-              "Industrial Details", 
-              industrialTailorArray, 
-              industrialTailorSubsections,
-              <Briefcase className="h-5 w-5 text-orange-600" />
+            {/* Job Needs */}
+            {Object.keys(jobNeeds).length > 0 && renderSectionWithSubsections(
+              'Job Requirements',
+              [],
+              processSubsections(jobNeeds),
+              <Users className="h-5 w-5" />
             )}
 
-            {/* Contact Information Section */}
-            {hiringManagerArray.length > 0 && (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <User className="h-5 w-5 text-indigo-600" />
-                    <h3 className="text-lg font-semibold">Contact Information</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {hiringManagerArray.map((item, index) => (
-                      <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                        <div className="flex-1">
-                          <div className="font-medium">{item.value}</div>
-                          <div className="text-sm text-muted-foreground">{item.key}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Industrial Tailor Details */}
+            {Object.keys(industrialTailorDetails).length > 0 && renderSectionWithSubsections(
+              'Industrial Tailor Details',
+              [],
+              processSubsections(industrialTailorDetails),
+              <Star className="h-5 w-5" />
             )}
 
-            {/* Fallback when no details available */}
-            {basicInfoArray.length === 0 && jobDetailsArray.length === 0 && jobNeedsArray.length === 0 && 
-             basicInfoSubsections.length === 0 && jobDetailsSubsections.length === 0 && jobNeedsSubsections.length === 0 && (
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-3">Job Information</h3>
-                  <div className="text-center py-8">
-                    <div className="text-muted-foreground text-lg mb-2">
-                      Contact job provider
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      No additional details available. Please contact the job provider for more information.
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Hiring Manager */}
+            {Object.keys(hiringManager).length > 0 && renderSectionWithSubsections(
+              'Contact Information',
+              [],
+              processSubsections(hiringManager),
+              <Phone className="h-5 w-5" />
             )}
           </div>
-        </div>
 
-        <div className="flex-shrink-0 border-t pt-4">
-          <div className="flex gap-3">
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4 border-t">
             <Button 
-              className="flex-1 bg-primary hover:bg-primary/90 h-12 text-base font-medium"
               onClick={() => onApply(job)}
+              className="flex-1 bg-primary hover:bg-primary/90"
             >
               Apply Now
             </Button>
-            <Button variant="outline" className="h-12 px-8 text-base" onClick={onClose}>
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+            >
               Close
             </Button>
           </div>

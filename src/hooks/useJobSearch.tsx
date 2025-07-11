@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiClient } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface JobItem {
   id: string;
@@ -21,6 +22,7 @@ export interface JobItem {
   industry?: string;
   experience?: string;
   positions?: number;
+  status?: string; // Job status (draft, active, closed, etc.)
   media?: Array<{
     type: 'image' | 'video';
     url: string;
@@ -104,10 +106,12 @@ export const useJobSearch = () => {
   const [originalResponse, setOriginalResponse] = useState<JobSearchResponse | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState<number | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [scoresLoading, setScoresLoading] = useState(false);
+  
+  const { user } = useAuth();
   
   const maxRetries = 3;
   const requestTimeout = 30000; // 30 seconds timeout
-  const cacheTimeout = 5 * 60 * 1000; // 5 minutes cache
   const abortControllerRef = useRef<AbortController | null>(null);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -137,26 +141,80 @@ export const useJobSearch = () => {
     return null;
   }, [originalResponse]);
 
+  // Function to fetch trust and match scores for specific jobs
+  const fetchScoresForJobs = useCallback(async (jobsToScore: JobItem[]) => {
+    if (!user || !user.profile || jobsToScore.length === 0) {
+      console.log('User not logged in, no profile, or no jobs to score');
+      return jobsToScore;
+    }
+
+    setScoresLoading(true);
+    
+    try {
+      // Get seeker data from profile API
+      const profileResponse = await apiClient.getProfile();
+      
+      // Extract the actual profile data object - handle both array and object responses
+      let seekerData = profileResponse.data;
+      
+      // If the data is an array, take the first element
+      if (Array.isArray(seekerData)) {
+        console.log('Profile data is an array, extracting first element');
+        seekerData = seekerData[0];
+      }
+      
+      // Debug: Log the structure of seeker data
+      console.log('Seeker data structure:', {
+        isArray: Array.isArray(seekerData),
+        type: typeof seekerData,
+        keys: seekerData ? Object.keys(seekerData) : [],
+        data: seekerData
+      });
+
+      // Ensure we have valid seeker data
+      if (!seekerData || typeof seekerData !== 'object') {
+        console.error('Invalid seeker data structure:', seekerData);
+        return jobsToScore;
+      }
+
+      // Fetch trust scores and match scores for each job
+      const jobsWithScores = await Promise.all(
+        jobsToScore.map(async (job) => {
+          try {
+            // Fetch both trust score and match score
+            const [trustResult, matchResult] = await Promise.all([
+              apiClient.getTrustScore(job, seekerData),
+              apiClient.getMatchScore(job, seekerData)
+            ]);
+            
+            return {
+              ...job,
+              trustScore: trustResult.trustScore,
+              matchScore: matchResult.matchScore
+            };
+          } catch (error) {
+            console.error(`Failed to get scores for job ${job.id}:`, error);
+            return job; // Return job without scores on error
+          }
+        })
+      );
+
+      return jobsWithScores;
+    } catch (error) {
+      console.error('Failed to fetch scores:', error);
+      return jobsToScore;
+    } finally {
+      setScoresLoading(false);
+    }
+  }, [user]);
+
+  // Transform job data from API response
   const transformJobData = useCallback((apiResponse: JobSearchResponse): JobItem[] => {
     const transformedJobs: JobItem[] = [];
 
-    // Check if results exist and have the expected structure
-    if (!apiResponse.results || !Array.isArray(apiResponse.results)) {
-      console.warn('No results found in API response');
-      return transformedJobs;
-    }
-
     apiResponse.results.forEach(result => {
-      // Check if message and catalog exist
-      if (!result?.message?.catalog) {
-        console.warn('Missing catalog in API response result');
-        return;
-      }
-
-      const catalog = result.message.catalog;
-      
-      // Check if providers exist and is an array
-      if (!catalog.providers || !Array.isArray(catalog.providers)) {
+      const catalog = result?.message?.catalog;
+      if (!catalog?.providers) {
         console.warn('No providers found in catalog');
         return;
       }
@@ -176,6 +234,18 @@ export const useJobSearch = () => {
           }
 
           const tags = item.tags || {};
+          
+          // Filter out draft jobs - don't show them in search results
+          const jobStatus = tags.status;
+          if (jobStatus === 'draft') {
+            console.log(`Skipping draft job: ${item.descriptor.name} (ID: ${item.id})`);
+            return;
+          }
+          
+          // Log job status for debugging (only for non-draft jobs)
+          if (jobStatus) {
+            console.log(`Job status for ${item.descriptor.name}: ${jobStatus}`);
+          }
           
           // Extract location from provider locations or item tags
           const location = provider.locations?.[0] || tags?.jobProviderLocation || {};
@@ -212,9 +282,9 @@ export const useJobSearch = () => {
           // Extract cost per sharing bed (if available)
           const costPerSharingBed = tags?.costPerSharingBed || 'Not specified';
 
-          // Extract trust and match scores (default values for now)
-          const trustScore = tags?.factoryTrustScore || Math.floor(Math.random() * 3) + 7; // 7-9
-          const matchScore = Math.floor(Math.random() * 3) + 7; // 7-9
+          // Extract trust and match scores (default to 0 initially)
+          const trustScore = 0; // Will be updated by trust score API
+          const matchScore = 0; // Will be updated by trust score API
 
           // Extract openings/positions
           const openings = tags?.jobDetails?.positions || tags?.positions || 1;
@@ -327,37 +397,6 @@ export const useJobSearch = () => {
             }
           }
 
-          // Extract error proof documents and sample media
-          if (tags?.jobNeeds?.jukiErrorSubsection) {
-            const errorSubsection = tags.jobNeeds.jukiErrorSubsection;
-            
-            // Error proof documents
-            if (errorSubsection.uploadErrorProof && Array.isArray(errorSubsection.uploadErrorProof)) {
-              errorSubsection.uploadErrorProof.forEach((docUrl: string, index: number) => {
-                if (docUrl) {
-                  media.push({
-                    type: 'image',
-                    url: docUrl,
-                    alt: `Error proof document ${index + 1}`
-                  });
-                }
-              });
-            }
-
-            // Error sample media
-            if (errorSubsection.uploadErrorSampleMedia && Array.isArray(errorSubsection.uploadErrorSampleMedia)) {
-              errorSubsection.uploadErrorSampleMedia.forEach((mediaUrl: string, index: number) => {
-                if (mediaUrl) {
-                  media.push({
-                    type: 'video',
-                    url: mediaUrl,
-                    alt: `Error sample media ${index + 1}`
-                  });
-                }
-              });
-            }
-          }
-
           const transformedJob: JobItem = {
             id: item.id,
             title: item.descriptor.name,
@@ -378,6 +417,7 @@ export const useJobSearch = () => {
             industry,
             experience,
             positions: openings,
+            status: jobStatus, // Include job status
             contactPerson,
             jobProviderName: tags?.basicInfo?.jobProviderName || provider.descriptor?.name || 'Unknown Company',
             jobProviderLocation: tags?.jobProviderLocation || location,
@@ -394,157 +434,101 @@ export const useJobSearch = () => {
     return transformedJobs;
   }, []);
 
-  // Check if we have cached data that's still valid
-  const isCacheValid = useCallback(() => {
-    if (!lastFetchTime) return false;
-    return Date.now() - lastFetchTime < cacheTimeout;
-  }, [lastFetchTime]);
-
-  const fetchJobs = useCallback(async (isRetry = false, forceRefresh = false) => {
-    // Cancel any ongoing request
+  // Fetch jobs from API
+  const fetchJobs = useCallback(async (isRetry = false) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
-    // Check cache validity (unless force refresh)
-    if (!forceRefresh && isCacheValid() && jobs.length > 0) {
-      setLoadingState('complete');
-      return;
-    }
-
-    // Create new abort controller
     abortControllerRef.current = new AbortController();
 
     try {
-      if (!isRetry) {
-        setLoadingState(isInitialLoad ? 'initial' : 'loading');
-        setError(null);
-        setRetryCount(0);
-      }
-      
-      // Set a timeout for the request
-      const timeoutId = setTimeout(() => {
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort();
-        }
-      }, requestTimeout);
+      setLoadingState('loading');
+      setError(null);
 
-      // Set a loading timeout to show "taking longer than expected" message
-      loadingTimeoutRef.current = setTimeout(() => {
-        if (loadingState === 'initial' || loadingState === 'loading') {
-          setLoadingState('partial');
-        }
-      }, 5000); // Show partial loading after 5 seconds
-
-      const response: JobSearchResponse = await apiClient.searchJobs();
-      
-      // Clear timeouts
-      clearTimeout(timeoutId);
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-      
-      // Validate response structure
-      if (!response || typeof response !== 'object') {
-        throw new Error('Invalid API response format');
       }
 
-      // Check if response has the expected structure
-      if (!response.results) {
-        console.warn('API response missing results property');
-        setJobs([]);
-        setLoadingState('complete');
-        return;
+      loadingTimeoutRef.current = setTimeout(() => {
+        setLoadingState('partial');
+      }, 2000);
+
+      const data = await apiClient.searchJobs();
+      
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
       }
+
+      setOriginalResponse(data);
       
-      // Store original response for extracting provider and job IDs
-      setOriginalResponse(response);
+      // Transform the data
+      const transformedJobs = transformJobData(data);
       
-      const transformedJobs = transformJobData(response);
+      // Set jobs without trust scores initially
       setJobs(transformedJobs);
-      setLastFetchTime(Date.now());
-      
-      if (response.pagination) {
-        setPagination(response.pagination);
-      }
 
+      setPagination({
+        limit: data.pagination?.limit || 10,
+        offset: data.pagination?.offset || 0,
+        total: data.pagination?.total || transformedJobs.length
+      });
+
+      setLastFetchTime(Date.now());
       setLoadingState('complete');
       setIsInitialLoad(false);
-      
-    } catch (err) {
-      // Clear timeouts
+    } catch (error) {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
       }
 
-      // Handle abort error
-      if (err instanceof Error && err.name === 'AbortError') {
-        setError('Request timed out. Please try again.');
+      console.error('Failed to fetch jobs:', error);
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        setError('Request cancelled');
         setLoadingState('error');
         return;
       }
 
-      console.error('Error fetching jobs:', err);
-      
-      // Auto-retry logic
-      if (!isRetry && retryCount < maxRetries) {
-        const newRetryCount = retryCount + 1;
-        setRetryCount(newRetryCount);
-        
-        // Exponential backoff: 1s, 2s, 4s
-        const delay = Math.pow(2, newRetryCount - 1) * 1000;
-        
-        setTimeout(() => {
-          fetchJobs(true, forceRefresh);
-        }, delay);
-        
-        return;
-      }
-      
-      setError(err instanceof Error ? err.message : 'Failed to fetch jobs');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch jobs';
+      setError(errorMessage);
       setLoadingState('error');
       
-      // Set empty array on error, but you could also set some fallback jobs here
-      setJobs([]);
+      if (!isRetry && retryCount < maxRetries) {
+        setRetryCount(prev => prev + 1);
+        setTimeout(() => fetchJobs(true), 1000 * (retryCount + 1));
+      }
     }
-  }, [isCacheValid, jobs.length, isInitialLoad, loadingState, retryCount, transformJobData]);
+  }, [transformJobData, retryCount, maxRetries]);
 
-  // Cleanup function
-  const cleanup = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-    }
-  }, []);
-
+  // Initial fetch
   useEffect(() => {
     fetchJobs();
-    
-    // Cleanup on unmount
-    return cleanup;
-  }, []);
-
-  const refetch = useCallback((forceRefresh = false) => {
-    fetchJobs(false, forceRefresh);
   }, [fetchJobs]);
 
-  // Expose loading state as boolean for backward compatibility
-  const loading = loadingState === 'initial' || loadingState === 'loading' || loadingState === 'partial';
+  const refetch = useCallback(() => {
+    setRetryCount(0);
+    fetchJobs();
+  }, [fetchJobs]);
+
+  const retry = useCallback(() => {
+    setRetryCount(0);
+    fetchJobs();
+  }, [fetchJobs]);
 
   return {
     jobs,
-    loading,
+    loading: loadingState === 'loading' || loadingState === 'partial',
     loadingState,
     error,
     pagination,
     refetch,
+    retry,
     retryCount,
     findProviderAndJobIds,
     isInitialLoad,
-    lastFetchTime
+    lastFetchTime,
+    scoresLoading,
+    fetchScoresForJobs
   };
 }; 
