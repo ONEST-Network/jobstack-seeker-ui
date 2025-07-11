@@ -25,14 +25,14 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const [dropdownStates, setDropdownStates] = React.useState<Record<string, boolean>>({});
 
   const schema = getUnifiedSchemaStep(role, stepName);
-  
+
   if (!schema) {
     return (
       <div className="p-4 text-center">
         <div className="text-red-600 mb-2">Schema not found</div>
         <div className="text-sm text-gray-600">
-          Step: {stepName}<br/>
-          Role: {role}<br/>
+          Step: {stepName}<br />
+          Role: {role}<br />
           Available schemas: {Object.keys(getUnifiedSchema(role) || {}).join(', ')}
         </div>
       </div>
@@ -40,7 +40,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   }
 
   const stepData = (profile[stepName as keyof typeof profile] as Record<string, any>) || {};
-  
+
   const setStepData = (newData: Record<string, any>) => {
     setProfile(prev => ({
       ...prev,
@@ -61,13 +61,15 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const handleFieldChange = (fieldName: string, value: any) => {
     // Update step data
     setStepData({ [fieldName]: value });
-    
+
     // Also update global profile state for fields that should be accessible globally
-    if (['name', 'age', 'gender', 'hometown', 'aadharNumber'].includes(fieldName)) {
-      setProfile(prev => ({
-        ...prev,
-        [fieldName]: value
-      }));
+    if (['name', 'age', 'gender', 'hometown', 'aadharNumber', 'qrCodeScan'].includes(fieldName)) {
+      setProfile(prev => {
+        return ({
+          ...prev,
+          [fieldName]: value
+        })
+      });
     }
   };
 
@@ -134,9 +136,9 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         ...mappedData,
         ...verificationFlags
       };
-      
 
-      
+
+
       return updatedProfile;
     });
 
@@ -144,7 +146,9 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   };
 
   const handleQRScanComplete = (data: any) => {
+    console.log('data: ', data)
     if (qrFieldName) {
+      console.log("qr: ", qrFieldName)
       handleFieldChange(qrFieldName, data);
     }
   };
@@ -347,21 +351,21 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         const otherDropdownFieldName = `${fieldName}_other`;
         const otherDropdownValue = stepData[otherDropdownFieldName] || '';
         const isDropdownOpen = dropdownStates[fieldName] || false;
-        
+
         const toggleDropdown = () => {
           setDropdownStates(prev => ({
             ...prev,
             [fieldName]: !prev[fieldName]
           }));
         };
-        
+
         return (
           <div key={fieldName} className="space-y-2">
             <Label htmlFor={fieldName} className="text-sm font-medium">
               {fieldConfig.title}
               {isRequired && <span className="text-red-500 ml-1">*</span>}
             </Label>
-            
+
             {/* Custom Dropdown */}
             <div className="relative">
               <Button
@@ -372,25 +376,25 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 className="w-full justify-between text-left font-normal"
               >
                 <span className="truncate">
-                  {currentDropdownValues.length > 0 
-                    ? `${currentDropdownValues.length} selected` 
+                  {currentDropdownValues.length > 0
+                    ? `${currentDropdownValues.length} selected`
                     : placeholder || "Select options"}
                 </span>
                 <div className="ml-2 flex-shrink-0">
                   {isDropdownOpen ? '▲' : '▼'}
                 </div>
               </Button>
-              
+
               {isDropdownOpen && (
                 <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
                   {fieldConfig.enum?.map((option: string, index: number) => {
                     const optionValue = fieldConfig.enumNames?.[index] || option;
                     const isSelected = currentDropdownValues.includes(optionValue);
                     const isOtherOption = option.toLowerCase() === 'other';
-                    
+
                     return (
                       <div key={option} className="p-2 hover:bg-gray-50">
-                        <div 
+                        <div
                           className="flex items-center space-x-2 cursor-pointer"
                           onClick={() => {
                             const newValues = isSelected
@@ -401,12 +405,12 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                         >
                           <Checkbox
                             checked={isSelected}
-                            onCheckedChange={() => {}} // Handled by parent div onClick
+                            onCheckedChange={() => { }} // Handled by parent div onClick
                             disabled={disabled}
                           />
                           <span className="text-sm flex-1">{optionValue}</span>
                         </div>
-                        
+
                         {/* Show text input when "Other" is selected */}
                         {isOtherOption && isSelected && hasOtherDropdownField && (
                           <div className="mt-2 ml-6">
@@ -430,7 +434,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 </div>
               )}
             </div>
-            
+
             {/* Selected items display */}
             {currentDropdownValues.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
@@ -452,7 +456,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 ))}
               </div>
             )}
-            
+
             {fieldConfig.description && (
               <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
             )}
@@ -464,7 +468,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         const hasOtherField = fieldConfig['ui:hasOther'];
         const otherFieldName = `${fieldName}_other`;
         const otherValue = stepData[otherFieldName] || '';
-        
+
         return (
           <div key={fieldName} className="space-y-2">
             <Label htmlFor={fieldName} className="text-sm font-medium">
@@ -476,7 +480,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 const optionValue = fieldConfig.enumNames?.[index] || option;
                 const isChecked = currentValues.includes(optionValue);
                 const isOtherOption = option.toLowerCase() === 'other';
-                
+
                 return (
                   <div key={option} className="space-y-2">
                     <div className="flex items-center space-x-2">
@@ -495,7 +499,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                         {optionValue}
                       </Label>
                     </div>
-                    
+
                     {/* Show text input when "Other" is selected */}
                     {isOtherOption && isChecked && hasOtherField && (
                       <div className="ml-6">
@@ -570,6 +574,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                   <p className="text-xs text-muted-foreground break-all">{value}</p>
                 </div>
               )}
+              {/* here make changes  */}
               <Button
                 type="button"
                 variant="outline"
