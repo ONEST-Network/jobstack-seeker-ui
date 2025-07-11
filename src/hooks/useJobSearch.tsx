@@ -212,6 +212,12 @@ export const useJobSearch = () => {
   const transformJobData = useCallback((apiResponse: JobSearchResponse): JobItem[] => {
     const transformedJobs: JobItem[] = [];
 
+    // Add null checks for the API response structure
+    if (!apiResponse || !apiResponse.results || !Array.isArray(apiResponse.results)) {
+      console.warn('Invalid API response structure:', apiResponse);
+      return transformedJobs;
+    }
+
     apiResponse.results.forEach(result => {
       const catalog = result?.message?.catalog;
       if (!catalog?.providers) {
@@ -460,18 +466,30 @@ export const useJobSearch = () => {
         clearTimeout(loadingTimeoutRef.current);
       }
 
+      // Log the API response structure for debugging
+      console.log('API Response structure:', {
+        hasData: !!data,
+        dataType: typeof data,
+        hasResults: !!data?.results,
+        resultsType: Array.isArray(data?.results) ? 'array' : typeof data?.results,
+        resultsLength: Array.isArray(data?.results) ? data.results.length : 'not array',
+        keys: data ? Object.keys(data) : []
+      });
+
       setOriginalResponse(data);
       
       // Transform the data
       const transformedJobs = transformJobData(data);
       
+      console.log('Transformed jobs count:', transformedJobs.length);
+      
       // Set jobs without trust scores initially
       setJobs(transformedJobs);
 
       setPagination({
-        limit: data.pagination?.limit || 10,
-        offset: data.pagination?.offset || 0,
-        total: data.pagination?.total || transformedJobs.length
+        limit: data?.pagination?.limit || 10,
+        offset: data?.pagination?.offset || 0,
+        total: data?.pagination?.total || transformedJobs.length
       });
 
       setLastFetchTime(Date.now());
