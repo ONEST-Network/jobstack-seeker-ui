@@ -202,6 +202,12 @@ class ApiClient {
     });
   }
 
+  async getJobApplications(userId: string) {
+    return this.request(`/job-applications?user_id=${userId}`, {
+      method: 'GET',
+    });
+  }
+
   async applyToJob(jobData: any) {
     return this.request('/jobs/seeker/apply', {
       method: 'POST',

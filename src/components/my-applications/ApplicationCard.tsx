@@ -6,6 +6,7 @@ import { MapPin, Calendar } from 'lucide-react';
 import JobMediaCarousel from '@/components/JobMediaCarousel';
 import ApplicationStatusBadge from './ApplicationStatusBadge';
 import ApplicationDetailDialog from './ApplicationDetailDialog';
+import ApplicationViewModal from './ApplicationViewModal';
 import { useState } from 'react';
 
 interface JobApplication {
@@ -34,6 +35,7 @@ interface ApplicationCardProps {
 
 const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, isCompleted = false }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewApplicationOpen, setViewApplicationOpen] = useState(false);
   const cardStyle = isCompleted 
     ? `hover:shadow-md transition-shadow ${
         application.status === 'hired' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
@@ -78,9 +80,14 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, isComple
 
             <div className="flex items-center justify-between">
               <ApplicationStatusBadge status={application.status} />
-              <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
-                View Details
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setViewApplicationOpen(true)}>
+                  View Application
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
+                  View Details
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -89,6 +96,11 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, isComple
         application={application.raw ?? application}
         isOpen={dialogOpen}
         onClose={() => setDialogOpen(false)}
+      />
+      <ApplicationViewModal
+        isOpen={viewApplicationOpen}
+        onClose={() => setViewApplicationOpen(false)}
+        applicationId={application.id}
       />
     </Card>
   );
