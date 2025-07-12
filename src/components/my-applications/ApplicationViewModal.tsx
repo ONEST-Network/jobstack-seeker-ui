@@ -69,16 +69,31 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
     setError(null);
     
     try {
+      // Use the same API call as MyApplications component
       const response = await fetch(`${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${user?.id}`);
       const data = await response.json();
       
-      const application = data?.applications?.find((app: any) => 
-        app.order_id === applicationId || app.transaction_id === applicationId
-      );
+      console.log('API Response:', data); // Debug log
+      
+      const applications = data?.applications || [];
+      const application = applications.find((app: any) => {
+        // Match using the same logic as MyApplications component
+        const appId = app.order_id ?? app.transaction_id ?? app.job_id;
+        return appId === applicationId || 
+               app.order_id === applicationId || 
+               app.transaction_id === applicationId;
+      });
+      
+      console.log('Found application:', application); // Debug log
       
       if (application) {
         setApplicationDetails(application);
       } else {
+        console.log('Available applications:', applications.map((app: any) => ({ 
+          order_id: app.order_id, 
+          transaction_id: app.transaction_id, 
+          id: app.id 
+        }))); // Debug log
         setError('Application details not found');
       }
     } catch (err) {
@@ -90,11 +105,32 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
   };
 
   // Helper to convert camelCase / snake to Title Case
-  const formatKey = (key: string) =>
-    key
+  const formatKey = (key: string) => {
+    const formatted = key
       .replace(/_/g, ' ')
       .replace(/([A-Z])/g, ' $1')
       .replace(/^./, (str) => str.toUpperCase());
+    
+    // Custom field name mappings for better readability
+    const fieldMappings: Record<string, string> = {
+      'jukiMachineExperience': 'Juki Machine Experience',
+      'stitchingSpeed': 'Stitching Speed (SPM)',
+      'maxCostPerSharingBed': 'Max Cost Per Sharing Bed',
+      'monthlyInHandPreferred': 'Monthly In-Hand Preferred',
+      'monthlyOTExpectation': 'Monthly OT Expectation',
+      'monthlyPFESIC': 'Monthly PF/ESIC',
+      'readyToMigrate': 'Ready To Migrate',
+      'stayPreferences': 'Stay Preferences',
+      'workHoursPerDay': 'Work Hours Per Day',
+      'currentLocation': 'Current Location',
+      'desiredLocation': 'Desired Location',
+      'isAgeVerified': 'Age Verified',
+      'isNameVerified': 'Name Verified',
+      'machinesOperated': 'Machines Operated'
+    };
+    
+    return fieldMappings[formatted] || formatted;
+  };
 
   const isObject = (val: any) => val && typeof val === 'object' && !Array.isArray(val);
 
@@ -103,6 +139,9 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Object.entries(obj).map(([key, value]) => {
           if (value === undefined || value === null || value === '' || key === 'gps' || key === 'tag') return null;
+
+          // Skip empty arrays
+          if (Array.isArray(value) && value.length === 0) return null;
 
           if (isObject(value)) {
             // Flatten one level deep
@@ -120,7 +159,9 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
               <div className="text-sm font-medium text-muted-foreground">
                 {formatKey(key)}
               </div>
-              <div className="text-base font-semibold break-words">{String(value)}</div>
+              <div className="text-base font-semibold break-words">
+                {Array.isArray(value) ? value.join(', ') : String(value)}
+              </div>
             </div>
           );
         })}
@@ -199,7 +240,7 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
         {!isLoading && !error && applicationDetails && (
           <div className="space-y-6">
             {/* Interested Role - Always visible */}
-            {applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.interestedRole && (
+            {applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.metadata?.interestedRole && (
               <Card>
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-2">
@@ -211,7 +252,7 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
                       Role
                     </div>
                     <div className="text-base font-semibold break-words">
-                      {applicationDetails.metadata.message.order.fulfillments[0].customer.person.interestedRole}
+                      {applicationDetails.metadata.message.order.fulfillments[0].customer.person.metadata.interestedRole}
                     </div>
                   </div>
                 </CardContent>
@@ -221,21 +262,21 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
             {/* Expandable Sections */}
             {renderExpandableSection(
               "Who I Am",
-              applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.whoIAm,
+              applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.metadata?.whoIAm,
               'whoIAm',
               <User className="h-5 w-5" />
             )}
 
             {renderExpandableSection(
               "What I Have",
-              applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.whatIHave,
+              applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.metadata?.whatIHave,
               'whatIHave',
               <Briefcase className="h-5 w-5" />
             )}
 
             {renderExpandableSection(
               "What I Want",
-              applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.whatIWant,
+              applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.metadata?.whatIWant,
               'whatIWant',
               <Target className="h-5 w-5" />
             )}
