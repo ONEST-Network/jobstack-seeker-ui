@@ -3,8 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Loader2, User, Briefcase, Target, MapPin, Calendar, Phone, Mail } from 'lucide-react';
+import { Loader2, User, Briefcase, Target, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ApplicationViewModalProps {
@@ -24,6 +23,10 @@ interface ApplicationDetails {
           customer: {
             person: {
               name: string;
+              interestedRole?: string;
+              whoIAm?: Record<string, any>;
+              whatIHave?: Record<string, any>;
+              whatIWant?: Record<string, any>;
               [key: string]: any;
             };
             [key: string]: any;
@@ -45,6 +48,15 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
   const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<{
+    whoIAm: boolean;
+    whatIHave: boolean;
+    whatIWant: boolean;
+  }>({
+    whoIAm: false,
+    whatIHave: false,
+    whatIWant: false
+  });
 
   useEffect(() => {
     if (isOpen && applicationId && user?.id) {
@@ -77,91 +89,95 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
     }
   };
 
-  const formatFieldName = (key: string): string => {
-    return key
+  // Helper to convert camelCase / snake to Title Case
+  const formatKey = (key: string) =>
+    key
+      .replace(/_/g, ' ')
       .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, str => str.toUpperCase())
-      .replace(/([A-Z])/g, ' $1')
-      .trim();
-  };
+      .replace(/^./, (str) => str.toUpperCase());
 
-  const formatFieldValue = (value: any): string => {
-    if (value === null || value === undefined) return 'N/A';
-    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-    if (typeof value === 'number') return value.toString();
-    if (typeof value === 'string') return value;
-    if (Array.isArray(value)) return value.join(', ');
-    if (typeof value === 'object') return JSON.stringify(value);
-    return String(value);
-  };
+  const isObject = (val: any) => val && typeof val === 'object' && !Array.isArray(val);
 
-  const renderSection = (title: string, data: Record<string, any>, icon: React.ReactNode) => {
-    if (!data || Object.keys(data).length === 0) return null;
-
+  const renderKeyValueList = (obj: Record<string, any>) => {
     return (
-      <Card className="mb-4">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            {icon}
-            {title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(data).map(([key, value]) => (
-              <div key={key} className="space-y-1">
-                <dt className="text-sm font-medium text-muted-foreground">
-                  {formatFieldName(key)}
-                </dt>
-                <dd className="text-sm">
-                  {formatFieldValue(value)}
-                </dd>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {Object.entries(obj).map(([key, value]) => {
+          if (value === undefined || value === null || value === '' || key === 'gps' || key === 'tag') return null;
+
+          if (isObject(value)) {
+            // Flatten one level deep
+            return (
+              <div key={key} className="col-span-full space-y-2">
+                <h4 className="font-medium text-sm text-muted-foreground mb-1">
+                  {formatKey(key)}
+                </h4>
+                {renderKeyValueList(value as Record<string, any>)}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            );
+          }
+          return (
+            <div key={key} className="p-3 rounded-lg bg-gray-50">
+              <div className="text-sm font-medium text-muted-foreground">
+                {formatKey(key)}
+              </div>
+              <div className="text-base font-semibold break-words">{String(value)}</div>
+            </div>
+          );
+        })}
+      </div>
     );
   };
 
-  const renderCustomerInfo = () => {
-    if (!applicationDetails?.metadata?.message?.order?.fulfillments?.[0]?.customer?.person) {
-      return null;
-    }
+  const toggleSection = (section: 'whoIAm' | 'whatIHave' | 'whatIWant') => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
-    const customer = applicationDetails.metadata.message.order.fulfillments[0].customer.person;
-    
+  const renderExpandableSection = (
+    title: string, 
+    data: Record<string, any> | undefined, 
+    sectionKey: 'whoIAm' | 'whatIHave' | 'whatIWant',
+    icon: React.ReactNode
+  ) => {
+    if (!data || Object.keys(data).length === 0) return null;
+
+    const isExpanded = expandedSections[sectionKey];
+
     return (
-      <Card className="mb-4">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <User className="h-5 w-5" />
-            Candidate Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(customer).map(([key, value]) => (
-              <div key={key} className="space-y-1">
-                <dt className="text-sm font-medium text-muted-foreground">
-                  {formatFieldName(key)}
-                </dt>
-                <dd className="text-sm">
-                  {formatFieldValue(value)}
-                </dd>
-              </div>
-            ))}
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <div 
+            className="flex items-center justify-between cursor-pointer"
+            onClick={() => toggleSection(sectionKey)}
+          >
+            <div className="flex items-center gap-2">
+              {icon}
+              <h3 className="text-lg font-semibold">{title}</h3>
+            </div>
+            {isExpanded ? (
+              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            )}
           </div>
+          
+          {isExpanded && (
+            <div className="pt-2">
+              {renderKeyValueList(data)}
+            </div>
+          )}
         </CardContent>
       </Card>
     );
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(o) => (!o ? onClose() : undefined)}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto w-full max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Application Details</DialogTitle>
+          <DialogTitle className="text-xl">Application Details</DialogTitle>
         </DialogHeader>
 
         {isLoading && (
@@ -181,47 +197,47 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
         )}
 
         {!isLoading && !error && applicationDetails && (
-          <div className="space-y-4">
-            {renderCustomerInfo()}
-            
-            {applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.whoIAm && 
-              renderSection(
-                "Who I Am", 
-                applicationDetails.metadata.message.order.fulfillments[0].customer.person.whoIAm,
-                <User className="h-5 w-5" />
-              )
-            }
-            
-            {applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.whatIHave && 
-              renderSection(
-                "What I Have", 
-                applicationDetails.metadata.message.order.fulfillments[0].customer.person.whatIHave,
-                <Briefcase className="h-5 w-5" />
-              )
-            }
-            
-            {applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.whatIWant && 
-              renderSection(
-                "What I Want", 
-                applicationDetails.metadata.message.order.fulfillments[0].customer.person.whatIWant,
-                <Target className="h-5 w-5" />
-              )
-            }
-            
+          <div className="space-y-6">
+            {/* Interested Role - Always visible */}
             {applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.interestedRole && (
-              <Card className="mb-4">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-center gap-2">
                     <Target className="h-5 w-5" />
-                    Interested Role
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Badge variant="secondary" className="text-sm">
-                    {applicationDetails.metadata.message.order.fulfillments[0].customer.person.interestedRole}
-                  </Badge>
+                    <h3 className="text-lg font-semibold">Interested Role</h3>
+                  </div>
+                  <div className="p-3 rounded-lg bg-gray-50">
+                    <div className="text-sm font-medium text-muted-foreground">
+                      Role
+                    </div>
+                    <div className="text-base font-semibold break-words">
+                      {applicationDetails.metadata.message.order.fulfillments[0].customer.person.interestedRole}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Expandable Sections */}
+            {renderExpandableSection(
+              "Who I Am",
+              applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.whoIAm,
+              'whoIAm',
+              <User className="h-5 w-5" />
+            )}
+
+            {renderExpandableSection(
+              "What I Have",
+              applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.whatIHave,
+              'whatIHave',
+              <Briefcase className="h-5 w-5" />
+            )}
+
+            {renderExpandableSection(
+              "What I Want",
+              applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.whatIWant,
+              'whatIWant',
+              <Target className="h-5 w-5" />
             )}
           </div>
         )}
