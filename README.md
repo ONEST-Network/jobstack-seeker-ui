@@ -1,225 +1,248 @@
-# Welcome to your Lovable project
-
-## Project info
-
-**URL**: https://lovable.dev/projects/2c9c5f70-02e9-4ef7-900f-a4965d3fc0e7
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/2c9c5f70-02e9-4ef7-900f-a4965d3fc0e7) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## Environment Configuration
-
-### DigiLocker Integration
-
-To enable DigiLocker integration for automatic profile import, you need to configure the following environment variables:
-
-```bash
-# Agent API base URL for DigiLocker integration
-VITE_AGENT_URL=https://your-agent-api-url.com
-
-# Bearer token for agent API authentication  
-VITE_AGENT_TOKEN=your-agent-api-token-here
-```
-
-**How it works:**
-
-1. When users click "Import from DigiLocker", the app calls `VITE_AGENT_URL/api/v1/discover/digilocker-request`
-2. This returns a DigiLocker OAuth URL for user authentication
-3. DigiLocker authentication opens in a popup window (iframe is blocked by X-Frame-Options)
-4. After user completes authentication, the redirect URL contains an authorization code
-5. The authorization code is automatically detected via popup monitoring or postMessage communication
-6. The app calls `VITE_AGENT_URL/api/v1/discover/digilocker-auth` with the code
-7. The response contains verified user data (name, DOB, gender, Aadhaar, location) which auto-fills the profile
-
-**Bridge Page Setup (Optional but Recommended):**
-
-For automatic code detection to work optimally, you should host the `public/digilocker-bridge.html` file on the redirect domain (`studiodemo.dhiway.com`) at the path `/wallet-redirect`. This bridge page:
-
-- Extracts the authorization code from the URL parameters
-- Sends the code back to the parent application via postMessage
-- Provides a user-friendly interface showing the authentication status
-- Auto-closes the popup after successful communication
-
-**Security Notes:**
-- All API calls use Bearer token authentication
-- User data is processed client-side and not stored by the agent API
-- Only verified fields from DigiLocker are auto-filled and marked as verified
-- The popup approach prevents X-Frame-Options issues while maintaining security
-
-**Fallback Options:**
-- If automatic detection fails, users can manually copy and paste the authorization code
-- The system provides clear instructions for manual code extraction
-- Multiple communication methods ensure reliability across different browsers
-
-If these environment variables are not configured, the DigiLocker import option will be disabled with an appropriate message.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/2c9c5f70-02e9-4ef7-900f-a4965d3fc0e7) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
-
 # Creds Job Bridge
 
-A modern job search and application platform built with React, TypeScript, and Tailwind CSS.
+A comprehensive job search and application platform built with React, TypeScript, and Tailwind CSS. This platform serves both job seekers and employers with modern, intuitive interfaces and robust functionality.
 
-## Features
+## 🚀 Features
 
-### Enhanced Job Search with Lazy Loading
+### For Job Seekers
 
-The application now includes improved job search functionality with:
+- **Advanced Job Search**: Search jobs by role, location, and filters with real-time results
+- **Job Discovery**: Browse jobs by categories with media carousels (images/videos)
+- **Map View**: Interactive map showing job locations with density indicators
+- **Profile Management**: Create and manage multiple candidate profiles
+- **Job Applications**: Streamlined application process with profile selection
+- **Application Tracking**: Track application status and view detailed responses
+- **DigiLocker Integration**: Import verified credentials automatically
+- **Voice Profile Creation**: Voice-guided profile setup
+- **Score Assessment**: Trust and match score calculations
+- **Document Verification**: QR code scanning for certificates and credentials
 
-- **Progressive Loading States**: Different loading indicators for initial load, refresh, and slow responses
-- **Request Timeout Handling**: 30-second timeout with automatic retry logic
-- **Caching**: 5-minute cache to reduce API calls and improve performance
-- **Better Error Handling**: Graceful fallbacks and retry mechanisms
-- **Loading Indicators**: Visual feedback in search bar and content areas
+### For Employers
 
-#### Loading States
+- **Job Posting**: Multi-step job creation wizard with role-specific forms
+- **Media Support**: Upload workplace images and videos
 
-- `initial`: First-time loading with skeleton placeholders
-- `loading`: Refreshing existing data
-- `partial`: Slow response indicator (after 5 seconds)
-- `complete`: Successfully loaded
-- `error`: Error state with retry options
 
-#### Key Improvements
+### Technical Features
 
-1. **No More Multiple Refreshes**: The app now handles slow BAP API responses gracefully
-2. **Cached Results**: Shows cached data while refreshing in background
-3. **Smart Retry Logic**: Exponential backoff (1s, 2s, 4s delays)
-4. **Request Cancellation**: Prevents multiple simultaneous requests
-5. **User Feedback**: Clear loading messages and status indicators
+- **Progressive Loading**: Smart loading states with caching and retry logic
+- **Responsive Design**: Mobile-first design with adaptive layouts
+- **Real-time Updates**: Live status updates and notifications
+- **Offline Support**: Cached data for better performance
+- **Accessibility**: WCAG compliant components
+- **Internationalization**: Multi-language support ready
 
-### Components
-
-- **JobListView**: Enhanced with progressive loading and error states
-- **JobDiscovery**: Search bar with loading indicators
-- **LoadingMessage**: Reusable loading component with different states
-- **EmptyState**: Consistent empty state handling
-- **LoadingSkeleton**: Skeleton loading placeholders
-
-### Usage
-
-The enhanced job search automatically handles:
-- Slow API responses
-- Network timeouts
-- Retry logic
-- Caching
-- User feedback
-
-No additional configuration required - the improvements are built into the existing components.
-
-## Getting Started
-
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Start the development server:
-```bash
-npm run dev
-```
-
-3. Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-## Technology Stack
+## 🛠️ Technology Stack
 
 - **Frontend**: React 18, TypeScript, Vite
 - **Styling**: Tailwind CSS, shadcn/ui components
-- **State Management**: React Context API
+- **State Management**: React Context API, TanStack Query
 - **HTTP Client**: Custom API client with timeout handling
 - **Icons**: Lucide React
+- **Maps**: Custom map implementation
+- **Authentication**: Custom auth system with session management
+- **File Upload**: Presigned URL uploads with progress tracking
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 src/
 ├── components/
-│   ├── job-search/          # Job search components
-│   ├── job-application/     # Job application flow
-│   ├── ui/                  # Reusable UI components
-│   │   └── loading-states.tsx  # Loading state components
-│   └── ...
-├── hooks/
-│   └── useJobSearch.tsx     # Enhanced job search hook
-├── lib/
-│   └── api.ts              # API client with timeout handling
-└── ...
+│   ├── auth/               # Authentication dialogs
+│   ├── candidates/         # Candidate management
+│   ├── employer/          # Employer management
+│   ├── header/            # Navigation and user menu
+│   ├── job-application/   # Job application flow
+│   ├── job-search/        # Job search and discovery
+│   ├── map/              # Interactive map components
+│   ├── my-applications/   # Application tracking
+│   ├── my-jobs/          # Employer job management
+│   ├── postJob/          # Job posting wizard
+│   ├── profile/          # Profile creation and management
+│   ├── provider/         # Employer dashboard
+│   ├── score/            # Assessment and scoring
+│   └── ui/               # Reusable UI components
+├── contexts/             # React contexts
+├── hooks/               # Custom React hooks
+├── lib/                 # API clients and utilities
+├── pages/               # Main page components
+├── schemas/             # JSON schemas for roles
+├── types/               # TypeScript type definitions
+└── utils/               # Utility functions
 ```
 
-## API Integration
+## 🚀 Getting Started
 
-The application integrates with BAP (Beckn Application Protocol) APIs for job search functionality. The enhanced loading system ensures a smooth user experience even when the BAP API is slow or unresponsive.
+### Prerequisites
 
-## Contributing
+- Node.js 18+ and npm
+- Git
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone <YOUR_GIT_URL>
+cd creds-job-bridge
+```
+
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Environment Configuration**
+
+Create a `.env` file in the root directory:
+
+```bash
+# API Configuration
+VITE_BAP_URL=https://your-bap-api-url.com
+VITE_BPP_URL=https://your-bpp-api-url.com
+
+# DigiLocker Integration (Optional)
+VITE_AGENT_URL=https://your-agent-api-url.com
+VITE_AGENT_TOKEN=your-agent-api-token-here
+
+# File Upload (Optional)
+VITE_UPLOAD_BUCKET=your-s3-bucket-name
+VITE_UPLOAD_REGION=your-s3-region
+```
+
+4. **Start the development server**
+```bash
+npm run dev
+```
+
+5. **Open your browser**
+Navigate to [http://localhost:5173](http://localhost:5173)
+
+## 🔧 Configuration
+
+### DigiLocker Integration
+
+To enable automatic profile import from DigiLocker:
+
+1. Set the environment variables:
+```bash
+VITE_AGENT_URL=https://your-agent-api-url.com
+VITE_AGENT_TOKEN=your-agent-api-token-here
+```
+
+2. Host the bridge page at your redirect domain:
+   - Copy `public/digilocker-bridge.html` to your redirect domain
+   - Ensure it's accessible at the path specified in your DigiLocker app configuration
+
+### File Upload Configuration
+
+For media uploads (images, videos, documents):
+
+```bash
+VITE_UPLOAD_BUCKET=your-s3-bucket-name
+VITE_UPLOAD_REGION=your-s3-region
+```
+
+## 📱 Usage
+
+### Job Seekers
+
+1. **Browse Jobs**: Use the search bar or explore job categories
+2. **View Details**: Click on job cards to see detailed information
+3. **Apply**: Select a profile and complete the application
+4. **Track Applications**: Monitor application status in "My Applications"
+5. **Manage Profiles**: Create and update candidate profiles
+
+### Employers
+
+1. **Post Jobs**: Use the job posting wizard to create detailed job listings
+2. **Manage Applications**: Review and shortlist candidates
+3. **Track Performance**: Monitor job posting metrics
+4. **Organization Setup**: Configure employer profiles and settings
+
+## 🔄 API Integration
+
+The application integrates with:
+
+- **BAP (Beckn Application Protocol)**: For job search and discovery
+- **BPP (Beckn Provider Protocol)**: For job posting and management
+- **Custom APIs**: For authentication, profile management, and file uploads
+
+### Enhanced Loading System
+
+- **Progressive Loading**: Different states for initial load, refresh, and slow responses
+- **Request Timeout**: 30-second timeout with automatic retry logic
+- **Caching**: 5-minute cache to reduce API calls
+- **Error Handling**: Graceful fallbacks and retry mechanisms
+
+## 🧪 Development
+
+### Available Scripts
+
+```bash
+# Development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+
+# Code Quality
+npm run lint         # Run ESLint
+npm run type-check   # Run TypeScript type checking
+```
+
+### Code Style
+
+- **TypeScript**: Strict type checking enabled
+- **ESLint**: Code linting with custom rules
+- **Prettier**: Code formatting (configured via ESLint)
+
+## 🚀 Deployment
+
+### Amplify(AWS) (Recommended)
+
+1. Connect your GitHub repository to AWS Amplify
+2. Configure environment variables in amplify dashboard
+3. Deploy automatically on push to main branch
+
+### Other Platforms
+
+The application can be deployed to any static hosting platform:
+
+- Netlify
+- GitHub Pages
+- AWS S3 + CloudFront
+- Firebase Hosting
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+### Development Guidelines
 
-This project is licensed under the MIT License.
+- Follow TypeScript best practices
+- Write meaningful commit messages
+- Add tests for new features
+- Update documentation as needed
+- Ensure responsive design for all components
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support and questions:
+
+- Create an issue in the GitHub repository
+- Check the documentation in the `/docs` folder
+- Review the code comments for implementation details
+
+
+
+---
+
+Built with ❤️ using modern web technologies by Dhiway Team.
+
