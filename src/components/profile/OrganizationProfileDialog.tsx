@@ -17,7 +17,7 @@ interface OrganizationProfileDialogProps {
 }
 
 const OrganizationProfileDialog: React.FC<OrganizationProfileDialogProps> = ({ isOpen, onClose }) => {
-  const { updateProfile } = useAuth();
+  const { updateProfile, refreshProfileData } = useAuth();
   const { toast } = useToast();
   
   const [profile, setProfile] = useState<OrganizationProfile>({
@@ -32,7 +32,7 @@ const OrganizationProfileDialog: React.FC<OrganizationProfileDialogProps> = ({ i
     description: ''
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!profile.name || !profile.contactPersonName || !profile.contactEmail) {
       toast({
         title: "Error",
@@ -43,6 +43,14 @@ const OrganizationProfileDialog: React.FC<OrganizationProfileDialogProps> = ({ i
     }
 
     updateProfile(profile);
+    
+    // Refresh profile data to ensure UI updates
+    try {
+      await refreshProfileData();
+    } catch (error) {
+      console.log('Error refreshing profile data after organization profile save:', error);
+    }
+    
     onClose();
     toast({
       title: "Organization Profile Created",

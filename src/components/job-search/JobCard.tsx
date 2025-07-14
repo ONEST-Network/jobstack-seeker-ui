@@ -68,6 +68,106 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
     ));
   };
 
+  const renderJobDetailsTable = () => {
+    if (!job.jobDetails || Object.keys(job.jobDetails).length === 0) {
+      return null;
+    }
+
+    // Convert jobDetails object to array of key-value pairs
+    // Filter out video and photo URLs that should be handled by media carousel
+    const detailsArray = Object.entries(job.jobDetails).filter(([key, value]) => {
+      // Skip if value is null, undefined, or empty
+      if (value === null || value === undefined || value === '') {
+        return false;
+      }
+      
+      // Skip video and photo related fields that should be in media carousel
+      const skipFields = [
+        'jobDetailsVideo',
+        'jobLocationPhotos',
+        'factoryWalkthroughVideo',
+        'workerTestimonialVideo',
+        'skillProofVideo',
+        'qualityProofImage',
+        'sampleTaskVideo',
+        'sampleTaskImage',
+        'uploadSpeedProof',
+        'uploadSpeedSampleMedia',
+        'jobProviderLogo',
+        'video',
+        'photo',
+        'image',
+        'thumbnail',
+        'media',
+        'url'
+      ];
+      
+      const keyLower = key.toLowerCase();
+      return !skipFields.some(field => keyLower.includes(field));
+    });
+
+    if (detailsArray.length === 0) {
+      return null;
+    }
+
+    // Format field names for better display
+    const formatFieldName = (key: string) => {
+      return key
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .replace(/([A-Z])/g, ' $1')
+        .trim();
+    };
+
+    // Format field values for better display
+    const formatFieldValue = (value: any) => {
+      if (typeof value === 'boolean') {
+        return value ? 'Yes' : 'No';
+      }
+      if (typeof value === 'number') {
+        return value.toLocaleString();
+      }
+      return String(value);
+    };
+
+    // Create rows with 2 columns each
+    const rows = [];
+    for (let i = 0; i < detailsArray.length; i += 2) {
+      const row = detailsArray.slice(i, i + 2);
+      rows.push(row);
+    }
+
+    return (
+      <div className="space-y-3">
+        <h4 className="text-sm font-semibold text-foreground">Job Details</h4>
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full">
+            <tbody>
+              {rows.map((row, rowIndex) => (
+                <tr key={rowIndex} className="border-b last:border-b-0">
+                  {row.map(([key, value], colIndex) => (
+                    <td key={colIndex} className="p-2 sm:p-3 text-xs sm:text-sm">
+                      <div className="font-medium text-muted-foreground">
+                        {formatFieldName(key)}
+                      </div>
+                      <div className="text-foreground font-semibold">
+                        {formatFieldValue(value)}
+                      </div>
+                    </td>
+                  ))}
+                  {/* Fill empty cells if row has only one item */}
+                  {row.length === 1 && (
+                    <td className="p-2 sm:p-3"></td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   // Determine if we should show real trust scores
   const shouldShowRealScores = user && user.profile;
   
@@ -82,6 +182,9 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
         <div className="space-y-2">
           <h3 className="text-lg sm:text-xl font-semibold text-foreground line-clamp-2">
             {job.title}
+            {job.openings && job.openings > 0 && (
+              <span className="text-muted-foreground font-normal"> ({job.openings})</span>
+            )}
           </h3>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4" />
@@ -105,7 +208,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
         </div>
 
         {/* Job Details Video & Photos Carousel */}
-        <div className="w-full">
+        <div className="w-full" onClick={(e) => e.stopPropagation()}>
           <JobMediaCarousel 
             media={job.media || []} 
             title={job.title}
@@ -115,6 +218,9 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
 
         {/* Dynamic Job Details Section */}
         {renderJobDetails()}
+
+        {/* Job Details Table */}
+        {renderJobDetailsTable()}
 
         {/* Trust Score & Match Score */}
         <div className="flex gap-2 sm:gap-4">

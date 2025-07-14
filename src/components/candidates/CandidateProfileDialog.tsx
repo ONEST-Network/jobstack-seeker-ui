@@ -22,7 +22,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
   isUpdate,
   profileId
 }) => {
-  const { user, addCandidate, updateCandidate, getSelectedCandidate } = useAuth();
+  const { user, addCandidate, updateCandidate, getSelectedCandidate, refreshProfileData } = useAuth();
   const { toast } = useToast();
 
   const existingCandidate = candidateId 
@@ -76,6 +76,9 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
         });
       }
     }
+
+    // Refresh profile data to ensure UI updates
+    refreshProfileData();
 
     onClose();
   };

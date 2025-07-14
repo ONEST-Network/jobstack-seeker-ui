@@ -34,7 +34,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   isUpdate,
   profileId
 }) => {
-  const { updateProfile, user, getSelectedCandidate } = useAuth();
+  const { updateProfile, user, getSelectedCandidate, refreshProfileData } = useAuth();
   const { toast } = useToast();
   const { profile, setProfile } = useProfileForm();
   
@@ -198,67 +198,48 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
         await apiClient.createProfile(apiPayload);
       }
 
-      // Transform the profile data for the auth context (flatten nested structure)
+      // Flatten the profile for local storage
       const flattenedProfile = {
-        // Who I Am data
-        name: profile.name || profile.whoIAm?.name || '',
-        dateOfBirth: profile.dateOfBirth || profile.whoIAm?.dateOfBirth,
-        age: profile.age || profile.whoIAm?.age,
-        gender: profile.gender || profile.whoIAm?.gender,
-        hometown: profile.hometown || profile.whoIAm?.hometown,
-        aadharNumber: profile.aadharNumber || profile.whoIAm?.aadharNumber,
-        phone: profile.phone || profile.whoIAm?.phone,
-        currentLocation: profile.currentLocation || profile.whoIAm?.location || '',
-        desiredLocation: profile.desiredLocation || profile.whoIAm?.desiredLocation || '',
-        isNameVerified: profile.isNameVerified || profile.whoIAm?.isNameVerified || false,
-        isAgeVerified: profile.isAgeVerified || profile.whoIAm?.isAgeVerified || false,
-        isGenderVerified: profile.isGenderVerified || profile.whoIAm?.isGenderVerified || false,
-        isAadharVerified: profile.isAadharVerified || profile.whoIAm?.isAadharVerified || false,
-        isHometownVerified: profile.isHometownVerified || profile.whoIAm?.isHometownVerified || false,
-        
-        // What I Have data
-        basicLiteracy: profile.basicLiteracy || profile.whatIHave?.basicLiteracy,
-        skillProofVideo: profile.skillProofVideo || profile.whatIHave?.skillProofVideo,
-        qualityProofImage: profile.qualityProofImage || profile.whatIHave?.qualityProofImage,
-        hasWorkExperience: profile.hasWorkExperience || profile.whatIHave?.hasWorkExperience,
-        previousCompany: profile.previousCompany || profile.whatIHave?.previousCompany,
-        previousLocation: profile.previousLocation || profile.whatIHave?.previousLocation,
-        experienceMonths: profile.experienceMonths || profile.whatIHave?.experienceMonths,
-        machinesOperated: profile.machinesOperated || profile.whatIHave?.machinesOperated,
-        
-        // What I Want data
-        salaryFrequency: profile.salaryFrequency || profile.whatIWant?.salaryFrequency,
-        advanceMonthsAvailable: profile.advanceMonthsAvailable || profile.whatIWant?.advanceMonthsAvailable,
-        advanceFrequency: profile.advanceFrequency || profile.whatIWant?.advanceFrequency,
-        monthlySalary: profile.monthlySalary || profile.whatIWant?.monthlySalary,
-        pfDeduction: profile.pfDeduction || profile.whatIWant?.pfDeduction,
-        esicDeduction: profile.esicDeduction || profile.whatIWant?.esicDeduction,
-        inHandSalary: profile.inHandSalary || profile.whatIWant?.inHandSalary,
-        housingFacility: profile.housingFacility || profile.whatIWant?.housingFacility,
-        foodFacility: profile.foodFacility || profile.whatIWant?.foodFacility,
-        workHoursPerDay: profile.workHoursPerDay || profile.whatIWant?.workHoursPerDay,
-        overtimeAvailable: profile.overtimeAvailable || profile.whatIWant?.overtimeAvailable,
-        overtimePayMultiplier: profile.overtimePayMultiplier || profile.whatIWant?.overtimePayMultiplier,
-        gradeUpgradation: profile.gradeUpgradation || profile.whatIWant?.gradeUpgradation,
-        factoryTrustScore: profile.factoryTrustScore || profile.whatIWant?.factoryTrustScore,
-        
-        // Role and industry
-        interestedRole: profile.interestedRole,
-        interestedIndustry: profile.interestedIndustry,
-        
-        // Legacy fields
-        experience: profile.experience || [],
-        skills: profile.skills || [],
-        certificates: profile.certificates || [],
-        
-        // Education and certifications
-        education: profile.education || [],
-        skillCertifications: profile.skillCertifications || [],
-        workExperience: profile.workExperience || [],
-        
-        // Assessment and verification
-        assessmentScores: profile.assessmentScores || [],
-        documentVerificationStatus: profile.documentVerificationStatus || [],
+        name: finalProfile.name || finalProfile.whoIAm?.name || '',
+        dateOfBirth: finalProfile.dateOfBirth || finalProfile.whoIAm?.dateOfBirth,
+        age: finalProfile.age || finalProfile.whatIHave?.age,
+        gender: (finalProfile.gender || finalProfile.whoIAm?.gender) as 'male' | 'female' | 'other' | undefined,
+        hometown: finalProfile.hometown || finalProfile.whoIAm?.hometown,
+        aadharNumber: finalProfile.aadharNumber || finalProfile.whoIAm?.aadharNumber,
+        phone: finalProfile.phone || finalProfile.whoIAm?.phone || '',
+        currentLocation: finalProfile.currentLocation || finalProfile.whoIAm?.currentLocation || '',
+        desiredLocation: finalProfile.desiredLocation || finalProfile.whoIAm?.desiredLocation || '',
+        isNameVerified: finalProfile.isNameVerified || finalProfile.whoIAm?.isNameVerified || false,
+        isAgeVerified: finalProfile.isAgeVerified || finalProfile.whoIAm?.isAgeVerified || false,
+        interestedRole: finalProfile.interestedRole,
+        interestedIndustry: finalProfile.interestedIndustry,
+        basicLiteracy: (finalProfile.basicLiteracy || finalProfile.whatIHave?.basicLiteracy) as 'below-8th' | '8th-pass' | '10th-pass' | '12th-pass' | 'graduate' | undefined,
+        skillProofVideo: finalProfile.skillProofVideo || finalProfile.whatIHave?.skillProofVideo,
+        qualityProofImage: finalProfile.qualityProofImage || finalProfile.whatIHave?.qualityProofImage,
+        hasWorkExperience: finalProfile.hasWorkExperience || finalProfile.whatIHave?.hasWorkExperience,
+        previousCompany: finalProfile.previousCompany || finalProfile.whatIHave?.previousCompany,
+        previousLocation: finalProfile.previousLocation || finalProfile.whatIHave?.previousLocation,
+        experienceMonths: finalProfile.experienceMonths || finalProfile.whatIHave?.experienceMonths,
+        machinesOperated: finalProfile.machinesOperated || finalProfile.whatIHave?.machinesOperated,
+        salaryFrequency: (finalProfile.salaryFrequency || finalProfile.whatIWant?.salaryFrequency) as 'weekly' | 'monthly' | undefined,
+        advanceMonthsAvailable: finalProfile.advanceMonthsAvailable || finalProfile.whatIWant?.advanceMonthsAvailable,
+        advanceFrequency: (finalProfile.advanceFrequency || finalProfile.whatIWant?.advanceFrequency) as 'monthly' | 'quarterly' | 'half-yearly' | undefined,
+        monthlySalary: finalProfile.monthlySalary || finalProfile.whatIWant?.monthlySalary,
+        pfDeduction: finalProfile.pfDeduction || finalProfile.whatIWant?.pfDeduction,
+        esicDeduction: finalProfile.esicDeduction || finalProfile.whatIWant?.esicDeduction,
+        inHandSalary: finalProfile.inHandSalary || finalProfile.whatIWant?.inHandSalary,
+        housingFacility: finalProfile.housingFacility || finalProfile.whatIWant?.housingFacility,
+        foodFacility: finalProfile.foodFacility || finalProfile.whatIWant?.foodFacility,
+        workHoursPerDay: finalProfile.workHoursPerDay || finalProfile.whatIWant?.workHoursPerDay,
+        overtimeAvailable: finalProfile.overtimeAvailable || finalProfile.whatIWant?.overtimeAvailable,
+        overtimePayMultiplier: finalProfile.overtimePayMultiplier || finalProfile.whatIWant?.overtimePayMultiplier,
+        gradeUpgradation: finalProfile.gradeUpgradation || finalProfile.whatIWant?.gradeUpgradation,
+        factoryTrustScore: finalProfile.factoryTrustScore || finalProfile.whatIWant?.factoryTrustScore,
+        experience: finalProfile.experience || [],
+        skills: finalProfile.skills || [],
+        certificates: finalProfile.certificates || [],
+        assessmentScores: finalProfile.assessmentScores || [],
+        documentVerificationStatus: finalProfile.documentVerificationStatus || [],
       };
 
       if (onComplete) {
@@ -267,13 +248,11 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
         updateProfile(flattenedProfile);
       }
 
-      // If this is an update, refresh profile data from API
-      if (isUpdate) {
-        try {
-          await apiClient.getProfile();
-        } catch (error) {
-          console.log('Error refreshing profile data after update:', error);
-        }
+      // Refresh profile data from API after both create and update operations
+      try {
+        await refreshProfileData();
+      } catch (error) {
+        console.log('Error refreshing profile data after save:', error);
       }
 
       toast({

@@ -2,9 +2,30 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Clock, Users, Star, Building, Calendar, DollarSign, Home, BedDouble, Award, Phone, Mail, Globe } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  MapPin, 
+  Clock, 
+  Users, 
+  Star, 
+  Building, 
+  Calendar, 
+  DollarSign, 
+  Home, 
+  BedDouble, 
+  Award, 
+  Phone, 
+  Mail, 
+  Globe,
+  ChevronDown,
+  ChevronRight,
+  Play,
+  Image as ImageIcon,
+  Video as VideoIcon
+} from 'lucide-react';
 import { JobItem } from '@/hooks/useJobSearch';
 import { useAuth } from '@/contexts/AuthContext';
+import JobMediaCarousel from '../JobMediaCarousel';
 
 interface JobDetailDialogProps {
   job: JobItem;
@@ -35,7 +56,10 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
 
   // Helper function to format field names
   const formatFieldName = (key: string) => {
-    return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    return key
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase())
+      .replace(/\b\w/g, l => l.toUpperCase());
   };
 
   // Helper function to format field values and handle objects
@@ -89,49 +113,6 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
     return iconMap[subsectionName] || <Star className="h-4 w-4" />;
   };
 
-  // Helper function to render media field
-  const renderMediaField = (label: string, mediaUrl: string, type: 'video' | 'image', icon?: React.ReactNode) => {
-    return (
-      <div key={label} className="flex items-center gap-2 text-sm">
-        {icon || <Star className="h-4 w-4" />}
-        <span className="font-medium">{label}:</span>
-        <a 
-          href={mediaUrl} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 underline"
-        >
-          View {type}
-        </a>
-      </div>
-    );
-  };
-
-  // Helper function to render media array
-  const renderMediaArray = (label: string, mediaUrls: string[], type: 'video' | 'image', icon?: React.ReactNode) => {
-    return (
-      <div key={label} className="space-y-2">
-        <div className="flex items-center gap-2 text-sm">
-          {icon || <Star className="h-4 w-4" />}
-          <span className="font-medium">{label}:</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {mediaUrls.map((url, index) => (
-            <a 
-              key={index}
-              href={url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline text-xs"
-            >
-              {type} {index + 1}
-            </a>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   // Process subsections from tags
   const processSubsections = (data: any): SubsectionData[] => {
     const subsections: SubsectionData[] = [];
@@ -167,39 +148,43 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
     const isExpanded = expandedSubsections.has(subsection.title);
     
     return (
-      <div key={subsection.title} className="border rounded-lg p-4">
-        <div 
-          className="flex items-center justify-between cursor-pointer"
-          onClick={() => {
-            const newExpanded = new Set(expandedSubsections);
-            if (isExpanded) {
-              newExpanded.delete(subsection.title);
-            } else {
-              newExpanded.add(subsection.title);
-            }
-            setExpandedSubsections(newExpanded);
-          }}
-        >
-          <div className="flex items-center gap-2">
-            {subsection.icon}
-            <h4 className="font-semibold">{subsection.title}</h4>
+      <Card key={subsection.title} className="border">
+        <CardContent className="p-0">
+          <div 
+            className="flex items-center justify-between cursor-pointer p-4 hover:bg-gray-50 transition-colors"
+            onClick={() => {
+              const newExpanded = new Set(expandedSubsections);
+              if (isExpanded) {
+                newExpanded.delete(subsection.title);
+              } else {
+                newExpanded.add(subsection.title);
+              }
+              setExpandedSubsections(newExpanded);
+            }}
+          >
+            <div className="flex items-center gap-2">
+              {subsection.icon}
+              <h4 className="font-semibold text-sm">{subsection.title}</h4>
+            </div>
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            )}
           </div>
-          <Button variant="ghost" size="sm">
-            {isExpanded ? '▼' : '▶'}
-          </Button>
-        </div>
-        
-        {isExpanded && (
-          <div className="mt-4 space-y-2">
-            {subsection.data.map((item, index) => (
-              <div key={index} className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{item.key}:</span>
-                <span className="font-medium">{item.value}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+          
+          {isExpanded && (
+            <div className="px-4 pb-4 space-y-3 border-t">
+              {subsection.data.map((item, index) => (
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <span className="text-sm text-muted-foreground font-medium">{item.key}:</span>
+                  <span className="text-sm font-semibold text-foreground">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     );
   };
 
@@ -217,43 +202,11 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
           <h3 className="text-lg font-semibold">{title}</h3>
         </div>
         
-        {data.length > 0 && (
-          <div className="grid grid-cols-2 gap-4">
-            {data.map((item, index) => (
-              <div key={index} className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{item.key}:</span>
-                <span className="font-medium">{item.value}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        
         {subsections.length > 0 && (
           <div className="space-y-3">
             {subsections.map(renderSubsection)}
           </div>
         )}
-      </div>
-    );
-  };
-
-  // Render section
-  const renderSection = (title: string, data: any[], icon: React.ReactNode, showMore = false) => {
-    return (
-      <div key={title} className="space-y-4">
-        <div className="flex items-center gap-2">
-          {icon}
-          <h3 className="text-lg font-semibold">{title}</h3>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          {data.map((item, index) => (
-            <div key={index} className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{item.key}:</span>
-              <span className="font-medium">{item.value}</span>
-            </div>
-          ))}
-        </div>
       </div>
     );
   };
@@ -265,72 +218,248 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
   const displayTrustScore = shouldShowRealScores ? job.trustScore : 0;
   const displayMatchScore = shouldShowRealScores ? job.matchScore : 0;
 
+  // Render job details that were shown on the card
+  const renderJobDetails = () => {
+    const details = [];
+
+    if (job.monthlyInHand && job.monthlyInHand !== 'Not specified') {
+      details.push({
+        label: 'Monthly In-Hand',
+        value: job.monthlyInHand,
+        icon: <Star className="h-4 w-4" />
+      });
+    }
+
+    if (job.monthlyPfEsic && job.monthlyPfEsic !== 'Included') {
+      details.push({
+        label: 'PF & ESIC',
+        value: job.monthlyPfEsic,
+        icon: <Users className="h-4 w-4" />
+      });
+    }
+
+    if (job.monthlyOvertime && job.monthlyOvertime !== 'Not specified') {
+      details.push({
+        label: 'Overtime',
+        value: job.monthlyOvertime,
+        icon: <Clock className="h-4 w-4" />
+      });
+    }
+
+    if (job.stayProvided) {
+      details.push({
+        label: 'Stay Provided',
+        value: 'Yes',
+        icon: <Building className="h-4 w-4" />
+      });
+    }
+
+    if (job.costPerSharingBed && job.costPerSharingBed !== 'Not specified') {
+      details.push({
+        label: 'Cost per Bed',
+        value: job.costPerSharingBed,
+        icon: <MapPin className="h-4 w-4" />
+      });
+    }
+
+    if (details.length === 0) return null;
+
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <h4 className="font-semibold mb-3">Job Benefits</h4>
+          <div className="space-y-2">
+            {details.map((detail, index) => (
+              <div key={index} className="flex items-center gap-2 text-sm">
+                {detail.icon}
+                <span className="text-muted-foreground">{detail.label}:</span>
+                <span className="font-semibold">{detail.value}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // Render job details table
+  const renderJobDetailsTable = () => {
+    if (!job.jobDetails || Object.keys(job.jobDetails).length === 0) {
+      return null;
+    }
+
+    // Convert jobDetails object to array of key-value pairs
+    // Filter out video and photo URLs that should be handled by media carousel
+    const detailsArray = Object.entries(job.jobDetails).filter(([key, value]) => {
+      // Skip if value is null, undefined, or empty
+      if (value === null || value === undefined || value === '') {
+        return false;
+      }
+      
+      // Skip video and photo related fields that should be in media carousel
+      const skipFields = [
+        'jobDetailsVideo',
+        'jobLocationPhotos',
+        'factoryWalkthroughVideo',
+        'workerTestimonialVideo',
+        'skillProofVideo',
+        'qualityProofImage',
+        'sampleTaskVideo',
+        'sampleTaskImage',
+        'uploadSpeedProof',
+        'uploadSpeedSampleMedia',
+        'jobProviderLogo',
+        'video',
+        'photo',
+        'image',
+        'thumbnail',
+        'media',
+        'url'
+      ];
+      
+      const keyLower = key.toLowerCase();
+      return !skipFields.some(field => keyLower.includes(field));
+    });
+
+    if (detailsArray.length === 0) {
+      return null;
+    }
+
+    // Format field names for better display
+    const formatFieldName = (key: string) => {
+      return key
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .replace(/([A-Z])/g, ' $1')
+        .trim();
+    };
+
+    // Format field values for better display
+    const formatFieldValue = (value: any) => {
+      if (typeof value === 'boolean') {
+        return value ? 'Yes' : 'No';
+      }
+      if (typeof value === 'number') {
+        return value.toLocaleString();
+      }
+      return String(value);
+    };
+
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <h4 className="font-semibold mb-3">Job Details</h4>
+          <div className="space-y-3">
+            {detailsArray.map(([key, value], index) => (
+              <div key={index} className="flex justify-between">
+                <span className="text-sm text-muted-foreground">{formatFieldName(key)}:</span>
+                <span className="text-sm font-semibold">{formatFieldValue(value)}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{job.title}</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 sm:p-6">
+        <DialogHeader className="p-4 sm:p-6 pb-0">
+          <DialogTitle className="text-xl font-bold overflow-hidden text-ellipsis whitespace-nowrap">
+            {job.title}
+            {job.openings && job.openings > 0 && (
+              <span className="text-muted-foreground font-normal"> ({job.openings})</span>
+            )}
+          </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="p-4 sm:p-6 pt-0 space-y-6">
           {/* Header with basic info */}
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Building className="h-5 w-5 text-muted-foreground" />
-                <span className="font-semibold">{job.company}</span>
-                {job.verified && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    ✓ Verified
-                  </Badge>
-                )}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="space-y-3 flex-1">
+                <div className="flex items-center gap-2">
+                  <Building className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-semibold">{job.company}</span>
+                  {job.verified && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      ✓ Verified
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm">{job.location}</span>
+                  </div>
+                  {job.openings && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Users className="h-4 w-4" />
+                      <span className="text-sm">{job.openings} openings</span>
+                    </div>
+                  )}
+                  {job.workingHours && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      <span className="text-sm">{job.workingHours}</span>
+                    </div>
+                  )}
+                </div>
               </div>
               
-              <div className="flex items-center gap-6 text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  <span>{job.location}</span>
-                </div>
-                {job.openings && (
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span>{job.openings} openings</span>
+              <div className="flex flex-col gap-3">
+                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <div className="text-2xl sm:text-3xl font-bold text-green-700 mb-1">
+                    {jobDetails.salaryCTC || job.salary}
                   </div>
-                )}
-                {job.workingHours && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span>{job.workingHours}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="text-right flex-shrink-0 ml-4">
-              <div className="bg-green-50 rounded-lg p-4 mb-3 border border-green-200">
-                <div className="text-3xl font-bold text-green-700 mb-1">{jobDetails.salaryCTC || job.salary}</div>
-                <div className="text-sm text-green-600 font-medium">Total Salary</div>
-              </div>
-              <div className="flex gap-2">
-                <div className="bg-blue-50 rounded-md px-3 py-2">
-                  <div className="text-xs text-blue-600">Trust</div>
-                  <div className="font-bold text-blue-700">{displayTrustScore}/10</div>
-                  {!shouldShowRealScores && (
-                    <div className="text-xs text-blue-500">Login to see</div>
-                  )}
+                  <div className="text-sm text-green-600 font-medium">Total Salary</div>
                 </div>
-                <div className="bg-green-50 rounded-md px-3 py-2">
-                  <div className="text-xs text-green-600">Match</div>
-                  <div className="font-bold text-green-700">{displayMatchScore}/10</div>
-                  {!shouldShowRealScores && (
-                    <div className="text-xs text-green-500">Login to see</div>
-                  )}
+                <div className="flex gap-2">
+                  <div className="bg-blue-50 rounded-md px-3 py-2 flex-1">
+                    <div className="text-xs text-blue-600">Trust</div>
+                    <div className="font-bold text-blue-700">{displayTrustScore}/10</div>
+                    {!shouldShowRealScores && (
+                      <div className="text-xs text-blue-500">Login to see</div>
+                    )}
+                  </div>
+                  <div className="bg-green-50 rounded-md px-3 py-2 flex-1">
+                    <div className="text-xs text-green-600">Match</div>
+                    <div className="font-bold text-green-700">{displayMatchScore}/10</div>
+                    {!shouldShowRealScores && (
+                      <div className="text-xs text-green-500">Login to see</div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Job Benefits (from card) */}
+            {renderJobDetails()}
+
+            {/* Job Details Table (from card) */}
+            {renderJobDetailsTable()}
           </div>
 
-          {/* Job Details */}
+          {/* Media Section */}
+          {job.media && job.media.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                <h3 className="text-lg font-semibold">Media & Photos</h3>
+              </div>
+              <div className="w-full">
+                <JobMediaCarousel 
+                  media={job.media} 
+                  title={job.title}
+                  className="w-full"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Job Details Sections */}
           <div className="space-y-6">
             {/* Basic Info */}
             {Object.keys(basicInfo).length > 0 && renderSectionWithSubsections(
@@ -374,16 +503,17 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t mt-6">
             <Button 
               onClick={() => onApply(job)}
-              className="flex-1 bg-primary hover:bg-primary/90"
+              className="flex-1 bg-primary hover:bg-primary/90 h-12 text-base font-medium"
             >
               Apply Now
             </Button>
             <Button 
               variant="outline" 
               onClick={onClose}
+              className="h-12"
             >
               Close
             </Button>

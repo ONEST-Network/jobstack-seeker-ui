@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { JobApplicationData } from '@/hooks/useJobApplication';
-import CandidateProfileApplication from './job-application/CandidateProfileApplication';
+import ProfileSelectionModal from './job-application/ProfileSelectionModal';
+import ConsolidatedJobApplication from './job-application/ConsolidatedJobApplication';
 
 interface JobApplicationDialogProps {
   job: any;
@@ -17,20 +18,48 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   onSubmit,
   applying = false 
 }) => {
+  const [showProfileSelection, setShowProfileSelection] = useState(true);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [showConsolidatedApplication, setShowConsolidatedApplication] = useState(false);
 
+  const handleProfileSelected = (profile: any) => {
+    setSelectedProfile(profile);
+    setShowProfileSelection(false);
+    setShowConsolidatedApplication(true);
+  };
 
+  const handleApplicationSubmit = async (applicationData: JobApplicationData) => {
+    if (onSubmit) {
+      await onSubmit(applicationData);
+    }
+    handleClose();
+  };
 
+  const handleClose = () => {
+    setShowProfileSelection(true);
+    setShowConsolidatedApplication(false);
+    setSelectedProfile(null);
+    onClose();
+  };
 
-
-  // Show the candidate profile application directly
   return (
-    <CandidateProfileApplication
-      isOpen={isOpen}
-      onClose={onClose}
-      onSubmit={onSubmit || (async () => onClose())}
-      job={job}
-      applying={applying}
-    />
+    <>
+      <ProfileSelectionModal
+        isOpen={isOpen && showProfileSelection}
+        onClose={handleClose}
+        onProfileSelected={handleProfileSelected}
+        job={job}
+      />
+      
+      <ConsolidatedJobApplication
+        isOpen={showConsolidatedApplication}
+        onClose={handleClose}
+        onSubmit={handleApplicationSubmit}
+        job={job}
+        selectedProfile={selectedProfile}
+        applying={applying}
+      />
+    </>
   );
 };
 
