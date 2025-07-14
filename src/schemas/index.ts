@@ -1,6 +1,7 @@
 import industrialTailorSchema from './industrial-tailor-schema.json';
 import warehouseLoaderPickerSchema from './warehouse-loader-picker-schema.json';
 import recruitmentAssociateSchema from './recruitment-associate-schema.json';
+import inStorePromoterSchema from './in-store-promoter.json';
 import jobRolesConfig from './job-roles-config.json';
 
 export interface ProfileStepSchema {
@@ -59,8 +60,11 @@ export const getUnifiedSchema = (role?: string): any => {
   if (role === 'Recruitment Associate') {
     return recruitmentAssociateSchema;
   }
+  if (role === 'In Store Promoter') {
+    return inStorePromoterSchema;
+  }
   // For roles without specific schemas, fall back to Industrial Tailor
-  if (role === 'Field Sales Executive' || role === 'In Store Promoter') {
+  if (role === 'Field Sales Executive') {
     return industrialTailorSchema;
   }
   return null;
