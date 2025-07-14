@@ -187,9 +187,14 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       const apiPayload = transformProfileForAPI(finalProfile, user?.email);
 
       // Call the profile creation API
+      console.log('🔍 Debug - isUpdate:', isUpdate, 'profileId:', profileId);
       if (isUpdate && profileId) {
+        console.log('🔄 Updating profile with ID:', profileId);
+        console.log('📦 Update payload:', apiPayload);
         await apiClient.updateProfile(profileId, apiPayload);
       } else {
+        console.log('🆕 Creating new profile');
+        console.log('📦 Create payload:', apiPayload);
         await apiClient.createProfile(apiPayload);
       }
 

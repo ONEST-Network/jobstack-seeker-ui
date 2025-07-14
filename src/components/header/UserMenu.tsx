@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
+import { apiClient, ProfileResponse, ProfilesResponse } from '@/lib/api';
 
 interface UserMenuProps {
   onShowLogin: () => void;
@@ -28,14 +29,42 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
 
   const handleUpdateProfile = async () => {
     if (user?.role === 'individual') {
-      // Refresh profile data from API to ensure we have the latest data
+      // Get all profiles for the user to find the most recent one
       try {
-        await refreshProfileData();
+        const profilesResponse = await apiClient.getProfiles() as ProfilesResponse;
+        console.log('🔍 UserMenu - All profiles:', profilesResponse);
+        
+        if (profilesResponse?.data && profilesResponse.data.length > 0) {
+          // Get the most recent profile (first in the array based on your API response)
+          const mostRecentProfile = profilesResponse.data[0];
+          const profileId = mostRecentProfile.id;
+          const profileName = mostRecentProfile.metadata?.name;
+          
+          console.log('🔍 UserMenu - Most recent profile ID:', profileId);
+          console.log('🔍 UserMenu - Profile name:', profileName);
+          
+          if (profileId) {
+            // Refresh profile data to update the user state
+            await refreshProfileData();
+            console.log('🔍 UserMenu - profileMode will be set to edit');
+            setProfileMode('edit');
+            setShowCompleteProfile(true);
+          } else {
+            console.log('🔍 UserMenu - No valid profile ID found, will create new profile');
+            setProfileMode('add');
+            setShowCompleteProfile(true);
+          }
+        } else {
+          console.log('🔍 UserMenu - No profiles found, will create new profile');
+          setProfileMode('add');
+          setShowCompleteProfile(true);
+        }
       } catch (error) {
-        console.log('Error refreshing profile data:', error);
+        console.log('Error getting profiles data:', error);
+        // Still try to open the dialog even if API call fails
+        setProfileMode('edit');
+        setShowCompleteProfile(true);
       }
-      setProfileMode('edit');
-      setShowCompleteProfile(true);
     } else if (user?.role === 'organization') {
       // This will be handled by parent component
     }

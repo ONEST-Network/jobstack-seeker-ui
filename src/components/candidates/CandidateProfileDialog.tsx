@@ -3,6 +3,7 @@ import React from 'react';
 import { useAuth, CandidateProfile } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
+import { apiClient, ProfilesResponse } from '@/lib/api';
 
 interface CandidateProfileDialogProps {
   isOpen: boolean;
@@ -120,15 +121,43 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
 
 
 
+  // Get the current user to access the profileId
+  const { user: currentUser } = useAuth();
+  
+  // For update mode, we need to get the profile ID from the API
+  const [currentProfileId, setCurrentProfileId] = React.useState<string | undefined>(profileId);
+  
+  React.useEffect(() => {
+    const getProfileId = async () => {
+      if (isUpdate && !profileId) {
+        try {
+          const profilesResponse = await apiClient.getProfiles() as ProfilesResponse;
+          if (profilesResponse?.data && profilesResponse.data.length > 0) {
+            const mostRecentProfile = profilesResponse.data[0];
+            setCurrentProfileId(mostRecentProfile.id);
+            console.log('🔍 CandidateProfileDialog - Got profile ID from API:', mostRecentProfile.id);
+          }
+        } catch (error) {
+          console.log('Error getting profile ID:', error);
+        }
+      } else {
+        setCurrentProfileId(profileId || currentUser?.profileId);
+      }
+    };
+    
+    getProfileId();
+  }, [isUpdate, profileId, currentUser?.profileId]);
+  
+  console.log('🔍 CandidateProfileDialog - isUpdate:', isUpdate, 'profileId:', currentProfileId);
   return (
     <UserProfileDialog
       isOpen={isOpen}
       onClose={onClose}
-      onComplete={handleProfileComplete}
+      onComplete={isUpdate ? undefined : handleProfileComplete} // Don't use onComplete for updates, let UserProfileDialog handle API call
       mode="candidate"
       initialProfile={getInitialProfile()}
       isUpdate={isUpdate}
-      profileId={profileId}
+      profileId={currentProfileId}
     />
   );
 };

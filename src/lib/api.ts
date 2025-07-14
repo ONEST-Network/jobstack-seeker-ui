@@ -175,9 +175,17 @@ class ApiClient {
       profileData
     });
     
+    // Include profileId in the payload as required by the API
+    const updatePayload = {
+      profileId,
+      ...profileData
+    };
+    
+    console.log('📤 Final update payload:', updatePayload);
+    
     return this.request(`/profile/${profileId}`, {
       method: 'PUT',
-      body: JSON.stringify(profileData),
+      body: JSON.stringify(updatePayload),
     });
   }
 
