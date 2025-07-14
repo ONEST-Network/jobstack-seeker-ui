@@ -51,10 +51,10 @@ const Header = () => {
             <LanguageSelector />
 
             {/* Location - Hidden on mobile */}
-            <Button variant="ghost" size="sm" className="gap-2 hidden sm:flex">
+            {/* <Button variant="ghost" size="sm" className="gap-2 hidden sm:flex">
               <MapPin className="h-4 w-4" />
               <span className="hidden sm:inline">Mumbai</span>
-            </Button>
+            </Button> */}
 
 
             <UserMenu onShowLogin={() => setShowLogin(true)} />
