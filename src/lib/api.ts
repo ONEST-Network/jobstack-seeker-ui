@@ -171,7 +171,7 @@ class ApiClient {
     console.log('🔧 updateProfile called with:', {
       profileId,
       method: 'PUT',
-      endpoint: `/profile/${profileId}`,
+      endpoint: `/profile/`,
       profileData
     });
     
@@ -183,7 +183,7 @@ class ApiClient {
     
     console.log('📤 Final update payload:', updatePayload);
     
-    return this.request(`/profile/${profileId}`, {
+    return this.request(`/profile/`, {
       method: 'PUT',
       body: JSON.stringify(updatePayload),
     });
