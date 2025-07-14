@@ -55,7 +55,12 @@ const JobPostingCard: React.FC<JobPostingCardProps> = ({
                 </div>
               </div>
               <div className="text-sm">
-                <span className="font-medium">{job.salary}</span> • {job.jobType}
+                <span className="font-medium">
+                  {job.salary && job.salary !== 'Salary not specified' && job.salary !== 'Not specified' 
+                    ? job.salary 
+                    : 'N/A'
+                  }
+                </span> • {job.jobType}
               </div>
             </div>
           </div>
@@ -99,7 +104,11 @@ const JobPostingCard: React.FC<JobPostingCardProps> = ({
                 <span className="font-medium">Job Type:</span> {job.jobType}
               </div>
               <div>
-                <span className="font-medium">Salary:</span> {job.salary}
+                <span className="font-medium">Salary:</span> {
+                  job.salary && job.salary !== 'Salary not specified' && job.salary !== 'Not specified' 
+                    ? job.salary 
+                    : 'N/A'
+                }
               </div>
               <div>
                 <span className="font-medium">Location:</span> {job.location}

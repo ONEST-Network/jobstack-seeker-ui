@@ -56,6 +56,11 @@ const OrganizationProfileDialog: React.FC<OrganizationProfileDialogProps> = ({ i
       title: "Organization Profile Created",
       description: "Your organization profile has been successfully created."
     });
+    
+    // Refresh the page after successful profile creation to update the UI
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000); // Small delay to show the success toast
   };
 
   const handleLogoUpload = (file: string | File | null) => {

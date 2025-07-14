@@ -12,7 +12,7 @@ import WhatIHaveStep from './steps/WhatIHaveStep';
 import WhatIWantStep from './steps/WhatIWantStep';
 import DynamicFormStep from './DynamicFormStep';
 import { getUnifiedSchema } from '@/schemas';
-import { apiClient, transformProfileForAPI } from '@/lib/api';
+import { apiClient, transformProfileForAPI, ProfilesResponse } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 
 interface UserProfileDialogProps {
@@ -183,8 +183,30 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
         inHandSalary: profile.monthlySalary ? profile.monthlySalary - (profile.pfDeduction || 0) - (profile.esicDeduction || 0) : undefined
       };
 
+      // Generate unique location tag for new profiles
+      let locationTag = "home";
+      let contactTag = "personal";
+      if (!isUpdate) {
+        try {
+          // Fetch existing profiles to count them
+          const profilesResponse = await apiClient.getProfiles() as ProfilesResponse;
+          const existingProfiles = profilesResponse?.data || [];
+          const profileCount = existingProfiles.length;
+          
+          // Generate unique location tag: "home" for first profile, "home1", "home2", etc. for subsequent profiles
+          locationTag = profileCount === 0 ? "home" : `home${profileCount}`;
+          // Generate unique contact tag: "personal" for first profile, "personal1", "personal2", etc. for subsequent profiles
+          contactTag = profileCount === 0 ? "personal" : `personal${profileCount}`;
+          console.log('🔍 Generated location tag:', locationTag, 'and contact tag:', contactTag, 'for profile #', profileCount + 1);
+        } catch (error) {
+          console.log('Error fetching existing profiles, using default tags:', error);
+          locationTag = "home";
+          contactTag = "personal";
+        }
+      }
+
       // Transform profile for API
-      const apiPayload = transformProfileForAPI(finalProfile, user?.email);
+      const apiPayload = transformProfileForAPI(finalProfile, user?.email, locationTag, contactTag);
 
       // Call the profile creation API
       console.log('🔍 Debug - isUpdate:', isUpdate, 'profileId:', profileId);
@@ -261,6 +283,11 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           ? "Your profile has been successfully updated and saved."
           : "Your profile has been successfully created and saved."
       });
+
+      // Refresh the page after successful profile creation or update to update the UI
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000); // Small delay to show the success toast
 
       onClose();
     } catch (error: any) {

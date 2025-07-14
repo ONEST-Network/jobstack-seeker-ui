@@ -66,6 +66,11 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
         title: "Profile Created",
         description: "New candidate profile has been created successfully."
       });
+      
+      // Refresh the page after successful profile creation to update the UI
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000); // Small delay to show the success toast
     } else if (mode === 'edit') {
       const candidateToUpdate = candidateId || existingCandidate?.id;
       if (candidateToUpdate) {
@@ -74,6 +79,11 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           title: "Profile Updated",
           description: "Candidate profile has been updated successfully."
         });
+        
+        // Refresh the page after successful profile update to update the UI
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000); // Small delay to show the success toast
       }
     }
 

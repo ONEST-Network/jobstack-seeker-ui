@@ -702,7 +702,7 @@ class ApiClient {
 }
 
 // Utility function to transform profile data for API
-export const transformProfileForAPI = (profile: any, userEmail?: string) => {
+export const transformProfileForAPI = (profile: any, userEmail?: string, locationTag?: string, contactTag?: string) => {
   // Extract location information - check both legacy and nested structures
   const currentLocation = profile.currentLocation || profile.whoIAm?.location || '';
   const locationParts = currentLocation?.split(', ') || [];
@@ -778,7 +778,7 @@ export const transformProfileForAPI = (profile: any, userEmail?: string) => {
     type: "personal",
     metadata,
     location: {
-      tag: "home",
+      tag: locationTag || "home",
       address: currentLocation || "",
       city: city,
       state: state,
@@ -789,7 +789,7 @@ export const transformProfileForAPI = (profile: any, userEmail?: string) => {
       }
     },
     contact: {
-      tag: "personal",
+      tag: contactTag || "personal",
       email: email,
       phoneNumber: phoneNumber,
       website: []

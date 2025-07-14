@@ -278,10 +278,10 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 disabled={disabled || isVerified}
                 min={fieldConfig.minimum}
                 max={fieldConfig.maximum}
-                className={isVerified ? 'border-green-500' : ''}
+                className={`${isVerified ? 'border-green-500' : ''} ${currency ? 'pl-8' : ''}`}
               />
               {currency && (
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
                   {currency}
                 </span>
               )}

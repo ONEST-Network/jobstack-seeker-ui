@@ -12,7 +12,7 @@ const Logo = () => {
         <img
           src={import.meta.env.VITE_BASE_URL ? import.meta.env.VITE_BASE_URL + '/Onest_logo_mobile (1).png' : '/Onest_logo_mobile (1).png'}
           alt="ONEST Logo"
-          className="h-20 w-20 object-contain"
+          className="h-12 w-auto object-contain"
         />
       {/* </div> */}
     </div>

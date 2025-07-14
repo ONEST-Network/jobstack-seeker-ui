@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ApplicationCard from './ApplicationCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface JobApplication {
   id: string;
@@ -31,21 +32,29 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
   activeApplications, 
   completedApplications 
 }) => {
+  const isMobile = useIsMobile();
+
   return (
     <Tabs defaultValue="active" className="w-full">
-      <TabsList className="grid w-full grid-cols-2 h-touch">
-        <TabsTrigger value="active" className="text-sm font-medium">
+      <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'h-12' : 'h-touch'}`}>
+        <TabsTrigger 
+          value="active" 
+          className={`${isMobile ? 'text-base font-medium' : 'text-sm font-medium'}`}
+        >
           Active ({activeApplications.length})
         </TabsTrigger>
-        <TabsTrigger value="completed" className="text-sm font-medium">
+        <TabsTrigger 
+          value="completed" 
+          className={`${isMobile ? 'text-base font-medium' : 'text-sm font-medium'}`}
+        >
           Completed ({completedApplications.length})
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="active" className="space-y-4">
+      <TabsContent value="active" className={`${isMobile ? 'space-y-3 mt-4' : 'space-y-4'}`}>
         {activeApplications.length === 0 ? (
           <Card>
-            <CardContent className="p-8 text-center">
+            <CardContent className={`${isMobile ? 'p-6' : 'p-8'} text-center`}>
               <p className="text-muted-foreground">No active applications found</p>
             </CardContent>
           </Card>
@@ -60,10 +69,10 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
         )}
       </TabsContent>
 
-      <TabsContent value="completed" className="space-y-4">
+      <TabsContent value="completed" className={`${isMobile ? 'space-y-3 mt-4' : 'space-y-4'}`}>
         {completedApplications.length === 0 ? (
           <Card>
-            <CardContent className="p-8 text-center">
+            <CardContent className={`${isMobile ? 'p-6' : 'p-8'} text-center`}>
               <p className="text-muted-foreground">No completed applications found</p>
             </CardContent>
           </Card>

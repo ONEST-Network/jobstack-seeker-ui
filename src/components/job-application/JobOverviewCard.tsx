@@ -28,10 +28,12 @@ const JobOverviewCard: React.FC<JobOverviewCardProps> = ({ job }) => {
                 <p className="text-xs text-muted-foreground">{job.location}</p>
               </div>
             </div>
-            <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-              <div className="text-xl font-bold text-green-700">{job.salary}</div>
-              <div className="text-sm text-green-600">per month • {job.type}</div>
-            </div>
+            {(job.salary && job.salary !== 'Salary not specified' && job.salary !== 'Not specified') && (
+              <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                <div className="text-xl font-bold text-green-700">{job.salary}</div>
+                <div className="text-sm text-green-600">per month • {job.type}</div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -52,11 +54,13 @@ const JobOverviewCard: React.FC<JobOverviewCardProps> = ({ job }) => {
                 <p className="text-sm text-muted-foreground">{job.location}</p>
               </div>
             </div>
-            <div className="text-right flex-shrink-0">
-              <div className="text-2xl font-bold text-green-600 mb-1">{job.salary}</div>
-              <div className="text-sm text-muted-foreground">per month</div>
-              <div className="text-sm text-green-600 font-medium">{job.type}</div>
-            </div>
+            {(job.salary && job.salary !== 'Salary not specified' && job.salary !== 'Not specified') && (
+              <div className="text-right flex-shrink-0">
+                <div className="text-2xl font-bold text-green-600 mb-1">{job.salary}</div>
+                <div className="text-sm text-muted-foreground">per month</div>
+                <div className="text-sm text-green-600 font-medium">{job.type}</div>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

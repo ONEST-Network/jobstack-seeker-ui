@@ -21,39 +21,55 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <User className="h-4 w-4" />
-          <span className="font-medium">
+        <Button variant="outline" className="gap-2 min-w-0 flex-1 sm:flex-none">
+          <User className="h-4 w-4 flex-shrink-0" />
+          <span className="font-medium truncate">
             {selectedCandidate?.nickname || selectedCandidate?.name || 'Select Profile'}
           </span>
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="h-4 w-4 flex-shrink-0" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
-        <div className="p-2">
-          <div className="text-sm font-medium text-muted-foreground mb-2">Switch Profile</div>
-          {user.managedCandidates.map((candidate) => (
-            <DropdownMenuItem
-              key={candidate.id}
-              onClick={() => selectCandidate(candidate.id)}
-              className={`flex items-center justify-between p-2 ${
-                selectedCandidate?.id === candidate.id ? 'bg-accent' : ''
-              }`}
-            >
-              <div className="flex flex-col">
-                <span className="font-medium">{candidate.nickname || candidate.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {candidate.interestedRole || 'No role specified'}
-                </span>
-              </div>
-              {selectedCandidate?.id === candidate.id && (
-                <Badge variant="secondary" className="text-xs">Active</Badge>
-              )}
-            </DropdownMenuItem>
-          ))}
+      <DropdownMenuContent 
+        align="end" 
+        className="w-[280px] sm:w-[320px] max-h-[60vh] overflow-y-auto"
+        sideOffset={8}
+        avoidCollisions={true}
+      >
+        <div className="p-3">
+          <div className="text-sm font-medium text-muted-foreground mb-3">Switch Profile</div>
+          <div className="space-y-1">
+            {user.managedCandidates.map((candidate) => (
+              <DropdownMenuItem
+                key={candidate.id}
+                onClick={() => selectCandidate(candidate.id)}
+                className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                  selectedCandidate?.id === candidate.id 
+                    ? 'bg-accent text-accent-foreground' 
+                    : 'hover:bg-muted'
+                }`}
+              >
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="font-medium truncate">
+                    {candidate.nickname || candidate.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate">
+                    {candidate.interestedRole || 'No role specified'}
+                  </span>
+                </div>
+                {selectedCandidate?.id === candidate.id && (
+                  <Badge variant="secondary" className="text-xs ml-2 flex-shrink-0">
+                    Active
+                  </Badge>
+                )}
+              </DropdownMenuItem>
+            ))}
+          </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onAddCandidate} className="gap-2">
+        <DropdownMenuItem 
+          onClick={onAddCandidate} 
+          className="gap-2 p-3 cursor-pointer hover:bg-muted"
+        >
           <Plus className="h-4 w-4" />
           Add New Profile
         </DropdownMenuItem>

@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'react-router-dom';
 import ResetPasswordDialog from '@/components/auth/ResetPasswordDialog';
 import { usePasswordReset } from '@/hooks/usePasswordReset';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Jobs = () => {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ const Jobs = () => {
   const [activeTab, setActiveTab] = useState('discover');
   const [refreshKey, setRefreshKey] = useState(0);
   const { showResetDialog, resetToken, handleResetDialogClose, handleResetSuccess } = usePasswordReset();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -46,10 +48,10 @@ const Jobs = () => {
     switch (activeTab) {
       case 'applications':
         return (
-          <div className="container mx-auto px-4 py-6">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold">My Applications</h1>
-              <p className="text-muted-foreground">Track and manage your job applications</p>
+          <div className={`${isMobile ? 'px-4 py-4' : 'container mx-auto px-4 py-6'}`}>
+            <div className={`${isMobile ? 'mb-4' : 'mb-6'}`}>
+              <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>My Applications</h1>
+              <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground`}>Track and manage your job applications</p>
             </div>
             <MyApplications key={refreshKey} />
           </div>

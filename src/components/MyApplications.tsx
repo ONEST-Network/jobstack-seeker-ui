@@ -2,6 +2,7 @@ import React from 'react';
 import ApplicationTabs from './my-applications/ApplicationTabs';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface JobApplication {
   id: string;
@@ -62,6 +63,7 @@ const MyApplications = () => {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statusLoading, setStatusLoading] = useState<boolean>(false);
+  const isMobile = useIsMobile();
 
   // Function to fetch status for a specific application with retry
   const fetchApplicationStatus = async (orderId: string, transactionId: string, retryCount = 0): Promise<string> => {
@@ -248,28 +250,32 @@ const MyApplications = () => {
   const completedApplications = applications.filter(app => ['hired', 'rejected'].includes(app.status));
 
   return (
-    <div className="space-y-6">
+    <div className={`${isMobile ? 'space-y-4' : 'space-y-6'}`}>
       {isLoading ? (
-        <p className="text-center text-muted-foreground">Loading applications...</p>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Loading applications...</p>
+        </div>
       ) : (
         <>
           {applications.length > 0 && (
-            <div className="flex justify-end">
+            <div className={`flex ${isMobile ? 'justify-center' : 'justify-end'}`}>
               <Button 
                 onClick={refreshStatuses} 
                 disabled={statusLoading}
                 variant="outline" 
-                size="sm"
-                className="flex items-center gap-2"
+                size={isMobile ? "default" : "sm"}
+                className={`flex items-center gap-2 ${isMobile ? 'h-12 px-6 text-base' : ''}`}
               >
-                <RefreshCw className={`h-4 w-4 ${statusLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'} ${statusLoading ? 'animate-spin' : ''}`} />
                 {statusLoading ? 'Updating...' : 'Refresh Status'}
               </Button>
             </div>
           )}
           
           {statusLoading ? (
-            <p className="text-center text-muted-foreground">Updating application statuses...</p>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Updating application statuses...</p>
+            </div>
           ) : (
             <ApplicationTabs 
               activeApplications={activeApplications}

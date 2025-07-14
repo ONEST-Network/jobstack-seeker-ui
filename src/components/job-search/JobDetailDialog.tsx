@@ -410,12 +410,19 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               </div>
               
               <div className="flex flex-col gap-3">
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <div className="text-2xl sm:text-3xl font-bold text-green-700 mb-1">
-                    {jobDetails.salaryCTC || job.salary}
+                {(jobDetails.salaryCTC || (job.salary && job.salary !== 'Salary not specified' && job.salary !== 'Not specified')) && (
+                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-green-700 mb-1">
+                      {jobDetails.salaryCTC 
+                        ? `₹${jobDetails.salaryCTC.toLocaleString()}`
+                        : job.salary && job.salary !== 'Salary not specified' && job.salary !== 'Not specified'
+                          ? job.salary
+                          : 'N/A'
+                      }
+                    </div>
+                    <div className="text-sm text-green-600 font-medium">Total Salary</div>
                   </div>
-                  <div className="text-sm text-green-600 font-medium">Total Salary</div>
-                </div>
+                )}
                 <div className="flex gap-2">
                   <div className="bg-blue-50 rounded-md px-3 py-2 flex-1">
                     <div className="text-xs text-blue-600">Trust</div>
