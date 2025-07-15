@@ -81,12 +81,10 @@
           "ui:disabled": false
         },
         "englishComprehension": {
-          "type": "number",
+          "type": "string",
           "title": "Reading and comprehension of labels assessment score",
           "description": "Enter the score you got in the reading and comprehension of labels assessment",
-          "minimum": 0,
-          "maximum": 100,
-          "ui:widget": "number",
+          "ui:widget": "text",
           "ui:placeholder": "Enter the score you got in the reading and comprehension of labels assessment",
           "ui:disabled": false
         },
