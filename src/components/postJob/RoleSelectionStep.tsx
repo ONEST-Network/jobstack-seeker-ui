@@ -39,7 +39,7 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   const priorityRoles = [
     'Industrial Tailor',
     'Warehouse Loader & Picker', 
-    'Field Sales Executive',
+    //'Field Sales Executive',
     'In Store Promoter',
     'Recruitment Associate'
   ];

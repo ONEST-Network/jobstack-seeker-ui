@@ -123,20 +123,10 @@
         },
         "communicationSkills": {
           "type": "string",
-          "title": "Communication Skills",
-          "description": "Rate your communication skills",
-          "enum": [
-            "High-fluent, confident, and logical", 
-            "Mid-fluent&confident", 
-            "Low-fluent in english"
-          ],
-          "enumNames": [
-            "High-fluent, confident, and logical", 
-            "Mid-fluent&confident", 
-            "Low-fluent in english"
-          ],
-          "ui:widget": "select",
-          "ui:placeholder": "Select your communication skill level",
+          "title": "Communication Skills Score",
+          "description": "Enter communication skills score",
+          "ui:widget": "text",
+          "ui:placeholder": "Enter communication skills score",
           "ui:disabled": false
         },
         "taskVideo": {
