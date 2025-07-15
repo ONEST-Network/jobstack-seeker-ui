@@ -166,7 +166,158 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     // Check if field is verified from global profile state
     const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
 
+    // Handle object type fields (subsections)
+    if (fieldConfig.type === 'object') {
+      const subsectionData = value || {};
+      
+      const handleSubsectionFieldChange = (subsectionFieldName: string, subsectionValue: any) => {
+        const updatedSubsectionData = {
+          ...subsectionData,
+          [subsectionFieldName]: subsectionValue
+        };
+        handleFieldChange(fieldName, updatedSubsectionData);
+      };
 
+      const getSubsectionFieldValue = (subsectionFieldName: string) => {
+        return subsectionData[subsectionFieldName];
+      };
+
+      return (
+        <div key={fieldName} className="space-y-4">
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <h4 className="font-medium text-gray-900 mb-4">{fieldConfig.title}</h4>
+            {fieldConfig.description && (
+              <p className="text-sm text-gray-600 mb-4">{fieldConfig.description}</p>
+            )}
+            
+            <div className="space-y-4">
+              {fieldConfig.ui?.order?.map((subsectionFieldName: string) => {
+                const subsectionFieldConfig = fieldConfig.properties?.[subsectionFieldName];
+                if (!subsectionFieldConfig) return null;
+                
+                const subsectionValue = getSubsectionFieldValue(subsectionFieldName);
+                const subsectionWidget = subsectionFieldConfig['ui:widget'];
+                const subsectionPlaceholder = subsectionFieldConfig['ui:placeholder'];
+                const subsectionDisabled = subsectionFieldConfig['ui:disabled'];
+                const subsectionTooltip = subsectionFieldConfig['ui:tooltip'];
+
+                switch (subsectionWidget) {
+                  case 'text':
+                    return (
+                      <div key={subsectionFieldName} className="space-y-2">
+                        <Label htmlFor={`${fieldName}_${subsectionFieldName}`} className="text-sm font-medium">
+                          {subsectionFieldConfig.title}
+                          {subsectionTooltip && (
+                            <span className="ml-1 text-xs text-gray-500" title={subsectionTooltip}>ⓘ</span>
+                          )}
+                        </Label>
+                        <Input
+                          id={`${fieldName}_${subsectionFieldName}`}
+                          type="text"
+                          value={subsectionValue || ''}
+                          onChange={(e) => handleSubsectionFieldChange(subsectionFieldName, e.target.value)}
+                          placeholder={subsectionPlaceholder}
+                          disabled={subsectionDisabled}
+                        />
+                        {subsectionFieldConfig.description && (
+                          <p className="text-xs text-muted-foreground">{subsectionFieldConfig.description}</p>
+                        )}
+                      </div>
+                    );
+
+                  case 'number':
+                    return (
+                      <div key={subsectionFieldName} className="space-y-2">
+                        <Label htmlFor={`${fieldName}_${subsectionFieldName}`} className="text-sm font-medium">
+                          {subsectionFieldConfig.title}
+                          {subsectionTooltip && (
+                            <span className="ml-1 text-xs text-gray-500" title={subsectionTooltip}>ⓘ</span>
+                          )}
+                        </Label>
+                        <Input
+                          id={`${fieldName}_${subsectionFieldName}`}
+                          type="number"
+                          value={subsectionValue || ''}
+                          onChange={(e) => handleSubsectionFieldChange(subsectionFieldName, parseInt(e.target.value) || 0)}
+                          placeholder={subsectionPlaceholder}
+                          disabled={subsectionDisabled}
+                          min={subsectionFieldConfig.minimum}
+                          max={subsectionFieldConfig.maximum}
+                        />
+                        {subsectionFieldConfig.description && (
+                          <p className="text-xs text-muted-foreground">{subsectionFieldConfig.description}</p>
+                        )}
+                      </div>
+                    );
+
+                  case 'textarea':
+                    return (
+                      <div key={subsectionFieldName} className="space-y-2">
+                        <Label htmlFor={`${fieldName}_${subsectionFieldName}`} className="text-sm font-medium">
+                          {subsectionFieldConfig.title}
+                          {subsectionTooltip && (
+                            <span className="ml-1 text-xs text-gray-500" title={subsectionTooltip}>ⓘ</span>
+                          )}
+                        </Label>
+                        <Textarea
+                          id={`${fieldName}_${subsectionFieldName}`}
+                          value={subsectionValue || ''}
+                          onChange={(e) => handleSubsectionFieldChange(subsectionFieldName, e.target.value)}
+                          placeholder={subsectionPlaceholder}
+                          disabled={subsectionDisabled}
+                          rows={4}
+                        />
+                        {subsectionFieldConfig.description && (
+                          <p className="text-xs text-muted-foreground">{subsectionFieldConfig.description}</p>
+                        )}
+                      </div>
+                    );
+
+                  case 'file-upload':
+                    return (
+                      <div key={subsectionFieldName} className="space-y-2">
+                        <FileUploadField
+                          label={subsectionFieldConfig.title}
+                          description={subsectionFieldConfig.description}
+                          accept={subsectionFieldConfig['ui:accept'] || "*/*"}
+                          fileType="document"
+                          value={subsectionValue}
+                          onChange={(file) => handleSubsectionFieldChange(subsectionFieldName, file)}
+                          usePresignedUrl={true}
+                          objectKeyPrefix="profile"
+                        />
+                      </div>
+                    );
+
+                  default:
+                    return (
+                      <div key={subsectionFieldName} className="space-y-2">
+                        <Label htmlFor={`${fieldName}_${subsectionFieldName}`} className="text-sm font-medium">
+                          {subsectionFieldConfig.title}
+                          {subsectionTooltip && (
+                            <span className="ml-1 text-xs text-gray-500" title={subsectionTooltip}>ⓘ</span>
+                          )}
+                        </Label>
+                        <Input
+                          id={`${fieldName}_${subsectionFieldName}`}
+                          type="text"
+                          value={subsectionValue || ''}
+                          onChange={(e) => handleSubsectionFieldChange(subsectionFieldName, e.target.value)}
+                          placeholder={subsectionPlaceholder}
+                          disabled={subsectionDisabled}
+                        />
+                        {subsectionFieldConfig.description && (
+                          <p className="text-xs text-muted-foreground">{subsectionFieldConfig.description}</p>
+                        )}
+                      </div>
+                    );
+                }
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     const handleLocationDetection = () => {
       if (navigator.geolocation) {
@@ -552,6 +703,22 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               description={fieldConfig.description}
               accept="video/*"
               fileType="video"
+              value={value}
+              onChange={(file) => handleFieldChange(fieldName, file)}
+              usePresignedUrl={true}
+              objectKeyPrefix="profile"
+            />
+          </div>
+        );
+
+      case 'file-upload':
+        return (
+          <div key={fieldName} className="space-y-2">
+            <FileUploadField
+              label={fieldConfig.title}
+              description={fieldConfig.description}
+              accept={fieldConfig['ui:accept'] || "*/*"}
+              fileType="document"
               value={value}
               onChange={(file) => handleFieldChange(fieldName, file)}
               usePresignedUrl={true}
