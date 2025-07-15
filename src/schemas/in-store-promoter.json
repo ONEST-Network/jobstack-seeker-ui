@@ -64,7 +64,6 @@
             "type": "integer",
             "title": "Age",
             "description": "Your age",
-            "required": true,
             "minimum": 18,
             "maximum": 65,
             "ui:widget": "number",
@@ -75,7 +74,6 @@
             "type": "array",
             "title": "Languages Known",
             "description": "Select all languages you can speak",
-            "required": true,
             "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select languages",
             "ui:hasOther": true,
@@ -86,18 +84,26 @@
             "type": "array",
             "title": "Highest Educational Qualification",
             "description": "Select all your educational qualifications",
-            "required": true,
             "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select qualifications",
             "ui:hasOther": true,
             "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
             "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"]
           },
+          "presentabilityScore": {
+            "type": "integer",
+            "title": "Presentability Score",
+            "description": "Rate your presentability skills (1-10)",
+            "minimum": 1,
+            "maximum": 10,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter score (1-10)",
+            "ui:disabled": false
+          },
           "communicationSkillsScore": {
             "type": "integer",
             "title": "Communication Skills Score",
             "description": "Rate your communication skills (1-10)",
-            "required": true,
             "minimum": 1,
             "maximum": 10,
             "ui:widget": "number",
@@ -108,20 +114,21 @@
             "type": "string",
             "title": "Domain Knowledge",
             "description": "Select your area of expertise",
-            "required": true,
             "ui:widget": "select",
             "ui:placeholder": "Select domain",
             "ui:disabled": false,
-            "enum": ["General", "Electronics", "Other"],
-            "enumNames": ["General", "Electronics", "Other"]
+            "enum": ["General", "Cashcards","Electronics","Mobile Phones","Kitchen Appliances", "Furniture","Other"],
+            "enumNames": ["General", "Cashcards","Electronics","Mobile Phones","Kitchen Appliances", "Furniture","Other"]
           },
           "taskVideo": {
             "type": "string",
-            "title": "Task Video",
-            "description": "Upload a video demonstrating your skills",
-            "required": false,
-            "ui:widget": "video-upload",
-            "ui:placeholder": "Upload video"
+            "title": "Task Upload",
+            "description": "Upload any file (document, image, video) showing your work",
+            "ui:widget": "file-upload",
+            "ui:placeholder": "Upload file showing your work",
+            "ui:disabled": false,
+            "ui:accept": "*/*",
+            "ui:noSizeLimit": true
           },
           "scanQRCode": {
             "type": "string",
@@ -132,7 +139,6 @@
             "ui:placeholder": "Scan QR code"
           }
         },
-        "required": ["age", "languagesKnown", "highestEducation", "communicationSkillsScore", "domainKnowledge"],
         "ui": {
           "order": ["age", "languagesKnown", "highestEducation", "communicationSkillsScore", "domainKnowledge", "taskVideo", "scanQRCode"],
           "description": "Tell us about your qualifications, skills, and experience"
@@ -147,7 +153,6 @@
             "type": "integer",
             "title": "Number of hours willing to work / day",
             "description": "How many hours are you willing to work per day?",
-            "required": true,
             "minimum": 4,
             "maximum": 12,
             "ui:widget": "number",
@@ -158,18 +163,16 @@
             "type": "array",
             "title": "Preferred mode of work",
             "description": "Select your preferred work arrangements",
-            "required": true,
-            "ui:widget": "multiselect",
+            "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select work modes",
             "ui:hasOther": true,
-            "enum": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling", "Other"],
-            "enumNames": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling", "Other"]
+            "enum": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling"],
+            "enumNames": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling"]
           },
           "monthlyInHandPreferred": {
             "type": "integer",
             "title": "Monthly In-hand Preferred (INR)",
             "description": "Your expected monthly take-home salary",
-            "required": true,
             "minimum": 8000,
             "maximum": 100000,
             "ui:widget": "number",
@@ -193,7 +196,6 @@
             "type": "string",
             "title": "Monthly PF & Health Insurance",
             "description": "Do you want PF and health insurance benefits?",
-            "required": true,
             "ui:widget": "select",
             "ui:placeholder": "Select option",
             "ui:disabled": false,
@@ -201,7 +203,6 @@
             "enumNames": ["Yes", "No"]
           }
         },
-        "required": ["workHoursPerDay", "preferredWorkMode", "monthlyInHandPreferred", "monthlyPFHealthInsurance"],
         "ui": {
           "order": ["workHoursPerDay", "preferredWorkMode", "monthlyInHandPreferred", "monthlyPerformanceVariable", "monthlyPFHealthInsurance"],
           "description": "Tell us about your salary expectations and work preferences"

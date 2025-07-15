@@ -64,7 +64,6 @@
           "type": "integer",
           "title": "Age",
           "description": "Your age",
-          "required": true,
           "minimum": 18,
           "maximum": 65,
           "ui:widget": "number",
@@ -75,7 +74,6 @@
           "type": "string",
           "title": "Worked in a warehouse or any high stamina needing role before",
           "description": "Do you have experience working in warehouses or similar roles?",
-          "required": true,
           "enum": ["Yes", "No"],
           "enumNames": ["Yes", "No"],
           "ui:widget": "select",
@@ -83,25 +81,33 @@
           "ui:disabled": false
         },
         "englishComprehension": {
-          "type": "string",
-          "title": "Can read and comprehend basic english words occuring on labels?",
-          "description": "Are you able to read and understand basic English words on labels?",
-          "required": true,
-          "enum": ["Yes", "No"],
-          "enumNames": ["Yes", "No"],
-          "ui:widget": "select",
-          "ui:placeholder": "Select your reading ability",
+          "type": "number",
+          "title": "Reading and comprehension of labels assessment score",
+          "description": "Enter the score you got in the reading and comprehension of labels assessment",
+          "minimum": 0,
+          "maximum": 100,
+          "ui:widget": "number",
+          "ui:placeholder": "Enter the score you got in the reading and comprehension of labels assessment",
           "ui:disabled": false
         },
         "physicallyFit": {
           "type": "string",
           "title": "Physically fit for the role?",
           "description": "Are you physically fit for warehouse work?",
-          "required": true,
           "enum": ["Yes", "No"],
           "enumNames": ["Yes", "No"],
           "ui:widget": "select",
           "ui:placeholder": "Select your fitness level",
+          "ui:disabled": false
+        },
+        "okayToStandAndWork": {
+          "type": "string",
+          "title": "Okay to stand and work?",
+          "description": "Are you okay to stand and work?",
+          "enum": ["Yes", "No"],
+          "enumNames": ["Yes", "No"],
+          "ui:widget": "select",
+          "ui:placeholder": "Are you okay to stand and work?",
           "ui:disabled": false
         },
         "additionalComments": {
@@ -114,11 +120,13 @@
         },
         "taskVideo": {
           "type": "string",
-          "title": "Task Video",
-          "description": "Upload a video showing your work",
-          "ui:widget": "video-upload",
-          "ui:placeholder": "Upload video showing your work",
-          "ui:disabled": false
+          "title": "Task Upload",
+          "description": "Upload any file (document, image, video) showing your work",
+          "ui:widget": "file-upload",
+          "ui:placeholder": "Upload file showing your work",
+          "ui:disabled": false,
+          "ui:accept": "*/*",
+          "ui:noSizeLimit": true
         },
         "qrCodeScan": {
           "type": "string",
@@ -129,7 +137,6 @@
           "ui:disabled": false
         }
       },
-      "required": ["age", "warehouseExperience", "englishComprehension", "physicallyFit"],
       "ui": {
         "order": [
           "age",
@@ -162,34 +169,10 @@
       "title": "What I Want",
       "description": "Your salary expectations and work preferences",
       "properties": {
-        "readyToMigrate": {
-          "type": "string",
-          "title": "Ready to migrate",
-          "description": "How far are you willing to migrate for work?",
-          "required": true,
-          "enum": [
-            "No - <= 50 kms",
-            "Yes - <=100 Kms",
-            "Yes <= 500 Kms",
-            "Yes - <= 1000 Kms",
-            "Yes - > 1000 Kms"
-          ],
-          "enumNames": [
-            "No - <= 50 kms",
-            "Yes - <=100 Kms",
-            "Yes <= 500 Kms",
-            "Yes - <= 1000 Kms",
-            "Yes - > 1000 Kms"
-          ],
-          "ui:widget": "select",
-          "ui:placeholder": "Select migration preference",
-          "ui:disabled": false
-        },
         "workHoursPerDay": {
           "type": "integer",
           "title": "Number hours willing to work / day",
           "description": "How many hours are you willing to work per day?",
-          "required": true,
           "minimum": 1,
           "maximum": 24,
           "ui:widget": "number",
@@ -200,7 +183,6 @@
           "type": "integer",
           "title": "Monthly In-hand Preferred (INR)",
           "description": "Your expected monthly in-hand salary in INR",
-          "required": true,
           "minimum": 0,
           "ui:widget": "number",
           "ui:placeholder": "Enter expected monthly salary",
@@ -252,18 +234,8 @@
           "ui:disabled": false
         }
       },
-      "required": [
-        "readyToMigrate",
-        "workHoursPerDay",
-        "monthlyInHandPreferred",
-        "monthlyOTExpectation",
-        "monthlyPFESIC",
-        "stayPreferences",
-        "maxCostPerSharingBed"
-      ],
       "ui": {
         "order": [
-          "readyToMigrate",
           "workHoursPerDay",
           "monthlyInHandPreferred",
           "monthlyOTExpectation",

@@ -64,7 +64,6 @@
           "type": "integer",
           "title": "Age",
           "description": "Your age",
-          "required": true,
           "minimum": 18,
           "maximum": 65,
           "ui:widget": "number",
@@ -75,7 +74,6 @@
           "type": "array",
           "title": "Highest Educational Qualification",
           "description": "Select your highest educational qualification(s)",
-          "required": true,
           "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
           "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
           "ui:widget": "multiselect-dropdown",
@@ -87,7 +85,6 @@
           "type": "array",
           "title": "HR Knowledge",
           "description": "Select your HR knowledge areas",
-          "required": true,
           "enum": [
             "None",
             "HR Statuatory Compliances", 
@@ -117,7 +114,6 @@
           "type": "array",
           "title": "HR Work Experience",
           "description": "Select your HR work experience",
-          "required": true,
           "enum": ["No preference", "Yes-Internship", "Yes-Job", "Yes-other", "Other"],
           "enumNames": ["No preference", "Yes-Internship", "Yes-Job", "Yes-other", "Other"],
           "ui:widget": "multiselect-dropdown",
@@ -129,15 +125,14 @@
           "type": "string",
           "title": "Communication Skills",
           "description": "Rate your communication skills",
-          "required": true,
           "enum": [
             "High-fluent, confident, and logical", 
-            "Med-fluent&confident", 
+            "Mid-fluent&confident", 
             "Low-fluent in english"
           ],
           "enumNames": [
             "High-fluent, confident, and logical", 
-            "Med-fluent&confident", 
+            "Mid-fluent&confident", 
             "Low-fluent in english"
           ],
           "ui:widget": "select",
@@ -146,11 +141,13 @@
         },
         "taskVideo": {
           "type": "string",
-          "title": "Task Video",
-          "description": "Upload a video showing your work",
-          "ui:widget": "video-upload",
-          "ui:placeholder": "Upload video showing your work",
-          "ui:disabled": false
+          "title": "Task Upload",
+          "description": "Upload any file (document, image, video) showing your work",
+          "ui:widget": "file-upload",
+          "ui:placeholder": "Upload file showing your work",
+          "ui:disabled": false,
+          "ui:accept": "*/*",
+          "ui:noSizeLimit": true
         },
         "qrCodeScan": {
           "type": "string",
@@ -161,7 +158,6 @@
           "ui:disabled": false
         }
       },
-      "required": ["age", "highestEducationalQualification", "hrKnowledge", "hrWorkExperience", "communicationSkills"],
       "ui": {
         "order": [
           "age",
@@ -202,7 +198,6 @@
           "type": "string",
           "title": "Distance Radius for Re-location Readiness",
           "description": "How far are you willing to relocate for work?",
-          "required": true,
           "enum": [
             "No",
             "Yes - <=100 Kms",
@@ -225,7 +220,6 @@
           "type": "integer",
           "title": "Number hours willing to work / day",
           "description": "How many hours are you willing to work per day?",
-          "required": true,
           "minimum": 1,
           "maximum": 24,
           "ui:widget": "number",
@@ -236,7 +230,6 @@
           "type": "string",
           "title": "Preferred mode of work",
           "description": "Select your preferred work mode",
-          "required": true,
           "enum": [
             "On-site-no shift",
             "On-site-shifts", 
@@ -259,7 +252,6 @@
           "type": "integer",
           "title": "Monthly In-hand Preferred (INR)",
           "description": "Your expected monthly in-hand salary in INR",
-          "required": true,
           "minimum": 0,
           "ui:widget": "number",
           "ui:placeholder": "Enter expected monthly salary",
@@ -270,7 +262,6 @@
           "type": "string",
           "title": "Monthly PF & Health Insurance",
           "description": "Do you want PF & Health Insurance benefits?",
-          "required": true,
           "enum": ["Yes", "No"],
           "enumNames": ["Yes", "No"],
           "ui:widget": "select",
@@ -278,13 +269,6 @@
           "ui:disabled": false
         }
       },
-      "required": [
-        "distanceRadiusRelocation",
-        "workHoursPerDay",
-        "preferredModeOfWork",
-        "monthlyInHandPreferred",
-        "monthlyPFHealthInsurance"
-      ],
       "ui": {
         "order": [
           "distanceRadiusRelocation",
