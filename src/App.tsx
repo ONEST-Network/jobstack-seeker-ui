@@ -21,7 +21,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/seeker?tab=discover" replace />} />
             <Route path="/seeker" element={<Jobs />} />
-            <Route path="/provider" element={<Provider />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
