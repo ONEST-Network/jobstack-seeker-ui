@@ -160,7 +160,7 @@
             "type": "string",
             "title": "Domain Knowledge",
             "description": "Select your area of expertise",
-            "ui:widget": "select",
+            "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select domain",
             "ui:disabled": false,
             "enum": ["General", "Cashcards","Electronics","Mobile Phones","Kitchen Appliances", "Furniture","Other"],
