@@ -573,8 +573,8 @@ class ApiClient {
       }
 
       return {
-        trustScore: data.trustScore || 0,
-        matchScore: data.matchScore || 0
+        trustScore: data.score || 0,
+        matchScore: data.score || data.matchScore || 0
       };
     } catch (error) {
       console.error('Match Score API Error:', error);

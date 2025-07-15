@@ -143,6 +143,7 @@
           "warehouseExperience",
           "englishComprehension",
           "physicallyFit",
+          "okayToStandAndWork",
           "additionalComments",
           "taskVideo",
           "qrCodeScan"
@@ -155,7 +156,7 @@
           },
           {
             "title": "Experience & Skills",
-            "fields": ["warehouseExperience", "englishComprehension", "physicallyFit", "additionalComments"]
+            "fields": ["warehouseExperience", "englishComprehension", "physicallyFit", "okayToStandAndWork", "additionalComments"]
           },
           {
             "title": "Media & Verification",
