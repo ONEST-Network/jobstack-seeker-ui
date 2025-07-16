@@ -146,7 +146,6 @@ export const useJobSearch = () => {
   // Function to fetch trust and match scores for specific jobs
   const fetchScoresForJobs = useCallback(async (jobsToScore: JobItem[]) => {
     if (!user || !user.profile || jobsToScore.length === 0) {
-      console.log('User not logged in, no profile, or no jobs to score');
       return jobsToScore;
     }
 
@@ -161,21 +160,11 @@ export const useJobSearch = () => {
       
       // If the data is an array, take the first element
       if (Array.isArray(seekerData)) {
-        console.log('Profile data is an array, extracting first element');
         seekerData = seekerData[0];
       }
-      
-      // Debug: Log the structure of seeker data
-      console.log('Seeker data structure:', {
-        isArray: Array.isArray(seekerData),
-        type: typeof seekerData,
-        keys: seekerData ? Object.keys(seekerData) : [],
-        data: seekerData
-      });
 
       // Ensure we have valid seeker data
       if (!seekerData || typeof seekerData !== 'object') {
-        console.error('Invalid seeker data structure:', seekerData);
         return jobsToScore;
       }
 
@@ -215,7 +204,6 @@ export const useJobSearch = () => {
     const transformedJobs: JobItem[] = [];
 
     if (!data?.results || !Array.isArray(data.results)) {
-      console.log('No results array in API response');
       return transformedJobs;
     }
 
@@ -454,27 +442,15 @@ export const useJobSearch = () => {
     return 'An unexpected error occurred. Please try again.';
   };
 
-  // Function to handle auto-retry
-  const handleAutoRetry = useCallback((currentRetryCount: number, error: any) => {
-    if (currentRetryCount < maxRetries) {
-      setIsAutoRetrying(true);
-      const delay = Math.min(1000 * Math.pow(2, currentRetryCount), 5000); // Exponential backoff with max 5s
-      
-      retryTimeoutRef.current = setTimeout(() => {
-        console.log(`Auto-retrying job fetch (attempt ${currentRetryCount + 1}/${maxRetries})`);
-        fetchJobs(true);
-      }, delay);
-    } else {
-      // Max retries reached, show final error
-      const finalErrorMessage = getErrorMessage(error);
-      setError(`${finalErrorMessage} (Retried ${maxRetries} times)`);
+  // Internal fetch function with integrated retry logic to avoid circular dependencies
+  const fetchJobsInternal = useCallback(async (isRetry = false, currentRetryCount = 0) => {
+    // Safety check to prevent infinite loops
+    if (currentRetryCount >= maxRetries) {
+      setError(`No jobs found currently. Please check later. (Retried ${maxRetries} times)`);
       setLoadingState('error');
       setIsAutoRetrying(false);
+      return;
     }
-  }, [maxRetries]);
-
-  // Fetch jobs from API
-  const fetchJobs = useCallback(async (isRetry = false) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -499,22 +475,28 @@ export const useJobSearch = () => {
         clearTimeout(loadingTimeoutRef.current);
       }
 
-      // Log the API response structure for debugging
-      console.log('API Response structure:', {
-        hasData: !!data,
-        dataType: typeof data,
-        hasResults: !!data?.results,
-        resultsType: Array.isArray(data?.results) ? 'array' : typeof data?.results,
-        resultsLength: Array.isArray(data?.results) ? data.results.length : 'not array',
-        keys: data ? Object.keys(data) : []
-      });
-
       setOriginalResponse(data);
       
       // Transform the data
       const transformedJobs = transformJobData(data);
       
-      console.log('Transformed jobs count:', transformedJobs.length);
+      // Check if we got any jobs after transformation
+      if (transformedJobs.length === 0) {
+        // No jobs available - this is a valid state, not an error
+        setJobs([]);
+        setPagination({
+          limit: data?.pagination?.limit || 10,
+          offset: data?.pagination?.offset || 0,
+          total: 0
+        });
+        setLastFetchTime(Date.now());
+        setLoadingState('complete');
+        setIsInitialLoad(false);
+        setIsAutoRetrying(false);
+        setRetryCount(0); // Reset retry count on success
+        setError(null); // Clear any previous errors
+        return;
+      }
       
       // Set jobs without trust scores initially
       setJobs(transformedJobs);
@@ -530,6 +512,7 @@ export const useJobSearch = () => {
       setIsInitialLoad(false);
       setIsAutoRetrying(false);
       setRetryCount(0); // Reset retry count on success
+      setError(null); // Clear any previous errors
     } catch (error) {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
@@ -551,16 +534,42 @@ export const useJobSearch = () => {
       // Handle auto-retry logic
       if (isRetry) {
         // This is an auto-retry, increment retry count
-        const newRetryCount = retryCount + 1;
+        const newRetryCount = currentRetryCount + 1;
         setRetryCount(newRetryCount);
-        handleAutoRetry(newRetryCount, error);
+        
+        // Only continue retrying if we haven't reached max retries
+        if (newRetryCount < maxRetries) {
+          setIsAutoRetrying(true);
+          setLoadingState('loading'); // Show loading state during retry
+          const delay = Math.min(1000 * Math.pow(2, newRetryCount), 5000); // Exponential backoff with max 5s
+          
+          retryTimeoutRef.current = setTimeout(() => {
+            fetchJobsInternal(true, newRetryCount);
+          }, delay);
+        } else {
+          // Max retries reached, stop retrying
+          setError(`No jobs found currently. Please check later. (Retried ${maxRetries} times)`);
+          setLoadingState('error');
+          setIsAutoRetrying(false);
+        }
       } else {
         // This is a manual retry or initial fetch, start auto-retry sequence
         setRetryCount(1);
-        handleAutoRetry(1, error);
+        setIsAutoRetrying(true);
+        setLoadingState('loading'); // Show loading state during retry
+        const delay = Math.min(1000 * Math.pow(2, 1), 5000); // Exponential backoff with max 5s
+        
+        retryTimeoutRef.current = setTimeout(() => {
+          fetchJobsInternal(true, 1);
+        }, delay);
       }
     }
-  }, [transformJobData, retryCount, handleAutoRetry]);
+  }, [transformJobData, maxRetries]);
+
+  // Public fetch function
+  const fetchJobs = useCallback(async (isRetry = false) => {
+    return fetchJobsInternal(isRetry, 0);
+  }, [fetchJobsInternal]);
 
   // Initial fetch
   useEffect(() => {

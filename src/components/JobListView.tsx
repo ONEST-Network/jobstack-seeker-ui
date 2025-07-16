@@ -224,26 +224,31 @@ const JobListView: React.FC<JobListViewProps> = ({
 
         {/* Error State */}
         {error && !isAutoRetrying && (
-          <Alert variant="destructive">
+          <Alert variant={retryCount >= 3 ? "default" : "destructive"}>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
               <div>
                 <span>{error}</span>
                 {retryCount > 0 && (
                   <p className="text-xs mt-1">
-                    Retried {retryCount} time{retryCount !== 1 ? 's' : ''}
+                    {retryCount >= 3 
+                      ? 'All retry attempts completed'
+                      : `Retried ${retryCount} time${retryCount !== 1 ? 's' : ''}`
+                    }
                   </p>
                 )}
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleRetry}
-                className="ml-4"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Retry
-              </Button>
+              {retryCount < 3 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleRetry}
+                  className="ml-4"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Retry
+                </Button>
+              )}
             </AlertDescription>
           </Alert>
         )}
@@ -308,7 +313,9 @@ const JobListView: React.FC<JobListViewProps> = ({
                       ? `No jobs found for "${searchQuery}"`
                       : jobs.length === 0 
                         ? error 
-                          ? 'Unable to load jobs'
+                          ? retryCount >= 3
+                            ? 'No jobs available currently'
+                            : 'Unable to load jobs'
                           : 'No jobs available'
                         : 'No matching jobs'
                   }
@@ -317,14 +324,20 @@ const JobListView: React.FC<JobListViewProps> = ({
                       ? 'Try adjusting your search terms or browse all available jobs.'
                       : jobs.length === 0 
                         ? error
-                          ? 'There was an issue connecting to the job database. Please try again.'
+                          ? retryCount >= 3
+                            ? 'We tried to fetch jobs but none are currently available. Please check back later.'
+                            : 'There was an issue connecting to the job database. Please try again.'
                           : 'No jobs are currently available. Please check back later.'
                         : 'No jobs match your current search criteria.'
                   }
                   icon={
                     jobs.length === 0 ? (
                       error ? (
-                        <WifiOff className="h-12 w-12 text-muted-foreground" />
+                        retryCount >= 3 ? (
+                          <Wifi className="h-12 w-12 text-muted-foreground" />
+                        ) : (
+                          <WifiOff className="h-12 w-12 text-muted-foreground" />
+                        )
                       ) : (
                         <Wifi className="h-12 w-12 text-muted-foreground" />
                       )
@@ -333,7 +346,7 @@ const JobListView: React.FC<JobListViewProps> = ({
                     )
                   }
                   action={
-                    jobs.length === 0 && error ? {
+                    jobs.length === 0 && error && retryCount < 3 ? {
                       label: 'Try again',
                       onClick: handleRetry
                     } : searchQuery ? {

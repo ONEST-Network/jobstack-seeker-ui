@@ -29,12 +29,12 @@ class ApiClient {
       ...options,
     };
 
-    console.log('🌐 API Request:', {
-      url,
-      method: config.method,
-      endpoint,
-      hasBody: !!config.body
-    });
+    // console.log('🌐 API Request:', {
+    //   url,
+    //   method: config.method,
+    //   endpoint,
+    //   hasBody: !!config.body
+    // });
 
     const response = await fetch(url, config);
     
@@ -276,8 +276,15 @@ class ApiClient {
       }
 
       // Check if the response has the expected structure
+      // Note: Empty results array is valid - it means no jobs are available
       if (!data.results && !data.message) {
         throw new Error('No job data received from server');
+      }
+
+      // If results is an empty array, that's valid - it means no jobs are available
+      if (data.results && Array.isArray(data.results) && data.results.length === 0) {
+        console.log('API returned empty results array - no jobs available');
+        return data; // Return the empty result as valid
       }
 
       return data;
@@ -497,13 +504,7 @@ class ApiClient {
       seeker: seekerData
     };
 
-    // Debug: Log the payload structure
-    console.log('Trust Score API Payload:', {
-      jobKeys: jobData ? Object.keys(jobData) : 'null/undefined',
-      seekerKeys: seekerData ? Object.keys(seekerData) : 'null/undefined',
-      seekerIsArray: Array.isArray(seekerData),
-      payload: payload
-    });
+
 
     try {
       // Create an AbortController for timeout
@@ -568,13 +569,7 @@ class ApiClient {
       seeker: seekerData
     };
 
-    // Debug: Log the payload structure
-    console.log('Match Score API Payload:', {
-      jobKeys: jobData ? Object.keys(jobData) : 'null/undefined',
-      seekerKeys: seekerData ? Object.keys(seekerData) : 'null/undefined',
-      seekerIsArray: Array.isArray(seekerData),
-      payload: payload
-    });
+
 
     try {
       // Create an AbortController for timeout

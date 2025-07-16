@@ -29,7 +29,9 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
       case 'partial':
         return 'Taking longer than expected...';
       case 'error':
-        return 'Something went wrong';
+        return 'No jobs found currently';
+      case 'complete':
+        return 'Jobs loaded';
       default:
         return 'Loading...';
     }
@@ -41,6 +43,8 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
         return <Clock className="h-4 w-4 animate-pulse" />;
       case 'error':
         return <WifiOff className="h-4 w-4" />;
+      case 'complete':
+        return <Wifi className="h-4 w-4" />;
       default:
         return isAutoRetrying ? (
           <RefreshCw className="h-4 w-4 animate-spin" />
@@ -53,6 +57,9 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
   const getRetryMessage = () => {
     if (isAutoRetrying && retryCount > 0) {
       return `Auto-retrying... (Attempt ${retryCount + 1}/3)`;
+    }
+    if (retryCount > 0 && retryCount >= 3) {
+      return `Retried ${retryCount} times - no jobs available`;
     }
     if (retryCount > 0) {
       return `Retried ${retryCount} time${retryCount !== 1 ? 's' : ''}`;

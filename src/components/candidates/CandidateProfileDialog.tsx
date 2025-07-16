@@ -148,7 +148,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           if (profilesResponse?.data && profilesResponse.data.length > 0) {
             const mostRecentProfile = profilesResponse.data[0];
             setCurrentProfileId(mostRecentProfile.id);
-            console.log('🔍 CandidateProfileDialog - Got profile ID from API:', mostRecentProfile.id);
+            // console.log('🔍 CandidateProfileDialog - Got profile ID from API:', mostRecentProfile.id);
           }
         } catch (error) {
           console.log('Error getting profile ID:', error);
@@ -161,7 +161,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
     getProfileId();
   }, [isUpdate, profileId, currentUser?.profileId]);
   
-  console.log('🔍 CandidateProfileDialog - isUpdate:', isUpdate, 'profileId:', currentProfileId);
+  // console.log('🔍 CandidateProfileDialog - isUpdate:', isUpdate, 'profileId:', currentProfileId);
   return (
     <UserProfileDialog
       isOpen={isOpen}
