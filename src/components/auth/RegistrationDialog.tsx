@@ -83,7 +83,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
         name: method === 'email' ? name : undefined,
         password: method === 'email' ? password : undefined,
         role,
-        callbackURL: `${window.location.origin}/seeker?tab=discover`
+        callbackURL: `${window.location.origin}/verify/email`
       });
       setStep('email-verification');
       toast({

@@ -29,12 +29,7 @@ class ApiClient {
       ...options,
     };
 
-    // console.log('🌐 API Request:', {
-    //   url,
-    //   method: config.method,
-    //   endpoint,
-    //   hasBody: !!config.body
-    // });
+
 
     const response = await fetch(url, config);
     
@@ -98,6 +93,23 @@ class ApiClient {
     return this.request('/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async sendVerificationEmail(data: {
+    email: string;
+    callbackURL?: string;
+  }) {
+    return this.request('/auth/send-verification-email', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async verifyEmailToken(token: string) {
+    return this.request('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
     });
   }
 
@@ -168,12 +180,7 @@ class ApiClient {
       website?: string[];
     };
   }) {
-    console.log('🔧 updateProfile called with:', {
-      profileId,
-      method: 'PUT',
-      endpoint: `/profile/`,
-      profileData
-    });
+    
     
     // Include profileId in the payload as required by the API
     const updatePayload = {
@@ -181,7 +188,7 @@ class ApiClient {
       ...profileData
     };
     
-    console.log('📤 Final update payload:', updatePayload);
+    // Update payload prepared for API
     
     return this.request(`/profile/`, {
       method: 'PUT',
