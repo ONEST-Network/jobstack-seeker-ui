@@ -32,7 +32,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
       // Get all profiles for the user to find the most recent one
       try {
         const profilesResponse = await apiClient.getProfiles() as ProfilesResponse;
-        console.log('🔍 UserMenu - All profiles:', profilesResponse);
         
         if (profilesResponse?.data && profilesResponse.data.length > 0) {
           // Get the most recent profile (first in the array based on your API response)
@@ -40,22 +39,16 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           const profileId = mostRecentProfile.id;
           const profileName = mostRecentProfile.metadata?.name;
           
-          console.log('🔍 UserMenu - Most recent profile ID:', profileId);
-          console.log('🔍 UserMenu - Profile name:', profileName);
-          
           if (profileId) {
             // Refresh profile data to update the user state
             await refreshProfileData();
-            console.log('🔍 UserMenu - profileMode will be set to edit');
             setProfileMode('edit');
             setShowCompleteProfile(true);
           } else {
-            console.log('🔍 UserMenu - No valid profile ID found, will create new profile');
             setProfileMode('add');
             setShowCompleteProfile(true);
           }
         } else {
-          console.log('🔍 UserMenu - No profiles found, will create new profile');
           setProfileMode('add');
           setShowCompleteProfile(true);
         }
@@ -94,6 +87,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
   const hasProfileName =
     (selectedCandidate && selectedCandidate.name) ||
     (user.profile && user.profile.name);
+
+
 
   return (
     <>

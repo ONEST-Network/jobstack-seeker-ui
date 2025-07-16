@@ -23,6 +23,58 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
   const [selectedVideo, setSelectedVideo] = useState<JobMedia | null>(null);
   const [selectedImage, setSelectedImage] = useState<JobMedia | null>(null);
   const [api, setApi] = useState<any>(null);
+  const [failedMedia, setFailedMedia] = useState<Set<string>>(new Set());
+  const [loadingMedia, setLoadingMedia] = useState<Set<string>>(new Set());
+
+  // Helper function to convert Google Storage URLs to public URLs if needed
+  const getPublicUrl = (url: string): string => {
+    // If it's already a public URL, return as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // If it's a gs:// URL, convert to public URL
+    if (url.startsWith('gs://')) {
+      const bucketAndPath = url.replace('gs://', '');
+      const [bucket, ...pathParts] = bucketAndPath.split('/');
+      const path = pathParts.join('/');
+      return `https://storage.googleapis.com/${bucket}/${path}`;
+    }
+    
+    return url;
+  };
+
+  // Helper function to handle media loading errors
+  const handleMediaError = (url: string, type: 'image' | 'video') => {
+    console.warn(`Failed to load ${type}:`, url);
+    setFailedMedia(prev => new Set([...prev, url]));
+    setLoadingMedia(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(url);
+      return newSet;
+    });
+  };
+
+  // Helper function to handle media loading success
+  const handleMediaLoad = (url: string) => {
+    setLoadingMedia(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(url);
+      return newSet;
+    });
+  };
+
+  // Filter out failed media
+  const validMedia = media.filter(item => !failedMedia.has(item.url));
+
+  // Initialize loading states for new media
+  useEffect(() => {
+    if (media && media.length > 0) {
+      const newLoadingMedia = new Set(media.map(item => item.url));
+      setLoadingMedia(newLoadingMedia);
+      setFailedMedia(new Set()); // Reset failed media when new media is received
+    }
+  }, [media]);
 
   useEffect(() => {
     if (api) {
@@ -34,12 +86,20 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
   }, [media, api]);
 
   // Check if we should show navigation buttons
-  const shouldShowNavigation = media.length > 1;
+  const shouldShowNavigation = validMedia.length > 1;
 
   if (!media || media.length === 0) {
     return (
       <div className={`w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center text-2xl ${className}`}>
         🏢
+      </div>
+    );
+  }
+
+  if (validMedia.length === 0) {
+    return (
+      <div className={`w-16 h-16 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg flex items-center justify-center text-2xl ${className}`}>
+        ⚠️
       </div>
     );
   }
@@ -87,7 +147,7 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
           }}
         >
           <CarouselContent>
-            {media.map((item, index) => (
+            {validMedia.map((item, index) => (
               <CarouselItem key={index}>
                 <div className="relative w-full h-48 sm:h-56 bg-gray-100 rounded-lg overflow-hidden">
                   {item.type === 'image' ? (
@@ -95,16 +155,27 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                       className="w-full h-full cursor-pointer group"
                       onClick={(e) => handleImageClick(item, e)}
                     >
+                      {/* Loading indicator */}
+                      {loadingMedia.has(item.url) && (
+                        <div className="absolute inset-0 bg-gray-200 flex items-center justify-center z-10">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        </div>
+                      )}
+                      
                       <img
-                        src={item.url}
+                        src={getPublicUrl(item.url)}
                         alt={item.alt || `${title} workplace image ${index + 1}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        onLoad={() => handleMediaLoad(item.url)}
                         onError={(e) => {
                           // Hide image if it fails to load
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
+                          handleMediaError(item.url, 'image');
                         }}
+                        crossOrigin="anonymous"
                       />
+
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
                         <div className="bg-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                           <Eye className="h-4 w-4 text-gray-700" />
@@ -116,14 +187,23 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                       className="relative w-full h-full cursor-pointer group"
                       onClick={(e) => handleVideoClick(item, e)}
                     >
+                      {/* Loading indicator */}
+                      {loadingMedia.has(item.url) && (
+                        <div className="absolute inset-0 bg-gray-200 flex items-center justify-center z-10">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        </div>
+                      )}
+                      
                       <img
-                        src={item.thumbnail || item.url}
+                        src={getPublicUrl(item.thumbnail || item.url)}
                         alt={item.alt || `${title} job video ${index + 1}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        onLoad={() => handleMediaLoad(item.url)}
                         onError={(e) => {
                           // Hide thumbnail if it fails to load
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
+                          handleMediaError(item.url, 'video');
                         }}
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center">
@@ -176,7 +256,7 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                 controls
                 autoPlay
                 className="w-full h-auto rounded-lg"
-                src={selectedVideo.url}
+                src={getPublicUrl(selectedVideo.url)}
                 onError={(e) => {
                   console.error('Video failed to load:', selectedVideo.url);
                 }}
@@ -203,7 +283,7 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                 <X className="h-4 w-4" />
               </Button>
               <img
-                src={selectedImage.url}
+                src={getPublicUrl(selectedImage.url)}
                 alt={selectedImage.alt || `${title} workplace image`}
                 className="w-full h-auto rounded-lg"
                 onError={(e) => {

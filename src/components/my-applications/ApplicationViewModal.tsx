@@ -73,8 +73,6 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
       const response = await fetch(`${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${user?.id}`);
       const data = await response.json();
       
-      console.log('API Response:', data); // Debug log
-      
       const applications = data?.applications || [];
       const application = applications.find((app: any) => {
         // Match using the same logic as MyApplications component
@@ -84,16 +82,9 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
                app.transaction_id === applicationId;
       });
       
-      console.log('Found application:', application); // Debug log
-      
       if (application) {
         setApplicationDetails(application);
       } else {
-        console.log('Available applications:', applications.map((app: any) => ({ 
-          order_id: app.order_id, 
-          transaction_id: app.transaction_id, 
-          id: app.id 
-        }))); // Debug log
         setError('Application details not found');
       }
     } catch (err) {

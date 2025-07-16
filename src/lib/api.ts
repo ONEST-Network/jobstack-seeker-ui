@@ -29,12 +29,7 @@ class ApiClient {
       ...options,
     };
 
-    console.log('🌐 API Request:', {
-      url,
-      method: config.method,
-      endpoint,
-      hasBody: !!config.body
-    });
+
 
     const response = await fetch(url, config);
     
@@ -98,6 +93,23 @@ class ApiClient {
     return this.request('/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async sendVerificationEmail(data: {
+    email: string;
+    callbackURL?: string;
+  }) {
+    return this.request('/auth/send-verification-email', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async verifyEmailToken(token: string) {
+    return this.request('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
     });
   }
 
@@ -168,12 +180,7 @@ class ApiClient {
       website?: string[];
     };
   }) {
-    console.log('🔧 updateProfile called with:', {
-      profileId,
-      method: 'PUT',
-      endpoint: `/profile/`,
-      profileData
-    });
+    
     
     // Include profileId in the payload as required by the API
     const updatePayload = {
@@ -181,7 +188,7 @@ class ApiClient {
       ...profileData
     };
     
-    console.log('📤 Final update payload:', updatePayload);
+    // Update payload prepared for API
     
     return this.request(`/profile/`, {
       method: 'PUT',
@@ -251,23 +258,67 @@ class ApiClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        
+        if (response.status === 404) {
+          throw new Error('Job service temporarily unavailable. Please try again later.');
+        } else if (response.status === 500) {
+          throw new Error('Server error. Please try again in a few moments.');
+        } else if (response.status === 401) {
+          throw new Error('Authentication required. Please log in and try again.');
+        } else if (response.status === 403) {
+          throw new Error('Access denied. Please check your permissions and try again.');
+        } else if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        } else {
+          throw new Error(`Request failed: ${errorMessage}`);
+        }
       }
 
       const data = await response.json();
       
       // Validate the response structure
       if (!data || typeof data !== 'object') {
-        throw new Error('Invalid response format from BAP API');
+        throw new Error('Invalid response format from job service');
+      }
+
+      // Check if the response has the expected structure
+      // Note: Empty results array is valid - it means no jobs are available
+      if (!data.results && !data.message) {
+        throw new Error('No job data received from server');
+      }
+
+      // If results is an empty array, that's valid - it means no jobs are available
+      if (data.results && Array.isArray(data.results) && data.results.length === 0) {
+        console.log('API returned empty results array - no jobs available');
+        return data; // Return the empty result as valid
       }
 
       return data;
     } catch (error) {
       console.error('BAP API Error:', error);
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Request timeout - please try again');
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('Request timed out. Please check your internet connection and try again.');
+        }
+        
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          throw new Error('Network error. Please check your internet connection and try again.');
+        }
+        
+        // Re-throw the error if it's already a formatted error message
+        if (error.message.includes('Job service') || 
+            error.message.includes('Server error') || 
+            error.message.includes('Authentication') || 
+            error.message.includes('Access denied') ||
+            error.message.includes('Request timed out') ||
+            error.message.includes('Network error')) {
+          throw error;
+        }
       }
-      throw error;
+      
+      throw new Error('Failed to fetch jobs. Please try again.');
     }
   }
 
@@ -460,13 +511,7 @@ class ApiClient {
       seeker: seekerData
     };
 
-    // Debug: Log the payload structure
-    console.log('Trust Score API Payload:', {
-      jobKeys: jobData ? Object.keys(jobData) : 'null/undefined',
-      seekerKeys: seekerData ? Object.keys(seekerData) : 'null/undefined',
-      seekerIsArray: Array.isArray(seekerData),
-      payload: payload
-    });
+
 
     try {
       // Create an AbortController for timeout
@@ -531,13 +576,7 @@ class ApiClient {
       seeker: seekerData
     };
 
-    // Debug: Log the payload structure
-    console.log('Match Score API Payload:', {
-      jobKeys: jobData ? Object.keys(jobData) : 'null/undefined',
-      seekerKeys: seekerData ? Object.keys(seekerData) : 'null/undefined',
-      seekerIsArray: Array.isArray(seekerData),
-      payload: payload
-    });
+
 
     try {
       // Create an AbortController for timeout

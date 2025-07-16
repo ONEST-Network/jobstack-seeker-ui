@@ -107,6 +107,7 @@ export const useJobSearch = () => {
   const [lastFetchTime, setLastFetchTime] = useState<number | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [scoresLoading, setScoresLoading] = useState(false);
+  const [isAutoRetrying, setIsAutoRetrying] = useState(false);
   
   const { user } = useAuth();
   
@@ -114,6 +115,7 @@ export const useJobSearch = () => {
   const requestTimeout = 30000; // 30 seconds timeout
   const abortControllerRef = useRef<AbortController | null>(null);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Function to find provider and job IDs from original response
   const findProviderAndJobIds = useCallback((jobId: string): { providerId: string; jobId: string } | null => {
@@ -144,7 +146,6 @@ export const useJobSearch = () => {
   // Function to fetch trust and match scores for specific jobs
   const fetchScoresForJobs = useCallback(async (jobsToScore: JobItem[]) => {
     if (!user || !user.profile || jobsToScore.length === 0) {
-      console.log('User not logged in, no profile, or no jobs to score');
       return jobsToScore;
     }
 
@@ -159,21 +160,11 @@ export const useJobSearch = () => {
       
       // If the data is an array, take the first element
       if (Array.isArray(seekerData)) {
-        console.log('Profile data is an array, extracting first element');
         seekerData = seekerData[0];
       }
-      
-      // Debug: Log the structure of seeker data
-      console.log('Seeker data structure:', {
-        isArray: Array.isArray(seekerData),
-        type: typeof seekerData,
-        keys: seekerData ? Object.keys(seekerData) : [],
-        data: seekerData
-      });
 
       // Ensure we have valid seeker data
       if (!seekerData || typeof seekerData !== 'object') {
-        console.error('Invalid seeker data structure:', seekerData);
         return jobsToScore;
       }
 
@@ -209,112 +200,62 @@ export const useJobSearch = () => {
   }, [user]);
 
   // Transform job data from API response
-  const transformJobData = useCallback((apiResponse: JobSearchResponse): JobItem[] => {
+  const transformJobData = useCallback((data: JobSearchResponse): JobItem[] => {
     const transformedJobs: JobItem[] = [];
 
-    // Add null checks for the API response structure
-    if (!apiResponse || !apiResponse.results || !Array.isArray(apiResponse.results)) {
-      console.warn('Invalid API response structure:', apiResponse);
-      return transformedJobs;
-    }
-
-    apiResponse.results.forEach(result => {
-      const catalog = result?.message?.catalog;
-      if (!catalog?.providers) {
-        console.warn('No providers found in catalog');
-        return;
-      }
-
+    data.results.forEach(result => {
+      const catalog = result.message.catalog;
+      
       catalog.providers.forEach(provider => {
-        // Check if provider has items
-        if (!provider?.items || !Array.isArray(provider.items)) {
-          console.warn('No items found in provider:', provider?.descriptor?.name);
-          return;
-        }
-
+        const location = provider.locations?.[0];
+        const locationString = location ? `${location.address}, ${location.city}, ${location.state}` : 'Location not specified';
+        
         provider.items.forEach(item => {
-          // Check if item has required properties
-          if (!item?.descriptor?.name || !item?.id) {
-            console.warn('Invalid item structure:', item);
-            return;
-          }
-
-          const tags = item.tags || {};
+          const tags = item.tags;
           
-          // Filter out draft jobs - don't show them in search results
-          const jobStatus = tags.status;
-          if (jobStatus === 'draft') {
-            console.log(`Skipping draft job: ${item.descriptor.name} (ID: ${item.id})`);
-            return;
-          }
-          
-          // Log job status for debugging (only for non-draft jobs)
-          if (jobStatus) {
-            console.log(`Job status for ${item.descriptor.name}: ${jobStatus}`);
-          }
-          
-          // Extract location from provider locations or item tags
-          const location = provider.locations?.[0] || tags?.jobProviderLocation || {};
-          const locationString = location.city && location.state 
-            ? `${location.city}, ${location.state}`
-            : location.address || 'Location not specified';
-
           // Extract salary information
-          const salary = tags?.industrialTailorDetails?.monthlyInHand 
-            ? `₹${tags.industrialTailorDetails.monthlyInHand}`
-            : tags?.salaryRange || 'Salary not specified';
-
-          // Extract working hours
-          const workingHours = tags?.workingHours || tags?.industrialTailorDetails?.workingMode || '8 hours/day';
-
-          // Extract monthly in-hand salary
-          const monthlyInHand = tags?.industrialTailorDetails?.monthlyInHand 
-            ? `₹${tags.industrialTailorDetails.monthlyInHand}`
-            : 'Not specified';
-
-          // Extract PF & ESIC
-          const monthlyPfEsic = tags?.industrialTailorDetails?.monthlyPfEsicBenefits 
-            ? `₹${tags.industrialTailorDetails.monthlyPfEsicBenefits}`
-            : 'Included';
-
-          // Extract overtime
-          const monthlyOvertime = tags?.industrialTailorDetails?.minimumOvertimeCommitted 
-            ? `₹${tags.industrialTailorDetails.minimumOvertimeCommitted}`
-            : 'Not specified';
+          const salary = tags?.basicInfo?.salary || 'Salary not specified';
+          const workingHours = tags?.basicInfo?.workingHours || 'Not specified';
+          const monthlyInHand = tags?.basicInfo?.monthlyInHand || 'Not specified';
+          const monthlyPfEsic = tags?.basicInfo?.monthlyPfEsic || 'Not specified';
+          const monthlyOvertime = tags?.basicInfo?.monthlyOvertime || 'Not specified';
+          const costPerSharingBed = tags?.basicInfo?.costPerSharingBed || 'Not specified';
 
           // Extract stay provided
-          const stayProvided = tags?.housingFacility || false;
+          const stayProvided = tags?.basicInfo?.stayProvided || false;
 
-          // Extract cost per sharing bed (if available)
-          const costPerSharingBed = tags?.costPerSharingBed || 'Not specified';
+          // Extract trust score
+          const trustScore = tags?.assessment?.trustScore || 0;
 
-          // Extract trust and match scores (default to 0 initially)
-          const trustScore = 0; // Will be updated by trust score API
-          const matchScore = 0; // Will be updated by trust score API
+          // Extract match score
+          const matchScore = tags?.assessment?.matchScore || 0;
 
-          // Extract openings/positions
-          const openings = tags?.jobDetails?.positions || tags?.positions || 1;
+          // Extract number of openings
+          const openings = tags?.basicInfo?.openings || 1;
 
-          // Extract job details from tags
-          const jobDetails = tags?.jobDetails || {};
-
-          // Extract description
-          const description = tags?.jobDescription?.description || tags?.description || '';
+          // Extract job description
+          const description = item.descriptor.name;
 
           // Extract industry
-          const industry = tags?.industry || 'Not specified';
+          const industry = tags?.basicInfo?.industry || 'Not specified';
 
           // Extract experience
-          const experience = tags?.experience || tags?.jobNeeds?.experience || 'Not specified';
+          const experience = tags?.basicInfo?.experience || 'Not specified';
+
+          // Extract job status
+          const jobStatus = tags?.basicInfo?.status || 'active';
 
           // Extract contact person
-          const contactPerson = tags?.hiringManager ? {
-            name: tags.hiringManager.managerName || 'Not specified',
-            email: tags.hiringManager.emailId || 'Not specified',
-            phone: tags.hiringManager.phoneNo || 'Not specified'
+          const contactPerson = tags?.contactPerson ? {
+            name: tags.contactPerson.name || 'Not specified',
+            email: tags.contactPerson.email || 'Not specified',
+            phone: tags.contactPerson.phone || 'Not specified'
           } : undefined;
 
-          // Extract media from tags
+          // Extract job details
+          const jobDetails = tags?.jobDetails || {};
+
+          // Extract media (images/videos) - Dynamic approach
           const media: Array<{
             type: 'image' | 'video';
             url: string;
@@ -323,85 +264,97 @@ export const useJobSearch = () => {
             duration?: string;
           }> = [];
 
-          // Extract company logo
-          if (tags?.basicInfo?.jobProviderLogo) {
-            media.push({
-              type: 'image',
-              url: tags.basicInfo.jobProviderLogo,
-              alt: `${tags.basicInfo.jobProviderName || 'Company'} logo`
-            });
-          }
+          // Helper function to check if a string is a Google Storage URL
+          const isGoogleStorageUrl = (url: string): boolean => {
+            return url && typeof url === 'string' && (
+              url.includes('storage.googleapis.com') ||
+              url.includes('firebasestorage.googleapis.com') ||
+              url.startsWith('gs://') ||
+              url.includes('googleapis.com/storage') ||
+              url.includes('firebaseapp.com') ||
+              url.includes('appspot.com') ||
+              // Also include other common storage URLs that might be used
+              url.includes('amazonaws.com') ||
+              url.includes('blob.core.windows.net') ||
+              url.includes('digitaloceanspaces.com') ||
+              // Check for common image/video file extensions
+              /\.(jpg|jpeg|png|gif|bmp|webp|svg|mp4|avi|mov|wmv|flv|webm|mkv)$/i.test(url)
+            );
+          };
 
-          // Extract job details video
-          if (tags?.jobDetails?.jobDetailsVideo) {
-            media.push({
-              type: 'video',
-              url: tags.jobDetails.jobDetailsVideo,
-              alt: `${item.descriptor.name} job details video`
-            });
-          }
-
-          // Extract job location photos
-          if (tags?.jobDetails?.jobLocationPhotos && Array.isArray(tags.jobDetails.jobLocationPhotos)) {
-            tags.jobDetails.jobLocationPhotos.forEach((photoUrl: string, index: number) => {
-              if (photoUrl) {
-                media.push({
-                  type: 'image',
-                  url: photoUrl,
-                  alt: `${item.descriptor.name} location photo ${index + 1}`
-                });
-              }
-            });
-          }
-
-          // Extract sample task video
-          if (tags?.jobNeeds?.sampleTaskVideo) {
-            media.push({
-              type: 'video',
-              url: tags.jobNeeds.sampleTaskVideo,
-              alt: `${item.descriptor.name} sample task video`
-            });
-          }
-
-          // Extract sample task image
-          if (tags?.jobNeeds?.sampleTaskImage) {
-            media.push({
-              type: 'image',
-              url: tags.jobNeeds.sampleTaskImage,
-              alt: `${item.descriptor.name} sample task image`
-            });
-          }
-
-          // Extract speed proof documents and sample media
-          if (tags?.jobNeeds?.jukiSpeedSubsection) {
-            const speedSubsection = tags.jobNeeds.jukiSpeedSubsection;
+          // Helper function to determine media type from URL
+          const getMediaType = (url: string): 'image' | 'video' => {
+            const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'];
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
             
-            // Speed proof documents
-            if (speedSubsection.uploadSpeedProof && Array.isArray(speedSubsection.uploadSpeedProof)) {
-              speedSubsection.uploadSpeedProof.forEach((docUrl: string, index: number) => {
-                if (docUrl) {
-                  media.push({
-                    type: 'image',
-                    url: docUrl,
-                    alt: `Speed proof document ${index + 1}`
-                  });
-                }
-              });
+            const lowerUrl = url.toLowerCase();
+            
+            if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
+              return 'video';
             }
+            if (imageExtensions.some(ext => lowerUrl.includes(ext))) {
+              return 'image';
+            }
+            
+            // Default to image if extension is not recognized
+            return 'image';
+          };
 
-            // Speed sample media
-            if (speedSubsection.uploadSpeedSampleMedia && Array.isArray(speedSubsection.uploadSpeedSampleMedia)) {
-              speedSubsection.uploadSpeedSampleMedia.forEach((mediaUrl: string, index: number) => {
-                if (mediaUrl) {
-                  media.push({
-                    type: 'video',
-                    url: mediaUrl,
-                    alt: `Speed sample media ${index + 1}`
-                  });
+          // Recursive function to extract Google Storage URLs from any object
+          const extractGoogleStorageUrls = (obj: any, path: string = ''): Array<{url: string, path: string}> => {
+            const urls: Array<{url: string, path: string}> = [];
+            
+            if (!obj || typeof obj !== 'object') {
+              return urls;
+            }
+            
+            if (Array.isArray(obj)) {
+              obj.forEach((item, index) => {
+                if (typeof item === 'string' && isGoogleStorageUrl(item)) {
+                  urls.push({ url: item, path: `${path}[${index}]` });
+                } else if (typeof item === 'object') {
+                  urls.push(...extractGoogleStorageUrls(item, `${path}[${index}]`));
+                }
+              });
+            } else {
+              Object.entries(obj).forEach(([key, value]) => {
+                const currentPath = path ? `${path}.${key}` : key;
+                
+                if (typeof value === 'string' && isGoogleStorageUrl(value)) {
+                  urls.push({ url: value, path: currentPath });
+                } else if (typeof value === 'object' && value !== null) {
+                  urls.push(...extractGoogleStorageUrls(value, currentPath));
                 }
               });
             }
-          }
+            
+            return urls;
+          };
+
+          // Extract all Google Storage URLs from the entire job data
+          const allUrls = extractGoogleStorageUrls(tags);
+
+          // Also check jobDetails for any media URLs
+          const jobDetailsUrls = extractGoogleStorageUrls(jobDetails);
+
+          // Combine all URLs and remove duplicates
+          const allUniqueUrls = [...allUrls, ...jobDetailsUrls]
+            .filter((item, index, self) => 
+              index === self.findIndex(t => t.url === item.url)
+            );
+
+          // Convert URLs to media objects
+          allUniqueUrls.forEach(({ url, path }, index) => {
+            const mediaType = getMediaType(url);
+            const fieldName = path.split('.').pop() || 'media';
+            
+            media.push({
+              type: mediaType,
+              url: url,
+              alt: `${item.descriptor.name} ${fieldName} ${index + 1}`,
+              thumbnail: mediaType === 'video' ? url : undefined // For videos, use the same URL as thumbnail for now
+            });
+          });
 
           const transformedJob: JobItem = {
             id: item.id,
@@ -440,8 +393,50 @@ export const useJobSearch = () => {
     return transformedJobs;
   }, []);
 
-  // Fetch jobs from API
-  const fetchJobs = useCallback(async (isRetry = false) => {
+  // Function to get user-friendly error message
+  const getErrorMessage = (error: any): string => {
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase();
+      
+      if (message.includes('timeout') || message.includes('abort')) {
+        return 'Request timed out. Please check your internet connection and try again.';
+      }
+      
+      if (message.includes('network') || message.includes('fetch')) {
+        return 'Network error. Please check your internet connection and try again.';
+      }
+      
+      if (message.includes('404')) {
+        return 'Job service temporarily unavailable. Please try again later.';
+      }
+      
+      if (message.includes('500') || message.includes('server')) {
+        return 'Server error. Please try again in a few moments.';
+      }
+      
+      if (message.includes('unauthorized') || message.includes('401')) {
+        return 'Authentication required. Please log in and try again.';
+      }
+      
+      if (message.includes('forbidden') || message.includes('403')) {
+        return 'Access denied. Please check your permissions and try again.';
+      }
+      
+      return error.message;
+    }
+    
+    return 'An unexpected error occurred. Please try again.';
+  };
+
+  // Internal fetch function with integrated retry logic to avoid circular dependencies
+  const fetchJobsInternal = useCallback(async (isRetry = false, currentRetryCount = 0) => {
+    // Safety check to prevent infinite loops
+    if (currentRetryCount >= maxRetries) {
+      setError(`No jobs found currently. Please check later. (Retried ${maxRetries} times)`);
+      setLoadingState('error');
+      setIsAutoRetrying(false);
+      return;
+    }
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -466,22 +461,28 @@ export const useJobSearch = () => {
         clearTimeout(loadingTimeoutRef.current);
       }
 
-      // Log the API response structure for debugging
-      console.log('API Response structure:', {
-        hasData: !!data,
-        dataType: typeof data,
-        hasResults: !!data?.results,
-        resultsType: Array.isArray(data?.results) ? 'array' : typeof data?.results,
-        resultsLength: Array.isArray(data?.results) ? data.results.length : 'not array',
-        keys: data ? Object.keys(data) : []
-      });
-
       setOriginalResponse(data);
       
       // Transform the data
       const transformedJobs = transformJobData(data);
       
-      console.log('Transformed jobs count:', transformedJobs.length);
+      // Check if we got any jobs after transformation
+      if (transformedJobs.length === 0) {
+        // No jobs available - this is a valid state, not an error
+        setJobs([]);
+        setPagination({
+          limit: data?.pagination?.limit || 10,
+          offset: data?.pagination?.offset || 0,
+          total: 0
+        });
+        setLastFetchTime(Date.now());
+        setLoadingState('complete');
+        setIsInitialLoad(false);
+        setIsAutoRetrying(false);
+        setRetryCount(0); // Reset retry count on success
+        setError(null); // Clear any previous errors
+        return;
+      }
       
       // Set jobs without trust scores initially
       setJobs(transformedJobs);
@@ -495,6 +496,9 @@ export const useJobSearch = () => {
       setLastFetchTime(Date.now());
       setLoadingState('complete');
       setIsInitialLoad(false);
+      setIsAutoRetrying(false);
+      setRetryCount(0); // Reset retry count on success
+      setError(null); // Clear any previous errors
     } catch (error) {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
@@ -505,32 +509,89 @@ export const useJobSearch = () => {
       if (error instanceof Error && error.name === 'AbortError') {
         setError('Request cancelled');
         setLoadingState('error');
+        setIsAutoRetrying(false);
         return;
       }
 
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch jobs';
+      const errorMessage = getErrorMessage(error);
       setError(errorMessage);
       setLoadingState('error');
       
-      if (!isRetry && retryCount < maxRetries) {
-        setRetryCount(prev => prev + 1);
-        setTimeout(() => fetchJobs(true), 1000 * (retryCount + 1));
+      // Handle auto-retry logic
+      if (isRetry) {
+        // This is an auto-retry, increment retry count
+        const newRetryCount = currentRetryCount + 1;
+        setRetryCount(newRetryCount);
+        
+        // Only continue retrying if we haven't reached max retries
+        if (newRetryCount < maxRetries) {
+          setIsAutoRetrying(true);
+          setLoadingState('loading'); // Show loading state during retry
+          const delay = Math.min(1000 * Math.pow(2, newRetryCount), 5000); // Exponential backoff with max 5s
+          
+          retryTimeoutRef.current = setTimeout(() => {
+            fetchJobsInternal(true, newRetryCount);
+          }, delay);
+        } else {
+          // Max retries reached, stop retrying
+          setError(`No jobs found currently. Please check later. (Retried ${maxRetries} times)`);
+          setLoadingState('error');
+          setIsAutoRetrying(false);
+        }
+      } else {
+        // This is a manual retry or initial fetch, start auto-retry sequence
+        setRetryCount(1);
+        setIsAutoRetrying(true);
+        setLoadingState('loading'); // Show loading state during retry
+        const delay = Math.min(1000 * Math.pow(2, 1), 5000); // Exponential backoff with max 5s
+        
+        retryTimeoutRef.current = setTimeout(() => {
+          fetchJobsInternal(true, 1);
+        }, delay);
       }
     }
-  }, [transformJobData, retryCount, maxRetries]);
+  }, [transformJobData, maxRetries]);
+
+  // Public fetch function
+  const fetchJobs = useCallback(async (isRetry = false) => {
+    return fetchJobsInternal(isRetry, 0);
+  }, [fetchJobsInternal]);
 
   // Initial fetch
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
 
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const refetch = useCallback(() => {
     setRetryCount(0);
+    setIsAutoRetrying(false);
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
     fetchJobs();
   }, [fetchJobs]);
 
   const retry = useCallback(() => {
     setRetryCount(0);
+    setIsAutoRetrying(false);
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
     fetchJobs();
   }, [fetchJobs]);
 
@@ -547,6 +608,7 @@ export const useJobSearch = () => {
     isInitialLoad,
     lastFetchTime,
     scoresLoading,
-    fetchScoresForJobs
+    fetchScoresForJobs,
+    isAutoRetrying
   };
 }; 

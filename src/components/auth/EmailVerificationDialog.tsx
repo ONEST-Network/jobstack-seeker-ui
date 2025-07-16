@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Mail, CheckCircle, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { apiClient } from '@/lib/api';
 
 interface EmailVerificationDialogProps {
   isOpen: boolean;
@@ -23,18 +24,19 @@ const EmailVerificationDialog: React.FC<EmailVerificationDialogProps> = ({
   const handleResendEmail = async () => {
     setIsResending(true);
     try {
-      // In a real implementation, you would call your API to resend the verification email
-      // For now, we'll just simulate the action
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await apiClient.sendVerificationEmail({
+        email,
+        callbackURL: `${window.location.origin}/verify/email`
+      });
       
       toast({
         title: "Email Sent",
         description: "Verification email has been resent to your inbox.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to resend verification email. Please try again.",
+        description: error.message || "Failed to resend verification email. Please try again.",
         variant: "destructive"
       });
     } finally {
