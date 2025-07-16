@@ -372,7 +372,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
           } catch (profileError) {
-            console.log('No profile found or error fetching profile:', profileError);
+            // No profile found or error fetching profile - user can create one later
           }
 
           // Always fetch profiles for individual users to ensure we have the latest data
@@ -390,7 +390,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
               }
             } catch (profilesError) {
-              console.log('Error fetching profiles:', profilesError);
+              // Error fetching profiles
               if (transformedUser.profile) {
                 const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
                 transformedUser.managedCandidates = [defaultCandidate];
@@ -424,7 +424,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       } catch (error) {
-        console.log('No active session found');
+        // No active session found
         // Clear any invalid session data
         localStorage.removeItem('user');
       }
@@ -569,7 +569,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return [];
     } catch (error) {
-      console.log('Error fetching profiles:', error);
+      // Error fetching profiles
       return [];
     }
   };
@@ -666,8 +666,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
         } catch (profileError) {
-          console.log('No profile found or error fetching profile:', profileError);
-          // Continue without profile - user can create one later
+          // No profile found or error fetching profile - user can create one later
         }
 
         // Fetch profiles for individual users
@@ -686,7 +685,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
           } catch (profilesError) {
-            console.log('Error fetching profiles:', profilesError);
             // Create default candidate if error
             if (transformedUser.profile) {
               const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
@@ -986,8 +984,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
         } catch (profileError) {
-          console.log('No profile found or error fetching profile:', profileError);
-          // Continue without profile - user can create one later
+          // No profile found or error fetching profile - user can create one later
         }
 
         // Always fetch profiles for individual users to ensure we have the latest data

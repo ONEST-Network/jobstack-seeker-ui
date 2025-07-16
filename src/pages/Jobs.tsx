@@ -7,8 +7,6 @@ import CandidateManagement from '@/components/candidates/CandidateManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'react-router-dom';
-import ResetPasswordDialog from '@/components/auth/ResetPasswordDialog';
-import { usePasswordReset } from '@/hooks/usePasswordReset';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Jobs = () => {
@@ -16,7 +14,6 @@ const Jobs = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('discover');
   const [refreshKey, setRefreshKey] = useState(0);
-  const { showResetDialog, resetToken, handleResetDialogClose, handleResetSuccess } = usePasswordReset();
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -64,22 +61,10 @@ const Jobs = () => {
   };
 
   return (
-    <>
-      <div className="min-h-screen bg-background">
-        <Header />
-        {renderContent()}
-      </div>
-
-      {/* Password Reset Dialog */}
-      {showResetDialog && resetToken && (
-        <ResetPasswordDialog
-          isOpen={showResetDialog}
-          onClose={handleResetDialogClose}
-          onSuccess={handleResetSuccess}
-          token={resetToken}
-        />
-      )}
-    </>
+    <div className="min-h-screen bg-background">
+      <Header />
+      {renderContent()}
+    </div>
   );
 };
 

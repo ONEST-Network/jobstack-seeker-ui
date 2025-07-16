@@ -3,22 +3,90 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Jobs from "./pages/Jobs";
 import Provider from "./pages/Provider";
 import NotFound from "./pages/NotFound";
 import EmailVerification from "./pages/EmailVerification";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { apiClient } from "./lib/api";
 import { useToast } from "@/hooks/use-toast";
+import ResetPasswordDialog from "@/components/auth/ResetPasswordDialog";
 
 const queryClient = new QueryClient();
 
 // Component to handle email verification callbacks - now handled by dedicated page
 const EmailVerificationHandler = () => {
   return null;
+};
+
+// Password Reset Route Component
+const PasswordResetRoute = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [resetToken, setResetToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    
+    // Validate token
+    const isValidToken = token && 
+                        token.trim() !== '' && 
+                        token.length > 10 && 
+                        !token.includes('undefined') && 
+                        !token.includes('null');
+    
+    if (isValidToken) {
+      setResetToken(token);
+      setShowResetDialog(true);
+      
+      // Clean up URL by removing the token parameter
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('token');
+      const newUrl = `${window.location.pathname}${newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''}`;
+      window.history.replaceState({}, '', newUrl);
+    } else {
+      toast({
+        title: "Invalid Reset Link",
+        description: "The password reset link is invalid or has expired.",
+        variant: "destructive"
+      });
+      navigate('/seeker?tab=discover');
+    }
+  }, [searchParams, navigate, toast]);
+
+  const handleResetDialogClose = () => {
+    setShowResetDialog(false);
+    setResetToken(null);
+    navigate('/seeker?tab=discover');
+  };
+
+  const handleResetSuccess = () => {
+    setShowResetDialog(false);
+    setResetToken(null);
+    toast({
+      title: "Password Reset Successful",
+      description: "Your password has been updated. You can now sign in with your new password.",
+    });
+    navigate('/seeker?tab=discover');
+  };
+
+  return (
+    <>
+      {showResetDialog && resetToken && (
+        <ResetPasswordDialog
+          isOpen={showResetDialog}
+          onClose={handleResetDialogClose}
+          onSuccess={handleResetSuccess}
+          token={resetToken}
+        />
+      )}
+    </>
+  );
 };
 
 // Main app content wrapped with auth context
@@ -32,6 +100,7 @@ const AppContent = () => (
         <Route path="/" element={<Navigate to="/seeker?tab=discover" replace />} />
         <Route path="/seeker" element={<Jobs />} />
         <Route path="/verify/email" element={<EmailVerification />} />
+        <Route path="/auth/reset-password" element={<PasswordResetRoute />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

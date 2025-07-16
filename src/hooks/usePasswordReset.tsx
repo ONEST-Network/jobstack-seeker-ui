@@ -1,48 +1,35 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { apiClient } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 export const usePasswordReset = () => {
-  const [searchParams] = useSearchParams();
-  const [showResetDialog, setShowResetDialog] = useState(false);
-  const [resetToken, setResetToken] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  useEffect(() => {
-    // Check for reset token in URL parameters
-    const token = searchParams.get('token');
-    const action = searchParams.get('action');
-    
-    if (token && action === 'reset-password') {
-      setResetToken(token);
-      setShowResetDialog(true);
+  const sendPasswordResetEmail = async (email: string) => {
+    try {
+      await apiClient.sendPasswordResetEmail({
+        email,
+        callbackURL: `${window.location.origin}/auth/reset-password`
+      });
       
-      // Clean up URL by removing the reset parameters
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.delete('token');
-      newSearchParams.delete('action');
+      toast({
+        title: "Reset Link Sent",
+        description: "If an account with that email exists, we've sent you a password reset link.",
+      });
       
-      // Update URL without causing a page reload
-      const newUrl = `${window.location.pathname}${newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''}`;
-      window.history.replaceState({}, '', newUrl);
+      return { success: true };
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reset email. Please try again.",
+        variant: "destructive"
+      });
+      
+      return { success: false, error: error.message };
     }
-  }, [searchParams]);
-
-  const handleResetDialogClose = () => {
-    setShowResetDialog(false);
-    setResetToken(null);
-  };
-
-  const handleResetSuccess = () => {
-    setShowResetDialog(false);
-    setResetToken(null);
-    // Stay on current page after successful reset
-    // User can now login with their new password
   };
 
   return {
-    showResetDialog,
-    resetToken,
-    handleResetDialogClose,
-    handleResetSuccess
+    sendPasswordResetEmail
   };
 }; 

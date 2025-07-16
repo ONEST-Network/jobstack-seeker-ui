@@ -37,6 +37,7 @@ const EmailVerification = () => {
     const verifyToken = searchParams.get('verify');
     const confirmToken = searchParams.get('confirm');
     const signupToken = searchParams.get('signup');
+    const type = searchParams.get('type');
     
     // Check for various email verification token patterns
     const verificationTokenValue = token || verificationToken || emailToken || verifyToken || confirmToken || signupToken;
@@ -46,6 +47,12 @@ const EmailVerification = () => {
       setErrorType(error);
       setVerificationStatus('error');
       setIsLoading(false);
+      return;
+    }
+    
+    // Check if this is a password reset token - redirect to password reset route
+    if (verificationTokenValue && type === 'password-reset') {
+      navigate(`/auth/reset-password?token=${verificationTokenValue}`);
       return;
     }
     
@@ -89,19 +96,19 @@ const EmailVerification = () => {
           navigate('/seeker?tab=discover');
         }, 2000);
         
-              } catch (error: any) {
-          // Handle specific error types from backend
-          if (error.message?.includes('expired')) {
-            setErrorType('expired_token');
-          } else if (error.message?.includes('invalid')) {
-            setErrorType('invalid_token');
-          } else if (error.message?.includes('already verified')) {
-            setErrorType('already_verified');
-          } else if (error.message?.includes('user not found')) {
-            setErrorType('user_not_found');
-          } else {
-            setErrorType('verification_failed');
-          }
+      } catch (error: any) {
+        // Handle specific error types from backend
+        if (error.message?.includes('expired')) {
+          setErrorType('expired_token');
+        } else if (error.message?.includes('invalid')) {
+          setErrorType('invalid_token');
+        } else if (error.message?.includes('already verified')) {
+          setErrorType('already_verified');
+        } else if (error.message?.includes('user not found')) {
+          setErrorType('user_not_found');
+        } else {
+          setErrorType('verification_failed');
+        }
         
         setVerificationStatus('error');
         setIsLoading(false);
@@ -304,29 +311,17 @@ const EmailVerification = () => {
               {shouldShowUserNotFound() && (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground text-center">
-                    The user account associated with this verification link could not be found.
+                    No account found with this email address. Please check your email or create a new account.
                   </p>
                   <Button
                     onClick={handleGoToLogin}
-                    variant="outline"
                     className="w-full"
                   >
-                    <ArrowRight className="h-4 w-4 mr-2" />
+                    <User className="h-4 w-4 mr-2" />
                     Go to Login
                   </Button>
                 </div>
               )}
-
-              <div className="pt-4 border-t">
-                <Button
-                  onClick={handleGoToLogin}
-                  variant="ghost"
-                  className="w-full"
-                >
-                  <ArrowRight className="h-4 w-4 mr-2" />
-                  Back to Home
-                </Button>
-              </div>
             </div>
           )}
         </CardContent>
