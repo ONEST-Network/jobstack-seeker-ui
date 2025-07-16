@@ -16,6 +16,24 @@ interface JobCardProps {
 const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
   const { user } = useAuth();
 
+  // Helper function to format location display
+  const formatLocation = (location: string): string => {
+    if (!location || location === 'Location not specified') {
+      return 'Location not specified';
+    }
+    
+    // If it's a full address with commas, extract city and state
+    if (location.includes(',')) {
+      const parts = location.split(',').map(part => part.trim());
+      if (parts.length >= 2) {
+        // Return city and state only
+        return `${parts[1]}, ${parts[2] || ''}`.trim();
+      }
+    }
+    
+    return location;
+  };
+
   const renderJobDetails = () => {
     const details = [];
 
@@ -27,7 +45,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
       });
     }
 
-    if (job.monthlyPfEsic && job.monthlyPfEsic !== 'Included') {
+    if (job.monthlyPfEsic && job.monthlyPfEsic !== 'Not specified' && job.monthlyPfEsic !== 'Included') {
       details.push({
         label: 'PF & ESIC',
         value: job.monthlyPfEsic,
@@ -188,7 +206,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
           </h3>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4" />
-            {job.location}
+            {formatLocation(job.location)}
           </div>
         </div>
 

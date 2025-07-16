@@ -203,54 +203,23 @@ export const useJobSearch = () => {
   const transformJobData = useCallback((data: JobSearchResponse): JobItem[] => {
     const transformedJobs: JobItem[] = [];
 
-    if (!data?.results || !Array.isArray(data.results)) {
-      return transformedJobs;
-    }
-
     data.results.forEach(result => {
-      if (!result?.message?.catalog?.providers) return;
-
-      result.message.catalog.providers.forEach(provider => {
-        if (!provider?.items || !Array.isArray(provider.items)) return;
-
+      const catalog = result.message.catalog;
+      
+      catalog.providers.forEach(provider => {
+        const location = provider.locations?.[0];
+        const locationString = location ? `${location.address}, ${location.city}, ${location.state}` : 'Location not specified';
+        
         provider.items.forEach(item => {
-          if (!item?.descriptor?.name) return;
-
-          const tags = item.tags || {};
-          const location = provider.locations?.[0];
-          const locationString = location 
-            ? `${location.city || ''}, ${location.state || ''}`.trim() || location.address || 'Location not specified'
-            : 'Location not specified';
-
+          const tags = item.tags;
+          
           // Extract salary information
-          const salary = tags?.basicInfo?.monthlySalary 
-            ? `₹${tags.basicInfo.monthlySalary}/month`
-            : tags?.basicInfo?.salaryRange 
-              ? tags.basicInfo.salaryRange
-              : 'Salary not specified';
-
-          // Extract working hours
+          const salary = tags?.basicInfo?.salary || 'Salary not specified';
           const workingHours = tags?.basicInfo?.workingHours || 'Not specified';
-
-          // Extract monthly in-hand salary
-          const monthlyInHand = tags?.basicInfo?.monthlyInHand 
-            ? `₹${tags.basicInfo.monthlyInHand}/month`
-            : undefined;
-
-          // Extract monthly PF/ESIC
-          const monthlyPfEsic = tags?.basicInfo?.monthlyPfEsic 
-            ? `₹${tags.basicInfo.monthlyPfEsic}/month`
-            : undefined;
-
-          // Extract monthly overtime
-          const monthlyOvertime = tags?.basicInfo?.monthlyOvertime 
-            ? `₹${tags.basicInfo.monthlyOvertime}/month`
-            : undefined;
-
-          // Extract cost per sharing bed
-          const costPerSharingBed = tags?.basicInfo?.costPerSharingBed 
-            ? `₹${tags.basicInfo.costPerSharingBed}/month`
-            : undefined;
+          const monthlyInHand = tags?.basicInfo?.monthlyInHand || 'Not specified';
+          const monthlyPfEsic = tags?.basicInfo?.monthlyPfEsic || 'Not specified';
+          const monthlyOvertime = tags?.basicInfo?.monthlyOvertime || 'Not specified';
+          const costPerSharingBed = tags?.basicInfo?.costPerSharingBed || 'Not specified';
 
           // Extract stay provided
           const stayProvided = tags?.basicInfo?.stayProvided || false;
@@ -286,7 +255,7 @@ export const useJobSearch = () => {
           // Extract job details
           const jobDetails = tags?.jobDetails || {};
 
-          // Extract media (images/videos)
+          // Extract media (images/videos) - Dynamic approach
           const media: Array<{
             type: 'image' | 'video';
             url: string;
@@ -295,80 +264,97 @@ export const useJobSearch = () => {
             duration?: string;
           }> = [];
 
-          // Extract workplace images
-          if (tags?.jobNeeds?.workplaceImages && Array.isArray(tags.jobNeeds.workplaceImages)) {
-            tags.jobNeeds.workplaceImages.forEach((imageUrl: string, index: number) => {
-              if (imageUrl) {
-                media.push({
-                  type: 'image',
-                  url: imageUrl,
-                  alt: `${item.descriptor.name} workplace image ${index + 1}`
-                });
-              }
-            });
-          }
+          // Helper function to check if a string is a Google Storage URL
+          const isGoogleStorageUrl = (url: string): boolean => {
+            return url && typeof url === 'string' && (
+              url.includes('storage.googleapis.com') ||
+              url.includes('firebasestorage.googleapis.com') ||
+              url.startsWith('gs://') ||
+              url.includes('googleapis.com/storage') ||
+              url.includes('firebaseapp.com') ||
+              url.includes('appspot.com') ||
+              // Also include other common storage URLs that might be used
+              url.includes('amazonaws.com') ||
+              url.includes('blob.core.windows.net') ||
+              url.includes('digitaloceanspaces.com') ||
+              // Check for common image/video file extensions
+              /\.(jpg|jpeg|png|gif|bmp|webp|svg|mp4|avi|mov|wmv|flv|webm|mkv)$/i.test(url)
+            );
+          };
 
-          // Extract workplace videos
-          if (tags?.jobNeeds?.workplaceVideos && Array.isArray(tags.jobNeeds.workplaceVideos)) {
-            tags.jobNeeds.workplaceVideos.forEach((videoUrl: string, index: number) => {
-              if (videoUrl) {
-                media.push({
-                  type: 'video',
-                  url: videoUrl,
-                  alt: `${item.descriptor.name} workplace video ${index + 1}`
-                });
-              }
-            });
-          }
-
-          // Extract sample task video
-          if (tags?.jobNeeds?.sampleTaskVideo) {
-            media.push({
-              type: 'video',
-              url: tags.jobNeeds.sampleTaskVideo,
-              alt: `${item.descriptor.name} sample task video`
-            });
-          }
-
-          // Extract sample task image
-          if (tags?.jobNeeds?.sampleTaskImage) {
-            media.push({
-              type: 'image',
-              url: tags.jobNeeds.sampleTaskImage,
-              alt: `${item.descriptor.name} sample task image`
-            });
-          }
-
-          // Extract speed proof documents and sample media
-          if (tags?.jobNeeds?.jukiSpeedSubsection) {
-            const speedSubsection = tags.jobNeeds.jukiSpeedSubsection;
+          // Helper function to determine media type from URL
+          const getMediaType = (url: string): 'image' | 'video' => {
+            const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'];
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
             
-            // Speed proof documents
-            if (speedSubsection.uploadSpeedProof && Array.isArray(speedSubsection.uploadSpeedProof)) {
-              speedSubsection.uploadSpeedProof.forEach((docUrl: string, index: number) => {
-                if (docUrl) {
-                  media.push({
-                    type: 'image',
-                    url: docUrl,
-                    alt: `Speed proof document ${index + 1}`
-                  });
-                }
-              });
+            const lowerUrl = url.toLowerCase();
+            
+            if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
+              return 'video';
             }
+            if (imageExtensions.some(ext => lowerUrl.includes(ext))) {
+              return 'image';
+            }
+            
+            // Default to image if extension is not recognized
+            return 'image';
+          };
 
-            // Speed sample media
-            if (speedSubsection.uploadSpeedSampleMedia && Array.isArray(speedSubsection.uploadSpeedSampleMedia)) {
-              speedSubsection.uploadSpeedSampleMedia.forEach((mediaUrl: string, index: number) => {
-                if (mediaUrl) {
-                  media.push({
-                    type: 'video',
-                    url: mediaUrl,
-                    alt: `Speed sample media ${index + 1}`
-                  });
+          // Recursive function to extract Google Storage URLs from any object
+          const extractGoogleStorageUrls = (obj: any, path: string = ''): Array<{url: string, path: string}> => {
+            const urls: Array<{url: string, path: string}> = [];
+            
+            if (!obj || typeof obj !== 'object') {
+              return urls;
+            }
+            
+            if (Array.isArray(obj)) {
+              obj.forEach((item, index) => {
+                if (typeof item === 'string' && isGoogleStorageUrl(item)) {
+                  urls.push({ url: item, path: `${path}[${index}]` });
+                } else if (typeof item === 'object') {
+                  urls.push(...extractGoogleStorageUrls(item, `${path}[${index}]`));
+                }
+              });
+            } else {
+              Object.entries(obj).forEach(([key, value]) => {
+                const currentPath = path ? `${path}.${key}` : key;
+                
+                if (typeof value === 'string' && isGoogleStorageUrl(value)) {
+                  urls.push({ url: value, path: currentPath });
+                } else if (typeof value === 'object' && value !== null) {
+                  urls.push(...extractGoogleStorageUrls(value, currentPath));
                 }
               });
             }
-          }
+            
+            return urls;
+          };
+
+          // Extract all Google Storage URLs from the entire job data
+          const allUrls = extractGoogleStorageUrls(tags);
+
+          // Also check jobDetails for any media URLs
+          const jobDetailsUrls = extractGoogleStorageUrls(jobDetails);
+
+          // Combine all URLs and remove duplicates
+          const allUniqueUrls = [...allUrls, ...jobDetailsUrls]
+            .filter((item, index, self) => 
+              index === self.findIndex(t => t.url === item.url)
+            );
+
+          // Convert URLs to media objects
+          allUniqueUrls.forEach(({ url, path }, index) => {
+            const mediaType = getMediaType(url);
+            const fieldName = path.split('.').pop() || 'media';
+            
+            media.push({
+              type: mediaType,
+              url: url,
+              alt: `${item.descriptor.name} ${fieldName} ${index + 1}`,
+              thumbnail: mediaType === 'video' ? url : undefined // For videos, use the same URL as thumbnail for now
+            });
+          });
 
           const transformedJob: JobItem = {
             id: item.id,
