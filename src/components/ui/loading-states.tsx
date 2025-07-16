@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, Clock, Wifi, WifiOff } from 'lucide-react';
+import { Loader2, Clock, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { Button } from './button';
 import { LoadingState } from '@/hooks/useJobSearch';
 
@@ -8,22 +8,24 @@ interface LoadingMessageProps {
   retryCount?: number;
   onRetry?: () => void;
   message?: string;
+  isAutoRetrying?: boolean;
 }
 
 export const LoadingMessage: React.FC<LoadingMessageProps> = ({
   loadingState,
   retryCount = 0,
   onRetry,
-  message
+  message,
+  isAutoRetrying = false
 }) => {
   const getLoadingMessage = () => {
     if (message) return message;
     
     switch (loadingState) {
       case 'initial':
-        return 'Loading...';
+        return 'Loading jobs...';
       case 'loading':
-        return 'Refreshing...';
+        return isAutoRetrying ? 'Retrying...' : 'Refreshing jobs...';
       case 'partial':
         return 'Taking longer than expected...';
       case 'error':
@@ -40,8 +42,22 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
       case 'error':
         return <WifiOff className="h-4 w-4" />;
       default:
-        return <Loader2 className="h-4 w-4 animate-spin" />;
+        return isAutoRetrying ? (
+          <RefreshCw className="h-4 w-4 animate-spin" />
+        ) : (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        );
     }
+  };
+
+  const getRetryMessage = () => {
+    if (isAutoRetrying && retryCount > 0) {
+      return `Auto-retrying... (Attempt ${retryCount + 1}/3)`;
+    }
+    if (retryCount > 0) {
+      return `Retried ${retryCount} time${retryCount !== 1 ? 's' : ''}`;
+    }
+    return null;
   };
 
   return (
@@ -50,17 +66,26 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
         {getLoadingIcon()}
         <span className="text-sm font-medium">{getLoadingMessage()}</span>
       </div>
+      
       {loadingState === 'partial' && (
         <p className="text-xs text-muted-foreground">
           The server is taking longer than usual to respond. Please wait...
         </p>
       )}
-      {retryCount > 0 && (
+      
+      {getRetryMessage() && (
         <p className="text-xs text-muted-foreground mt-1">
-          Retrying... (Attempt {retryCount + 1})
+          {getRetryMessage()}
         </p>
       )}
-      {loadingState === 'error' && onRetry && (
+      
+      {isAutoRetrying && retryCount > 0 && (
+        <p className="text-xs text-blue-600 mt-1">
+          Automatically retrying in a few seconds...
+        </p>
+      )}
+      
+      {loadingState === 'error' && onRetry && !isAutoRetrying && (
         <Button 
           variant="outline" 
           size="sm" 

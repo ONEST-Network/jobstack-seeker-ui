@@ -251,23 +251,60 @@ class ApiClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        
+        if (response.status === 404) {
+          throw new Error('Job service temporarily unavailable. Please try again later.');
+        } else if (response.status === 500) {
+          throw new Error('Server error. Please try again in a few moments.');
+        } else if (response.status === 401) {
+          throw new Error('Authentication required. Please log in and try again.');
+        } else if (response.status === 403) {
+          throw new Error('Access denied. Please check your permissions and try again.');
+        } else if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        } else {
+          throw new Error(`Request failed: ${errorMessage}`);
+        }
       }
 
       const data = await response.json();
       
       // Validate the response structure
       if (!data || typeof data !== 'object') {
-        throw new Error('Invalid response format from BAP API');
+        throw new Error('Invalid response format from job service');
+      }
+
+      // Check if the response has the expected structure
+      if (!data.results && !data.message) {
+        throw new Error('No job data received from server');
       }
 
       return data;
     } catch (error) {
       console.error('BAP API Error:', error);
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Request timeout - please try again');
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('Request timed out. Please check your internet connection and try again.');
+        }
+        
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          throw new Error('Network error. Please check your internet connection and try again.');
+        }
+        
+        // Re-throw the error if it's already a formatted error message
+        if (error.message.includes('Job service') || 
+            error.message.includes('Server error') || 
+            error.message.includes('Authentication') || 
+            error.message.includes('Access denied') ||
+            error.message.includes('Request timed out') ||
+            error.message.includes('Network error')) {
+          throw error;
+        }
       }
-      throw error;
+      
+      throw new Error('Failed to fetch jobs. Please try again.');
     }
   }
 

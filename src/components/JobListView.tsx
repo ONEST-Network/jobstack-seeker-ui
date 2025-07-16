@@ -49,7 +49,8 @@ const JobListView: React.FC<JobListViewProps> = ({
     isInitialLoad,
     lastFetchTime,
     scoresLoading,
-    fetchScoresForJobs
+    fetchScoresForJobs,
+    isAutoRetrying
   } = useJobSearch();
   const { applyToJob, applying } = useJobApplication();
 
@@ -222,7 +223,7 @@ const JobListView: React.FC<JobListViewProps> = ({
         </div>
 
         {/* Error State */}
-        {error && (
+        {error && !isAutoRetrying && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
@@ -254,6 +255,7 @@ const JobListView: React.FC<JobListViewProps> = ({
               loadingState={loadingState}
               retryCount={retryCount}
               onRetry={handleRetry}
+              isAutoRetrying={isAutoRetrying}
             />
 
             {/* Show existing jobs if available during refresh */}
@@ -305,25 +307,33 @@ const JobListView: React.FC<JobListViewProps> = ({
                     searchQuery 
                       ? `No jobs found for "${searchQuery}"`
                       : jobs.length === 0 
-                        ? 'Unable to load jobs'
+                        ? error 
+                          ? 'Unable to load jobs'
+                          : 'No jobs available'
                         : 'No matching jobs'
                   }
                   description={
                     searchQuery 
                       ? 'Try adjusting your search terms or browse all available jobs.'
                       : jobs.length === 0 
-                        ? 'There was an issue connecting to the job database. Please try again.'
+                        ? error
+                          ? 'There was an issue connecting to the job database. Please try again.'
+                          : 'No jobs are currently available. Please check back later.'
                         : 'No jobs match your current search criteria.'
                   }
                   icon={
                     jobs.length === 0 ? (
-                      <WifiOff className="h-12 w-12 text-muted-foreground" />
+                      error ? (
+                        <WifiOff className="h-12 w-12 text-muted-foreground" />
+                      ) : (
+                        <Wifi className="h-12 w-12 text-muted-foreground" />
+                      )
                     ) : (
                       <Wifi className="h-12 w-12 text-muted-foreground" />
                     )
                   }
                   action={
-                    jobs.length === 0 ? {
+                    jobs.length === 0 && error ? {
                       label: 'Try again',
                       onClick: handleRetry
                     } : searchQuery ? {
