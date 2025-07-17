@@ -101,6 +101,8 @@ const AppContent = () => (
         <Route path="/seeker" element={<Jobs />} />
         <Route path="/verify/email" element={<EmailVerification />} />
         <Route path="/auth/reset-password" element={<PasswordResetRoute />} />
+        {/* Provider route disabled to prevent organization registration */}
+        {/* <Route path="/provider" element={<Provider />} /> */}
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

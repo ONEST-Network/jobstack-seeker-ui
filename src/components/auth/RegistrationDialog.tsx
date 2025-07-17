@@ -26,7 +26,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'individual' | 'organization'>(defaultRole);
+  const [role, setRole] = useState<'individual' | 'organization'>('individual');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -35,9 +35,9 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
   const { toast } = useToast();
   const location = useLocation();
 
-  // Update role when defaultRole changes
+  // Always set role to individual - organization registration is disabled
   useEffect(() => {
-    setRole(defaultRole);
+    setRole('individual');
   }, [defaultRole]);
 
   const handleTermsChange = (checked: boolean | "indeterminate") => {
@@ -204,12 +204,12 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
                     <span className="text-xs text-muted-foreground">Job seeker</span>
                   </Button>
                   <Button
-                    variant={role === 'organization' ? 'default' : 'outline'}
-                    onClick={() => setRole('organization')}
-                    className="h-16 sm:h-20 flex flex-col"
+                    variant="outline"
+                    disabled={true}
+                    className="h-16 sm:h-20 flex flex-col opacity-50 cursor-not-allowed"
                   >
                     <span className="font-medium text-sm sm:text-base">Organization</span>
-                    <span className="text-xs text-muted-foreground">Job posting</span>
+                    <span className="text-xs text-muted-foreground">Coming soon</span>
                   </Button>
                 </div>
               </div>
