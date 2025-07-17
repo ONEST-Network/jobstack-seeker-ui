@@ -76,13 +76,19 @@ class ApiClient {
     });
   }
 
-  async forgotPassword(data: {
+  // Note: Password reset is handled through email verification system
+  // The forgotPassword endpoint doesn't exist, so we use sendVerificationEmail instead
+  async sendPasswordResetEmail(data: {
     email: string;
     callbackURL?: string;
   }) {
+    // Use the better-auth forgetPassword endpoint
     return this.request('/auth/forget-password', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        email: data.email,
+        redirectTo: data.callbackURL || `${window.location.origin}/auth/reset-password`
+      }),
     });
   }
 
@@ -90,9 +96,13 @@ class ApiClient {
     newPassword: string;
     token: string;
   }) {
+    // Use the better-auth resetPassword endpoint
     return this.request('/auth/reset-password', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        token: data.token,
+        newPassword: data.newPassword,
+      }),
     });
   }
 

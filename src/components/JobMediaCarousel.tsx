@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Play, Clock, X, Image as ImageIcon, Eye } from 'lucide-react';
+import { Play, Clock, X, Image as ImageIcon, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface JobMedia {
   type: 'image' | 'video';
@@ -20,9 +20,10 @@ interface JobMediaCarouselProps {
 }
 
 const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, className = "" }) => {
-  const [selectedVideo, setSelectedVideo] = useState<JobMedia | null>(null);
-  const [selectedImage, setSelectedImage] = useState<JobMedia | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<JobMedia | null>(null);
+  const [currentModalIndex, setCurrentModalIndex] = useState<number>(0);
   const [api, setApi] = useState<any>(null);
+  const [modalApi, setModalApi] = useState<any>(null);
   const [failedMedia, setFailedMedia] = useState<Set<string>>(new Set());
   const [loadingMedia, setLoadingMedia] = useState<Set<string>>(new Set());
 
@@ -88,32 +89,13 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
   // Check if we should show navigation buttons
   const shouldShowNavigation = validMedia.length > 1;
 
-  if (!media || media.length === 0) {
-    return (
-      <div className={`w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center text-2xl ${className}`}>
-        🏢
-      </div>
-    );
-  }
 
-  if (validMedia.length === 0) {
-    return (
-      <div className={`w-16 h-16 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg flex items-center justify-center text-2xl ${className}`}>
-        ⚠️
-      </div>
-    );
-  }
-
-  const handleVideoClick = (videoItem: JobMedia, e: React.MouseEvent) => {
+  const handleMediaClick = (mediaItem: JobMedia, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setSelectedVideo(videoItem);
-  };
-
-  const handleImageClick = (imageItem: JobMedia, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setSelectedImage(imageItem);
+    const index = validMedia.findIndex(item => item.url === mediaItem.url);
+    setCurrentModalIndex(index);
+    setSelectedMedia(mediaItem);
   };
 
   const handleCarouselClick = (e: React.MouseEvent) => {
@@ -130,6 +112,37 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
       }
     }
   };
+
+  const handleModalNavigation = (direction: 'prev' | 'next') => {
+    if (modalApi) {
+      if (direction === 'prev') {
+        modalApi.scrollPrev();
+      } else {
+        modalApi.scrollNext();
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setSelectedMedia(null);
+    setCurrentModalIndex(0);
+  };
+
+  if (!media || media.length === 0) {
+    return (
+      <div className={`w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center text-2xl ${className}`}>
+        🏢
+      </div>
+    );
+  }
+
+  if (validMedia.length === 0) {
+    return (
+      <div className={`w-16 h-16 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg flex items-center justify-center text-2xl ${className}`}>
+        ⚠️
+      </div>
+    );
+  }
 
   return (
     <>
@@ -148,12 +161,12 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
         >
           <CarouselContent>
             {validMedia.map((item, index) => (
-              <CarouselItem key={index}>
-                <div className="relative w-full h-48 sm:h-56 bg-gray-100 rounded-lg overflow-hidden">
+              <CarouselItem key={index} className="pl-1 pr-1">
+                 <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
                   {item.type === 'image' ? (
                     <div 
                       className="w-full h-full cursor-pointer group"
-                      onClick={(e) => handleImageClick(item, e)}
+                      onClick={(e) => handleMediaClick(item, e)}
                     >
                       {/* Loading indicator */}
                       {loadingMedia.has(item.url) && (
@@ -185,7 +198,7 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                   ) : (
                     <div 
                       className="relative w-full h-full cursor-pointer group"
-                      onClick={(e) => handleVideoClick(item, e)}
+                      onClick={(e) => handleMediaClick(item, e)}
                     >
                       {/* Loading indicator */}
                       {loadingMedia.has(item.url) && (
@@ -238,58 +251,77 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
         </Carousel>
       </div>
 
-      {/* Video Modal */}
-      {selectedVideo && (
-        <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-            <DialogTitle className="sr-only">Video Preview</DialogTitle>
+      {/* Unified Media Modal with Navigation */}
+      {selectedMedia && (
+        <Dialog open={!!selectedMedia} onOpenChange={handleModalClose}>
+          <DialogContent className="max-w-5xl max-h-[95vh] p-0 bg-black [&>button]:bg-black [&>button]:bg-opacity-50 [&>button]:text-white [&>button]:hover:bg-opacity-70 [&>button]:rounded-full [&>button]:p-2 [&>button]:border-white [&>button]:border-opacity-30">
+            <DialogTitle className="sr-only">Media Preview</DialogTitle>
             <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white hover:bg-black hover:bg-opacity-70"
-                onClick={() => setSelectedVideo(null)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-              <video
-                controls
-                autoPlay
-                className="w-full h-auto rounded-lg"
-                src={getPublicUrl(selectedVideo.url)}
-                onError={(e) => {
-                  console.error('Video failed to load:', selectedVideo.url);
+              {validMedia.length > 1 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-1/2 left-4 z-20 bg-black bg-opacity-50 text-white hover:bg-black hover:bg-opacity-70 rounded-full transform -translate-y-1/2"
+                    onClick={() => handleModalNavigation('prev')}
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-1/2 right-4 z-20 bg-black bg-opacity-50 text-white hover:bg-black hover:bg-opacity-70 rounded-full transform -translate-y-1/2"
+                    onClick={() => handleModalNavigation('next')}
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </Button>
+                </>
+              )}
+              
+              <Carousel 
+                className="w-full"
+                setApi={setModalApi}
+                opts={{
+                  align: "center",
+                  loop: true,
+                  skipSnaps: false,
+                  dragFree: false,
+                  containScroll: "trimSnaps",
+                  slidesToScroll: 1,
+                  startIndex: currentModalIndex,
                 }}
               >
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Image Modal */}
-      {selectedImage && (
-        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-            <DialogTitle className="sr-only">Image Preview</DialogTitle>
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white hover:bg-black hover:bg-opacity-70"
-                onClick={() => setSelectedImage(null)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-              <img
-                src={getPublicUrl(selectedImage.url)}
-                alt={selectedImage.alt || `${title} workplace image`}
-                className="w-full h-auto rounded-lg"
-                onError={(e) => {
-                  console.error('Image failed to load:', selectedImage.url);
-                }}
-              />
+                <CarouselContent>
+                  {validMedia.map((item, index) => (
+                    <CarouselItem key={index}>
+                      <div className="flex items-center justify-center min-h-[50vh] max-h-[80vh]">
+                        {item.type === 'video' ? (
+                          <video
+                            controls
+                            autoPlay
+                            className="w-full h-auto max-h-[80vh] rounded-lg"
+                            src={getPublicUrl(item.url)}
+                            onError={(e) => {
+                              console.error('Video failed to load:', item.url);
+                            }}
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        ) : (
+                          <img
+                            src={getPublicUrl(item.url)}
+                            alt={item.alt || `${title} media ${index + 1}`}
+                            className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+                            onError={(e) => {
+                              console.error('Image failed to load:', item.url);
+                            }}
+                          />
+                        )}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
             </div>
           </DialogContent>
         </Dialog>

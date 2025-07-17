@@ -54,13 +54,13 @@ const ProviderDashboard = () => {
             setShowLogin(false);
             setShowRegister(true);
           }}
-          defaultRole="organization"
+          defaultRole="individual"
         />
         
         <RegistrationDialog
           isOpen={showRegister}
           onClose={() => setShowRegister(false)}
-          defaultRole="organization"
+          defaultRole="individual"
         />
       </>
     );

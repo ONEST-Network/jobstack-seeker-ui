@@ -37,12 +37,8 @@ const HeaderDialogs: React.FC<HeaderDialogsProps> = ({
 }) => {
   // Determine default role based on path
   const getDefaultRole = (): 'individual' | 'organization' => {
-    if (currentPath.startsWith('/seeker')) {
-      return 'individual';
-    } else if (currentPath.startsWith('/provider')) {
-      return 'organization';
-    }
-    return 'individual'; // default fallback
+    // Disabled organization registration - always return individual
+    return 'individual';
   };
 
   return (

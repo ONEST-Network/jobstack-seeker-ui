@@ -28,6 +28,18 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
   const [isSuccess, setIsSuccess] = useState(false);
   const { toast } = useToast();
 
+  // Validate token before rendering
+  const isValidToken = token && 
+                      token.trim() !== '' && 
+                      token.length > 10 && 
+                      !token.includes('undefined') && 
+                      !token.includes('null');
+
+  // Don't render if token is invalid
+  if (!isValidToken) {
+    return null;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -90,118 +102,110 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
     onClose();
   };
 
-  const handleGoToLogin = () => {
+  const handleLoginRedirect = () => {
     handleClose();
     onSuccess();
   };
 
-  const getPasswordStrength = (password: string) => {
-    if (password.length === 0) return { strength: 0, text: '' };
-    if (password.length < 4) return { strength: 1, text: 'Weak', color: 'text-red-500' };
-    if (password.length < 8) return { strength: 2, text: 'Fair', color: 'text-yellow-500' };
-    if (password.length < 12) return { strength: 3, text: 'Good', color: 'text-blue-500' };
-    return { strength: 4, text: 'Strong', color: 'text-green-500' };
-  };
+  // Remove getPasswordStrength and passwordStrength logic
 
-  const passwordStrength = getPasswordStrength(newPassword);
+  if (isSuccess) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="text-center pb-4">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-2xl font-bold">Password Reset Successful</DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Your password has been successfully updated. You can now sign in with your new password.
+            </p>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <Button onClick={handleLoginRedirect} className="w-full">
+              Continue to Sign In
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-md mx-auto p-4 sm:p-6">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <Lock className="h-5 w-5 text-blue-500" />
-            {isSuccess ? 'Password Reset Complete' : 'Reset Your Password'}
-          </DialogTitle>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="text-center pb-4">
+          <DialogTitle className="text-2xl font-bold">Set New Password</DialogTitle>
+          <p className="text-muted-foreground text-sm">
+            Enter your new password
+          </p>
         </DialogHeader>
 
-        {!isSuccess ? (
+        <div className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="text-center space-y-2">
-              <p className="text-muted-foreground">
-                Enter your new password below. Choose a strong password to keep your account secure.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
+            <div>
+              <Label htmlFor="reset-password">New Password</Label>
               <div className="relative">
                 <Input
-                  id="new-password"
-                  type={showNewPassword ? 'text' : 'password'}
+                  id="reset-password"
+                  type={showNewPassword ? "text" : "password"}
+                  placeholder="Enter new password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  className="pr-10"
                   required
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowNewPassword(!showNewPassword)}
+                  aria-label={showNewPassword ? "Hide password" : "Show password"}
                 >
                   {showNewPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4 text-muted-foreground" />
                   )}
                 </Button>
               </div>
-              {newPassword && (
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className={passwordStrength.color}>{passwordStrength.text}</span>
-                    <span className="text-muted-foreground">
-                      {newPassword.length}/12+ chars
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div
-                      className={`h-1.5 rounded-full transition-all ${
-                        passwordStrength.strength === 1
-                          ? 'bg-red-500 w-1/4'
-                          : passwordStrength.strength === 2
-                          ? 'bg-yellow-500 w-2/4'
-                          : passwordStrength.strength === 3
-                          ? 'bg-blue-500 w-3/4'
-                          : passwordStrength.strength === 4
-                          ? 'bg-green-500 w-full'
-                          : 'w-0'
-                      }`}
-                    />
-                  </div>
-                </div>
-              )}
+              {/* Password strength UI removed */}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <div>
+              <Label htmlFor="reset-confirm-password">Confirm New Password</Label>
               <div className="relative">
                 <Input
-                  id="confirm-password"
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="reset-confirm-password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm new password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
+                  className="pr-10"
                   required
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4 text-muted-foreground" />
                   )}
                 </Button>
               </div>
               {confirmPassword && (
-                <div className="text-xs">
+                <div className="text-xs mt-1">
                   {newPassword === confirmPassword ? (
                     <span className="text-green-500">✓ Passwords match</span>
                   ) : (
@@ -211,39 +215,11 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
               )}
             </div>
 
-            <div className="space-y-3">
-              <Button
-                type="submit"
-                disabled={isLoading || newPassword !== confirmPassword || newPassword.length < 8}
-                className="w-full"
-              >
-                {isLoading ? 'Updating Password...' : 'Update Password'}
-              </Button>
-            </div>
+            <Button type="submit" className="w-full" disabled={isLoading || newPassword !== confirmPassword || newPassword.length < 8}>
+              {isLoading ? 'Resetting...' : 'Reset Password'}
+            </Button>
           </form>
-        ) : (
-          <div className="space-y-4 text-center">
-            <div className="mx-auto w-16 h-16 bg-green-50 rounded-full flex items-center justify-center">
-              <CheckCircle className="h-8 w-8 text-green-500" />
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-lg font-medium">Password Updated Successfully!</p>
-              <p className="text-muted-foreground">
-                Your password has been reset. You can now sign in with your new password.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <Button
-                onClick={handleGoToLogin}
-                className="w-full"
-              >
-                Continue to Sign In
-              </Button>
-            </div>
-          </div>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   );
