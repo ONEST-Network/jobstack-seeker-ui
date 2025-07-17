@@ -47,7 +47,11 @@ const CandidateManagement = () => {
                     <Table className="h-4 w-4" />
                     Table
                   </TabsTrigger>
-                  <TabsTrigger value="map" className="flex items-center gap-2">
+                  <TabsTrigger 
+                    value="map" 
+                    className="flex items-center gap-2 opacity-50 cursor-not-allowed" 
+                    disabled={true}
+                  >
                     <Map className="h-4 w-4" />
                     Map
                   </TabsTrigger>
@@ -58,7 +62,8 @@ const CandidateManagement = () => {
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 opacity-50 cursor-not-allowed"
+                disabled={true}
               >
                 <Filter className="h-4 w-4" />
                 Filters
