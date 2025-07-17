@@ -73,7 +73,11 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
                   <List className="h-4 w-4" />
                   <span className="hidden sm:inline">List</span>
                 </TabsTrigger>
-                <TabsTrigger value="map" className="flex items-center gap-1 px-2 text-sm">
+                <TabsTrigger 
+                  value="map" 
+                  className="flex items-center gap-1 px-2 text-sm opacity-50 cursor-not-allowed" 
+                  disabled={true}
+                >
                   <Map className="h-4 w-4" />
                   <span className="hidden sm:inline">Map</span>
                 </TabsTrigger>
@@ -81,27 +85,15 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
             </Tabs>
 
             {/* Filters Toggle */}
-            <Sheet open={showFilters} onOpenChange={setShowFilters}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1 h-touch px-3 flex-shrink-0"
-                  disabled={loading}
-                >
-                  <Filter className="h-4 w-4" />
-                  <span className="text-sm">Filters</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[280px] sm:w-[350px]">
-                <SheetHeader>
-                  <SheetTitle>Job Filters</SheetTitle>
-                </SheetHeader>
-                <div className="mt-6">
-                  <FiltersContent />
-                </div>
-              </SheetContent>
-            </Sheet>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1 h-touch px-3 flex-shrink-0 opacity-50 cursor-not-allowed"
+              disabled={true}
+            >
+              <Filter className="h-4 w-4" />
+              <span className="text-sm">Filters</span>
+            </Button>
           </div>
           
           {/* Loading status message */}

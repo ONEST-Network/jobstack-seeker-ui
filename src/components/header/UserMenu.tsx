@@ -129,9 +129,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
               Manage Employers
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem onClick={() => {}}>
+          {/* <DropdownMenuItem onClick={() => {}}>
             Account Settings
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
           <DropdownMenuItem onClick={logout}>
             <LogOut className="h-4 w-4 mr-2" />
             Logout

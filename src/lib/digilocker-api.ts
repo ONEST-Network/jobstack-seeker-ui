@@ -66,6 +66,7 @@ class DigiLockerAPI {
   async initiateDigiLockerRequest(): Promise<DigiLockerRequestResponse> {
     return this.request<DigiLockerRequestResponse>('/api/v1/discover/digilocker-request', {
       method: 'GET',
+      credentials: 'include'
     });
   }
 
@@ -82,6 +83,7 @@ class DigiLockerAPI {
         code,
         doctype
       }),
+      credentials: 'include'
     });
   }
 
