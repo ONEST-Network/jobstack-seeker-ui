@@ -5,10 +5,11 @@ import { Search, Briefcase } from 'lucide-react';
 import { JOB_ROLES_BY_INDUSTRY } from '@/constants/jobRoles';
 import { useProfileForm } from '../ProfileFormProvider';
 import PriorityRolesSection from '../role-selection/PriorityRolesSection';
-import IndustryRolesSection from '../role-selection/IndustryRolesSection';
+
 interface RoleSelectionStepProps {
   onVoiceStart?: () => void;
 }
+
 const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   onVoiceStart
 }) => {
@@ -21,45 +22,35 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
 
   // Priority roles to show at top
   const priorityRoles = ['Industrial Tailor', 'Warehouse Loader & Picker',/* 'Field Sales Executive',*/ 'In Store Promoter', 'Recruitment Associate'];
-  const getFilteredRoles = () => {
-    if (!searchQuery) return JOB_ROLES_BY_INDUSTRY;
-    const filtered: Partial<typeof JOB_ROLES_BY_INDUSTRY> = {};
-    Object.entries(JOB_ROLES_BY_INDUSTRY).forEach(([industry, roles]) => {
-      const matchingRoles = roles.filter(role => role.toLowerCase().includes(searchQuery.toLowerCase()));
-      if (matchingRoles.length > 0) {
-        filtered[industry as keyof typeof JOB_ROLES_BY_INDUSTRY] = matchingRoles;
-      }
-    });
-    return filtered;
-  };
+  
   const getFilteredPriorityRoles = () => {
     if (!searchQuery) return priorityRoles;
     return priorityRoles.filter(role => role.toLowerCase().includes(searchQuery.toLowerCase()));
   };
-  const handleRoleSelection = (role: string, industry?: string) => {
-    // Find industry for priority roles if not provided
-    let roleIndustry = industry;
-    if (!roleIndustry) {
-      for (const [ind, roles] of Object.entries(JOB_ROLES_BY_INDUSTRY)) {
-        if (roles.includes(role)) {
-          roleIndustry = ind;
-          break;
-        }
+
+  const handleRoleSelection = (role: string) => {
+    // Find industry for the selected role
+    let roleIndustry = 'Other';
+    for (const [industry, roles] of Object.entries(JOB_ROLES_BY_INDUSTRY)) {
+      if (roles.includes(role)) {
+        roleIndustry = industry;
+        break;
       }
     }
+    
     setProfile({
       ...profile,
       interestedRole: role,
-      interestedIndustry: roleIndustry || 'Other'
+      interestedIndustry: roleIndustry
     });
   };
-  const filteredRoles = getFilteredRoles();
+
   const filteredPriorityRoles = getFilteredPriorityRoles();
-  const industries = Object.keys(filteredRoles);
-  return <div className="flex flex-col h-full max-h-[60vh]">
+
+  return (
+    <div className="flex flex-col h-full max-h-[60vh]">
       {/* Header - Fixed */}
       <div className="text-center mb-4 flex-shrink-0">
-        
         <p className="text-sm text-muted-foreground">Find suitable work for you</p>
       </div>
       
@@ -74,16 +65,18 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
         <ScrollArea className="h-full">
           <div className="space-y-6">
             {/* Priority Roles - Always visible at top */}
-            <PriorityRolesSection roles={filteredPriorityRoles} selectedRole={profile.interestedRole} onRoleSelect={role => handleRoleSelection(role)} />
-
-            {/* All Other Roles in Accordion */}
-            <IndustryRolesSection filteredRoles={filteredRoles} selectedRole={profile.interestedRole} onRoleSelect={handleRoleSelection} />
+            <PriorityRolesSection 
+              roles={filteredPriorityRoles} 
+              selectedRole={profile.interestedRole} 
+              onRoleSelect={handleRoleSelection} 
+            />
           </div>
         </ScrollArea>
       </div>
 
       {/* Selected Role Display - Fixed */}
-      {profile.interestedRole && <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex-shrink-0">
+      {profile.interestedRole && (
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex-shrink-0">
           <div className="flex items-center gap-2">
             <Briefcase className="h-4 w-4 text-blue-600 flex-shrink-0" />
             <div className="min-w-0">
@@ -91,7 +84,10 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
               <p className="text-xs text-blue-700 truncate">Industry: {profile.interestedIndustry}</p>
             </div>
           </div>
-        </div>}
-    </div>;
+        </div>
+      )}
+    </div>
+  );
 };
+
 export default RoleSelectionStep;
