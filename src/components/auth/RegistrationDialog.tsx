@@ -21,9 +21,9 @@ interface RegistrationDialogProps {
 
 const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose, defaultRole }) => {
   const [step, setStep] = useState<'register' | 'role' | 'email-verification'>('register');
-  const [method, setMethod] = useState<'email' | 'phone'>('email');
+  // const [method, setMethod] = useState<'email' | 'phone'>('email'); // Commented out - phone registration not implemented
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  // const [phone, setPhone] = useState(''); // Commented out - phone registration not implemented
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'individual' | 'organization'>('individual');
@@ -58,7 +58,8 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
       return;
     }
 
-    if (method === 'email' && (!email || !name || !password)) {
+    // Only email registration is supported
+    if (!email || !name || !password) {
       toast({
         title: "Error",
         description: "Please enter your name, email address, and password.",
@@ -67,21 +68,23 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
       return;
     }
 
-    if (method === 'phone' && !phone) {
-      toast({
-        title: "Error",
-        description: "Please enter your phone number.",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Phone registration validation commented out - phone registration not implemented
+    // if (method === 'phone' && !phone) {
+    //   toast({
+    //     title: "Error",
+    //     description: "Please enter your phone number.",
+    //     variant: "destructive"
+    //   });
+    //   return;
+    // }
 
     try {
       await register({
-        email: method === 'email' ? email : undefined,
-        phone: method === 'phone' ? phone : undefined,
-        name: method === 'email' ? name : undefined,
-        password: method === 'email' ? password : undefined,
+        email: email, // Only email registration is supported
+        // phone: method === 'phone' ? phone : undefined, // Commented out - phone registration not implemented
+        name: name,
+        // password: method === 'email' ? password : undefined, // Commented out - phone registration not implemented
+        password: password,
         role,
         callbackURL: `${window.location.origin}/verify/email`
       });
@@ -102,7 +105,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
   const handleClose = () => {
     setStep('register');
     setEmail('');
-    setPhone('');
+    // setPhone(''); // Commented out - phone registration not implemented
     setName('');
     setPassword('');
     setRole(defaultRole);
@@ -139,13 +142,15 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
 
           {step === 'register' && (
             <div className="space-y-4">
-              <Tabs value={method} onValueChange={(value) => setMethod(value as 'email' | 'phone')}>
+              {/* Phone registration tabs commented out - phone registration not implemented */}
+              {/* <Tabs value={method} onValueChange={(value) => setMethod(value as 'email' | 'phone')}>
                 <TabsList className="grid w-full grid-cols-2 h-10">
                   <TabsTrigger value="email" className="text-sm">Email</TabsTrigger>
                   <TabsTrigger value="phone" className="text-sm">Phone</TabsTrigger>
-                </TabsList>
+                </TabsList> */}
                 
-                <TabsContent value="email" className="space-y-4">
+                {/* Email registration content - always visible since phone is disabled */}
+                <div className="space-y-4">
                   <div>
                     <Label htmlFor="name">Full Name</Label>
                     <Input
@@ -176,9 +181,10 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
                       placeholder="Create a secure password"
                     />
                   </div>
-                </TabsContent>
+                </div>
                 
-                <TabsContent value="phone" className="space-y-4">
+                {/* Phone registration content commented out - phone registration not implemented */}
+                {/* <TabsContent value="phone" className="space-y-4">
                   <div>
                     <Label htmlFor="phone">Phone Number</Label>
                     <Input
@@ -189,8 +195,8 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
                       placeholder="+91 98765 43210"
                     />
                   </div>
-                </TabsContent>
-              </Tabs>
+                </TabsContent> */}
+              {/* </Tabs> */}
 
               <div className="space-y-4">
                 <Label>Account Type</Label>
