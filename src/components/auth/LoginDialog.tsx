@@ -18,28 +18,29 @@ interface LoginDialogProps {
 
 const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRegister, defaultRole }) => {
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  // const [phone, setPhone] = useState(''); // Commented out - phone login not implemented
   const [password, setPassword] = useState('');
-  const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
+  // const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email'); // Commented out - phone login not implemented
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   
   const { login, isLoading } = useAuth();
   const { toast } = useToast();
 
   const handleLogin = async () => {
-    const identifier = loginMethod === 'email' ? email : phone;
+    // const identifier = loginMethod === 'email' ? email : phone; // Commented out - phone login not implemented
+    const identifier = email; // Only email login is supported
     
     if (!identifier || !password) {
       toast({
         title: "Error",
-        description: `Please enter both ${loginMethod} and password.`,
+        description: "Please enter both email and password.",
         variant: "destructive"
       });
       return;
     }
 
     // Basic validation
-    if (loginMethod === 'email' && !identifier.includes('@')) {
+    if (!identifier.includes('@')) {
       toast({
         title: "Error",
         description: "Please enter a valid email address.",
@@ -48,14 +49,15 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
       return;
     }
 
-    if (loginMethod === 'phone' && identifier.length < 10) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid phone number.",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Phone validation commented out - phone login not implemented
+    // if (loginMethod === 'phone' && identifier.length < 10) {
+    //   toast({
+    //     title: "Error",
+    //     description: "Please enter a valid phone number.",
+    //     variant: "destructive"
+    //   });
+    //   return;
+    // }
 
     try {
       await login(identifier, password, defaultRole);
@@ -75,9 +77,9 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
 
   const handleClose = () => {
     setEmail('');
-    setPhone('');
+    // setPhone(''); // Commented out - phone login not implemented
     setPassword('');
-    setLoginMethod('email');
+    // setLoginMethod('email'); // Commented out - phone login not implemented
     setShowForgotPassword(false);
     onClose();
   };
@@ -102,13 +104,15 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
             <DialogTitle className="text-lg sm:text-xl">Sign In</DialogTitle>
           </DialogHeader>
 
-          <Tabs value={loginMethod} onValueChange={(value) => setLoginMethod(value as 'email' | 'phone')} className="w-full">
+          {/* Phone login tabs commented out - phone login not implemented */}
+          {/* <Tabs value={loginMethod} onValueChange={(value) => setLoginMethod(value as 'email' | 'phone')} className="w-full">
             <TabsList className="grid w-full grid-cols-2 h-10">
               <TabsTrigger value="email" className="text-sm font-medium">Email</TabsTrigger>
               <TabsTrigger value="phone" className="text-sm font-medium">Phone</TabsTrigger>
-            </TabsList>
+            </TabsList> */}
 
-            <TabsContent value="email" className="space-y-4 mt-4">
+            {/* Email login content - always visible since phone is disabled */}
+            <div className="space-y-4 mt-4">
               <div>
                 <Label htmlFor="login-email">Email Address</Label>
                 <Input
@@ -130,9 +134,10 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
                   placeholder="Enter your password"
                 />
               </div>
-            </TabsContent>
+            </div>
 
-            <TabsContent value="phone" className="space-y-4 mt-4">
+            {/* Phone login content commented out - phone login not implemented */}
+            {/* <TabsContent value="phone" className="space-y-4 mt-4">
               <div>
                 <Label htmlFor="login-phone">Phone Number</Label>
                 <Input
@@ -154,8 +159,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
                   placeholder="Enter your password"
                 />
               </div>
-            </TabsContent>
-          </Tabs>
+            </TabsContent> */}
+          {/* </Tabs> */}
 
           <div className="space-y-4 mt-4">
             <Button 

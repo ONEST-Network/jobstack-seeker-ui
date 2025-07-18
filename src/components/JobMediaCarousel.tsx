@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
   const [modalApi, setModalApi] = useState<any>(null);
   const [failedMedia, setFailedMedia] = useState<Set<string>>(new Set());
   const [loadingMedia, setLoadingMedia] = useState<Set<string>>(new Set());
+  const previousUrlsRef = useRef<Set<string>>(new Set());
 
   // Helper function to convert Google Storage URLs to public URLs if needed
   const getPublicUrl = (url: string): string => {
@@ -68,12 +69,23 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
   // Filter out failed media
   const validMedia = media.filter(item => !failedMedia.has(item.url));
 
-  // Initialize loading states for new media
+  // Initialize loading states for new media - only when URLs actually change
   useEffect(() => {
     if (media && media.length > 0) {
-      const newLoadingMedia = new Set(media.map(item => item.url));
-      setLoadingMedia(newLoadingMedia);
-      setFailedMedia(new Set()); // Reset failed media when new media is received
+      const currentUrls = new Set(media.map(item => item.url));
+      const previousUrls = previousUrlsRef.current;
+      
+      // Only reset if the URLs have actually changed
+      const urlsChanged = currentUrls.size !== previousUrls.size || 
+                         !Array.from(currentUrls).every(url => previousUrls.has(url));
+      
+      if (urlsChanged) {
+        const newLoadingMedia = new Set(media.map(item => item.url));
+        setLoadingMedia(newLoadingMedia);
+        setFailedMedia(new Set()); // Reset failed media when new media is received
+        // Update the ref with current URLs
+        previousUrlsRef.current = new Set(currentUrls);
+      }
     }
   }, [media]);
 
