@@ -278,26 +278,59 @@ export const useJobSearch = () => {
               url.includes('blob.core.windows.net') ||
               url.includes('digitaloceanspaces.com') ||
               // Check for common image/video file extensions
-              /\.(jpg|jpeg|png|gif|bmp|webp|svg|mp4|avi|mov|wmv|flv|webm|mkv)$/i.test(url)
+              /\.(jpg|jpeg|png|gif|bmp|webp|svg|mp4|avi|mov|wmv|flv|webm|mkv)$/i.test(url) ||
+              // Check for URLs that look like media files (no extension but have ID patterns)
+              /\/job\/id\d+$/.test(url) ||
+              /\/media\/id\d+$/.test(url) ||
+              /\/file\/id\d+$/.test(url)
             );
           };
 
-          // Helper function to determine media type from URL
-          const getMediaType = (url: string): 'image' | 'video' => {
-            const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'];
+          // Helper function to determine media type from URL and field name
+          const getMediaType = (url: string, fieldName: string): 'image' | 'video' => {
+            const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp'];
             const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
             
             const lowerUrl = url.toLowerCase();
+            const lowerFieldName = fieldName.toLowerCase();
             
+            // Check for video extensions in URL
             if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
               return 'video';
             }
+            
+            // Check for image extensions in URL
             if (imageExtensions.some(ext => lowerUrl.includes(ext))) {
+              return 'image';
+            }
+            
+            // Check for video-related keywords in the URL path
+            const videoKeywords = ['video', 'mp4', 'mov', 'avi', 'webm'];
+            if (videoKeywords.some(keyword => lowerUrl.includes(keyword))) {
+              return 'video';
+            }
+            
+            // Check field name for video indicators
+            const videoFieldKeywords = ['video', 'mp4', 'mov', 'avi', 'webm', 'testimonial', 'walkthrough'];
+            if (videoFieldKeywords.some(keyword => lowerFieldName.includes(keyword))) {
+              return 'video';
+            }
+            
+            // Check field name for image indicators
+            const imageFieldKeywords = ['photo', 'image', 'logo', 'picture'];
+            if (imageFieldKeywords.some(keyword => lowerFieldName.includes(keyword))) {
               return 'image';
             }
             
             // Default to image if extension is not recognized
             return 'image';
+          };
+
+          // Helper function to generate video thumbnail URL
+          const generateVideoThumbnail = (videoUrl: string): string => {
+            // For Google Storage videos, we can't generate thumbnails easily
+            // So we'll use a placeholder approach
+            return videoUrl; // For now, use the same URL, but the carousel will handle it properly
           };
 
           // Recursive function to extract Google Storage URLs from any object
@@ -345,14 +378,14 @@ export const useJobSearch = () => {
 
           // Convert URLs to media objects
           allUniqueUrls.forEach(({ url, path }, index) => {
-            const mediaType = getMediaType(url);
             const fieldName = path.split('.').pop() || 'media';
+            const mediaType = getMediaType(url, fieldName);
             
             media.push({
               type: mediaType,
               url: url,
               alt: `${item.descriptor.name} ${fieldName} ${index + 1}`,
-              thumbnail: mediaType === 'video' ? url : undefined // For videos, use the same URL as thumbnail for now
+              thumbnail: mediaType === 'video' ? generateVideoThumbnail(url) : undefined // For videos, use the same URL as thumbnail for now
             });
           });
 
