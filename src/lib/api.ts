@@ -337,6 +337,7 @@ class ApiClient {
     providerId: string;
     jobId: string;
     userId: string;
+    profileId?: string; // Profile ID to use as the primary identifier for the application
     userData: {
       name: string;
       age?: string;
@@ -369,6 +370,9 @@ class ApiClient {
     // Generate a unique transaction ID
     const transactionId = `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
+    // Use profileId as the primary identifier for the application, fallback to userId if no profileId
+    const applicationId = applyData.profileId || applyData.userId;
+    
     const payload = {
       context: {
         bpp_id: "bpp1.dhiway.com",
@@ -383,15 +387,15 @@ class ApiClient {
           items: [
             {
               id: applyData.jobId,
-              fulfillment_ids: [applyData.userId]
+              fulfillment_ids: [applicationId]
             }
           ],
           fulfillments: [
             {
-              id: applyData.userId,
+              id: applicationId,
               customer: {
                 person: {
-                  id: applyData.userId,
+                  id: applicationId,
                   name: applyData.userData.name,
                   age: applyData.userData.age,
                   gender: applyData.userData.gender,
@@ -411,8 +415,13 @@ class ApiClient {
                     whoIAm: applyData.profileData.whoIAm || {},
                     whatIHave: applyData.profileData.whatIHave || {},
                     whatIWant: applyData.profileData.whatIWant || {},
+                    profileId: applyData.profileId, // Include profile ID in metadata
+                    userId: applyData.userId, // Include user ID for reference
                     ...applyData.profileData
-                  } : undefined,
+                  } : {
+                    profileId: applyData.profileId, // Include profile ID even if no other profile data
+                    userId: applyData.userId // Include user ID for reference
+                  },
                   tags: [
                     {
                       descriptor: {
@@ -433,6 +442,20 @@ class ApiClient {
                             name: "Total Experience"
                           },
                           value: applyData.userData.totalExperience || "5"
+                        },
+                        {
+                          descriptor: {
+                            code: "profile-id",
+                            name: "Profile ID"
+                          },
+                          value: applyData.profileId || "default"
+                        },
+                        {
+                          descriptor: {
+                            code: "user-id",
+                            name: "User ID"
+                          },
+                          value: applyData.userId
                         }
                       ]
                     }
