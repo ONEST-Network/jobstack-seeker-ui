@@ -48,7 +48,6 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
 
   // Helper function to handle media loading errors
   const handleMediaError = (url: string, type: 'image' | 'video') => {
-    console.warn(`Failed to load ${type}:`, url);
     setFailedMedia(prev => new Set([...prev, url]));
     setLoadingMedia(prev => {
       const newSet = new Set(prev);
@@ -80,7 +79,9 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                          !Array.from(currentUrls).every(url => previousUrls.has(url));
       
       if (urlsChanged) {
-        const newLoadingMedia = new Set(media.map(item => item.url));
+        // Only set loading state for images, not videos (since videos use placeholders)
+        const imageUrls = media.filter(item => item.type === 'image').map(item => item.url);
+        const newLoadingMedia = new Set(imageUrls);
         setLoadingMedia(newLoadingMedia);
         setFailedMedia(new Set()); // Reset failed media when new media is received
         // Update the ref with current URLs
@@ -211,25 +212,13 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                       className="relative w-full h-full cursor-pointer group"
                       onClick={(e) => handleMediaClick(item, e)}
                     >
-                      {/* Loading indicator */}
-                      {loadingMedia.has(item.url) && (
-                        <div className="absolute inset-0 bg-gray-200 flex items-center justify-center z-10">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      {/* Video thumbnail - use a placeholder background */}
+                      <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                        <div className="text-white text-center">
+                          <div className="text-xs">Video</div>
                         </div>
-                      )}
+                      </div>
                       
-                      <img
-                        src={getPublicUrl(item.thumbnail || item.url)}
-                        alt={item.alt || `${title} job video ${index + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        onLoad={() => handleMediaLoad(item.url)}
-                        onError={(e) => {
-                          // Hide thumbnail if it fails to load
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          handleMediaError(item.url, 'video');
-                        }}
-                      />
                       <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center">
                         <div className="bg-white rounded-full p-3 shadow-lg group-hover:scale-110 transition-transform duration-200">
                           <Play className="h-6 w-6 text-primary ml-1" fill="currentColor" />
@@ -312,9 +301,6 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                             autoPlay
                             className="w-full h-auto max-h-[80vh] rounded-lg"
                             src={getPublicUrl(item.url)}
-                            onError={(e) => {
-                              console.error('Video failed to load:', item.url);
-                            }}
                           >
                             Your browser does not support the video tag.
                           </video>
@@ -323,9 +309,6 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
                             src={getPublicUrl(item.url)}
                             alt={item.alt || `${title} media ${index + 1}`}
                             className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
-                            onError={(e) => {
-                              console.error('Image failed to load:', item.url);
-                            }}
                           />
                         )}
                       </div>
