@@ -50,12 +50,13 @@ const EmailVerification = () => {
       return;
     }
     
+
     // Check if this is a password reset token - redirect to password reset route
     if (verificationTokenValue && type === 'password-reset') {
       navigate(`/auth/reset-password?token=${verificationTokenValue}`);
       return;
     }
-    
+
     if (verificationTokenValue) {
       try {
         // Call the backend to verify the email token
@@ -96,6 +97,7 @@ const EmailVerification = () => {
           navigate('/seeker?tab=discover');
         }, 2000);
         
+
       } catch (error: any) {
         // Handle specific error types from backend
         if (error.message?.includes('expired')) {
@@ -311,6 +313,7 @@ const EmailVerification = () => {
               {shouldShowUserNotFound() && (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground text-center">
+
                     No account found with this email address. Please check your email or create a new account.
                   </p>
                   <Button

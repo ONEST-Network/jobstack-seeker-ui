@@ -102,6 +102,7 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
   // Check if we should show navigation buttons
   const shouldShowNavigation = validMedia.length > 1;
 
+
   const handleMediaClick = (mediaItem: JobMedia, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
