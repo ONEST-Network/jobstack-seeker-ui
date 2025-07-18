@@ -47,7 +47,38 @@ export interface JobItem {
     };
   };
   jobDetails?: Record<string, any>;
-  tags?: Record<string, any>;
+  tags?: {
+    basicInfo?: {
+      jobProviderName?: string;
+      jobProviderLocation?: {
+        address: string;
+        city: string;
+        state: string;
+        country: string;
+        gps?: {
+          lat: number;
+          lng: number;
+        };
+      };
+      jobProviderLogo?: string;
+      jobProviderRegistration?: string;
+    };
+    industry?: string;
+    jobDetails?: Record<string, any>;
+    jobNeeds?: Record<string, any>;
+    status?: string;
+    role?: string;
+    assessment?: {
+      trustScore?: number;
+      matchScore?: number;
+    };
+    contactPerson?: {
+      name: string;
+      email: string;
+      phone: string;
+    };
+    [key: string]: any;
+  };
 }
 
 export interface JobSearchResponse {
@@ -57,7 +88,18 @@ export interface JobSearchResponse {
     total: number;
   };
   results: Array<{
-    context: any;
+    context: {
+      action: string;
+      bap_id: string;
+      bap_uri: string;
+      bpp_id: string;
+      bpp_uri: string;
+      domain: string;
+      message_id: string;
+      timestamp: string;
+      transaction_id: string;
+      version: string;
+    };
     message: {
       catalog: {
         descriptor: {
@@ -73,7 +115,38 @@ export interface JobSearchResponse {
               name: string;
             };
             id: string;
-            tags: any;
+            tags: {
+              basicInfo?: {
+                jobProviderName?: string;
+                jobProviderLocation?: {
+                  address: string;
+                  city: string;
+                  state: string;
+                  country: string;
+                  gps?: {
+                    lat: number;
+                    lng: number;
+                  };
+                };
+                jobProviderLogo?: string;
+                jobProviderRegistration?: string;
+              };
+              industry?: string;
+              jobDetails?: Record<string, any>;
+              jobNeeds?: Record<string, any>;
+              status?: string;
+              role?: string;
+              assessment?: {
+                trustScore?: number;
+                matchScore?: number;
+              };
+              contactPerson?: {
+                name: string;
+                email: string;
+                phone: string;
+              };
+              [key: string]: any;
+            };
           }>;
           locations: Array<{
             address: string;
@@ -207,22 +280,43 @@ export const useJobSearch = () => {
       const catalog = result.message.catalog;
       
       catalog.providers.forEach(provider => {
-        const location = provider.locations?.[0];
-        const locationString = location ? `${location.address}, ${location.city}, ${location.state}` : 'Location not specified';
-        
         provider.items.forEach(item => {
           const tags = item.tags;
           
-          // Extract salary information
-          const salary = tags?.basicInfo?.salary || 'Salary not specified';
-          const workingHours = tags?.basicInfo?.workingHours || 'Not specified';
-          const monthlyInHand = tags?.basicInfo?.monthlyInHand || 'Not specified';
-          const monthlyPfEsic = tags?.basicInfo?.monthlyPfEsic || 'Not specified';
-          const monthlyOvertime = tags?.basicInfo?.monthlyOvertime || 'Not specified';
-          const costPerSharingBed = tags?.basicInfo?.costPerSharingBed || 'Not specified';
+          // Skip draft jobs - don't show them in the job list
+          if (tags?.status === 'draft') {
+            return;
+          }
+          
+          // Extract location from the new BAP API format
+          const jobProviderLocation = tags?.basicInfo?.jobProviderLocation || tags?.jobProviderLocation;
+          const locationString = jobProviderLocation ? 
+            `${jobProviderLocation.city}, ${jobProviderLocation.state}` : 
+            'Location not specified';
+          
+          // Extract salary information from jobDetails
+          const jobDetails = tags?.jobDetails || {};
+          const salary = jobDetails.monthlyInHand ? 
+            `₹${jobDetails.monthlyInHand.toLocaleString()}` : 
+            'Salary not specified';
+          const workingHours = jobDetails.workingHoursPerDay ? 
+            `${jobDetails.workingHoursPerDay} hours/day` : 
+            'Not specified';
+          const monthlyInHand = jobDetails.monthlyInHand ? 
+            `₹${jobDetails.monthlyInHand.toLocaleString()}` : 
+            'Not specified';
+          const monthlyPfEsic = jobDetails.monthlyPfEsicBenefits ? 
+            `₹${jobDetails.monthlyPfEsicBenefits.toLocaleString()}` : 
+            'Not specified';
+          const monthlyOvertime = jobDetails.monthlyAverageOT || jobDetails.monthlyAverageOt ? 
+            `₹${(jobDetails.monthlyAverageOT || jobDetails.monthlyAverageOt).toLocaleString()}` : 
+            'Not specified';
+          const costPerSharingBed = jobDetails.costPerSharingBed ? 
+            `₹${jobDetails.costPerSharingBed}` : 
+            'Not specified';
 
           // Extract stay provided
-          const stayProvided = tags?.basicInfo?.stayProvided || false;
+          const stayProvided = jobDetails.stayProvided === 'yes-free' || jobDetails.stayProvided === 'yes-paid';
 
           // Extract trust score
           const trustScore = tags?.assessment?.trustScore || 0;
@@ -230,20 +324,20 @@ export const useJobSearch = () => {
           // Extract match score
           const matchScore = tags?.assessment?.matchScore || 0;
 
-          // Extract number of openings
-          const openings = tags?.basicInfo?.openings || 1;
+          // Extract number of positions from jobDetails
+          const positions = jobDetails.positions || 1;
 
           // Extract job description
           const description = item.descriptor.name;
 
           // Extract industry
-          const industry = tags?.basicInfo?.industry || 'Not specified';
+          const industry = tags?.industry || 'Not specified';
 
           // Extract experience
-          const experience = tags?.basicInfo?.experience || 'Not specified';
+          const experience = tags?.jobNeeds?.hrWorkExperienceOther || 'Not specified';
 
           // Extract job status
-          const jobStatus = tags?.basicInfo?.status || 'active';
+          const jobStatus = tags?.status || 'active';
 
           // Extract contact person
           const contactPerson = tags?.contactPerson ? {
@@ -251,9 +345,6 @@ export const useJobSearch = () => {
             email: tags.contactPerson.email || 'Not specified',
             phone: tags.contactPerson.phone || 'Not specified'
           } : undefined;
-
-          // Extract job details
-          const jobDetails = tags?.jobDetails || {};
 
           // Extract media (images/videos) - Dynamic approach
           const media: Array<{
@@ -404,15 +495,15 @@ export const useJobSearch = () => {
             trustScore,
             matchScore,
             verified: true, // Assume verified for now
-            openings,
+            openings: positions,
             description,
             industry,
             experience,
-            positions: openings,
+            positions,
             status: jobStatus, // Include job status
             contactPerson,
             jobProviderName: tags?.basicInfo?.jobProviderName || provider.descriptor?.name || 'Unknown Company',
-            jobProviderLocation: tags?.jobProviderLocation || location,
+            jobProviderLocation: jobProviderLocation,
             jobDetails,
             tags,
             media
