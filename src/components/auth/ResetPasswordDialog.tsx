@@ -204,15 +204,7 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
                   )}
                 </Button>
               </div>
-              {confirmPassword && (
-                <div className="text-xs mt-1">
-                  {newPassword === confirmPassword ? (
-                    <span className="text-green-500">✓ Passwords match</span>
-                  ) : (
-                    <span className="text-red-500">✗ Passwords do not match</span>
-                  )}
-                </div>
-              )}
+
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading || newPassword !== confirmPassword || newPassword.length < 8}>
