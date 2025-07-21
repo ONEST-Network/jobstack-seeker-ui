@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { apiClient } from '@/lib/api';
 
 export interface JobApplicationData {
   name: string;
@@ -27,11 +27,12 @@ export interface JobApplicationData {
     whatIWant?: Record<string, any>;
     [key: string]: any;
   };
+  profileId?: string; // Add profile ID to track which profile was used
 }
 
 export const useJobApplication = () => {
   const [applying, setApplying] = useState(false);
-  const { user } = useAuth();
+  const { user, getSelectedCandidate } = useAuth();
   const { toast } = useToast();
 
   const applyToJob = async (
@@ -51,10 +52,15 @@ export const useJobApplication = () => {
     setApplying(true);
 
     try {
+      // Get the selected candidate/profile ID
+      const selectedCandidate = getSelectedCandidate();
+      const profileId = selectedCandidate?.id || 'default';
+
       const response = await apiClient.applyToJobBAP({
         providerId,
         jobId,
         userId: user.id,
+        profileId, // Use profile ID as the primary identifier for the application
         userData: applicationData,
         profileData: applicationData.profileData
       });
@@ -63,7 +69,7 @@ export const useJobApplication = () => {
       if (response?.message && typeof response.message === "string" && response.message.toLowerCase().includes("already applied")) {
         toast({
           title: "Already Applied",
-          description: "You have already applied for this job.",
+          description: "You have already applied for this job with this profile.",
           // Keeping it neutral so it stands out but isn't marked destructive
           variant: "default",
         });
@@ -85,7 +91,7 @@ export const useJobApplication = () => {
       if (typeof errorMessage === "string" && errorMessage.toLowerCase().includes("already applied")) {
         toast({
           title: "Already Applied",
-          description: "You have already applied for this job.",
+          description: "You have already applied for this job with this profile.",
           variant: "default",
         });
       } else {

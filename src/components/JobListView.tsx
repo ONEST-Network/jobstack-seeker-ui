@@ -11,6 +11,7 @@ import { RefreshCw, AlertCircle, Wifi, WifiOff } from 'lucide-react';
 import { useJobSearch, JobItem, LoadingState } from '@/hooks/useJobSearch';
 import { useJobApplication, JobApplicationData } from '@/hooks/useJobApplication';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface JobListViewProps {
   searchQuery: string;
@@ -26,7 +27,9 @@ const JobListView: React.FC<JobListViewProps> = ({
   const [detailJob, setDetailJob] = useState<JobItem | null>(null);
   const [jobsWithScores, setJobsWithScores] = useState<JobItem[]>([]);
   const [scoredJobIds, setScoredJobIds] = useState<Set<string>>(new Set());
-  const { user } = useAuth();
+  const { user, getSelectedCandidate } = useAuth();
+  const selectedCandidate = getSelectedCandidate();
+  const { toast } = useToast();
 
   // Prevent unauthenticated users from opening the job detail dialog
   const handleViewDetails = (job: JobItem) => {
@@ -114,7 +117,20 @@ const JobListView: React.FC<JobListViewProps> = ({
     if (user && user.profile && paginatedJobs.length > 0) {
       fetchScoresForCurrentPage();
     }
-  }, [currentPage, user?.profile, paginatedJobs]);
+  }, [currentPage, user?.profile, paginatedJobs, selectedCandidate]);
+
+  // Reset scored jobs when selected candidate changes (to recalculate scores with new profile)
+  useEffect(() => {
+    if (selectedCandidate) {
+      console.log('Selected candidate changed, resetting scored jobs to recalculate scores');
+      setScoredJobIds(new Set());
+      setJobsWithScores(jobs);
+      toast({
+        title: 'Selected candidate changed. Trust and match scores will be recalculated.',
+        description: `Your profile for ${selectedCandidate.name} has been updated.`,
+      });
+    }
+  }, [selectedCandidate?.id]);
 
   // Update jobsWithScores when jobs change
   useEffect(() => {

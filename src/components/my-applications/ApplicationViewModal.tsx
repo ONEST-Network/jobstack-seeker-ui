@@ -44,7 +44,8 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
   onClose,
   applicationId
 }) => {
-  const { user } = useAuth();
+  const { user, getSelectedCandidate } = useAuth();
+  const selectedCandidate = getSelectedCandidate();
   const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,15 +63,16 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
     if (isOpen && applicationId && user?.id) {
       fetchApplicationDetails();
     }
-  }, [isOpen, applicationId, user?.id]);
+  }, [isOpen, applicationId, user?.id, selectedCandidate?.id]);
 
   const fetchApplicationDetails = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Use the same API call as MyApplications component
-      const response = await fetch(`${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${user?.id}`);
+      // Use profile ID (selected candidate ID) instead of user ID for fetching applications
+      const profileIdForApi = selectedCandidate?.id || user?.id;
+      const response = await fetch(`${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${profileIdForApi}`);
       const data = await response.json();
       
       const applications = data?.applications || [];

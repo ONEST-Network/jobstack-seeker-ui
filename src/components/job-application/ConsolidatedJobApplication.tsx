@@ -163,6 +163,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
       languages: [
         { code: "en", name: "English" }
       ],
+      profileId: selectedProfile?.id, // Include the profile ID
       profileData: {
         whoIAm: profile.whoIAm || {},
         whatIHave: profile.whatIHave || {},

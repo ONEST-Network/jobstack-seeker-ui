@@ -3,6 +3,7 @@ import ApplicationTabs from './my-applications/ApplicationTabs';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { User } from 'lucide-react'; // Added User icon import
 
 interface JobApplication {
   id: string;
@@ -21,10 +22,11 @@ interface JobApplication {
     alt?: string;
     duration?: string;
   }>;
+  profileId?: string; // Add profile ID to track which profile was used
 }
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 // Status API response interface
 interface StatusResponse {
@@ -59,14 +61,25 @@ interface StatusResponse {
 }
 
 const MyApplications = () => {
-  const { user } = useAuth();
+  const { user, getSelectedCandidate } = useAuth();
+  const selectedCandidate = getSelectedCandidate();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statusLoading, setStatusLoading] = useState<boolean>(false);
   const isMobile = useIsMobile();
+  
+  // Add refs to track if we're already fetching to prevent duplicate calls
+  const isFetchingRef = useRef(false);
+  const statusCache = useRef<Map<string, string>>(new Map());
 
   // Function to fetch status for a specific application with retry
   const fetchApplicationStatus = async (orderId: string, transactionId: string, retryCount = 0): Promise<string> => {
+    // Check cache first
+    const cacheKey = `${orderId}-${transactionId}`;
+    if (statusCache.current.has(cacheKey)) {
+      return statusCache.current.get(cacheKey)!;
+    }
+
     try {
       const response = await fetch(`${import.meta.env.VITE_BAP_URL}/api/v1/status`, {
         method: 'POST',
@@ -95,7 +108,6 @@ const MyApplications = () => {
       
       // Validate response structure
       if (!data.message?.order?.fulfillments || !Array.isArray(data.message.order.fulfillments)) {
-        console.warn('Invalid status response structure:', data);
         return 'applied'; // Default fallback
       }
       
@@ -109,50 +121,103 @@ const MyApplications = () => {
         // - 'archived' -> 'rejected' (Application was rejected)
         // - 'open' -> 'applied' (Application is still active/under review)
         // - 'closed' -> 'hired' (Application was accepted/hired)
+        let status: string;
         switch (code) {
           case 'archived':
-            return 'rejected';
+            status = 'rejected';
+            break;
           case 'open':
-            return 'applied';
+            status = 'applied';
+            break;
           case 'closed':
-            return 'hired';
+            status = 'hired';
+            break;
           default:
-            console.log(`Unknown status code: ${code}, defaulting to applied`);
-            return 'applied'; // Default fallback
+            status = 'applied'; // Default fallback
         }
+        
+        // Cache the result
+        statusCache.current.set(cacheKey, status);
+        return status;
       }
       
-      console.log('No status code found in response, defaulting to applied');
-      return 'applied'; // Default fallback
+      const defaultStatus = 'applied';
+      statusCache.current.set(cacheKey, defaultStatus);
+      return defaultStatus; // Default fallback
     } catch (error) {
       console.error('Failed to fetch application status:', error);
       
       // Retry logic for failed requests
       if (retryCount < 2) {
-        console.log(`Retrying status fetch for order ${orderId}, attempt ${retryCount + 1}`);
         await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
         return fetchApplicationStatus(orderId, transactionId, retryCount + 1);
       }
       
-      return 'applied'; // Default fallback on error
+      const fallbackStatus = 'applied';
+      statusCache.current.set(cacheKey, fallbackStatus);
+      return fallbackStatus; // Default fallback on error
     }
+  };
+
+  // Function to extract profile ID from application data
+  const extractProfileId = (app: any): string => {
+    // Try to extract profile ID from various possible locations in the application data
+    const person = app?.metadata?.message?.order?.fulfillments?.[0]?.customer?.person;
+    
+    // Check metadata first
+    if (person?.metadata?.profileId) {
+      return person.metadata.profileId;
+    }
+    
+    // Check tags for profile ID
+    const tags = person?.tags;
+    if (tags && Array.isArray(tags)) {
+      for (const tag of tags) {
+        if (tag.descriptor?.code === 'emp-details' && tag.list) {
+          for (const item of tag.list) {
+            if (item.descriptor?.code === 'profile-id') {
+              return item.value;
+            }
+          }
+        }
+      }
+    }
+    
+    // Check transaction ID for profile ID (if it was included in the transaction ID)
+    const transactionId = app?.metadata?.context?.transaction_id || app?.transaction_id;
+    if (transactionId && transactionId.includes('-')) {
+      const parts = transactionId.split('-');
+      if (parts.length > 2) {
+        const lastPart = parts[parts.length - 1];
+        // If the last part looks like a profile ID (not a random string), use it
+        if (lastPart && lastPart.length > 5 && !isNaN(parseInt(lastPart))) {
+          return lastPart;
+        }
+      }
+    }
+    
+    // Default to 'default' if no profile ID found
+    return 'default';
   };
 
   // Function to fetch all applications with their statuses
   const fetchApplicationsWithStatus = async () => {
-    if (!user?.id) return;
+    if (!user?.id || isFetchingRef.current) return;
+    
+    isFetchingRef.current = true;
     setIsLoading(true);
     setStatusLoading(true);
     
     try {
-      const url = `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${user.id}`;
+      // Use profile ID (selected candidate ID) instead of user ID for fetching applications
+      const profileIdForApi = selectedCandidate?.id || user.id;
+      const url = `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${profileIdForApi}`;
       const response = await fetch(url);
       const data = await response.json();
       
       const applicationsData = data?.applications || [];
-      console.log(`Found ${applicationsData.length} applications to process`);
       
-      // First, create applications with default status
+      // First, create applications with default status and extract profile IDs
       const applicationsWithDefaultStatus = applicationsData.map((app: any) => {
         const item = app?.metadata?.message?.order?.items?.[0] || {};
         const provider = app?.metadata?.message?.order?.provider || {};
@@ -160,6 +225,69 @@ const MyApplications = () => {
         const tag = item?.tag || {};
         const basicInfo = tag?.basicInfo || {};
         const jobDetails = tag?.jobDetails || {};
+        const profileId = extractProfileId(app);
+
+        // Extract salary from various possible locations
+        let salary = 'N/A';
+        
+
+        
+        // Check all possible locations for salary data
+        const salaryValue = 
+          jobDetails?.salaryCTC ||
+          jobDetails?.monthlyInHand ||
+          jobDetails?.monthlySalary ||
+          tag?.jobDetails?.monthlyInHand ||
+          tag?.jobDetails?.salaryCTC ||
+          item?.tag?.jobDetails?.monthlyInHand ||
+          item?.tag?.jobDetails?.salaryCTC ||
+          item?.tag?.basicInfo?.salaryCTC ||
+          item?.tag?.basicInfo?.monthlyInHand ||
+          item?.tag?.jobDetails?.salaryCTC ||
+          item?.tag?.jobDetails?.monthlyInHand;
+        
+        if (salaryValue && salaryValue !== 'N/A' && salaryValue !== 'undefined') {
+          // Handle both string and number values
+          const numValue = typeof salaryValue === 'string' ? parseFloat(salaryValue) : salaryValue;
+          if (!isNaN(numValue)) {
+            salary = `₹${numValue.toLocaleString()}`;
+          }
+        }
+        
+        // If still no salary found, search deeper in the application structure
+        if (salary === 'N/A') {
+          const searchForSalary = (obj: any): any => {
+            if (!obj || typeof obj !== 'object') return null;
+            
+            // Check for salary-related keys
+            const salaryKeys = ['salaryCTC', 'monthlyInHand', 'monthlySalary', 'salary', 'inHandSalary'];
+            for (const key of salaryKeys) {
+              if (obj[key] && obj[key] !== 'N/A' && obj[key] !== 'undefined') {
+                return obj[key];
+              }
+            }
+            
+            // Recursively search nested objects
+            for (const [key, value] of Object.entries(obj)) {
+              if (typeof value === 'object' && value !== null) {
+                const found = searchForSalary(value);
+                if (found) return found;
+              }
+            }
+            
+            return null;
+          };
+          
+          const foundSalary = searchForSalary(app);
+          if (foundSalary) {
+            const numValue = typeof foundSalary === 'string' ? parseFloat(foundSalary) : foundSalary;
+            if (!isNaN(numValue)) {
+              salary = `₹${numValue.toLocaleString()}`;
+            }
+          }
+        }
+        
+
 
         return {
           id: app.order_id ?? app.transaction_id ?? app.job_id,
@@ -167,53 +295,58 @@ const MyApplications = () => {
           jobTitle: item?.descriptor?.name ?? 'Unknown',
           company: basicInfo?.jobProviderName ?? provider?.descriptor?.name ?? 'Unknown',
           location: `${locationObj.city ?? ''}${locationObj.state ? ', ' + locationObj.state : ''}`.trim(),
-          salary: jobDetails?.salaryCTC ? `₹${jobDetails.salaryCTC.toLocaleString()}` : 'N/A',
+          salary: salary,
           appliedDate: app?.metadata?.context?.timestamp ?? new Date().toISOString(),
           status: 'applied' as JobApplication['status'], // Default status
           raw: app,
           media: [],
+          profileId, // Include the extracted profile ID
         } as JobApplication;
       });
 
+      // Since we're now fetching applications by profile ID, we don't need to filter again
+      // The API should return only applications for the selected profile
+      const filteredApplications = applicationsWithDefaultStatus;
+
+
+
       // Set applications with default status first
-      setApplications(applicationsWithDefaultStatus);
+      setApplications(filteredApplications);
       setIsLoading(false);
 
-      // Then fetch status for each application
-      console.log('Starting status fetch for applications...');
-      const applicationsWithStatus = await Promise.all(
-        applicationsWithDefaultStatus.map(async (app, index) => {
-          const orderId = app.raw?.metadata?.message?.order?.id || app.raw?.order_id;
-          const transactionId = app.raw?.metadata?.context?.transaction_id || app.raw?.transaction_id;
+      // Then fetch status for each application (only if we have applications)
+      if (filteredApplications.length > 0) {
+        const applicationsWithStatus = await Promise.all(
+          filteredApplications.map(async (app, index) => {
+            const orderId = app.raw?.metadata?.message?.order?.id || app.raw?.order_id;
+            const transactionId = app.raw?.metadata?.context?.transaction_id || app.raw?.transaction_id;
 
-          if (orderId && transactionId) {
-            console.log(`Fetching status for application ${index + 1}/${applicationsWithDefaultStatus.length}: ${app.jobTitle}`);
-            const status = await fetchApplicationStatus(orderId, transactionId);
-            console.log(`Status for ${app.jobTitle}: ${status}`);
-            return {
-              ...app,
-              status: status as JobApplication['status']
-            };
-          } else {
-            console.warn(`Missing orderId or transactionId for application: ${app.jobTitle}`);
-            return app;
-          }
-        })
-      );
+            if (orderId && transactionId) {
+              const status = await fetchApplicationStatus(orderId, transactionId);
+              return {
+                ...app,
+                status: status as JobApplication['status']
+              };
+            } else {
+              return app;
+            }
+          })
+        );
 
-      setApplications(applicationsWithStatus);
-      console.log('Completed status fetch for all applications');
+        setApplications(applicationsWithStatus);
+      }
     } catch (error) {
       console.error('Failed to fetch job applications', error);
     } finally {
       setIsLoading(false);
       setStatusLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
   // Function to refresh only statuses
   const refreshStatuses = async () => {
-    if (!applications.length) return;
+    if (!applications.length || statusLoading) return;
     setStatusLoading(true);
     
     try {
@@ -243,8 +376,10 @@ const MyApplications = () => {
   };
 
   useEffect(() => {
+    // Clear cache when user or selected candidate changes
+    statusCache.current.clear();
     fetchApplicationsWithStatus();
-  }, [user]);
+  }, [user, selectedCandidate]); // Re-fetch when selected candidate changes
 
   const activeApplications = applications.filter(app => !['hired', 'rejected'].includes(app.status));
   const completedApplications = applications.filter(app => ['hired', 'rejected'].includes(app.status));
@@ -257,7 +392,7 @@ const MyApplications = () => {
         </div>
       ) : (
         <>
-          {applications.length > 0 && (
+          {/* {applications.length > 0 && (
             <div className={`flex ${isMobile ? 'justify-center' : 'justify-end'}`}>
               <Button 
                 onClick={refreshStatuses} 
@@ -270,11 +405,27 @@ const MyApplications = () => {
                 {statusLoading ? 'Updating...' : 'Refresh Status'}
               </Button>
             </div>
-          )}
+          )} */}
           
           {statusLoading ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Updating application statuses...</p>
+            </div>
+          ) : applications.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-medium mb-2">No applications found</h3>
+              <p className="text-muted-foreground mb-4">
+                {selectedCandidate 
+                  ? `You haven't applied to any jobs with the profile "${selectedCandidate.nickname || selectedCandidate.name}" yet.`
+                  : "You haven't applied to any jobs yet."
+                }
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Switch to a different profile or apply to jobs to see your applications here.
+              </p>
             </div>
           ) : (
             <ApplicationTabs 

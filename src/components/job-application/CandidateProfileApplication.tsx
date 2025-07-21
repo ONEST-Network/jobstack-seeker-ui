@@ -226,6 +226,7 @@ const CandidateProfileApplicationContent: React.FC<CandidateProfileApplicationPr
       languages: [
         { code: "en", name: "English" }
       ],
+      profileId: selectedCandidate?.id, // Include the profile ID
       profileData: {
         whoIAm: profile.whoIAm || {},
         whatIHave: profile.whatIHave || {},
