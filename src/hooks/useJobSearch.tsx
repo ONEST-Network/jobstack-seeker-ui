@@ -182,7 +182,8 @@ export const useJobSearch = () => {
   const [scoresLoading, setScoresLoading] = useState(false);
   const [isAutoRetrying, setIsAutoRetrying] = useState(false);
   
-  const { user } = useAuth();
+  const { user, getSelectedCandidate } = useAuth();
+  const selectedCandidate = getSelectedCandidate();
   
   const maxRetries = 3;
   const requestTimeout = 30000; // 30 seconds timeout
@@ -218,38 +219,134 @@ export const useJobSearch = () => {
 
   // Function to fetch trust and match scores for specific jobs
   const fetchScoresForJobs = useCallback(async (jobsToScore: JobItem[]) => {
-    if (!user || !user.profile || jobsToScore.length === 0) {
+    if (!user || jobsToScore.length === 0) {
       return jobsToScore;
     }
 
     setScoresLoading(true);
     
     try {
-      // Get seeker data from profile API
-      const profileResponse = await apiClient.getProfile();
+      // Get seeker data from selected candidate or user's profile
+      let seekerData;
       
-      // Extract the actual profile data object - handle both array and object responses
-      let seekerData = profileResponse.data;
-      
-      // If the data is an array, take the first element
-      if (Array.isArray(seekerData)) {
-        seekerData = seekerData[0];
+      if (selectedCandidate) {
+        // Use selected candidate's profile data
+        console.log('Using selected candidate for match score:', selectedCandidate);
+        
+        // Transform the selected candidate data to use the correct field names for the API
+        seekerData = {
+          id: selectedCandidate.id,
+          type: 'personal',
+          metadata: {
+            name: selectedCandidate.name,
+            age: selectedCandidate.age,
+            gender: selectedCandidate.gender,
+            phone: selectedCandidate.phone,
+            currentLocation: selectedCandidate.currentLocation,
+            desiredLocation: selectedCandidate.desiredLocation,
+            // Transform camelCase to lowercase for API compatibility
+            whoiam: selectedCandidate.whoIAm || {},
+            whatihave: selectedCandidate.whatIHave || {},
+            whatiwant: selectedCandidate.whatIWant || {},
+            // Include other fields
+            skills: selectedCandidate.skills || [],
+            experience: selectedCandidate.experience || [],
+            certificates: selectedCandidate.certificates || [],
+            education: selectedCandidate.education || [],
+            skillCertifications: selectedCandidate.skillCertifications || [],
+            workExperience: selectedCandidate.workExperience || [],
+            // Verification status
+            isGenderVerified: selectedCandidate.isGenderVerified || false,
+            isAadharVerified: selectedCandidate.isAadharVerified || false,
+            isHometownVerified: selectedCandidate.isHometownVerified || false,
+            isNameVerified: selectedCandidate.isNameVerified || false,
+            isAgeVerified: selectedCandidate.isAgeVerified || false,
+            // Assessment scores
+            assessmentScores: selectedCandidate.assessmentScores || [],
+            documentVerificationStatus: selectedCandidate.documentVerificationStatus || []
+          },
+          createdAt: selectedCandidate.createdAt || new Date().toISOString()
+        };
+        
+        console.log('Using selected candidate data for match score:', JSON.stringify(seekerData, null, 2));
+      } else {
+        // Fallback to user's profile if no candidate is selected
+        const profileResponse = await apiClient.getProfile();
+        
+        // Extract the actual profile data object - handle both array and object responses
+        let profileData = profileResponse.data;
+        
+        // If the data is an array, take the first element
+        if (Array.isArray(profileData)) {
+          profileData = profileData[0];
+        }
+
+        // Ensure we have valid profile data
+        if (!profileData || typeof profileData !== 'object') {
+          return jobsToScore;
+        }
+
+        // Transform the seeker data to use the correct field names for the API
+        seekerData = {
+          id: profileData.id,
+          type: profileData.type || 'personal',
+          metadata: {
+            name: profileData.metadata?.name,
+            age: profileData.metadata?.age,
+            gender: profileData.metadata?.gender,
+            phone: profileData.metadata?.phone,
+            currentLocation: profileData.metadata?.currentLocation,
+            desiredLocation: profileData.metadata?.desiredLocation,
+            // Transform camelCase to lowercase for API compatibility
+            whoiam: profileData.metadata?.whoIAm || {},
+            whatihave: profileData.metadata?.whatIHave || {},
+            whatiwant: profileData.metadata?.whatIWant || {},
+            // Include other fields
+            skills: profileData.metadata?.skills || [],
+            experience: profileData.metadata?.experience || [],
+            certificates: profileData.metadata?.certificates || [],
+            education: profileData.metadata?.education || [],
+            skillCertifications: profileData.metadata?.skillCertifications || [],
+            workExperience: profileData.metadata?.workExperience || [],
+            // Verification status
+            isGenderVerified: profileData.metadata?.isGenderVerified || false,
+            isAadharVerified: profileData.metadata?.isAadharVerified || false,
+            isHometownVerified: profileData.metadata?.isHometownVerified || false,
+            isNameVerified: profileData.metadata?.isNameVerified || false,
+            isAgeVerified: profileData.metadata?.isAgeVerified || false,
+            // Assessment scores
+            assessmentScores: profileData.metadata?.assessmentScores || [],
+            documentVerificationStatus: profileData.metadata?.documentVerificationStatus || []
+          },
+          createdAt: (profileData as any).createdAt || new Date().toISOString()
+        };
+
+        console.log('Using user profile data for match score:', JSON.stringify(seekerData, null, 2));
       }
 
       // Ensure we have valid seeker data
       if (!seekerData || typeof seekerData !== 'object') {
+        console.error('Invalid seeker data:', seekerData);
         return jobsToScore;
       }
 
       // Fetch trust scores and match scores for each job
+      console.log('Fetching scores for jobs:', jobsToScore.length, 'jobs');
       const jobsWithScores = await Promise.all(
         jobsToScore.map(async (job) => {
           try {
+            console.log(`Fetching scores for job: ${job.id} - ${job.title}`);
+            
+            // Log the job data being sent
+            console.log('Job data being sent to API:', JSON.stringify(job, null, 2));
+            
             // Fetch both trust score and match score
             const [trustResult, matchResult] = await Promise.all([
               apiClient.getTrustScore(job, seekerData),
               apiClient.getMatchScore(job, seekerData)
             ]);
+            
+            console.log(`Scores for job ${job.id}:`, { trustScore: trustResult.trustScore, matchScore: matchResult.matchScore });
             
             return {
               ...job,
@@ -270,7 +367,7 @@ export const useJobSearch = () => {
     } finally {
       setScoresLoading(false);
     }
-  }, [user]);
+  }, [user, selectedCandidate]);
 
   // Transform job data from API response
   const transformJobData = useCallback((data: JobSearchResponse): JobItem[] => {
