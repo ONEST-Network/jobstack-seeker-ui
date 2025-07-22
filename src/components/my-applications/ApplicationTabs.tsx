@@ -13,7 +13,7 @@ interface JobApplication {
   location: string;
   salary: string;
   appliedDate: string;
-  status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
+  status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'deleted';
   media?: Array<{
     type: 'image' | 'video';
     url: string;
