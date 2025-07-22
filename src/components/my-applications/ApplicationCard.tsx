@@ -41,7 +41,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, isComple
   
   const cardStyle = isCompleted 
     ? `hover:shadow-md transition-shadow ${
-        application.status === 'hired' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+        application.status === 'shortlisted' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
       }`
     : 'hover:shadow-md transition-shadow';
 
@@ -59,7 +59,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, isComple
                   <p className="text-muted-foreground font-medium truncate">{application.company}</p>
                 </div>
                 <div className="text-right flex-shrink-0 ml-2">
-                  <div className="text-lg font-bold text-green-600 mb-1">
+                  <div className="text-base font-bold text-green-600 mb-1 text-right leading-tight break-words">
                     {application.salary}
                   </div>
                   <div className="text-xs text-muted-foreground">per month</div>
@@ -132,7 +132,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, isComple
                   <p className="text-muted-foreground font-medium">{application.company}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-bold text-green-600 mb-1">
+                  <div className="text-xl font-bold text-green-600 mb-1 leading-tight">
                     {application.salary}
                   </div>
                   <div className="text-sm text-muted-foreground">per month</div>

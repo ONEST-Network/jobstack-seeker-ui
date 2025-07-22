@@ -120,7 +120,7 @@ const MyApplications = () => {
         // API Response Codes:
         // - 'archived' -> 'rejected' (Application was rejected)
         // - 'open' -> 'applied' (Application is still active/under review)
-        // - 'closed' -> 'hired' (Application was accepted/hired)
+        // - 'closed' -> 'shortlisted' (Application was shortlisted)
         let status: string;
         switch (code) {
           case 'archived':
@@ -130,7 +130,7 @@ const MyApplications = () => {
             status = 'applied';
             break;
           case 'closed':
-            status = 'hired';
+            status = 'shortlisted';
             break;
           default:
             status = 'applied'; // Default fallback
@@ -230,63 +230,112 @@ const MyApplications = () => {
         // Extract salary from various possible locations
         let salary = 'N/A';
         
-
+        // Check for salary range first (maxMonthlyInHand and minMonthlyInHand)
+        const maxSalary = jobDetails?.maxMonthlyInHand || tag?.jobDetails?.maxMonthlyInHand || item?.tag?.jobDetails?.maxMonthlyInHand;
+        const minSalary = jobDetails?.minMonthlyInHand || tag?.jobDetails?.minMonthlyInHand || item?.tag?.jobDetails?.minMonthlyInHand;
         
-        // Check all possible locations for salary data
-        const salaryValue = 
-          jobDetails?.salaryCTC ||
-          jobDetails?.monthlyInHand ||
-          jobDetails?.monthlySalary ||
-          tag?.jobDetails?.monthlyInHand ||
-          tag?.jobDetails?.salaryCTC ||
-          item?.tag?.jobDetails?.monthlyInHand ||
-          item?.tag?.jobDetails?.salaryCTC ||
-          item?.tag?.basicInfo?.salaryCTC ||
-          item?.tag?.basicInfo?.monthlyInHand ||
-          item?.tag?.jobDetails?.salaryCTC ||
-          item?.tag?.jobDetails?.monthlyInHand;
-        
-        if (salaryValue && salaryValue !== 'N/A' && salaryValue !== 'undefined') {
-          // Handle both string and number values
-          const numValue = typeof salaryValue === 'string' ? parseFloat(salaryValue) : salaryValue;
-          if (!isNaN(numValue)) {
-            salary = `₹${numValue.toLocaleString()}`;
-          }
-        }
-        
-        // If still no salary found, search deeper in the application structure
-        if (salary === 'N/A') {
-          const searchForSalary = (obj: any): any => {
-            if (!obj || typeof obj !== 'object') return null;
-            
-            // Check for salary-related keys
-            const salaryKeys = ['salaryCTC', 'monthlyInHand', 'monthlySalary', 'salary', 'inHandSalary'];
-            for (const key of salaryKeys) {
-              if (obj[key] && obj[key] !== 'N/A' && obj[key] !== 'undefined') {
-                return obj[key];
-              }
-            }
-            
-            // Recursively search nested objects
-            for (const [key, value] of Object.entries(obj)) {
-              if (typeof value === 'object' && value !== null) {
-                const found = searchForSalary(value);
-                if (found) return found;
-              }
-            }
-            
-            return null;
-          };
+        if (maxSalary && minSalary) {
+          // Both min and max available - show as range
+          const minValue = typeof minSalary === 'string' ? parseFloat(minSalary) : minSalary;
+          const maxValue = typeof maxSalary === 'string' ? parseFloat(maxSalary) : maxSalary;
           
-          const foundSalary = searchForSalary(app);
-          if (foundSalary) {
-            const numValue = typeof foundSalary === 'string' ? parseFloat(foundSalary) : foundSalary;
+          if (!isNaN(minValue) && !isNaN(maxValue)) {
+            salary = `₹${minValue.toLocaleString()} - ₹${maxValue.toLocaleString()}`;
+          }
+        } else if (maxSalary) {
+          // Only max available
+          const maxValue = typeof maxSalary === 'string' ? parseFloat(maxSalary) : maxSalary;
+          if (!isNaN(maxValue)) {
+            salary = `Up to ₹${maxValue.toLocaleString()}`;
+          }
+        } else if (minSalary) {
+          // Only min available
+          const minValue = typeof minSalary === 'string' ? parseFloat(minSalary) : minSalary;
+          if (!isNaN(minValue)) {
+            salary = `From ₹${minValue.toLocaleString()}`;
+          }
+        } else {
+          // Fallback to existing single salary extraction logic
+          const salaryValue = 
+            jobDetails?.salaryCTC ||
+            jobDetails?.monthlyInHand ||
+            jobDetails?.monthlySalary ||
+            tag?.jobDetails?.monthlyInHand ||
+            tag?.jobDetails?.salaryCTC ||
+            item?.tag?.jobDetails?.monthlyInHand ||
+            item?.tag?.jobDetails?.salaryCTC ||
+            item?.tag?.basicInfo?.salaryCTC ||
+            item?.tag?.basicInfo?.monthlyInHand ||
+            item?.tag?.jobDetails?.salaryCTC ||
+            item?.tag?.jobDetails?.monthlyInHand;
+          
+          if (salaryValue && salaryValue !== 'N/A' && salaryValue !== 'undefined') {
+            // Handle both string and number values
+            const numValue = typeof salaryValue === 'string' ? parseFloat(salaryValue) : salaryValue;
             if (!isNaN(numValue)) {
               salary = `₹${numValue.toLocaleString()}`;
             }
           }
         }
         
+        // If still no salary found, search deeper in the application structure
+        if (salary === 'N/A') {
+          const searchForSalaryRange = (obj: any): { min?: any, max?: any, single?: any } => {
+            if (!obj || typeof obj !== 'object') return {};
+            
+            let result: { min?: any, max?: any, single?: any } = {};
+            
+            // Check for salary-related keys including min/max
+            if (obj.maxMonthlyInHand) result.max = obj.maxMonthlyInHand;
+            if (obj.minMonthlyInHand) result.min = obj.minMonthlyInHand;
+            if (!result.min && !result.max) {
+              const salaryKeys = ['salaryCTC', 'monthlyInHand', 'monthlySalary', 'salary', 'inHandSalary'];
+              for (const key of salaryKeys) {
+                if (obj[key] && obj[key] !== 'N/A' && obj[key] !== 'undefined') {
+                  result.single = obj[key];
+                  break;
+                }
+              }
+            }
+            
+            // If we found something, return it
+            if (result.min || result.max || result.single) return result;
+            
+            // Recursively search nested objects
+            for (const [key, value] of Object.entries(obj)) {
+              if (typeof value === 'object' && value !== null) {
+                const found = searchForSalaryRange(value);
+                if (found.min || found.max || found.single) return found;
+              }
+            }
+            
+            return {};
+          };
+          
+          const foundSalaryData = searchForSalaryRange(app);
+          if (foundSalaryData.min && foundSalaryData.max) {
+            const minValue = typeof foundSalaryData.min === 'string' ? parseFloat(foundSalaryData.min) : foundSalaryData.min;
+            const maxValue = typeof foundSalaryData.max === 'string' ? parseFloat(foundSalaryData.max) : foundSalaryData.max;
+            if (!isNaN(minValue) && !isNaN(maxValue)) {
+              salary = `₹${minValue.toLocaleString()} - ₹${maxValue.toLocaleString()}`;
+            }
+          } else if (foundSalaryData.max) {
+            const maxValue = typeof foundSalaryData.max === 'string' ? parseFloat(foundSalaryData.max) : foundSalaryData.max;
+            if (!isNaN(maxValue)) {
+              salary = `Up to ₹${maxValue.toLocaleString()}`;
+            }
+          } else if (foundSalaryData.min) {
+            const minValue = typeof foundSalaryData.min === 'string' ? parseFloat(foundSalaryData.min) : foundSalaryData.min;
+            if (!isNaN(minValue)) {
+              salary = `From ₹${minValue.toLocaleString()}`;
+            }
+          } else if (foundSalaryData.single) {
+            const numValue = typeof foundSalaryData.single === 'string' ? parseFloat(foundSalaryData.single) : foundSalaryData.single;
+            if (!isNaN(numValue)) {
+              salary = `₹${numValue.toLocaleString()}`;
+            }
+          }
+        }
 
 
         return {
@@ -381,8 +430,8 @@ const MyApplications = () => {
     fetchApplicationsWithStatus();
   }, [user, selectedCandidate]); // Re-fetch when selected candidate changes
 
-  const activeApplications = applications.filter(app => !['hired', 'rejected'].includes(app.status));
-  const completedApplications = applications.filter(app => ['hired', 'rejected'].includes(app.status));
+  const activeApplications = applications.filter(app => !['rejected'].includes(app.status));
+  const completedApplications = applications.filter(app => ['rejected'].includes(app.status));
 
   return (
     <div className={`${isMobile ? 'space-y-4' : 'space-y-6'}`}>
