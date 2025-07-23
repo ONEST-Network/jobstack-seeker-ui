@@ -23,6 +23,53 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const [showQRScanner, setShowQRScanner] = React.useState(false);
   const [qrFieldName, setQrFieldName] = React.useState<string>('');
   const [dropdownStates, setDropdownStates] = React.useState<Record<string, boolean>>({});
+  const dropdownRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
+  const [searchQueries, setSearchQueries] = React.useState<Record<string, string>>({});
+
+  // Handle clicking outside dropdowns to close them
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Check if click is outside any open dropdown
+      Object.entries(dropdownStates).forEach(([fieldName, isOpen]) => {
+        if (isOpen && dropdownRefs.current[fieldName]) {
+          const dropdownElement = dropdownRefs.current[fieldName];
+          if (dropdownElement && !dropdownElement.contains(target)) {
+            setDropdownStates(prev => ({
+              ...prev,
+              [fieldName]: false
+            }));
+          }
+        }
+      });
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        // Close all open dropdowns
+        setDropdownStates(prev => {
+          const newState = { ...prev };
+          Object.keys(newState).forEach(key => {
+            newState[key] = false;
+          });
+          return newState;
+        });
+      }
+    };
+
+    // Add event listeners if any dropdown is open
+    const hasOpenDropdown = Object.values(dropdownStates).some(isOpen => isOpen);
+    if (hasOpenDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [dropdownStates]);
 
   const schema = getUnifiedSchemaStep(role, stepName);
 
@@ -165,6 +212,12 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
     // Check if field is verified from global profile state
     const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
+
+    // Always access search state to ensure consistent hook calls
+    const searchQuery = searchQueries[fieldName] || '';
+    const setSearchQuery = (q: string) => {
+      setSearchQueries(prev => ({ ...prev, [fieldName]: q }));
+    };
 
     // Handle object type fields (subsections)
     if (fieldConfig.type === 'object') {
@@ -502,13 +555,44 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         const otherDropdownFieldName = `${fieldName}_other`;
         const otherDropdownValue = stepData[otherDropdownFieldName] || '';
         const isDropdownOpen = dropdownStates[fieldName] || false;
+        const isSearchable = fieldConfig['ui:searchable'];
 
         const toggleDropdown = () => {
           setDropdownStates(prev => ({
             ...prev,
             [fieldName]: !prev[fieldName]
           }));
+          // Clear search when opening dropdown
+          if (!isDropdownOpen) {
+            setSearchQuery('');
+          }
         };
+
+        // Filter options based on search query
+        const filteredOptions = fieldConfig.enum?.filter((option: string, index: number) => {
+          if (!searchQuery) return true;
+          const optionValue = fieldConfig.enumNames?.[index] || option;
+          const searchTerm = searchQuery.toLowerCase().trim();
+          
+          // Search in both the original option and the display name
+          // Also split search terms to match any part
+          const searchTerms = searchTerm.split(' ').filter(term => term.length > 0);
+          
+          if (searchTerms.length === 0) return true;
+          
+          // First try exact match
+          if (option.toLowerCase().includes(searchTerm) || optionValue.toLowerCase().includes(searchTerm)) {
+            return true;
+          }
+          
+          // Then try partial matches for each search term
+          return searchTerms.every(term => 
+            option.toLowerCase().includes(term) || 
+            optionValue.toLowerCase().includes(term)
+          );
+        }) || [];
+
+
 
         return (
           <div key={fieldName} className="space-y-2">
@@ -518,11 +602,14 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </Label>
 
             {/* Custom Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={(el) => dropdownRefs.current[fieldName] = el}>
               <Button
                 type="button"
                 variant="outline"
-                onClick={toggleDropdown}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleDropdown();
+                }}
                 disabled={disabled}
                 className="w-full justify-between text-left font-normal"
               >
@@ -537,51 +624,86 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               </Button>
 
               {isDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                  {fieldConfig.enum?.map((option: string, index: number) => {
-                    const optionValue = fieldConfig.enumNames?.[index] || option;
-                    const isSelected = currentDropdownValues.includes(optionValue);
-                    const isOtherOption = option.toLowerCase() === 'other';
-
-                    return (
-                      <div key={option} className="p-2 hover:bg-gray-50">
-                        <div
-                          className="flex items-center space-x-2 cursor-pointer"
-                          onClick={() => {
-                            const newValues = isSelected
-                              ? currentDropdownValues.filter(v => v !== optionValue)
-                              : [...currentDropdownValues, optionValue];
-                            handleFieldChange(fieldName, newValues);
-                          }}
-                        >
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={() => { }} // Handled by parent div onClick
-                            disabled={disabled}
-                          />
-                          <span className="text-sm flex-1">{optionValue}</span>
+                <div 
+                  className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Search Input */}
+                  {isSearchable && (
+                    <div className="sticky top-0 bg-white border-b border-gray-200 p-2">
+                      <Input
+                        type="text"
+                        placeholder="Search options..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          setSearchQuery(e.target.value);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-sm"
+                        autoFocus
+                      />
+                      {searchQuery && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {filteredOptions.length} of {fieldConfig.enum?.length || 0} options
                         </div>
+                      )}
+                    </div>
+                  )}
 
-                        {/* Show text input when "Other" is selected */}
-                        {isOtherOption && isSelected && hasOtherDropdownField && (
-                          <div className="mt-2 ml-6">
-                            <Input
-                              type="text"
-                              value={otherDropdownValue}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                handleFieldChange(otherDropdownFieldName, e.target.value);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              placeholder="Please specify..."
+                  {/* Options List */}
+                  {filteredOptions.length > 0 ? (
+                    filteredOptions.map((option: string, index: number) => {
+                      const optionValue = fieldConfig.enumNames?.[index] || option;
+                      const isSelected = currentDropdownValues.includes(optionValue);
+                      const isOtherOption = option.toLowerCase() === 'other';
+
+                      return (
+                        <div key={option} className="p-2 hover:bg-gray-50">
+                          <div
+                            className="flex items-center space-x-2 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const newValues = isSelected
+                                ? currentDropdownValues.filter(v => v !== optionValue)
+                                : [...currentDropdownValues, optionValue];
+                              handleFieldChange(fieldName, newValues);
+                            }}
+                          >
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => { }} // Handled by parent div onClick
                               disabled={disabled}
-                              className="text-sm"
                             />
+                            <span className="text-sm flex-1">{optionValue}</span>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+
+                          {/* Show text input when "Other" is selected */}
+                          {isOtherOption && isSelected && hasOtherDropdownField && (
+                            <div className="mt-2 ml-6">
+                              <Input
+                                type="text"
+                                value={otherDropdownValue}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleFieldChange(otherDropdownFieldName, e.target.value);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="Please specify..."
+                                disabled={disabled}
+                                className="text-sm"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="p-4 text-center text-gray-500 text-sm">
+                      <div>No options found matching "{searchQuery}"</div>
+                      <div className="text-xs mt-1">Try different keywords or check spelling</div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

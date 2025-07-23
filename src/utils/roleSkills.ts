@@ -32,7 +32,6 @@ export const ROLE_SPECIFIC_SKILLS = {
     'Baker/Bakery Assistant': ['Baking', 'Food Safety', 'Creativity', 'Time Management']
   },
   'Manufacturing': {
-    'Machine Operator': ['Machine Operation', 'Safety Protocols', 'Quality Control', 'Technical Skills'],
     'Production Line Worker': ['Assembly', 'Quality Control', 'Team Work', 'Efficiency'],
     'Welder': ['Welding', 'Safety Protocols', 'Technical Skills', 'Precision'],
     'Forklift Operator': ['Forklift Operation', 'Safety Protocols', 'Warehouse Skills', 'Navigation'],
@@ -41,8 +40,12 @@ export const ROLE_SPECIFIC_SKILLS = {
     'Assembly Line Worker': ['Assembly', 'Manual Dexterity', 'Quality Control', 'Team Work'],
     'CNC Machinist': ['CNC Programming', 'Machine Operation', 'Precision', 'Technical Skills'],
     'Industrial Electrician': ['Electrical Work', 'Safety Protocols', 'Troubleshooting', 'Technical Skills'],
-    'Warehouse Associate': ['Inventory Management', 'Order Processing', 'Physical Strength', 'Organization'],
-    'Packaging Technician': ['Packaging', 'Quality Control', 'Efficiency', 'Attention to Detail']
+    'Warehouse Associate': ['Inventory Management', 'Physical Stamina', 'Organization', 'Safety'],
+    'Packaging Technician': ['Packaging', 'Quality Control', 'Efficiency', 'Attention to Detail'],
+    'Electrician': ['Electrical Installation', 'Wiring', 'Safety Protocols', 'Troubleshooting', 'Technical Skills'],
+    'Fitter': ['Mechanical Fitting', 'Assembly', 'Blueprint Reading', 'Hand Tools', 'Precision', 'Safety Protocols'],
+    'Mechanic': ['Equipment Maintenance', 'Repair', 'Troubleshooting', 'Diagnostics', 'Technical Skills', 'Safety'],
+    'Machine Operator': ['Machine Operation', 'Equipment Monitoring', 'Safety Protocols', 'Quality Control', 'Technical Skills']
   },
   'Sales': {
     'Field Sales Executive': ['Sales Skills', 'Communication', 'Customer Relations', 'Negotiation'],
