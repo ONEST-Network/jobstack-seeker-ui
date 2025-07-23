@@ -108,6 +108,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem onClick={handleUpdateProfile}>
+              <Users className="h-4 w-4 mr-2" />
               Update Profile
             </DropdownMenuItem>
           )}
@@ -116,10 +117,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
               <DropdownMenuItem onClick={handleMyApplications}>
                 <FileText className="h-4 w-4 mr-2" />
                 My Applications
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleManageCandidates}>
-                <Users className="h-4 w-4 mr-2" />
-                Manage Profiles
               </DropdownMenuItem>
             </>
           )}

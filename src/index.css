@@ -1,3 +1,6 @@
+/* Leaflet CSS - must be imported first */
+@import 'leaflet/dist/leaflet.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -100,4 +103,47 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Ensure dialogs appear above map elements */
+[data-radix-popper-content-wrapper],
+[data-radix-dialog-overlay],
+[data-radix-dialog-content],
+[data-vaul-drawer-wrapper],
+[data-vaul-overlay],
+[data-vaul-drawer],
+.fixed[data-state="open"],
+.fixed.z-50 {
+  z-index: 999999 !important;
+}
+
+/* Force all dialog elements to appear above map */
+div[role="dialog"],
+div[role="alertdialog"],
+.leaflet-container ~ div[data-radix-dialog-overlay],
+.leaflet-container ~ div[data-radix-dialog-content] {
+  z-index: 999999 !important;
+}
+
+
+
+/* Custom map toast container */
+.z-\[1001\] {
+  z-index: 1001 !important;
 }
