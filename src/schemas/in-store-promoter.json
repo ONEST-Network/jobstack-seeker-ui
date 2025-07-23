@@ -186,7 +186,7 @@
           }
         },
         "ui": {
-          "order": ["age", "languagesKnown", "highestEducation", "communicationSkillsScore", "domainKnowledge", "taskVideo", "scanQRCode"],
+          "order": ["age", "languagesKnown", "highestEducation","presentabilityScore", "communicationSkillsScore", "domainKnowledge", "taskVideo", "scanQRCode"],
           "description": "Tell us about your qualifications, skills, and experience"
         }
       },
