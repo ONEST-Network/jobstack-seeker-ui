@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Plus, Users, ChevronDown } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Search, Plus, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateCard from './CandidateCard';
 import CandidateProfileDialog from './CandidateProfileDialog';
@@ -76,26 +75,10 @@ const CandidateManagement: React.FC = () => {
             Manage your different job seeker profiles for various opportunities
           </p>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add New Profile
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            align="end" 
-            className="w-[200px]"
-            sideOffset={8}
-            avoidCollisions={true}
-          >
-            <DropdownMenuItem onClick={() => setShowAddDialog(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create New Profile
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button onClick={() => setShowAddDialog(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Add New Profile
+        </Button>
       </div>
 
       {/* Search */}

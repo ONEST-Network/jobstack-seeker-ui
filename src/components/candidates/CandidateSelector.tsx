@@ -31,48 +31,58 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-[280px] sm:w-[320px] max-h-[60vh] overflow-y-auto"
+        className="w-[280px] sm:w-[320px] p-0"
         sideOffset={8}
         avoidCollisions={true}
       >
-        <div className="p-3">
-          <div className="text-sm font-medium text-muted-foreground mb-3">Switch Profile</div>
-          <div className="space-y-1">
-            {user.managedCandidates.map((candidate) => (
-              <DropdownMenuItem
-                key={candidate.id}
-                onClick={() => selectCandidate(candidate.id)}
-                className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                  selectedCandidate?.id === candidate.id 
-                    ? 'bg-accent text-accent-foreground' 
-                    : 'hover:bg-muted'
-                }`}
-              >
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="font-medium truncate">
-                    {candidate.nickname || candidate.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate">
-                    {candidate.interestedRole || 'No role specified'}
-                  </span>
-                </div>
-                {selectedCandidate?.id === candidate.id && (
-                  <Badge variant="secondary" className="text-xs ml-2 flex-shrink-0">
-                    Active
-                  </Badge>
-                )}
-              </DropdownMenuItem>
-            ))}
+        <div className="flex flex-col max-h-[40vh]">
+          {/* Header */}
+          <div className="p-2 border-b">
+            <div className="text-sm font-medium text-muted-foreground">Switch Profile</div>
+          </div>
+          
+          {/* Scrollable Profile List */}
+          <div className="overflow-y-auto flex-1 min-h-0" style={{ maxHeight: 'calc(40vh - 80px)' }}>
+            <div className="p-2 space-y-1">
+              {user.managedCandidates.map((candidate) => (
+                <DropdownMenuItem
+                  key={candidate.id}
+                  onClick={() => selectCandidate(candidate.id)}
+                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                    selectedCandidate?.id === candidate.id 
+                      ? 'bg-accent text-accent-foreground' 
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="font-medium truncate">
+                      {candidate.nickname || candidate.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {candidate.interestedRole || 'No role specified'}
+                    </span>
+                  </div>
+                  {selectedCandidate?.id === candidate.id && (
+                    <Badge variant="secondary" className="text-xs ml-2 flex-shrink-0">
+                      Active
+                    </Badge>
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </div>
+          </div>
+          
+          {/* Fixed Footer */}
+          <div className="border-t">
+            <DropdownMenuItem 
+              onClick={onAddCandidate} 
+              className="gap-2 p-2 cursor-pointer hover:bg-muted rounded-none"
+            >
+              <Plus className="h-4 w-4" />
+              Add New Profile
+            </DropdownMenuItem>
           </div>
         </div>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onClick={onAddCandidate} 
-          className="gap-2 p-3 cursor-pointer hover:bg-muted"
-        >
-          <Plus className="h-4 w-4" />
-          Add New Profile
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
