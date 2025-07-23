@@ -328,9 +328,9 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg">Select Profile for {jobTitle}</DialogTitle>
+            <DialogTitle className="text-xl">Select Profile for {jobTitle}</DialogTitle>
           </DialogHeader>
           {renderContent()}
         </DialogContent>
