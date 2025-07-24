@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiClient, type AuthResponse, type SignUpResponse, type SessionResponse, type ProfileResponse, type ProfilesResponse } from '@/lib/api';
+import { apiClient, type AuthResponse, type SignUpResponse, type SessionResponse, type ProfileResponse, type ProfilesResponse, cleanContaminatedProfile } from '@/lib/api';
 import { Education, SkillCertification, WorkExperience } from '@/types/profile';
 
 export interface User {
@@ -227,6 +227,7 @@ interface AuthContextType {
   deleteCandidate: (candidateId: string) => void;
   selectCandidate: (candidateId: string) => void;
   getSelectedCandidate: () => CandidateProfile | null;
+  cleanupIncompleteProfiles: () => void;
   isLoading: boolean;
 }
 
@@ -547,7 +548,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             createdAt: profile.createdAt,
             isActive: true,
             nickname: metadata.name || metadata.whoIAm?.name || `Profile ${index + 1}`,
-            // Add unified schema data
+            // Add unified schema data (cleaned for role)
             whoIAm: metadata.whoIAm as any,
             whatIHave: metadata.whatIHave as any,
             whatIWant: metadata.whatIWant as any,
@@ -561,7 +562,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isHometownVerified: metadata.isHometownVerified || false,
           };
           
-          return candidateProfile;
+          // Clean contaminated profile data based on role
+          const cleanedProfile = cleanContaminatedProfile(candidateProfile);
+          
+          return cleanedProfile;
         });
         
         return transformedProfiles;
@@ -1187,6 +1191,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addCandidate = (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>) => {
     if (user) {
+      // Validate that the candidate has required data before adding
+      const hasRequiredData = candidate.name?.trim() && 
+                             candidate.interestedRole?.trim() && 
+                             (candidate.currentLocation?.trim() || candidate.whoIAm?.location?.trim()) &&
+                             (candidate.phone?.trim() || candidate.whoIAm?.phone?.trim());
+
+      if (!hasRequiredData) {
+        console.log('Incomplete candidate data, not adding candidate:', candidate);
+        return;
+      }
+
       const newCandidate: CandidateProfile = {
         ...candidate,
         id: Date.now().toString(),
@@ -1278,6 +1293,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   };
 
+  // Clean up incomplete profiles
+  const cleanupIncompleteProfiles = () => {
+    if (user) {
+      const completeProfiles = user.managedCandidates.filter(candidate => {
+        const hasRequiredData = candidate.name?.trim() && 
+                               candidate.interestedRole?.trim() && 
+                               (candidate.currentLocation?.trim() || candidate.whoIAm?.location?.trim()) &&
+                               (candidate.phone?.trim() || candidate.whoIAm?.phone?.trim());
+        return hasRequiredData;
+      });
+
+      if (completeProfiles.length !== user.managedCandidates.length) {
+        const updatedUser = {
+          ...user,
+          managedCandidates: completeProfiles,
+          selectedCandidateId: completeProfiles.length > 0 ? completeProfiles[0].id : undefined
+        };
+        
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -1298,6 +1337,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       deleteCandidate,
       selectCandidate,
       getSelectedCandidate,
+      cleanupIncompleteProfiles,
       isLoading
     }}>
       {children}

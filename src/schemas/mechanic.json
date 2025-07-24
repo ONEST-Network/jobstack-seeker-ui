@@ -476,7 +476,7 @@
             "age",
             "highestQualification",
             "itiSpecialization",
-            "fitterAssessmentScore",
+            "mechanicAssessmentScore",
             "intentAssessmentScore",
             "taskVideo",
             "qrCodeScan"
@@ -489,7 +489,7 @@
             },
             {
               "title": "Assessment Scores",
-              "fields": ["electricianAssessmentScore", "intentAssessmentScore"]
+              "fields": ["mechanicAssessmentScore", "intentAssessmentScore"]
             },
             {
               "title": "Task Video",

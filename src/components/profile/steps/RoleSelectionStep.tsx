@@ -8,10 +8,12 @@ import PriorityRolesSection from '../role-selection/PriorityRolesSection';
 
 interface RoleSelectionStepProps {
   onVoiceStart?: () => void;
+  isUpdate?: boolean;
 }
 
 const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
-  onVoiceStart
+  onVoiceStart,
+  isUpdate = false
 }) => {
   const {
     profile,
@@ -29,6 +31,11 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   };
 
   const handleRoleSelection = (role: string) => {
+    // Don't allow role selection in update mode
+    if (isUpdate) {
+      return;
+    }
+    
     // Find industry for the selected role
     let roleIndustry = 'Other';
     for (const [industry, roles] of Object.entries(JOB_ROLES_BY_INDUSTRY)) {
@@ -51,7 +58,9 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
     <div className="flex flex-col h-full max-h-[60vh]">
       {/* Header - Fixed */}
       <div className="text-center mb-4 flex-shrink-0">
-        <p className="text-sm text-muted-foreground">Find suitable work for you</p>
+        <p className="text-sm text-muted-foreground">
+          {isUpdate ? 'Current role (cannot be changed)' : 'Find suitable work for you'}
+        </p>
       </div>
       
       {/* Search Bar - Fixed */}
@@ -68,7 +77,8 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
             <PriorityRolesSection 
               roles={filteredPriorityRoles} 
               selectedRole={profile.interestedRole} 
-              onRoleSelect={handleRoleSelection} 
+              onRoleSelect={handleRoleSelection}
+              isUpdate={isUpdate}
             />
           </div>
         </ScrollArea>
@@ -76,12 +86,16 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
 
       {/* Selected Role Display - Fixed */}
       {profile.interestedRole && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex-shrink-0">
+        <div className={`mt-4 p-3 border rounded-lg flex-shrink-0 ${isUpdate ? 'bg-gray-50 border-gray-200' : 'bg-blue-50 border-blue-200'}`}>
           <div className="flex items-center gap-2">
-            <Briefcase className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <Briefcase className={`h-4 w-4 flex-shrink-0 ${isUpdate ? 'text-gray-600' : 'text-blue-600'}`} />
             <div className="min-w-0">
-              <p className="font-medium text-blue-900 text-sm truncate">Selected: {profile.interestedRole}</p>
-              <p className="text-xs text-blue-700 truncate">Industry: {profile.interestedIndustry}</p>
+              <p className={`font-medium text-sm truncate ${isUpdate ? 'text-gray-900' : 'text-blue-900'}`}>
+                {isUpdate ? 'Current Role' : 'Selected'}: {profile.interestedRole}
+              </p>
+              <p className={`text-xs truncate ${isUpdate ? 'text-gray-700' : 'text-blue-700'}`}>
+                Industry: {profile.interestedIndustry}
+              </p>
             </div>
           </div>
         </div>

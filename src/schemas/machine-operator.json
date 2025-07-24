@@ -489,7 +489,7 @@
             },
             {
               "title": "Assessment Scores",
-              "fields": ["electricianAssessmentScore", "intentAssessmentScore"]
+              "fields": ["machineOperatorAssessmentScore", "intentAssessmentScore"]
             },
             {
               "title": "Task Video",

@@ -5,12 +5,14 @@ interface PriorityRolesSectionProps {
   roles: string[];
   selectedRole?: string;
   onRoleSelect: (role: string) => void;
+  isUpdate?: boolean;
 }
 
 const PriorityRolesSection: React.FC<PriorityRolesSectionProps> = ({
   roles,
   selectedRole,
-  onRoleSelect
+  onRoleSelect,
+  isUpdate = false
 }) => {
   if (roles.length === 0) return null;
 
@@ -18,7 +20,7 @@ const PriorityRolesSection: React.FC<PriorityRolesSectionProps> = ({
     <div>
       <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
         <span className="text-lg">⭐</span>
-        Popular Roles
+        {isUpdate ? 'Current Role (Read Only)' : 'Popular Roles'}
       </h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {roles.map(role => (
@@ -26,8 +28,9 @@ const PriorityRolesSection: React.FC<PriorityRolesSectionProps> = ({
             key={role}
             variant={selectedRole === role ? "default" : "outline"}
             onClick={() => onRoleSelect(role)}
-            className="h-auto p-3 text-left justify-start text-wrap"
+            className={`h-auto p-3 text-left justify-start text-wrap ${isUpdate ? 'opacity-50 cursor-not-allowed' : ''}`}
             title={role}
+            disabled={isUpdate}
           >
             <span className="text-sm leading-tight">{role}</span>
           </Button>

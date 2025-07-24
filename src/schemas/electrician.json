@@ -448,8 +448,8 @@
             "ui:widget": "number",
             "ui:placeholder": "Enter intent assessment score",
             "ui": {
-              "order": ["qualityScore2", "timeTaken2", "qualityScoreExplanation2", "taskUpload2"],
-              "description": "Assessment for machine control on Juki machine"
+              "order": ["age", "highestQualification", "itiSpecialization", "electricianAssessmentScore", "intentAssessmentScore", "taskVideo", "qrCodeScan"],
+              "description": "Assessment for electrician"
             }
           },
           "taskVideo": {

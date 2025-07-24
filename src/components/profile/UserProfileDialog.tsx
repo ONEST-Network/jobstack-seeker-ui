@@ -47,84 +47,119 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   useEffect(() => {
     if (isOpen) {
       if (initialProfile) {
-        // Use the provided initialProfile
+        // Use the provided initialProfile (for editing existing profiles)
         setProfile(initialProfile);
       } else {
-        // If no initialProfile provided, try to get from selected candidate
-        const selectedCandidate = getSelectedCandidate();
-        if (selectedCandidate) {
-          const transformedProfile = {
-            // Who I Am data
-            name: selectedCandidate.name,
-            dateOfBirth: selectedCandidate.dateOfBirth,
-            age: selectedCandidate.age,
-            gender: selectedCandidate.gender,
-            hometown: selectedCandidate.hometown,
-            aadharNumber: selectedCandidate.aadharNumber,
-            phone: selectedCandidate.phone,
-            currentLocation: selectedCandidate.currentLocation,
-            desiredLocation: selectedCandidate.desiredLocation,
-            isNameVerified: selectedCandidate.isNameVerified,
-            isAgeVerified: selectedCandidate.isAgeVerified,
-            isGenderVerified: selectedCandidate.isGenderVerified,
-            isAadharVerified: selectedCandidate.isAadharVerified,
-            isHometownVerified: selectedCandidate.isHometownVerified,
-            
-            // What I Have data
-            basicLiteracy: selectedCandidate.basicLiteracy,
-            skillProofVideo: selectedCandidate.skillProofVideo,
-            qualityProofImage: selectedCandidate.qualityProofImage,
-            hasWorkExperience: selectedCandidate.hasWorkExperience,
-            previousCompany: selectedCandidate.previousCompany,
-            previousLocation: selectedCandidate.previousLocation,
-            experienceMonths: selectedCandidate.experienceMonths,
-            machinesOperated: selectedCandidate.machinesOperated,
-            
-            // What I Want data
-            salaryFrequency: selectedCandidate.salaryFrequency,
-            advanceMonthsAvailable: selectedCandidate.advanceMonthsAvailable,
-            advanceFrequency: selectedCandidate.advanceFrequency,
-            monthlySalary: selectedCandidate.monthlySalary,
-            pfDeduction: selectedCandidate.pfDeduction,
-            esicDeduction: selectedCandidate.esicDeduction,
-            inHandSalary: selectedCandidate.inHandSalary,
-            housingFacility: selectedCandidate.housingFacility,
-            foodFacility: selectedCandidate.foodFacility,
-            workHoursPerDay: selectedCandidate.workHoursPerDay,
-            overtimeAvailable: selectedCandidate.overtimeAvailable,
-            overtimePayMultiplier: selectedCandidate.overtimePayMultiplier,
-            gradeUpgradation: selectedCandidate.gradeUpgradation,
-            factoryTrustScore: selectedCandidate.factoryTrustScore,
-            
-            // Role and industry
-            interestedRole: selectedCandidate.interestedRole,
-            interestedIndustry: selectedCandidate.interestedIndustry,
-            
-            // Legacy fields
-            experience: selectedCandidate.experience,
-            skills: selectedCandidate.skills,
-            certificates: selectedCandidate.certificates,
-            
-            // Education and certifications
-            education: selectedCandidate.education,
-            skillCertifications: selectedCandidate.skillCertifications,
-            workExperience: selectedCandidate.workExperience,
-            
-            // Assessment and verification
-            assessmentScores: selectedCandidate.assessmentScores,
-            documentVerificationStatus: selectedCandidate.documentVerificationStatus,
-            
-            // Unified schema data
-            whoIAm: selectedCandidate.whoIAm,
-            whatIHave: selectedCandidate.whatIHave,
-            whatIWant: selectedCandidate.whatIWant,
-          };
+        // For new profiles, start with completely fresh data
+        const freshProfile = {
+          // Who I Am data - start empty
+          name: '',
+          dateOfBirth: '',
+          age: undefined,
+          gender: undefined,
+          hometown: '',
+          aadharNumber: '',
+          phone: '',
+          currentLocation: '',
+          desiredLocation: '',
+          isNameVerified: false,
+          isAgeVerified: false,
           
-          setProfile(transformedProfile);
-        }
+          // What I Have data - start empty
+          basicLiteracy: undefined,
+          skillProofVideo: '',
+          qualityProofImage: '',
+          hasWorkExperience: undefined,
+          previousCompany: '',
+          previousLocation: '',
+          experienceMonths: undefined,
+          machinesOperated: [],
+          
+          // What I Want data - start empty
+          salaryFrequency: undefined,
+          advanceMonthsAvailable: undefined,
+          advanceFrequency: undefined,
+          monthlySalary: undefined,
+          pfDeduction: undefined,
+          esicDeduction: undefined,
+          inHandSalary: undefined,
+          housingFacility: undefined,
+          foodFacility: undefined,
+          workHoursPerDay: undefined,
+          overtimeAvailable: undefined,
+          overtimePayMultiplier: undefined,
+          gradeUpgradation: undefined,
+          factoryTrustScore: undefined,
+          
+          // Role and industry - start empty
+          interestedRole: '',
+          interestedIndustry: '',
+          
+          // Legacy fields - start empty
+          experience: [],
+          skills: [],
+          certificates: [],
+          
+          // Education and certifications - start empty
+          education: [],
+          skillCertifications: [],
+          workExperience: [],
+          
+          // Assessment and verification - start empty
+          assessmentScores: [],
+          documentVerificationStatus: [],
+          
+          // Unified schema data - start empty
+          whoIAm: {
+            name: '',
+            location: '',
+            phone: '',
+            dateOfBirth: '',
+            age: undefined,
+            gender: undefined,
+            hometown: '',
+            aadharNumber: '',
+            currentLocation: '',
+            desiredLocation: '',
+            isNameVerified: false,
+            isAgeVerified: false,
+            isPhoneVerified: false,
+            isLocationVerified: false,
+          },
+          whatIHave: {
+            age: undefined,
+            basicLiteracy: undefined,
+            skillProofVideo: '',
+            qualityProofImage: '',
+            hasWorkExperience: undefined,
+            previousCompany: '',
+            previousLocation: '',
+            experienceMonths: undefined,
+            machinesOperated: [],
+            isAgeVerified: false,
+          },
+          whatIWant: {
+            salaryFrequency: undefined,
+            advanceMonthsAvailable: undefined,
+            advanceFrequency: undefined,
+            monthlySalary: undefined,
+            pfDeduction: undefined,
+            esicDeduction: undefined,
+            inHandSalary: undefined,
+            housingFacility: undefined,
+            foodFacility: undefined,
+            workHoursPerDay: undefined,
+            overtimeAvailable: undefined,
+            overtimePayMultiplier: undefined,
+            gradeUpgradation: undefined,
+            factoryTrustScore: undefined,
+          },
+        };
+        
+        setProfile(freshProfile);
       }
     }
-  }, [isOpen, initialProfile, getSelectedCandidate, setProfile]);
+  }, [isOpen, initialProfile, setProfile]);
 
   // Reset step when dialog opens
   useEffect(() => {
@@ -176,6 +211,28 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
         return;
       }
 
+      // Check for location in both legacy and unified schema structures
+      const location = profile.currentLocation || profile.whoIAm?.location;
+      if (!location?.trim()) {
+        toast({
+          title: "Missing Required Field",
+          description: "Please enter your location before saving your profile.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check for phone number in both legacy and unified schema structures
+      const phone = profile.phone || profile.whoIAm?.phone;
+      if (!phone?.trim()) {
+        toast({
+          title: "Missing Required Field",
+          description: "Please enter your phone number before saving your profile.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       // Calculate derived fields
       const finalProfile = {
         ...profile,
@@ -197,7 +254,6 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           locationTag = profileCount === 0 ? "home" : `home${profileCount}`;
           // Generate unique contact tag: "personal" for first profile, "personal1", "personal2", etc. for subsequent profiles
           contactTag = profileCount === 0 ? "personal" : `personal${profileCount}`;
-          console.log('🔍 Generated location tag:', locationTag, 'and contact tag:', contactTag, 'for profile #', profileCount + 1);
         } catch (error) {
           console.log('Error fetching existing profiles, using default tags:', error);
           locationTag = "home";
@@ -209,14 +265,9 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       const apiPayload = transformProfileForAPI(finalProfile, user?.email, locationTag, contactTag);
 
       // Call the profile creation API
-      console.log('🔍 Debug - isUpdate:', isUpdate, 'profileId:', profileId);
       if (isUpdate && profileId) {
-        console.log('🔄 Updating profile with ID:', profileId);
-        console.log('📦 Update payload:', apiPayload);
         await apiClient.updateProfile(profileId, apiPayload);
       } else {
-        console.log('🆕 Creating new profile');
-        console.log('📦 Create payload:', apiPayload);
         await apiClient.createProfile(apiPayload);
       }
 
@@ -310,7 +361,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   const renderStep = () => {
     // Step 0 is ALWAYS role selection, regardless of unified schema
     if (step === 0) {
-      return <RoleSelectionStep onVoiceStart={() => setShowVoiceDialog(true)} />;
+      return <RoleSelectionStep onVoiceStart={() => setShowVoiceDialog(true)} isUpdate={isUpdate} />;
     }
     
     // For steps 1+, check if we have a unified schema for the selected role
@@ -351,7 +402,8 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
     
     // Step 0 is always role selection
     if (step === 0) {
-      return `${profileType} - Role Selection (1 of ${getTotalSteps()})`;
+      const title = isUpdate ? `${profileType} - Role Selection (Read Only) (1 of ${getTotalSteps()})` : `${profileType} - Role Selection (1 of ${getTotalSteps()})`;
+      return title;
     }
     
     // For steps 1+, check if we have a unified schema for the selected role
@@ -395,6 +447,10 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
     
     // Step 0 is always role selection - require a role to be selected
     if (step === 0) {
+      // In update mode, we already have a role, so we can proceed
+      if (isUpdate) {
+        return true;
+      }
       const hasRole = profile.interestedRole?.trim() !== '';
       return hasRole;
     }
@@ -415,7 +471,9 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
         if (stepSchema?.required) {
           const canProceedResult = stepSchema.required.every((field: string) => {
             const value = stepData[field];
-            const hasValue = value !== undefined && value !== null && value !== '';
+            // Check for non-empty string values (not just truthy)
+            const hasValue = value !== undefined && value !== null && 
+                           (typeof value === 'string' ? value.trim() !== '' : value !== '');
             return hasValue;
           });
           return canProceedResult;
@@ -425,9 +483,11 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
     } else {
       // Legacy validation (offset by 1)
       switch (step) {
-        case 1: // Basic Personal Information - require name
+        case 1: // Basic Personal Information - require name, location, and phone
           const hasName = (profile.name?.trim() !== '') || (profile.whoIAm?.name?.trim() !== '');
-          return hasName;
+          const hasLocation = (profile.currentLocation?.trim() !== '') || (profile.whoIAm?.location?.trim() !== '');
+          const hasPhone = (profile.phone?.trim() !== '') || (profile.whoIAm?.phone?.trim() !== '');
+          return hasName && hasLocation && hasPhone;
         case 2: // Education, Skills, and Work Experience - optional
           return true;
         case 3: // Job Preferences - optional
