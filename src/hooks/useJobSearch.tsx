@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { apiClient } from '@/lib/api';
+import { apiClient, cleanContaminatedProfile } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface JobItem {
@@ -233,42 +233,46 @@ export const useJobSearch = () => {
         // Use selected candidate's profile data
         console.log('Using selected candidate for match score:', selectedCandidate);
         
-        // Transform the selected candidate data to use the correct field names for the API
+        // Clean the candidate profile data first to remove contamination
+        const cleanedCandidate = cleanContaminatedProfile(selectedCandidate);
+        console.log('Cleaned candidate profile:', cleanedCandidate);
+        
+        // Transform the cleaned candidate data to use the correct field names for the API
         seekerData = {
-          id: selectedCandidate.id,
+          id: cleanedCandidate.id,
           type: 'personal',
           metadata: {
-            name: selectedCandidate.name,
-            age: selectedCandidate.age,
-            gender: selectedCandidate.gender,
-            phone: selectedCandidate.phone,
-            currentLocation: selectedCandidate.currentLocation,
-            desiredLocation: selectedCandidate.desiredLocation,
-            // Transform camelCase to lowercase for API compatibility
-            whoiam: selectedCandidate.whoIAm || {},
-            whatihave: selectedCandidate.whatIHave || {},
-            whatiwant: selectedCandidate.whatIWant || {},
+            name: cleanedCandidate.name,
+            age: cleanedCandidate.age,
+            gender: cleanedCandidate.gender,
+            phone: cleanedCandidate.phone,
+            currentLocation: cleanedCandidate.currentLocation,
+            desiredLocation: cleanedCandidate.desiredLocation,
+            // Transform camelCase to lowercase for API compatibility - use cleaned data
+            whoiam: cleanedCandidate.whoIAm || {},
+            whatihave: cleanedCandidate.whatIHave || {},
+            whatiwant: cleanedCandidate.whatIWant || {},
             // Include other fields
-            skills: selectedCandidate.skills || [],
-            experience: selectedCandidate.experience || [],
-            certificates: selectedCandidate.certificates || [],
-            education: selectedCandidate.education || [],
-            skillCertifications: selectedCandidate.skillCertifications || [],
-            workExperience: selectedCandidate.workExperience || [],
+            skills: cleanedCandidate.skills || [],
+            experience: cleanedCandidate.experience || [],
+            certificates: cleanedCandidate.certificates || [],
+            education: cleanedCandidate.education || [],
+            skillCertifications: cleanedCandidate.skillCertifications || [],
+            workExperience: cleanedCandidate.workExperience || [],
             // Verification status
-            isGenderVerified: selectedCandidate.isGenderVerified || false,
-            isAadharVerified: selectedCandidate.isAadharVerified || false,
-            isHometownVerified: selectedCandidate.isHometownVerified || false,
-            isNameVerified: selectedCandidate.isNameVerified || false,
-            isAgeVerified: selectedCandidate.isAgeVerified || false,
+            isGenderVerified: cleanedCandidate.isGenderVerified || false,
+            isAadharVerified: cleanedCandidate.isAadharVerified || false,
+            isHometownVerified: cleanedCandidate.isHometownVerified || false,
+            isNameVerified: cleanedCandidate.isNameVerified || false,
+            isAgeVerified: cleanedCandidate.isAgeVerified || false,
             // Assessment scores
-            assessmentScores: selectedCandidate.assessmentScores || [],
-            documentVerificationStatus: selectedCandidate.documentVerificationStatus || []
+            assessmentScores: cleanedCandidate.assessmentScores || [],
+            documentVerificationStatus: cleanedCandidate.documentVerificationStatus || []
           },
-          createdAt: selectedCandidate.createdAt || new Date().toISOString()
+          createdAt: cleanedCandidate.createdAt || new Date().toISOString()
         };
         
-        console.log('Using selected candidate data for match score:', JSON.stringify(seekerData, null, 2));
+        console.log('Using cleaned candidate data for match score:', JSON.stringify(seekerData, null, 2));
       } else {
         // Fallback to user's profile if no candidate is selected
         const profileResponse = await apiClient.getProfile();
@@ -286,42 +290,74 @@ export const useJobSearch = () => {
           return jobsToScore;
         }
 
-        // Transform the seeker data to use the correct field names for the API
-        seekerData = {
+        // Create a candidate-like object from profile data and clean it
+        const candidateFromProfile = {
           id: profileData.id,
+          interestedRole: profileData.metadata?.role,
+          whoIAm: profileData.metadata?.whoIAm || {},
+          whatIHave: profileData.metadata?.whatIHave || {},
+          whatIWant: profileData.metadata?.whatIWant || {},
+          name: profileData.metadata?.name,
+          age: profileData.metadata?.age,
+          gender: profileData.metadata?.gender,
+          phone: profileData.metadata?.phone,
+          currentLocation: profileData.metadata?.currentLocation,
+          desiredLocation: profileData.metadata?.desiredLocation,
+          skills: profileData.metadata?.skills || [],
+          experience: profileData.metadata?.experience || [],
+          certificates: profileData.metadata?.certificates || [],
+          education: profileData.metadata?.education || [],
+          skillCertifications: profileData.metadata?.skillCertifications || [],
+          workExperience: profileData.metadata?.workExperience || [],
+          isGenderVerified: profileData.metadata?.isGenderVerified || false,
+          isAadharVerified: profileData.metadata?.isAadharVerified || false,
+          isHometownVerified: profileData.metadata?.isHometownVerified || false,
+          isNameVerified: profileData.metadata?.isNameVerified || false,
+          isAgeVerified: profileData.metadata?.isAgeVerified || false,
+          assessmentScores: profileData.metadata?.assessmentScores || [],
+          documentVerificationStatus: profileData.metadata?.documentVerificationStatus || []
+        };
+
+        // Clean the profile data to remove contamination
+        const cleanedProfile = cleanContaminatedProfile(candidateFromProfile);
+        console.log('Cleaned user profile data:', cleanedProfile);
+
+        // Transform the cleaned seeker data to use the correct field names for the API
+        seekerData = {
+          id: cleanedProfile.id,
           type: profileData.type || 'personal',
           metadata: {
-            name: profileData.metadata?.name,
-            age: profileData.metadata?.age,
-            gender: profileData.metadata?.gender,
-            phone: profileData.metadata?.phone,
-            currentLocation: profileData.metadata?.currentLocation,
-            desiredLocation: profileData.metadata?.desiredLocation,
-            // Transform camelCase to lowercase for API compatibility
-            whoiam: profileData.metadata?.whoIAm || {},
-            whatihave: profileData.metadata?.whatIHave || {},
-            whatiwant: profileData.metadata?.whatIWant || {},
+            name: cleanedProfile.name,
+            age: cleanedProfile.age,
+            gender: cleanedProfile.gender,
+            phone: cleanedProfile.phone,
+            currentLocation: cleanedProfile.currentLocation,
+            desiredLocation: cleanedProfile.desiredLocation,
+            // Transform camelCase to lowercase for API compatibility - use cleaned data
+            whoiam: cleanedProfile.whoIAm || {},
+            whatihave: cleanedProfile.whatIHave || {},
+            whatiwant: cleanedProfile.whatIWant || {},
             // Include other fields
-            skills: profileData.metadata?.skills || [],
-            experience: profileData.metadata?.experience || [],
-            certificates: profileData.metadata?.certificates || [],
-            education: profileData.metadata?.education || [],
-            skillCertifications: profileData.metadata?.skillCertifications || [],
-            workExperience: profileData.metadata?.workExperience || [],
+            skills: cleanedProfile.skills || [],
+            experience: cleanedProfile.experience || [],
+            certificates: cleanedProfile.certificates || [],
+            education: cleanedProfile.education || [],
+            skillCertifications: cleanedProfile.skillCertifications || [],
+            workExperience: cleanedProfile.workExperience || [],
             // Verification status
-            isGenderVerified: profileData.metadata?.isGenderVerified || false,
-            isAadharVerified: profileData.metadata?.isAadharVerified || false,
-            isHometownVerified: profileData.metadata?.isHometownVerified || false,
-            isNameVerified: profileData.metadata?.isNameVerified || false,
-            isAgeVerified: profileData.metadata?.isAgeVerified || false,
+            isGenderVerified: cleanedProfile.isGenderVerified || false,
+            isAadharVerified: cleanedProfile.isAadharVerified || false,
+            isHometownVerified: cleanedProfile.isHometownVerified || false,
+            isNameVerified: cleanedProfile.isNameVerified || false,
+            isAgeVerified: cleanedProfile.isAgeVerified || false,
             // Assessment scores
-            assessmentScores: profileData.metadata?.assessmentScores || [],
-            documentVerificationStatus: profileData.metadata?.documentVerificationStatus || []
+            assessmentScores: cleanedProfile.assessmentScores || [],
+            documentVerificationStatus: cleanedProfile.documentVerificationStatus || []
           },
           createdAt: (profileData as any).createdAt || new Date().toISOString()
         };
 
-        console.log('Using user profile data for match score:', JSON.stringify(seekerData, null, 2));
+        console.log('Using cleaned user profile data for match score:', JSON.stringify(seekerData, null, 2));
       }
 
       // Ensure we have valid seeker data

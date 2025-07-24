@@ -8,11 +8,6 @@ interface ProfileFormContextType {
     education?: Education[];
     skillCertifications?: SkillCertification[];
     workExperience?: WorkExperience[];
-    isNameVerified?: boolean;
-    isAgeVerified?: boolean;
-    isGenderVerified?: boolean;
-    isAadharVerified?: boolean;
-    isHometownVerified?: boolean;
     // Unified schema support
     whoIAm?: Record<string, any>;
     whatIHave?: Record<string, any>;
@@ -23,11 +18,6 @@ interface ProfileFormContextType {
     education?: Education[];
     skillCertifications?: SkillCertification[];
     workExperience?: WorkExperience[];
-    isNameVerified?: boolean;
-    isAgeVerified?: boolean;
-    isGenderVerified?: boolean;
-    isAadharVerified?: boolean;
-    isHometownVerified?: boolean;
     // Unified schema support
     whoIAm?: Record<string, any>;
     whatIHave?: Record<string, any>;
@@ -63,11 +53,6 @@ export const ProfileFormProvider: React.FC<ProfileFormProviderProps> = ({
     education?: Education[];
     skillCertifications?: SkillCertification[];
     workExperience?: WorkExperience[];
-    isNameVerified?: boolean;
-    isAgeVerified?: boolean;
-    isGenderVerified?: boolean;
-    isAadharVerified?: boolean;
-    isHometownVerified?: boolean;
     // Unified schema support
     whoIAm?: Record<string, any>;
     whatIHave?: Record<string, any>;
@@ -75,27 +60,24 @@ export const ProfileFormProvider: React.FC<ProfileFormProviderProps> = ({
     [key: string]: any; // Allow dynamic step data
   }>({
     // Who I Am - Basic Personal Information
-    name: '',
-    age: undefined,
-    currentLocation: '',
-    desiredLocation: '',
+    name: initialProfile?.name || '',
+    age: initialProfile?.age || undefined,
+    currentLocation: initialProfile?.currentLocation || '',
+    desiredLocation: initialProfile?.desiredLocation || '',
     
     // What I Have - Legacy fields for backward compatibility
-    experience: [],
-    skills: [],
-    certificates: [],
+    experience: initialProfile?.experience || [],
+    skills: initialProfile?.skills || [],
+    certificates: initialProfile?.certificates || [],
     
-    // New fields
+    // New fields - only use if they exist in UserProfile
     education: [],
     skillCertifications: [],
     workExperience: [],
     
-    // Verification flags
-    isNameVerified: false,
-    isAgeVerified: false,
-    isGenderVerified: false,
-    isAadharVerified: false,
-    isHometownVerified: false,
+    // Verification flags - only use UserProfile fields
+    isNameVerified: initialProfile?.isNameVerified || false,
+    isAgeVerified: initialProfile?.isAgeVerified || false,
     
     // Unified schema support - initialize with proper merging
     whoIAm: initialProfile?.whoIAm || {},

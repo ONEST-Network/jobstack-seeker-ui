@@ -97,6 +97,11 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
   // For fields that should be accessed from global profile state (like age, name)
   const getFieldValue = (fieldName: string) => {
+    // Special handling for phone field in whoIAm step
+    if (fieldName === 'phone' && stepName === 'whoIAm') {
+      return profile.whoIAm?.phone || stepData[fieldName] || '';
+    }
+    
     // Check if the field exists in global profile state first
     if (profile[fieldName as keyof typeof profile] !== undefined) {
       return profile[fieldName as keyof typeof profile];
@@ -105,7 +110,10 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     return stepData[fieldName];
   };
 
+
+
   const handleFieldChange = (fieldName: string, value: any) => {
+
     // Update step data
     setStepData({ [fieldName]: value });
 
@@ -117,6 +125,17 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
           [fieldName]: value
         })
       });
+    }
+
+    // Special handling for phone field in whoIAm step
+    if (fieldName === 'phone' && stepName === 'whoIAm') {
+      setProfile(prev => ({
+        ...prev,
+        whoIAm: {
+          ...prev.whoIAm,
+          phone: value
+        }
+      }));
     }
   };
 
@@ -209,6 +228,8 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     const verificationMessage = fieldConfig['ui:verificationMessage'];
     const hasLocationButton = fieldConfig['ui:hasLocationButton'];
     const currency = fieldConfig['ui:currency'];
+
+
 
     // Check if field is verified from global profile state
     const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
@@ -458,6 +479,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               placeholder={placeholder}
               disabled={disabled}
               pattern={fieldConfig.pattern}
+              maxLength={fieldConfig.maxLength || 15}
             />
             {fieldConfig.description && (
               <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>

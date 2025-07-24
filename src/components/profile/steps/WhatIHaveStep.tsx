@@ -18,14 +18,18 @@ const WhatIHaveStep: React.FC = () => {
 
   const handleMachineToggle = (machine: string, checked: boolean) => {
     setProfile(prevProfile => {
-      if (!prevProfile) {
-        return prevProfile;
-      }
-      const currentMachines = prevProfile.machinesOperated || [];
-      const newMachines = checked
+      const currentMachines = prevProfile.whatIHave?.machinesOperated || prevProfile.machinesOperated || [];
+      const updatedMachines = checked 
         ? [...currentMachines, machine]
-        : currentMachines.filter((m) => m !== machine);
-      return { ...prevProfile, machinesOperated: newMachines };
+        : currentMachines.filter(m => m !== machine);
+      
+      return {
+        ...prevProfile,
+        whatIHave: {
+          ...prevProfile.whatIHave,
+          machinesOperated: updatedMachines
+        }
+      };
     });
   };
 
@@ -65,7 +69,23 @@ const WhatIHaveStep: React.FC = () => {
                 const fieldConfig = getFieldConfig(stepName, fieldName, profile.interestedRole);
                 if (!fieldConfig) return null;
 
-                const value = profile[fieldName as keyof typeof profile];
+                // Default rendering for simple text/number widgets (e.g., age)
+                const widget = fieldConfig['ui:widget'];
+                const placeholder = fieldConfig['ui:placeholder'];
+                const disabled = fieldConfig['ui:disabled'];
+                const verificationMessage = fieldConfig['ui:verificationMessage'];
+
+                // Get value from the correct location in the profile
+                // For WhatIHave step, fields should be in profile.whatIHave
+                const value = profile.whatIHave?.[fieldName] || profile[fieldName as keyof typeof profile];
+                const isVerified = profile.whatIHave?.[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified`] || 
+                                  profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
+
+                const getStringValue = () => {
+                  if (typeof value === 'string') return value;
+                  if (typeof value === 'number') return value.toString();
+                  return '';
+                };
 
                 if (fieldConfig['ui:widget'] === 'experience-duration') {
                     const experienceValue = typeof value === 'number' ? value : 0;
@@ -80,7 +100,13 @@ const WhatIHaveStep: React.FC = () => {
                                 onChange={e => {
                                 const years = parseInt(e.target.value) || 0;
                                 const months = experienceValue % 12;
-                                setProfile(p => ({...p, [fieldName]: years * 12 + months}));
+                                setProfile(prevProfile => ({
+                                  ...prevProfile,
+                                  whatIHave: {
+                                    ...prevProfile.whatIHave,
+                                    [fieldName]: years * 12 + months
+                                  }
+                                }));
                                 }}
                                 placeholder="Years"
                                 min="0"
@@ -94,7 +120,13 @@ const WhatIHaveStep: React.FC = () => {
                                 onChange={e => {
                                 const months = parseInt(e.target.value) || 0;
                                 const years = Math.floor(experienceValue / 12);
-                                setProfile(p => ({...p, [fieldName]: years * 12 + months}));
+                                setProfile(prevProfile => ({
+                                  ...prevProfile,
+                                  whatIHave: {
+                                    ...prevProfile.whatIHave,
+                                    [fieldName]: years * 12 + months
+                                  }
+                                }));
                                 }}
                                 placeholder="Months"
                                 min="0"
@@ -117,7 +149,7 @@ const WhatIHaveStep: React.FC = () => {
                           <div key={choice} className="flex items-center space-x-2">
                             <Checkbox
                               id={choice}
-                              checked={(profile.machinesOperated || []).includes(choice)}
+                              checked={(profile.whatIHave?.machinesOperated || profile.machinesOperated || []).includes(choice)}
                               onCheckedChange={checked => handleMachineToggle(choice, !!checked)}
                             />
                             <Label htmlFor={choice} className="text-sm">{choice}</Label>
@@ -127,21 +159,6 @@ const WhatIHaveStep: React.FC = () => {
                     </div>
                   )
                 }
-                // Default rendering for simple text/number widgets (e.g., age)
-                const widget = fieldConfig['ui:widget'];
-                const placeholder = fieldConfig['ui:placeholder'];
-                const disabled = fieldConfig['ui:disabled'];
-                const verificationMessage = fieldConfig['ui:verificationMessage'];
-
-                const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
-
-
-
-                const getStringValue = () => {
-                  if (typeof value === 'string') return value;
-                  if (typeof value === 'number') return value.toString();
-                  return '';
-                };
 
                 return (
                   <div key={fieldName}>
@@ -154,10 +171,13 @@ const WhatIHaveStep: React.FC = () => {
                         id={fieldName}
                         type={widget === 'number' ? 'number' : 'text'}
                         value={getStringValue()}
-                        onChange={e => setProfile({
-                          ...profile,
-                          [fieldName]: widget === 'number' ? parseInt(e.target.value) || 0 : e.target.value
-                        })}
+                        onChange={e => setProfile(prevProfile => ({
+                          ...prevProfile,
+                          whatIHave: {
+                            ...prevProfile.whatIHave,
+                            [fieldName]: widget === 'number' ? parseInt(e.target.value) || 0 : e.target.value
+                          }
+                        }))}
                         placeholder={placeholder}
                         disabled={disabled || isVerified}
                       />
