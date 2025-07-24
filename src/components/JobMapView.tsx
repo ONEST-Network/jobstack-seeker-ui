@@ -53,6 +53,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery }) => {
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const [locating, setLocating] = useState(false);
   const [zoom, setZoom] = useState(5);
+  const [searchingLocation, setSearchingLocation] = useState(false);
   
   // Custom map toast state
   const [mapToasts, setMapToasts] = useState<MapToast[]>([]);
@@ -77,6 +78,75 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery }) => {
   // Remove toast manually
   const removeMapToast = (id: string) => {
     setMapToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Geocoding function to convert location name to coordinates
+  const geocodeLocation = async (locationName: string): Promise<LatLng | null> => {
+    try {
+      // Use OpenStreetMap Nominatim API for geocoding
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName + ', India')}&limit=1`
+      );
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        return {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return null;
+    }
+  };
+
+  // Handle location search
+  const handleLocationSearch = async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setMapCenter(DEFAULT_CENTER);
+      setZoom(5);
+      return;
+    }
+
+    setSearchingLocation(true);
+    
+    try {
+      const coordinates = await geocodeLocation(searchQuery);
+      
+      if (coordinates) {
+        setMapCenter(coordinates);
+        setZoom(12); // Zoom in to the searched location
+        showMapToast('success', 'Location Found!', `Zoomed to ${searchQuery}`);
+        
+        // Check if there are jobs in this location
+        const jobsInLocation = jobLocations.filter(location => 
+          location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          location.state.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        
+        if (jobsInLocation.length > 0) {
+          showMapToast('info', 'Jobs Found!', `${jobsInLocation.length} location(s) with jobs found`);
+        } else {
+          showMapToast('info', 'No Jobs Found', 'No jobs available in this location');
+        }
+      } else {
+        showMapToast('error', 'Location Not Found', `Could not find coordinates for "${searchQuery}"`);
+      }
+    } catch (error) {
+      showMapToast('error', 'Search Error', 'Failed to search for location');
+    } finally {
+      setSearchingLocation(false);
+    }
+  };
+
+  // Handle clear search
+  const handleClearSearch = () => {
+    setMapSearchQuery('');
+    setMapCenter(DEFAULT_CENTER);
+    setZoom(5);
+    showMapToast('info', 'Search Cleared', 'Reset to default view');
   };
 
   // Extract job locations from the fetched jobs
@@ -354,11 +424,32 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery }) => {
           mapSearchQuery={mapSearchQuery}
           onMapSearchChange={setMapSearchQuery}
           filteredJobLocations={filteredJobLocations}
-          onZoomIn={() => setZoom(prev => Math.min(18, prev + 1))}
-          onZoomOut={() => setZoom(prev => Math.max(2, prev - 1))}
+          onZoomIn={() => {
+            if (selectedLocation) {
+              // If a location is selected, zoom into that location
+              setMapCenter({ lat: selectedLocation.lat, lng: selectedLocation.lng });
+              setZoom(prev => Math.min(18, prev + 1));
+            } else {
+              // Otherwise just zoom in at current center
+              setZoom(prev => Math.min(18, prev + 1));
+            }
+          }}
+          onZoomOut={() => {
+            if (selectedLocation) {
+              // If a location is selected, zoom out from that location
+              setMapCenter({ lat: selectedLocation.lat, lng: selectedLocation.lng });
+              setZoom(prev => Math.max(2, prev - 1));
+            } else {
+              // Otherwise just zoom out at current center
+              setZoom(prev => Math.max(2, prev - 1));
+            }
+          }}
           onFindMyLocation={handleFindMyLocation}
           locating={locating}
           loading={loading}
+          onLocationSearch={handleLocationSearch}
+          searchingLocation={searchingLocation}
+          onClearSearch={handleClearSearch}
         />
 
         {/* Custom Toast Container - Inside Map Container */}
