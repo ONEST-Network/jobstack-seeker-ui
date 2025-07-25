@@ -1,3 +1,5 @@
+import { parseLocationString, LocationData, validateLocationForAPI } from './utils';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
 
 // API Client configuration
@@ -793,9 +795,16 @@ class ApiClient {
 export const transformProfileForAPI = (profile: any, userEmail?: string, locationTag?: string, contactTag?: string) => {
   // Extract location information - check both legacy and nested structures
   const currentLocation = profile.currentLocation || profile.whoIAm?.location || '';
-  const locationParts = currentLocation?.split(', ') || [];
-  const city = locationParts[0] || '';
-  const state = locationParts[1] || '';
+  
+  // Parse location string using the new utility function
+  const locationData: LocationData = parseLocationString(currentLocation);
+  
+  // Validate location data for API requirements
+  const locationValidation = validateLocationForAPI(locationData);
+  if (!locationValidation.isValid) {
+    console.warn('Location validation failed:', locationValidation.errors);
+    // You might want to throw an error or handle this differently
+  }
   
   // Extract phone number - check both legacy and nested structures
   const phoneNumber = (profile.phone || profile.whoIAm?.phone) ? [profile.phone || profile.whoIAm?.phone] : [];
@@ -910,11 +919,14 @@ export const transformProfileForAPI = (profile: any, userEmail?: string, locatio
     metadata,
     location: {
       tag: locationTag || "home",
-      address: currentLocation || "",
-      city: city,
-      state: state,
-      country: "India",
-      gps: {
+      address: locationData.address || currentLocation || "",
+      city: locationData.city,
+      state: locationData.state,
+      country: locationData.country || "India",
+      gps: locationData.lat && locationData.lng ? {
+        lat: locationData.lat,
+        lng: locationData.lng
+      } : {
         lat: 19.0760, // Default to Mumbai coordinates
         lng: 72.8777
       }
