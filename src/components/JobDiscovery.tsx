@@ -75,8 +75,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="map" 
-                  className="flex items-center gap-1 px-2 text-sm opacity-50 cursor-not-allowed" 
-                  disabled={true}
+                  className="flex items-center gap-1 px-2 text-sm"
                 >
                   <Map className="h-4 w-4" />
                   <span className="hidden sm:inline">Map</span>

@@ -49,6 +49,18 @@ const CandidateProfileApplicationContent: React.FC<CandidateProfileApplicationPr
     if (lowerJobTitle.includes('promoter') || lowerJobTitle.includes('store') || lowerJobTitle.includes('retail')) {
       return 'In Store Promoter';
     }
+    if (lowerJobTitle.includes('electrician') || lowerJobTitle.includes('electrical') || lowerJobTitle.includes('wiring')) {
+      return 'Electrician';
+    }
+    if (lowerJobTitle.includes('fitter') || lowerJobTitle.includes('fitting') || lowerJobTitle.includes('assembly')) {
+      return 'Fitter';
+    }
+    if (lowerJobTitle.includes('mechanic') || lowerJobTitle.includes('maintenance') || lowerJobTitle.includes('repair')) {
+      return 'Mechanic';
+    }
+    if (lowerJobTitle.includes('machine operator') || lowerJobTitle.includes('operator') || lowerJobTitle.includes('machine')) {
+      return 'Machine Operator';
+    }
     
     // Default to Industrial Tailor if no match found
     return 'Industrial Tailor';
@@ -388,6 +400,18 @@ const CandidateProfileApplication: React.FC<CandidateProfileApplicationProps> = 
     }
     if (lowerJobTitle.includes('promoter') || lowerJobTitle.includes('store') || lowerJobTitle.includes('retail')) {
       return 'In Store Promoter';
+    }
+    if (lowerJobTitle.includes('electrician') || lowerJobTitle.includes('electrical') || lowerJobTitle.includes('wiring')) {
+      return 'Electrician';
+    }
+    if (lowerJobTitle.includes('fitter') || lowerJobTitle.includes('fitting') || lowerJobTitle.includes('assembly')) {
+      return 'Fitter';
+    }
+    if (lowerJobTitle.includes('mechanic') || lowerJobTitle.includes('maintenance') || lowerJobTitle.includes('repair')) {
+      return 'Mechanic';
+    }
+    if (lowerJobTitle.includes('machine operator') || lowerJobTitle.includes('operator') || lowerJobTitle.includes('machine')) {
+      return 'Machine Operator';
     }
     
     // Default to Industrial Tailor if no match found

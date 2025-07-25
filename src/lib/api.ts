@@ -544,7 +544,15 @@ class ApiClient {
       seeker: seekerData
     };
 
-
+    // Log the exact payload being sent to the API
+    console.log('=== TRUST SCORE API PAYLOAD ===');
+    console.log('URL:', url);
+    console.log('Method: POST');
+    console.log('Headers:', { 'Content-Type': 'application/json' });
+    console.log('Full Payload:', JSON.stringify(payload, null, 2));
+    console.log('Job Data:', JSON.stringify(jobData, null, 2));
+    console.log('Seeker Data:', JSON.stringify(seekerData, null, 2));
+    console.log('===============================');
 
     try {
       // Create an AbortController for timeout
@@ -609,7 +617,15 @@ class ApiClient {
       seeker: seekerData
     };
 
-
+    // Log the exact payload being sent to the API
+    console.log('=== MATCH SCORE API PAYLOAD ===');
+    console.log('URL:', url);
+    console.log('Method: POST');
+    console.log('Headers:', { 'Content-Type': 'application/json' });
+    console.log('Full Payload:', JSON.stringify(payload, null, 2));
+    console.log('Job Data:', JSON.stringify(jobData, null, 2));
+    console.log('Seeker Data:', JSON.stringify(seekerData, null, 2));
+    console.log('===============================');
 
     try {
       // Create an AbortController for timeout
@@ -790,6 +806,49 @@ export const transformProfileForAPI = (profile: any, userEmail?: string, locatio
   // Get name from both legacy and nested structures
   const name = profile.name || profile.whoIAm?.name;
   
+  // Helper function to clean schema data based on role
+  const cleanSchemaDataForRole = (schemaData: Record<string, any>, sectionName: string, role?: string): Record<string, any> => {
+    if (!schemaData || !role) return schemaData;
+
+    try {
+      // Import the schemas dynamically
+      const { getUnifiedSchemaStep } = require('@/schemas');
+      const stepSchema = getUnifiedSchemaStep(role, sectionName);
+      
+      if (!stepSchema?.properties) {
+        // If no schema found for this role/section, return the data as-is
+        return schemaData;
+      }
+      
+      // Get allowed fields from the schema
+      const allowedFields = Object.keys(stepSchema.properties);
+      
+      // Filter the data to only include fields defined in the schema
+      const cleanedData: Record<string, any> = {};
+      allowedFields.forEach(field => {
+        if (schemaData[field] !== undefined) {
+          cleanedData[field] = schemaData[field];
+        }
+      });
+      
+      console.log(`🧹 Cleaned ${sectionName} for role ${role}:`, {
+        original: Object.keys(schemaData),
+        allowed: allowedFields,
+        filtered: Object.keys(cleanedData)
+      });
+      
+      return cleanedData;
+    } catch (error) {
+      console.warn(`Warning: Could not clean schema data for role ${role}, section ${sectionName}:`, error);
+      return schemaData; // Return original data if cleaning fails
+    }
+  };
+  
+  // Clean the unified schema data based on the selected role
+  const cleanedWhoIAm = cleanSchemaDataForRole(profile.whoIAm || {}, 'whoIAm', profile.interestedRole);
+  const cleanedWhatIHave = cleanSchemaDataForRole(profile.whatIHave || {}, 'whatIHave', profile.interestedRole);
+  const cleanedWhatIWant = cleanSchemaDataForRole(profile.whatIWant || {}, 'whatIWant', profile.interestedRole);
+  
   // Build metadata object with all profile details
   const metadata: Record<string, any> = {
     notes: "Profile created via JobBridge platform",
@@ -830,10 +889,10 @@ export const transformProfileForAPI = (profile: any, userEmail?: string, locatio
     experience: profile.experience,
     skills: profile.skills,
     certificates: profile.certificates,
-    // Unified schema data
-    whoIAm: profile.whoIAm,
-    whatIHave: profile.whatIHave,
-    whatIWant: profile.whatIWant,
+    // Cleaned unified schema data (role-specific)
+    whoIAm: cleanedWhoIAm,
+    whatIHave: cleanedWhatIHave,
+    whatIWant: cleanedWhatIWant,
     // Education and certifications
     education: profile.education,
     skillCertifications: profile.skillCertifications,
@@ -868,6 +927,163 @@ export const transformProfileForAPI = (profile: any, userEmail?: string, locatio
     }
   };
 };
+
+// Utility function to clean contaminated profile data
+export const cleanContaminatedProfile = (profile: any): any => {
+  if (!profile?.interestedRole) {
+    console.warn('No interested role found in profile, cannot clean');
+    return profile;
+  }
+
+  try {
+    // Import the schemas dynamically
+    const { getUnifiedSchemaStep } = require('@/schemas');
+    
+    // Clean each section
+    const cleanedWhoIAm = profile.whoIAm ? (() => {
+      const stepSchema = getUnifiedSchemaStep(profile.interestedRole, 'whoIAm');
+      if (!stepSchema?.properties) return profile.whoIAm;
+      
+      const allowedFields = Object.keys(stepSchema.properties);
+      const cleanedData: Record<string, any> = {};
+      allowedFields.forEach(field => {
+        if (profile.whoIAm[field] !== undefined) {
+          cleanedData[field] = profile.whoIAm[field];
+        }
+      });
+      return cleanedData;
+    })() : {};
+
+    const cleanedWhatIHave = profile.whatIHave ? (() => {
+      const stepSchema = getUnifiedSchemaStep(profile.interestedRole, 'whatIHave');
+      if (!stepSchema?.properties) return profile.whatIHave;
+      
+      const allowedFields = Object.keys(stepSchema.properties);
+      const cleanedData: Record<string, any> = {};
+      allowedFields.forEach(field => {
+        if (profile.whatIHave[field] !== undefined) {
+          cleanedData[field] = profile.whatIHave[field];
+        }
+      });
+      return cleanedData;
+    })() : {};
+
+    const cleanedWhatIWant = profile.whatIWant ? (() => {
+      const stepSchema = getUnifiedSchemaStep(profile.interestedRole, 'whatIWant');
+      if (!stepSchema?.properties) return profile.whatIWant;
+      
+      const allowedFields = Object.keys(stepSchema.properties);
+      const cleanedData: Record<string, any> = {};
+      allowedFields.forEach(field => {
+        if (profile.whatIWant[field] !== undefined) {
+          cleanedData[field] = profile.whatIWant[field];
+        }
+      });
+      return cleanedData;
+    })() : {};
+
+    console.log(`🧹 Cleaned contaminated profile for role ${profile.interestedRole}:`, {
+      originalWhoIAm: Object.keys(profile.whoIAm || {}),
+      cleanedWhoIAm: Object.keys(cleanedWhoIAm),
+      originalWhatIHave: Object.keys(profile.whatIHave || {}),
+      cleanedWhatIHave: Object.keys(cleanedWhatIHave),
+      originalWhatIWant: Object.keys(profile.whatIWant || {}),
+      cleanedWhatIWant: Object.keys(cleanedWhatIWant)
+    });
+
+    return {
+      ...profile,
+      whoIAm: cleanedWhoIAm,
+      whatIHave: cleanedWhatIHave,
+      whatIWant: cleanedWhatIWant
+    };
+  } catch (error) {
+    console.warn('Warning: Could not clean contaminated profile:', error);
+    return profile; // Return original profile if cleaning fails
+  }
+};
+
+// Utility function to manually clean and update a contaminated profile
+export const cleanAndUpdateProfile = async (profileId: string): Promise<void> => {
+  try {
+    console.log('🧹 Starting manual profile cleanup for profile:', profileId);
+    
+    // Fetch the current profile
+    const profileResponse = await apiClient.getProfile() as ProfileResponse;
+    if (!profileResponse?.data) {
+      throw new Error('No profile found to clean');
+    }
+    
+    const profileData = profileResponse.data;
+    console.log('📥 Original profile data:', profileData);
+    
+    // Create a candidate-like object from profile data
+    const candidateFromProfile = {
+      id: profileData.id,
+      interestedRole: profileData.metadata?.role,
+      whoIAm: profileData.metadata?.whoIAm || {},
+      whatIHave: profileData.metadata?.whatIHave || {},
+      whatIWant: profileData.metadata?.whatIWant || {},
+      name: profileData.metadata?.name,
+      age: profileData.metadata?.age,
+      // Other fields...
+    };
+    
+    // Clean the contaminated data
+    const cleanedProfile = cleanContaminatedProfile(candidateFromProfile);
+    console.log('🧹 Cleaned profile data:', cleanedProfile);
+    
+    // Transform back to API format
+    const cleanedApiPayload = transformProfileForAPI(cleanedProfile);
+    console.log('📤 Cleaned API payload:', cleanedApiPayload);
+    
+    // Update the profile with clean data
+    await apiClient.updateProfile(profileId, cleanedApiPayload);
+    console.log('✅ Profile successfully cleaned and updated');
+    
+  } catch (error) {
+    console.error('❌ Error cleaning profile:', error);
+    throw error;
+  }
+};
+
+// Expose this function globally for testing
+(window as any).cleanAndUpdateProfile = cleanAndUpdateProfile;
+
+// Utility function to test profile creation flow
+export const testProfileCreation = () => {
+  console.log('🧪 Testing profile creation flow...');
+  
+  // Test 1: Check if cleanContaminatedProfile is working
+  const testProfile = {
+    interestedRole: 'Fitter',
+    whoIAm: {
+      name: 'Test User',
+      phone: '1234567890',
+      location: 'Test Location'
+    },
+    whatIHave: {
+      age: 25,
+      hrKnowledge: ['HR Compliance'], // Should be removed for Fitter
+      jukiMachineExperience: 'Yes', // Should be removed for Fitter
+      fitterAssessmentScore: 90, // Should be kept for Fitter
+      itiSpecialization: ['Fitter']
+    },
+    whatIWant: {
+      monthlyPFESIC: 'Yes',
+      workHoursPerDay: 8
+    }
+  };
+  
+  const cleanedProfile = cleanContaminatedProfile(testProfile);
+  console.log('🧪 Test profile before cleaning:', testProfile);
+  console.log('🧪 Test profile after cleaning:', cleanedProfile);
+  
+  return cleanedProfile;
+};
+
+// Expose this function globally for testing
+(window as any).testProfileCreation = testProfileCreation;
 
 // Create a singleton instance
 export const apiClient = new ApiClient(API_BASE_URL);

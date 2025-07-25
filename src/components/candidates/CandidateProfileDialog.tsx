@@ -30,6 +30,18 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
     : mode === 'edit' ? getSelectedCandidate() : null;
 
   const handleProfileComplete = (profileData: any) => {
+    // Validate that we have the minimum required data before creating a profile
+    const hasRequiredData = profileData.name?.trim() && 
+                           profileData.interestedRole?.trim() && 
+                           (profileData.currentLocation?.trim() || profileData.whoIAm?.location?.trim()) &&
+                           (profileData.phone?.trim() || profileData.whoIAm?.phone?.trim());
+
+    if (!hasRequiredData) {
+      console.log('Incomplete profile data, not creating profile:', profileData);
+      onClose();
+      return;
+    }
+
     const candidateData: Omit<CandidateProfile, 'id' | 'createdAt'> = {
       name: profileData.name || 'New Profile',
       age: profileData.age,
@@ -95,8 +107,8 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
 
   // Convert candidate profile to user profile format for the dialog
   const getInitialProfile = () => {
-    // If we have an existing candidate, use that data
-    if (existingCandidate) {
+    // Only return initial profile data for edit mode
+    if (mode === 'edit' && existingCandidate) {
       return {
         name: existingCandidate.name,
         age: existingCandidate.age,
@@ -127,8 +139,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       };
     }
     
-
-    
+    // For new profiles (mode === 'add'), return undefined to start fresh
     return undefined;
   };
 
@@ -148,7 +159,6 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           if (profilesResponse?.data && profilesResponse.data.length > 0) {
             const mostRecentProfile = profilesResponse.data[0];
             setCurrentProfileId(mostRecentProfile.id);
-            // console.log('🔍 CandidateProfileDialog - Got profile ID from API:', mostRecentProfile.id);
           }
         } catch (error) {
           console.log('Error getting profile ID:', error);
@@ -161,7 +171,6 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
     getProfileId();
   }, [isUpdate, profileId, currentUser?.profileId]);
   
-  // console.log('🔍 CandidateProfileDialog - isUpdate:', isUpdate, 'profileId:', currentProfileId);
   return (
     <UserProfileDialog
       isOpen={isOpen}

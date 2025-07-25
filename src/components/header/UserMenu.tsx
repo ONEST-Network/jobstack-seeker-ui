@@ -13,10 +13,17 @@ interface UserMenuProps {
 
 const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
   const navigate = useNavigate();
-  const { user, logout, getSelectedCandidate, refreshProfileData } = useAuth();
+  const { user, logout, getSelectedCandidate, refreshProfileData, cleanupIncompleteProfiles } = useAuth();
   const selectedCandidate = getSelectedCandidate();
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
   const [profileMode, setProfileMode] = useState<'add' | 'edit'>('add');
+
+  // Clean up incomplete profiles when component mounts
+  React.useEffect(() => {
+    if (user) {
+      cleanupIncompleteProfiles();
+    }
+  }, [user, cleanupIncompleteProfiles]);
 
   const handleCompleteProfile = () => {
     if (user?.role === 'individual') {
@@ -29,34 +36,42 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
 
   const handleUpdateProfile = async () => {
     if (user?.role === 'individual') {
-      // Get all profiles for the user to find the most recent one
-      try {
-        const profilesResponse = await apiClient.getProfiles() as ProfilesResponse;
-        
-        if (profilesResponse?.data && profilesResponse.data.length > 0) {
-          // Get the most recent profile (first in the array based on your API response)
-          const mostRecentProfile = profilesResponse.data[0];
-          const profileId = mostRecentProfile.id;
-          const profileName = mostRecentProfile.metadata?.name;
+      // For update profile, we should always use edit mode if user has any profile data
+      const hasExistingProfile = selectedCandidate || user.profile || user.managedCandidates.length > 0;
+      
+      if (hasExistingProfile) {
+        // Always use edit mode when updating existing profile
+        setProfileMode('edit');
+        setShowCompleteProfile(true);
+      } else {
+        // Only use add mode if there's truly no existing profile
+        try {
+          const profilesResponse = await apiClient.getProfiles() as ProfilesResponse;
           
-          if (profileId) {
-            // Refresh profile data to update the user state
-            await refreshProfileData();
-            setProfileMode('edit');
-            setShowCompleteProfile(true);
+          if (profilesResponse?.data && profilesResponse.data.length > 0) {
+            // Get the most recent profile (first in the array based on your API response)
+            const mostRecentProfile = profilesResponse.data[0];
+            const profileId = mostRecentProfile.id;
+            
+            if (profileId) {
+              // Refresh profile data to update the user state
+              await refreshProfileData();
+              setProfileMode('edit');
+              setShowCompleteProfile(true);
+            } else {
+              setProfileMode('add');
+              setShowCompleteProfile(true);
+            }
           } else {
             setProfileMode('add');
             setShowCompleteProfile(true);
           }
-        } else {
-          setProfileMode('add');
+        } catch (error) {
+          console.log('Error getting profiles data:', error);
+          // If API fails but user has local profile data, still use edit mode
+          setProfileMode('edit');
           setShowCompleteProfile(true);
         }
-      } catch (error) {
-        console.log('Error getting profiles data:', error);
-        // Still try to open the dialog even if API call fails
-        setProfileMode('edit');
-        setShowCompleteProfile(true);
       }
     } else if (user?.role === 'organization') {
       // This will be handled by parent component
@@ -108,6 +123,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem onClick={handleUpdateProfile}>
+              <Users className="h-4 w-4 mr-2" />
               Update Profile
             </DropdownMenuItem>
           )}
@@ -116,10 +132,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
               <DropdownMenuItem onClick={handleMyApplications}>
                 <FileText className="h-4 w-4 mr-2" />
                 My Applications
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleManageCandidates}>
-                <Users className="h-4 w-4 mr-2" />
-                Manage Profiles
               </DropdownMenuItem>
             </>
           )}

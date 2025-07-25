@@ -1,3 +1,6 @@
+/* Leaflet CSS - must be imported first */
+@import 'leaflet/dist/leaflet.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -100,4 +103,112 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Ensure dialogs appear above map elements */
+[data-radix-popper-content-wrapper],
+[data-radix-dialog-overlay],
+[data-radix-dialog-content],
+[data-vaul-drawer-wrapper],
+[data-vaul-overlay],
+[data-vaul-drawer],
+.fixed[data-state="open"],
+.fixed.z-50 {
+  z-index: 999999 !important;
+}
+
+/* Force all dialog elements to appear above map */
+div[role="dialog"],
+div[role="alertdialog"],
+.leaflet-container ~ div[data-radix-dialog-overlay],
+.leaflet-container ~ div[data-radix-dialog-content] {
+  z-index: 999999 !important;
+}
+
+/* Custom map toast container */
+.z-\[1001\] {
+  z-index: 1001 !important;
+}
+
+/* Marker Cluster Custom Styles */
+.marker-cluster-small {
+  background-color: rgba(59, 130, 246, 0.6);
+}
+
+.marker-cluster-small div {
+  background-color: rgba(59, 130, 246, 0.8);
+}
+
+.marker-cluster-medium {
+  background-color: rgba(37, 99, 235, 0.6);
+}
+
+.marker-cluster-medium div {
+  background-color: rgba(37, 99, 235, 0.8);
+}
+
+.marker-cluster-large {
+  background-color: rgba(30, 58, 138, 0.6);
+}
+
+.marker-cluster-large div {
+  background-color: rgba(30, 58, 138, 0.8);
+}
+
+/* Custom cluster icon styles - allow background colors */
+.custom-cluster {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-cluster div {
+  /* Allow the inline background-color to work */
+  border: none !important;
+  color: white !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  line-height: 1 !important;
+}
+
+/* Ensure clusters are visible above other map elements */
+.marker-cluster {
+  z-index: 1000 !important;
+}
+
+/* Custom marker styles - preserve colors */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-marker div {
+  /* Don't override the background color - let the inline styles work */
+  border: none !important;
+}
+
+/* User marker styles */
+.user-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.user-marker div {
+  /* Allow the inline background-color to work for user marker */
+  border: none !important;
 }

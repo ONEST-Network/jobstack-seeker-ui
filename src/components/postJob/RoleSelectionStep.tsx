@@ -41,7 +41,11 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
     'Warehouse Loader & Picker', 
     //'Field Sales Executive',
     'In Store Promoter',
-    'Recruitment Associate'
+    'Recruitment Associate',
+    'Electrician',
+    'Fitter',
+    'Mechanic',
+    'Machine Operator'
   ];
 
   const getFilteredRoles = () => {

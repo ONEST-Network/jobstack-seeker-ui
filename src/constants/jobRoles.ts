@@ -24,7 +24,8 @@ export const JOB_ROLES_BY_INDUSTRY = {
   'Manufacturing': [
     'Machine Operator', 'Production Line Worker', 'Welder', 'Forklift Operator',
     'Quality Control Inspector', 'Maintenance Technician', 'Assembly Line Worker',
-    'CNC Machinist', 'Industrial Electrician', 'Warehouse Associate', 'Packaging Technician'
+    'CNC Machinist', 'Industrial Electrician', 'Warehouse Associate', 'Packaging Technician',
+    'Electrician', 'Fitter', 'Mechanic'
   ],
   'Electric Vehicles': [
     'EV Technician / Mechanic', 'Battery Technician / Battery Assembly Worker',

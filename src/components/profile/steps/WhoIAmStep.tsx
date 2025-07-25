@@ -31,6 +31,18 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
   const schema = getSchema('whoIAm', profile.interestedRole);
   const description = getSchemaDescription('whoIAm', profile.interestedRole);
 
+  if (!schema) {
+    console.error('Schema not found for WhoIAm step with role:', profile.interestedRole);
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            Schema not found for role: {profile.interestedRole || 'No role selected'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
 
   const handleDateOfBirthChange = (dob: string) => {
@@ -43,10 +55,13 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
   };
 
   const handleLocationDetection = () => {
-    setProfile({
-      ...profile,
-      currentLocation: 'Mumbai, Maharashtra'
-    });
+    setProfile(prevProfile => ({
+      ...prevProfile,
+      whoIAm: {
+        ...prevProfile.whoIAm,
+        location: 'Mumbai, Maharashtra'
+      }
+    }));
     toast({
       title: "Location detected",
       description: "Current location updated"
@@ -84,8 +99,11 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
     // Update both name (in WhoIAm) and age (in WhatIHave) and mark them verified
     setProfile(prevProfile => ({
       ...prevProfile,
-      ...(fullName ? { name: fullName, isNameVerified: true } : {}),
-      ...(derivedAge !== undefined ? { age: derivedAge, isAgeVerified: true } : {})
+      whoIAm: {
+        ...prevProfile.whoIAm,
+        ...(fullName ? { name: fullName, isNameVerified: true } : {}),
+        ...(derivedAge !== undefined ? { age: derivedAge, isAgeVerified: true } : {})
+      }
     }));
 
     setShowDigiLockerModal(false);
@@ -105,27 +123,35 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
     const fieldConfig = schema?.properties?.[fieldName];
     
     if (!fieldConfig) {
-      console.log(`Field config not found: ${fieldName}`);
       return null;
     }
 
-    const value = profile[fieldName as keyof typeof profile];
-    const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
-
-
+    // Get value from the correct location in the profile
+    // For WhoIAm step, fields should be in profile.whoIAm
+    const value = profile.whoIAm?.[fieldName] || profile[fieldName as keyof typeof profile];
+    const isVerified = profile.whoIAm?.[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified`] || 
+                      profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
 
     // Type-safe value handling
     const getStringValue = () => {
       if (typeof value === 'string') return value;
       if (typeof value === 'number') return value.toString();
-      return '';
+      if (value === null || value === undefined) return '';
+      return String(value);
     };
 
+
+
     const handleChange = (newValue: any) => {
-      setProfile({
-        ...profile,
-        [fieldName]: newValue
-      });
+      // Update the field in the correct location
+      // For WhoIAm step, update in profile.whoIAm
+      setProfile(prevProfile => ({
+        ...prevProfile,
+        whoIAm: {
+          ...prevProfile.whoIAm,
+          [fieldName]: newValue
+        }
+      }));
     };
 
     // Special handling for Aadhar number masking
@@ -192,7 +218,9 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
               value={getStringValue()}
               onChange={e => handleChange(e.target.value)}
               placeholder={placeholder}
-              disabled={disabled}
+              disabled={disabled || isVerified}
+              maxLength={fieldConfig.maxLength || 15}
+              pattern={fieldConfig.pattern}
             />
           )}
           
@@ -246,10 +274,6 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
       </div>
     );
   };
-
-  if (!schema) {
-    return <div>Schema not found for WhoIAm step</div>;
-  }
 
   // Debug: Check what fields are available
   const fieldOrder = schema.ui?.order || [];
@@ -307,17 +331,81 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {fieldOrder.length > 0 ? (
-          fieldOrder.map(fieldName => (
-            <React.Fragment key={fieldName}>
-              {renderField(fieldName)}
-            </React.Fragment>
-          ))
+          fieldOrder.map(fieldName => {
+            const renderedField = renderField(fieldName);
+                         // If phone field is not rendered, render it manually
+             if (fieldName === 'phone' && !renderedField) {
+               return (
+                 <div key={fieldName} className="">
+                  <Label htmlFor={fieldName}>
+                    Phone Number
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Input 
+                      id={fieldName}
+                      type="tel"
+                      value={profile.whoIAm?.phone || ''}
+                      onChange={e => setProfile(prevProfile => ({
+                        ...prevProfile,
+                        whoIAm: {
+                          ...prevProfile.whoIAm,
+                          phone: e.target.value
+                        }
+                      }))}
+                      placeholder="Enter phone number"
+                      disabled={false}
+                      maxLength={15}
+                      pattern="^[0-9]{10}$"
+                    />
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <React.Fragment key={fieldName}>
+                {renderedField}
+              </React.Fragment>
+            );
+          })
         ) : (
-          availableFields.map(fieldName => (
-            <React.Fragment key={fieldName}>
-              {renderField(fieldName)}
-            </React.Fragment>
-          ))
+          availableFields.map(fieldName => {
+            const renderedField = renderField(fieldName);
+                         // If phone field is not rendered, render it manually
+             if (fieldName === 'phone' && !renderedField) {
+               return (
+                 <div key={fieldName} className="">
+                  <Label htmlFor={fieldName}>
+                    Phone Number
+                    <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Input 
+                      id={fieldName}
+                      type="tel"
+                      value={profile.whoIAm?.phone || ''}
+                      onChange={e => setProfile(prevProfile => ({
+                        ...prevProfile,
+                        whoIAm: {
+                          ...prevProfile.whoIAm,
+                          phone: e.target.value
+                        }
+                      }))}
+                      placeholder="Enter phone number"
+                      disabled={false}
+                      maxLength={15}
+                      pattern="^[0-9]{10}$"
+                    />
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <React.Fragment key={fieldName}>
+                {renderedField}
+              </React.Fragment>
+            );
+          })
         )}
         
         {/* Fallback: If no fields are rendered, show a message */}

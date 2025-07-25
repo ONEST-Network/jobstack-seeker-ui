@@ -34,23 +34,24 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   objectKeyPrefix = 'job'
 }) => {
   const [previews, setPreviews] = useState<string[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  // Handle current value
   const currentFiles = multiple && Array.isArray(value) ? value : (value ? [value] : []);
   
   useEffect(() => {
-    if (currentFiles.length > 0) {
+    const files = multiple && Array.isArray(value) ? value : (value ? [value] : []);
+    
+    if (files.length > 0) {
       const previewUrls: string[] = [];
       
-      currentFiles.forEach((file) => {
+      files.forEach((file) => {
         if (file instanceof File) {
           // Create preview for images
           if (fileType === 'image' && file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onloadend = () => {
               previewUrls.push(reader.result as string);
-              if (previewUrls.length === currentFiles.length) {
+              if (previewUrls.length === files.length) {
                 setPreviews([...previewUrls]);
               }
             };
@@ -65,7 +66,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
     } else {
       setPreviews([]);
     }
-  }, [value, fileType, currentFiles]);
+  }, [value, fileType, multiple]);
 
   const uploadFileWithPresignedUrl = async (file: File): Promise<string> => {
     // Generate unique object key
@@ -92,7 +93,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
     
     if (usePresignedUrl) {
       // Handle presigned URL uploads
-      setIsUploading(true);
+      setUploading(true);
       
       try {
         if (multiple) {
@@ -137,7 +138,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
           variant: "destructive"
         });
       } finally {
-        setIsUploading(false);
+        setUploading(false);
       }
     } else {
       // Handle regular file uploads (existing behavior)
@@ -214,10 +215,10 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
             accept={accept}
             onChange={handleFileChange}
             multiple={multiple}
-            disabled={isUploading}
+            disabled={uploading}
           />
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            {isUploading ? (
+            {uploading ? (
               <>
                 <Loader2 className="h-8 w-8 mb-3 animate-spin text-muted-foreground/60" />
                 <p className="mb-1 text-sm text-muted-foreground">
@@ -288,7 +289,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
                     size="sm"
                     onClick={() => handleRemoveFile(index)}
                     className="text-destructive hover:text-destructive hover:bg-destructive/10 ml-2 flex-shrink-0"
-                    disabled={isUploading}
+                    disabled={uploading}
                   >
                     <X className="h-4 w-4" />
                     <span className="sr-only">Remove file</span>
@@ -301,7 +302,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
       )}
       
       {/* Empty state for multiple files - only show for non-image fields */}
-      {multiple && currentFiles.length === 0 && fileType !== 'image' && !isUploading && (
+      {multiple && currentFiles.length === 0 && fileType !== 'image' && !uploading && (
         <div className="text-center py-4 border-2 border-dashed border-muted-foreground/25 rounded-lg bg-muted/10">
           <p className="text-sm text-muted-foreground">No files selected. Click above to add up to {maxFiles} files.</p>
         </div>

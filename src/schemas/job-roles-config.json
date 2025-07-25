@@ -19,6 +19,22 @@
     "Recruitment Associate": {
       "industry": "Human Resources",
       "description": "HR and talent acquisition positions"
+    },
+    "Electrician": {
+      "industry": "Manufacturing",
+      "description": "Electrical installation, maintenance, and repair work"
+    },
+    "Fitter": {
+      "industry": "Manufacturing",
+      "description": "Mechanical fitting, assembly, and installation work"
+    },
+    "Mechanic": {
+      "industry": "Manufacturing",
+      "description": "Equipment maintenance, repair, and troubleshooting"
+    },
+    "Machine Operator": {
+      "industry": "Manufacturing",
+      "description": "Operating and monitoring industrial machinery and equipment"
     }
   }
 } 

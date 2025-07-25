@@ -44,10 +44,18 @@ const WhatIWantStep: React.FC = () => {
     const fieldConfig = getFieldConfig(stepName, fieldName, profile.interestedRole);
     if (!fieldConfig) return null;
 
-    const value = profile[fieldName as keyof typeof profile];
+    // Get value from the correct location in the profile
+    // For WhatIWant step, fields should be in profile.whatIWant
+    const value = profile.whatIWant?.[fieldName] || profile[fieldName as keyof typeof profile];
 
     const handleChange = (newValue: any) => {
-      setProfile(p => ({ ...p, [fieldName]: newValue }));
+      setProfile(prevProfile => ({
+        ...prevProfile,
+        whatIWant: {
+          ...prevProfile.whatIWant,
+          [fieldName]: newValue
+        }
+      }));
     };
 
     const widget = fieldConfig['ui:widget'];
