@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useProfileForm } from '../ProfileFormProvider';
 import DigiLockerModal from '../DigiLockerModal';
 import { getSchema, getFieldConfig, getFieldUI, getSchemaDescription } from '@/schemas';
+import { getCurrentLocation, formatLocationForDisplay } from '@/lib/utils';
+import { LocationInput } from '@/components/ui/location-input';
 
 interface WhoIAmStepProps {
   onVoiceStart?: () => void;
@@ -54,18 +56,32 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
     });
   };
 
-  const handleLocationDetection = () => {
-    setProfile(prevProfile => ({
-      ...prevProfile,
-      whoIAm: {
-        ...prevProfile.whoIAm,
-        location: 'Mumbai, Maharashtra'
-      }
-    }));
-    toast({
-      title: "Location detected",
-      description: "Current location updated"
-    });
+  const handleLocationDetection = async () => {
+    try {
+      const locationData = await getCurrentLocation();
+      const displayLocation = formatLocationForDisplay(locationData);
+      
+      setProfile(prevProfile => ({
+        ...prevProfile,
+        whoIAm: {
+          ...prevProfile.whoIAm,
+          location: displayLocation,
+          locationData: locationData // Store full location data for API
+        }
+      }));
+      
+      toast({
+        title: "Location detected",
+        description: `Current location: ${displayLocation}`
+      });
+    } catch (error) {
+      console.error('Location detection failed:', error);
+      toast({
+        title: "Location detection failed",
+        description: "Please enter your location manually",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDigiLockerImport = () => {
@@ -140,8 +156,6 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
       return String(value);
     };
 
-
-
     const handleChange = (newValue: any) => {
       // Update the field in the correct location
       // For WhoIAm step, update in profile.whoIAm
@@ -168,63 +182,55 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
     const disabled = fieldConfig['ui:disabled'];
     const hasLocationButton = fieldConfig['ui:hasLocationButton'];
     const verificationMessage = fieldConfig['ui:verificationMessage'];
+    const isRequired = schema?.required?.includes(fieldName) || false;
 
+    // Special handling for location field
+    if (fieldName === 'location' && hasLocationButton) {
+      return (
+        <div key={fieldName} className="space-y-2">
+          <LocationInput
+            value={getStringValue()}
+            onChange={handleChange}
+            onLocationDataChange={(locationData) => {
+              // Store the full location data for API use
+              setProfile(prevProfile => ({
+                ...prevProfile,
+                whoIAm: {
+                  ...prevProfile.whoIAm,
+                  locationData: locationData
+                }
+              }));
+            }}
+            placeholder={placeholder}
+            label={fieldConfig.title}
+            required={isRequired}
+            disabled={disabled || isVerified}
+          />
+          
+          {/* Verification indicators */}
+          {isVerified && (
+            <div className="flex items-center gap-2 text-sm text-green-600">
+              <Shield className="h-4 w-4" />
+              <span>{verificationMessage || `Verified via DigiLocker`}</span>
+            </div>
+          )}
+          
+          {fieldConfig.description && (
+            <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
+          )}
+        </div>
+      );
+    }
+
+    // Regular field rendering for non-location fields
     return (
-      <div className={fieldName === 'name' ? 'md:col-span-2' : ''}>
-        <Label htmlFor={fieldName}>
+      <div key={fieldName} className="space-y-2">
+        <Label htmlFor={fieldName} className="text-sm font-medium">
           {fieldConfig.title}
-          {schema?.required?.includes(fieldName) && <span className="text-red-500 ml-1">*</span>}
+          {isRequired && <span className="text-red-500 ml-1">*</span>}
         </Label>
         <div className="relative">
-          {widget === 'text' && (
-            <Input 
-              id={fieldName}
-              type="text"
-              value={getStringValue()}
-              onChange={e => handleChange(e.target.value)}
-              placeholder={placeholder}
-              disabled={disabled || isVerified}
-            />
-          )}
-          
-          {widget === 'number' && (
-            <Input 
-              id={fieldName}
-              type={fieldName === 'aadharNumber' && isVerified ? "text" : "number"}
-              value={getAadharValue()}
-              onChange={e => handleChange(e.target.value)}
-              placeholder={placeholder}
-              disabled={disabled || isVerified}
-              min={fieldConfig.minimum}
-              max={fieldConfig.maximum}
-              maxLength={fieldConfig.maxLength}
-            />
-          )}
-          
-          {widget === 'date' && (
-            <Input 
-              id={fieldName}
-              type="date"
-              value={getStringValue()}
-              onChange={e => fieldName === 'dateOfBirth' ? handleDateOfBirthChange(e.target.value) : handleChange(e.target.value)}
-              disabled={disabled || isVerified}
-            />
-          )}
-          
-          {widget === 'tel' && (
-            <Input 
-              id={fieldName}
-              type="tel"
-              value={getStringValue()}
-              onChange={e => handleChange(e.target.value)}
-              placeholder={placeholder}
-              disabled={disabled || isVerified}
-              maxLength={fieldConfig.maxLength || 15}
-              pattern={fieldConfig.pattern}
-            />
-          )}
-          
-          {widget === 'select' && (
+          {widget === 'select' ? (
             <Select 
               value={getStringValue()} 
               onValueChange={handleChange}
@@ -241,19 +247,18 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
                 ))}
               </SelectContent>
             </Select>
-          )}
-
-          {/* Location button for current location */}
-          {hasLocationButton && (
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="sm" 
-              className="absolute right-1 top-1" 
-              onClick={handleLocationDetection}
-            >
-              <MapPin className="h-4 w-4" />
-            </Button>
+          ) : (
+            <Input
+              id={fieldName}
+              type={widget === 'tel' ? 'tel' : 'text'}
+              value={fieldName === 'aadharNumber' ? getAadharValue() : getStringValue()}
+              onChange={(e) => handleChange(e.target.value)}
+              placeholder={placeholder}
+              disabled={disabled || isVerified}
+              className={isVerified ? 'border-green-500' : ''}
+              pattern={fieldConfig.pattern}
+              maxLength={fieldConfig.maxLength || (widget === 'tel' ? 15 : undefined)}
+            />
           )}
 
           {/* Verification indicators */}
@@ -270,6 +275,10 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
           <p className="text-xs text-green-600 mt-1">
             {verificationMessage || `Verified via DigiLocker`}
           </p>
+        )}
+        
+        {fieldConfig.description && (
+          <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
         )}
       </div>
     );

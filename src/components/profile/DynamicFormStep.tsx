@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useProfileForm } from './ProfileFormProvider';
 import { getUnifiedSchemaStep, getUnifiedSchema } from '@/schemas';
 import { Input } from '@/components/ui/input';
@@ -7,10 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { MapPin, Upload, QrCode, Shield, Lock } from 'lucide-react';
+import { MapPin, Upload, QrCode, Shield, Lock, Loader2 } from 'lucide-react';
 import DigiLockerModal from './DigiLockerModal';
 import QRCodeScannerDialog from './QRCodeScannerDialog';
 import { FileUploadField } from '@/components/ui/file-upload-field';
+import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getSchema, getSchemaDescription } from '@/schemas';
+import { getCurrentLocation, parseLocationString, formatLocationForDisplay } from '@/lib/utils';
+import { LocationInput } from '@/components/ui/location-input';
 
 interface DynamicFormStepProps {
   stepName: string;
@@ -25,6 +30,8 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const [dropdownStates, setDropdownStates] = React.useState<Record<string, boolean>>({});
   const dropdownRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const [searchQueries, setSearchQueries] = React.useState<Record<string, string>>({});
+  const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // Handle clicking outside dropdowns to close them
   React.useEffect(() => {
@@ -393,18 +400,47 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
       );
     }
 
-    const handleLocationDetection = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            // You can reverse geocode here to get address
-            handleFieldChange(fieldName, `Lat: ${latitude}, Lng: ${longitude}`);
-          },
-          (error) => {
-            console.error('Error getting location:', error);
+    const handleLocationDetection = async () => {
+      try {
+        // Show loading state
+        const inputElement = document.getElementById(fieldName) as HTMLInputElement;
+        if (inputElement) {
+          inputElement.value = 'Detecting location...';
+          inputElement.disabled = true;
+        }
+
+        const locationData = await getCurrentLocation();
+        const displayLocation = formatLocationForDisplay(locationData);
+        
+        // Update the field with the formatted location
+        handleFieldChange(fieldName, displayLocation);
+        
+        // Also store the full location data in the profile for API use
+        setProfile(prevProfile => ({
+          ...prevProfile,
+          [stepName]: {
+            ...prevProfile[stepName],
+            [`${fieldName}Data`]: locationData // Store full location data
           }
-        );
+        }));
+
+        toast({
+          title: "Location detected",
+          description: `Current location: ${displayLocation}`,
+        });
+      } catch (error) {
+        console.error('Location detection failed:', error);
+        toast({
+          title: "Location detection failed",
+          description: "Please enter your location manually",
+          variant: "destructive"
+        });
+      } finally {
+        // Re-enable the input
+        const inputElement = document.getElementById(fieldName) as HTMLInputElement;
+        if (inputElement) {
+          inputElement.disabled = false;
+        }
       }
     };
 
@@ -419,6 +455,46 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
     switch (widget) {
       case 'text':
+        // Special handling for location fields
+        if (hasLocationButton) {
+          return (
+            <div key={fieldName} className="space-y-2">
+              <LocationInput
+                value={value || ''}
+                onChange={(newValue) => handleFieldChange(fieldName, newValue)}
+                onLocationDataChange={(locationData) => {
+                  // Store the full location data for API use
+                  setProfile(prevProfile => ({
+                    ...prevProfile,
+                    [stepName]: {
+                      ...prevProfile[stepName],
+                      [`${fieldName}Data`]: locationData
+                    }
+                  }));
+                }}
+                placeholder={placeholder}
+                label={fieldConfig.title}
+                required={isRequired}
+                disabled={disabled || isVerified}
+                className={isVerified ? 'border-green-500' : ''}
+              />
+              
+              {/* Verification indicators */}
+              {isVerified && (
+                <div className="flex items-center gap-2 text-sm text-green-600">
+                  <Shield className="h-4 w-4" />
+                  <span>{verificationMessage || `Verified via DigiLocker`}</span>
+                </div>
+              )}
+              
+              {fieldConfig.description && (
+                <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
+              )}
+            </div>
+          );
+        }
+
+        // Regular text input for non-location fields
         return (
           <div key={fieldName} className="space-y-2">
             <Label htmlFor={fieldName} className="text-sm font-medium">
@@ -435,17 +511,6 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 disabled={disabled || isVerified}
                 className={isVerified ? 'border-green-500' : ''}
               />
-              {hasLocationButton && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLocationDetection}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                >
-                  <MapPin className="h-4 w-4" />
-                </Button>
-              )}
               {isVerified && (
                 <div className="absolute right-2 top-2 flex items-center gap-1">
                   <Shield className="h-4 w-4 text-green-600" />

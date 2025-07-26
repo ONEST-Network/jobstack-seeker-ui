@@ -6,15 +6,35 @@ import { Label } from '@/components/ui/label';
 import { MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useProfileForm } from '../ProfileFormProvider';
+import { getCurrentLocation, formatLocationForDisplay } from '@/lib/utils';
 
 const LocationStep: React.FC = () => {
   const { profile, setProfile } = useProfileForm();
   const { toast } = useToast();
 
-  const handleLocationDetection = () => {
-    // Mock GPS detection
-    setProfile({ ...profile, currentLocation: 'Mumbai, Maharashtra' });
-    toast({ title: "Location detected", description: "Current location updated" });
+  const handleLocationDetection = async () => {
+    try {
+      const locationData = await getCurrentLocation();
+      const displayLocation = formatLocationForDisplay(locationData);
+      
+      setProfile({ 
+        ...profile, 
+        currentLocation: displayLocation,
+        locationData: locationData // Store full location data for API
+      });
+      
+      toast({ 
+        title: "Location detected", 
+        description: `Current location: ${displayLocation}` 
+      });
+    } catch (error) {
+      console.error('Location detection failed:', error);
+      toast({
+        title: "Location detection failed",
+        description: "Please enter your location manually",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
