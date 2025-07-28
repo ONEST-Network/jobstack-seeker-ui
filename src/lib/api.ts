@@ -66,6 +66,29 @@ class ApiClient {
     });
   }
 
+  // New OTP-based authentication methods
+  async requestOTP(data: {
+    phoneNumber?: string;
+    email?: string;
+    name?: string;
+  }) {
+    return this.request('/auth/unified-otp/request', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async verifyOTP(data: {
+    phoneNumber?: string;
+    email?: string;
+    otp: string;
+  }) {
+    return this.request('/auth/unified-otp/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async signOut() {
     return this.request('/auth/sign-out', {
       method: 'POST',
