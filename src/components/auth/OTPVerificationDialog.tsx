@@ -45,7 +45,14 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
         email,
         otp
       });
+      
+      // Clear OTP input
+      setOtp('');
+      
+      // Call success callback
       onSuccess();
+      
+      // Show success toast
       toast({
         title: "Success",
         description: "OTP verified successfully!"
@@ -58,6 +65,13 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
       });
     }
   };
+
+  // Reset OTP when dialog opens/closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setOtp('');
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
