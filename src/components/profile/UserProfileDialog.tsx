@@ -160,16 +160,16 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
         
         setProfile(freshProfile);
       }
-    }
-  }, [isOpen, initialProfile, setProfile]);
-
-  // Reset step when dialog opens
-  useEffect(() => {
-    if (isOpen) {
+    } else {
+      // Reset state when dialog closes
       setStep(0);
       setPreviousRole('');
+      setShowVoiceDialog(false);
+      setIsSaving(false);
     }
-  }, [isOpen]);
+  }, [isOpen, initialProfile, setProfile, preSelectedRole]);
+
+
 
   // Handle role change - don't auto-advance
   useEffect(() => {
@@ -180,12 +180,13 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   }, [profile.interestedRole, previousRole]);
 
   // Automatically set the role and skip to the first form step if a pre-selected role is provided
+  // This effect should run after the profile is initialized
   useEffect(() => {
-    if (preSelectedRole && !isUpdate && mode === 'candidate') {
-      setProfile(prev => ({ ...prev, interestedRole: preSelectedRole }));
-      setStep(1); // Skip role selection step and go to first form step
+    if (isOpen && preSelectedRole && !isUpdate && mode === 'candidate' && profile.interestedRole === preSelectedRole) {
+      // Only set step to 1 if the profile has been properly initialized with the preSelectedRole
+      setStep(1);
     }
-  }, [preSelectedRole, isUpdate, mode, setProfile]);
+  }, [isOpen, preSelectedRole, isUpdate, mode, profile.interestedRole]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -618,8 +619,11 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   profileId,
   preSelectedRole
 }) => {
+  // Create a unique key to force ProfileFormProvider reset when dialog opens
+  const dialogKey = `${isOpen ? 'open' : 'closed'}-${preSelectedRole || 'no-role'}-${isUpdate ? 'edit' : 'add'}`;
+  
   return (
-    <ProfileFormProvider initialProfile={initialProfile}>
+    <ProfileFormProvider key={dialogKey} initialProfile={initialProfile}>
       <UserProfileDialogContent 
         isOpen={isOpen} 
         onClose={onClose} 

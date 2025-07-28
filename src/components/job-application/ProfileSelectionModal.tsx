@@ -101,6 +101,24 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     setShowCandidateDialog(true);
   };
 
+  // Reset state when dialog closes
+  const handleClose = () => {
+    setShowCandidateDialog(false);
+    setTempSelectedCandidate(null);
+    setPreSelectedRole('');
+    setProfileMode('add');
+    onClose();
+  };
+
+  // Reset state when main dialog closes
+  const handleMainClose = () => {
+    setTempSelectedCandidate(null);
+    setPreSelectedRole('');
+    setProfileMode('add');
+    setShowCandidateDialog(false);
+    onClose();
+  };
+
   const handleUpdateProfile = async () => {
     if (user?.role === 'individual') {
       try {
@@ -343,12 +361,12 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   if (isMobile) {
     return (
       <>
-        <Drawer open={isOpen} onOpenChange={onClose}>
+        <Drawer open={isOpen} onOpenChange={handleMainClose}>
           <DrawerContent className="h-[95vh]">
             <DrawerHeader className="text-left border-b pb-3">
               <div className="flex items-center justify-between">
                 <DrawerTitle className="text-lg">Select Profile for {jobTitle}</DrawerTitle>
-                <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+                <Button variant="ghost" size="sm" onClick={handleMainClose} className="h-8 w-8 p-0">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -377,7 +395,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   // Desktop version with Dialog
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={handleMainClose}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">Select Profile for {jobTitle}</DialogTitle>
