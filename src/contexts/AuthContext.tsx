@@ -596,109 +596,188 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const response = await apiClient.verifyOTP(data) as { token: string; user: any };
-        
-      // Transform the response to our User interface
-      const backendUser = response.user;
-      const transformedUser: User = {
-        id: backendUser.id,
-        email: backendUser.email,
-        phone: backendUser.phoneNumber,
-        name: backendUser.name,
-        role: 'individual', // Default to individual, will be updated based on profile data
-        isVerified: backendUser.emailVerified || backendUser.phoneNumberVerified,
-        emailVerified: backendUser.emailVerified,
-        image: backendUser.image,
-        createdAt: backendUser.createdAt,
-        updatedAt: backendUser.updatedAt,
-        managedEmployers: [],
-        selectedEmployerId: undefined,
-        managedCandidates: [],
-        selectedCandidateId: undefined
-      };
-        
-      // Store user data
-      setUser(transformedUser);
-      localStorage.setItem('user', JSON.stringify(transformedUser));
       
-      // Fetch user profile data to complete the login process
-      try {
-        const profileResponse = await apiClient.getProfile() as ProfileResponse;
-        if (profileResponse && profileResponse.data) {
-          const profileData = profileResponse.data;
-          
-          // Determine role based on profile type or metadata
-          const isOrganization = profileData.metadata?.gstNumber || 
-                               profileData.metadata?.contactPersonName ||
-                               profileData.metadata?.organizationName ||
-                               profileData.metadata?.address;
-          
-          const profileType = profileData.type;
-          const isOrgByType = profileType === 'organization' || profileType === 'employer';
-          
-          transformedUser.role = (isOrganization || isOrgByType) ? 'organization' : 'individual';
-          
-          // Transform API profile data to our UserProfile format
-          const userProfile: UserProfile = {
-            name: profileData.metadata?.name || profileData.metadata?.whoIAm?.name || '',
-            dateOfBirth: profileData.metadata?.dateOfBirth || profileData.metadata?.whoIAm?.dateOfBirth,
-            age: profileData.metadata?.age || profileData.metadata?.whatIHave?.age,
-            gender: (profileData.metadata?.gender || profileData.metadata?.whoIAm?.gender) as 'male' | 'female' | 'other' | undefined,
-            hometown: profileData.metadata?.hometown || profileData.metadata?.whoIAm?.hometown,
-            aadharNumber: profileData.metadata?.aadharNumber || profileData.metadata?.whoIAm?.aadharNumber,
-            phone: profileData.contact?.phoneNumber?.[0] || profileData.metadata?.whoIAm?.phone || '',
-            currentLocation: profileData.location?.address || profileData.metadata?.whoIAm?.currentLocation || '',
-            desiredLocation: profileData.metadata?.desiredLocation || profileData.metadata?.whoIAm?.desiredLocation || '',
-            isNameVerified: profileData.metadata?.isNameVerified || profileData.metadata?.whoIAm?.isNameVerified || false,
-            isAgeVerified: profileData.metadata?.isAgeVerified || profileData.metadata?.whoIAm?.isAgeVerified || false,
-            interestedRole: profileData.metadata?.role,
-            interestedIndustry: profileData.metadata?.industry,
-            basicLiteracy: (profileData.metadata?.basicLiteracy || profileData.metadata?.whatIHave?.basicLiteracy) as 'below-8th' | '8th-pass' | '10th-pass' | '12th-pass' | 'graduate' | undefined,
-            skillProofVideo: profileData.metadata?.skillProofVideo || profileData.metadata?.whatIHave?.skillProofVideo,
-            qualityProofImage: profileData.metadata?.qualityProofImage || profileData.metadata?.whatIHave?.qualityProofImage,
-            hasWorkExperience: profileData.metadata?.hasWorkExperience || profileData.metadata?.whatIHave?.hasWorkExperience,
-            previousCompany: profileData.metadata?.previousCompany || profileData.metadata?.whatIHave?.previousCompany,
-            previousLocation: profileData.metadata?.previousLocation || profileData.metadata?.whatIHave?.previousLocation,
-            experienceMonths: profileData.metadata?.experienceMonths || profileData.metadata?.whatIHave?.experienceMonths,
-            machinesOperated: profileData.metadata?.machinesOperated || profileData.metadata?.whatIHave?.machinesOperated,
-            salaryFrequency: (profileData.metadata?.salaryFrequency || profileData.metadata?.whatIWant?.salaryFrequency) as 'weekly' | 'monthly' | undefined,
-            advanceMonthsAvailable: profileData.metadata?.advanceMonthsAvailable || profileData.metadata?.whatIWant?.advanceMonthsAvailable,
-            advanceFrequency: (profileData.metadata?.advanceFrequency || profileData.metadata?.whatIWant?.advanceFrequency) as 'monthly' | 'quarterly' | 'half-yearly' | undefined,
-            monthlySalary: profileData.metadata?.monthlySalary || profileData.metadata?.whatIWant?.monthlySalary,
-            pfDeduction: profileData.metadata?.pfDeduction || profileData.metadata?.whatIWant?.pfDeduction,
-            esicDeduction: profileData.metadata?.esicDeduction || profileData.metadata?.whatIWant?.esicDeduction,
-            inHandSalary: profileData.metadata?.inHandSalary || profileData.metadata?.whatIWant?.inHandSalary,
-            housingFacility: profileData.metadata?.housingFacility || profileData.metadata?.whatIWant?.housingFacility,
-            foodFacility: profileData.metadata?.foodFacility || profileData.metadata?.whatIWant?.foodFacility,
-            workHoursPerDay: profileData.metadata?.workHoursPerDay || profileData.metadata?.whatIWant?.workHoursPerDay,
-            overtimeAvailable: profileData.metadata?.overtimeAvailable || profileData.metadata?.whatIWant?.overtimeAvailable,
-            overtimePayMultiplier: profileData.metadata?.overtimePayMultiplier || profileData.metadata?.whatIWant?.overtimePayMultiplier,
-            gradeUpgradation: profileData.metadata?.gradeUpgradation || profileData.metadata?.whatIWant?.gradeUpgradation,
-            factoryTrustScore: profileData.metadata?.factoryTrustScore || profileData.metadata?.whatIWant?.factoryTrustScore,
-            experience: profileData.metadata?.experience || [],
-            skills: profileData.metadata?.skills || [],
-            certificates: profileData.metadata?.certificates || [],
-            assessmentScores: profileData.metadata?.assessmentScores || [],
-            documentVerificationStatus: profileData.metadata?.documentVerificationStatus || [],
-          };
+      // After successful OTP verification, get the complete session data
+      const sessionData = await apiClient.getSession() as SessionResponse;
+      
+      if (sessionData.user && sessionData.session) {
+        const backendUser = sessionData.user;
+        
+        // Transform backend user to our User interface
+        const transformedUser: User = {
+          id: backendUser.id,
+          email: backendUser.email,
+          name: backendUser.name,
+          role: 'individual', // Default to individual, will be updated based on profile data
+          isVerified: backendUser.emailVerified,
+          emailVerified: backendUser.emailVerified,
+          image: backendUser.image,
+          createdAt: backendUser.createdAt,
+          updatedAt: backendUser.updatedAt,
+          managedEmployers: [],
+          selectedEmployerId: undefined,
+          managedCandidates: [],
+          selectedCandidateId: undefined
+        };
 
-          transformedUser.profile = userProfile;
-          transformedUser.profileId = profileData.id;
+        // Check for saved local data and merge
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          
+          // Merge local profile data with backend user
+          transformedUser.profile = parsedUser.profile;
+          transformedUser.profileId = parsedUser.profileId;
+          transformedUser.managedEmployers = parsedUser.managedEmployers || [];
+          transformedUser.selectedEmployerId = parsedUser.selectedEmployerId;
+          transformedUser.managedCandidates = parsedUser.managedCandidates || [];
+          transformedUser.selectedCandidateId = parsedUser.selectedCandidateId;
+          transformedUser.role = parsedUser.role || 'individual';
+        }
 
-          // Create default candidate for individual users
-          if (transformedUser.role === 'individual') {
-            const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
-            transformedUser.managedCandidates = [defaultCandidate];
-            transformedUser.selectedCandidateId = defaultCandidate.id;
+        // Always fetch fresh profile data to ensure we have the latest
+        try {
+          const profileResponse = await apiClient.getProfile() as ProfileResponse;
+          
+          if (profileResponse && profileResponse.data) {
+            const profileData = profileResponse.data;
+            
+            // Determine role based on profile type or metadata
+            const isOrganization = profileData.metadata?.gstNumber || 
+                                 profileData.metadata?.contactPersonName ||
+                                 profileData.metadata?.organizationName ||
+                                 profileData.metadata?.address;
+            
+            const profileType = profileData.type;
+            const isOrgByType = profileType === 'organization' || profileType === 'employer';
+            
+            transformedUser.role = (isOrganization || isOrgByType) ? 'organization' : 'individual';
+            
+            // Transform API profile data to our UserProfile format
+            const userProfile: UserProfile = {
+              name: profileData.metadata?.name || profileData.metadata?.whoIAm?.name || '',
+              dateOfBirth: profileData.metadata?.dateOfBirth || profileData.metadata?.whoIAm?.dateOfBirth,
+              age: profileData.metadata?.age || profileData.metadata?.whatIHave?.age,
+              gender: (profileData.metadata?.gender || profileData.metadata?.whoIAm?.gender) as 'male' | 'female' | 'other' | undefined,
+              hometown: profileData.metadata?.hometown || profileData.metadata?.whoIAm?.hometown,
+              aadharNumber: profileData.metadata?.aadharNumber || profileData.metadata?.whoIAm?.aadharNumber,
+              phone: profileData.contact?.phoneNumber?.[0] || profileData.metadata?.whoIAm?.phone || '',
+              currentLocation: profileData.location?.address || profileData.metadata?.whoIAm?.currentLocation || '',
+              desiredLocation: profileData.metadata?.desiredLocation || profileData.metadata?.whoIAm?.desiredLocation || '',
+              isNameVerified: profileData.metadata?.isNameVerified || profileData.metadata?.whoIAm?.isNameVerified || false,
+              isAgeVerified: profileData.metadata?.isAgeVerified || profileData.metadata?.whoIAm?.isAgeVerified || false,
+              interestedRole: profileData.metadata?.role,
+              interestedIndustry: profileData.metadata?.industry,
+              basicLiteracy: (profileData.metadata?.basicLiteracy || profileData.metadata?.whatIHave?.basicLiteracy) as 'below-8th' | '8th-pass' | '10th-pass' | '12th-pass' | 'graduate' | undefined,
+              skillProofVideo: profileData.metadata?.skillProofVideo || profileData.metadata?.whatIHave?.skillProofVideo,
+              qualityProofImage: profileData.metadata?.qualityProofImage || profileData.metadata?.whatIHave?.qualityProofImage,
+              hasWorkExperience: profileData.metadata?.hasWorkExperience || profileData.metadata?.whatIHave?.hasWorkExperience,
+              previousCompany: profileData.metadata?.previousCompany || profileData.metadata?.whatIHave?.previousCompany,
+              previousLocation: profileData.metadata?.previousLocation || profileData.metadata?.whatIHave?.previousLocation,
+              experienceMonths: profileData.metadata?.experienceMonths || profileData.metadata?.whatIHave?.experienceMonths,
+              machinesOperated: profileData.metadata?.machinesOperated || profileData.metadata?.whatIHave?.machinesOperated,
+              salaryFrequency: (profileData.metadata?.salaryFrequency || profileData.metadata?.whatIWant?.salaryFrequency) as 'weekly' | 'monthly' | undefined,
+              advanceMonthsAvailable: profileData.metadata?.advanceMonthsAvailable || profileData.metadata?.whatIWant?.advanceMonthsAvailable,
+              advanceFrequency: (profileData.metadata?.advanceFrequency || profileData.metadata?.whatIWant?.advanceFrequency) as 'monthly' | 'quarterly' | 'half-yearly' | undefined,
+              monthlySalary: profileData.metadata?.monthlySalary || profileData.metadata?.whatIWant?.monthlySalary,
+              pfDeduction: profileData.metadata?.pfDeduction || profileData.metadata?.whatIWant?.pfDeduction,
+              esicDeduction: profileData.metadata?.esicDeduction || profileData.metadata?.whatIWant?.esicDeduction,
+              inHandSalary: profileData.metadata?.inHandSalary || profileData.metadata?.whatIWant?.inHandSalary,
+              housingFacility: profileData.metadata?.housingFacility || profileData.metadata?.whatIWant?.housingFacility,
+              foodFacility: profileData.metadata?.foodFacility || profileData.metadata?.whatIWant?.foodFacility,
+              workHoursPerDay: profileData.metadata?.workHoursPerDay || profileData.metadata?.whatIWant?.workHoursPerDay,
+              overtimeAvailable: profileData.metadata?.overtimeAvailable || profileData.metadata?.whatIWant?.overtimeAvailable,
+              overtimePayMultiplier: profileData.metadata?.overtimePayMultiplier || profileData.metadata?.whatIWant?.overtimePayMultiplier,
+              gradeUpgradation: profileData.metadata?.gradeUpgradation || profileData.metadata?.whatIWant?.gradeUpgradation,
+              factoryTrustScore: profileData.metadata?.factoryTrustScore || profileData.metadata?.whatIWant?.factoryTrustScore,
+              experience: profileData.metadata?.experience || [],
+              skills: profileData.metadata?.skills || [],
+              certificates: profileData.metadata?.certificates || [],
+              assessmentScores: profileData.metadata?.assessmentScores || [],
+              documentVerificationStatus: profileData.metadata?.documentVerificationStatus || [],
+            };
+
+            transformedUser.profile = userProfile;
+            transformedUser.profileId = profileData.id;
+
+            // Create default candidate for individual users
+            if (transformedUser.role === 'individual') {
+              const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
+              transformedUser.managedCandidates = [defaultCandidate];
+              transformedUser.selectedCandidateId = defaultCandidate.id;
+            }
+          }
+        } catch (profileError) {
+          // No profile found or error fetching profile - user can create one later
+          console.log('No profile found for user:', profileError);
+        }
+
+        // Always fetch profiles for individual users to ensure we have the latest data
+        if (transformedUser.role === 'individual') {
+          try {
+            const profiles = await fetchAndTransformProfiles();
+            if (profiles.length > 0) {
+              transformedUser.managedCandidates = profiles;
+              transformedUser.selectedCandidateId = profiles[0].id;
+            } else {
+              // Create default candidate if no profiles found
+              if (transformedUser.profile) {
+                const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
+                transformedUser.managedCandidates = [defaultCandidate];
+                transformedUser.selectedCandidateId = defaultCandidate.id;
+              }
+            }
+          } catch (profilesError) {
+            console.log('Error fetching profiles:', profilesError);
+            // Create default candidate if error
+            if (transformedUser.profile) {
+              const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
+              transformedUser.managedCandidates = [defaultCandidate];
+              transformedUser.selectedCandidateId = defaultCandidate.id;
+            }
           }
         }
-      } catch (profileError) {
-        // No profile found or error fetching profile - user can create one later
-        console.log('No profile found for user:', profileError);
+        
+        // Handle backward compatibility - create default employer if none exists but org profile exists
+        if (transformedUser.profile && transformedUser.role === 'organization' && transformedUser.managedEmployers.length === 0) {
+          const defaultEmployer = createDefaultEmployerFromProfile(transformedUser.profile as OrganizationProfile);
+          transformedUser.managedEmployers = [defaultEmployer];
+          transformedUser.selectedEmployerId = defaultEmployer.id;
+        }
+        
+        // Handle backward compatibility - create default candidate if none exists but user profile exists
+        if (transformedUser.profile && transformedUser.role === 'individual' && transformedUser.managedCandidates.length === 0) {
+          const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
+          transformedUser.managedCandidates = [defaultCandidate];
+          transformedUser.selectedCandidateId = defaultCandidate.id;
+        }
+        
+        // Store user data
+        setUser(transformedUser);
+        localStorage.setItem('user', JSON.stringify(transformedUser));
+      } else {
+        // Fallback to the original response if session is not available
+        const backendUser = response.user;
+        const transformedUser: User = {
+          id: backendUser.id,
+          email: backendUser.email,
+          phone: backendUser.phoneNumber,
+          name: backendUser.name,
+          role: 'individual',
+          isVerified: backendUser.emailVerified || backendUser.phoneNumberVerified,
+          emailVerified: backendUser.emailVerified,
+          image: backendUser.image,
+          createdAt: backendUser.createdAt,
+          updatedAt: backendUser.updatedAt,
+          managedEmployers: [],
+          selectedEmployerId: undefined,
+          managedCandidates: [],
+          selectedCandidateId: undefined
+        };
+        
+        setUser(transformedUser);
+        localStorage.setItem('user', JSON.stringify(transformedUser));
       }
-
-      // Update user state with complete data
-      setUser(transformedUser);
-      localStorage.setItem('user', JSON.stringify(transformedUser));
       
       return response;
     } catch (error) {
@@ -717,6 +796,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       localStorage.removeItem('user');
       localStorage.removeItem('pendingUser');
+      // Clear auth token is handled in apiClient.signOut()
     }
   };
 
