@@ -5,9 +5,24 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001
 // API Client configuration
 class ApiClient {
   private baseUrl: string;
+  private authToken: string | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+    // Try to get token from localStorage on initialization
+    this.authToken = localStorage.getItem('authToken');
+  }
+
+  // Method to set auth token
+  setAuthToken(token: string) {
+    this.authToken = token;
+    localStorage.setItem('authToken', token);
+  }
+
+  // Method to clear auth token
+  clearAuthToken() {
+    this.authToken = null;
+    localStorage.removeItem('authToken');
   }
 
   private async request<T>(
@@ -16,7 +31,7 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
-    // Only set Content-Type if we have a body
+    // Set up headers
     const headers: Record<string, string> = {
       ...options.headers as Record<string, string>,
     };
@@ -24,14 +39,17 @@ class ApiClient {
     if (options.body) {
       headers['Content-Type'] = 'application/json';
     }
+
+    // Add authorization header if we have a token
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
     
     const config: RequestInit = {
       headers,
-      credentials: 'include', // Important for cookies
+      credentials: 'include', // Keep for cookie-based auth as fallback
       ...options,
     };
-
-
 
     const response = await fetch(url, config);
     
@@ -83,16 +101,28 @@ class ApiClient {
     email?: string;
     otp: string;
   }) {
-    return this.request('/auth/unified-otp/verify', {
+    const response = await this.request<{ token: string; user: any; redirect: string }>('/auth/unified-otp/verify', {
       method: 'POST',
       body: JSON.stringify(data),
     });
+    
+    // Store the token from the response
+    if (response && response.token) {
+      this.setAuthToken(response.token);
+    }
+    
+    return response;
   }
 
   async signOut() {
-    return this.request('/auth/sign-out', {
+    const response = await this.request('/auth/sign-out', {
       method: 'POST',
     });
+    
+    // Clear the token on sign out
+    this.clearAuthToken();
+    
+    return response;
   }
 
   async getSession() {
