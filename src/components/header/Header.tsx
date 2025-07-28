@@ -6,7 +6,6 @@ import { MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateSelector from '@/components/candidates/CandidateSelector';
 import Logo from './Logo';
-import Navigation from './Navigation';
 import LanguageSelector from './LanguageSelector';
 import UserMenu from './UserMenu';
 import HeaderDialogs from './HeaderDialogs';
@@ -39,7 +38,6 @@ const Header = () => {
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <Logo />
-          <Navigation />
 
           {/* Right Section */}
           <div className="flex items-center gap-1 sm:gap-3">
