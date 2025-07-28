@@ -23,6 +23,7 @@ interface UserProfileDialogProps {
   initialProfile?: any;
   isUpdate?: boolean;
   profileId?: string;
+  preSelectedRole?: string;
 }
 
 const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({ 
@@ -32,7 +33,8 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   mode = 'user',
   initialProfile,
   isUpdate,
-  profileId
+  profileId,
+  preSelectedRole
 }) => {
   const { updateProfile, user, getSelectedCandidate, refreshProfileData } = useAuth();
   const { toast } = useToast();
@@ -91,8 +93,8 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           gradeUpgradation: undefined,
           factoryTrustScore: undefined,
           
-          // Role and industry - start empty
-          interestedRole: '',
+          // Role and industry - start empty or use pre-selected role
+          interestedRole: preSelectedRole || '',
           interestedIndustry: '',
           
           // Legacy fields - start empty
@@ -176,6 +178,14 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       // Don't auto-advance - let user click Next
     }
   }, [profile.interestedRole, previousRole]);
+
+  // Automatically set the role and skip to the first form step if a pre-selected role is provided
+  useEffect(() => {
+    if (preSelectedRole && !isUpdate && mode === 'candidate') {
+      setProfile(prev => ({ ...prev, interestedRole: preSelectedRole }));
+      setStep(1); // Skip role selection step and go to first form step
+    }
+  }, [preSelectedRole, isUpdate, mode, setProfile]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -359,8 +369,11 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   };
 
   const renderStep = () => {
-    // Step 0 is ALWAYS role selection, regardless of unified schema
-    if (step === 0) {
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
+    // Step 0 is role selection (unless skipped)
+    if (step === 0 && !shouldSkipRoleSelection) {
       return <RoleSelectionStep onVoiceStart={() => setShowVoiceDialog(true)} isUpdate={isUpdate} />;
     }
     
@@ -400,8 +413,11 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   const getStepTitle = () => {
     const profileType = mode === 'candidate' ? 'Candidate Profile' : 'Your Profile';
     
-    // Step 0 is always role selection
-    if (step === 0) {
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
+    // Step 0 is always role selection (unless skipped)
+    if (step === 0 && !shouldSkipRoleSelection) {
       const title = isUpdate ? `${profileType} - Role Selection (Read Only) (1 of ${getTotalSteps()})` : `${profileType} - Role Selection (1 of ${getTotalSteps()})`;
       return title;
     }
@@ -430,12 +446,15 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   };
 
   const getTotalSteps = () => {
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
     const unifiedSchema = getUnifiedSchema(profile.interestedRole);
     if (unifiedSchema && profile.interestedRole) {
       const steps = unifiedSchema.ui?.steps || [];
-      return steps.length + 1; // +1 for role selection step
+      return shouldSkipRoleSelection ? steps.length : steps.length + 1; // +1 for role selection step
     } else {
-      return 4; // Role selection + 3 legacy steps
+      return shouldSkipRoleSelection ? 3 : 4; // Role selection + 3 legacy steps
     }
   };
 
@@ -445,8 +464,11 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       return false;
     }
     
-    // Step 0 is always role selection - require a role to be selected
-    if (step === 0) {
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
+    // Step 0 is always role selection - require a role to be selected (unless skipped)
+    if (step === 0 && !shouldSkipRoleSelection) {
       // In update mode, we already have a role, so we can proceed
       if (isUpdate) {
         return true;
@@ -501,11 +523,27 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   };
 
   const handleNext = () => {
-    setStep(step + 1);
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
+    if (step === 0 && shouldSkipRoleSelection) {
+      // Skip to step 1 (first form step) when role selection is skipped
+      setStep(1);
+    } else {
+      setStep(step + 1);
+    }
   };
 
   const handlePrevious = () => {
-    setStep(Math.max(0, step - 1));
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
+    if (step === 1 && shouldSkipRoleSelection) {
+      // Go back to step 0 (role selection) when role selection is skipped
+      setStep(0);
+    } else {
+      setStep(Math.max(0, step - 1));
+    }
   };
 
   return (
@@ -577,7 +615,8 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   mode,
   initialProfile,
   isUpdate,
-  profileId
+  profileId,
+  preSelectedRole
 }) => {
   return (
     <ProfileFormProvider initialProfile={initialProfile}>
@@ -589,6 +628,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
         initialProfile={initialProfile}
         isUpdate={isUpdate}
         profileId={profileId}
+        preSelectedRole={preSelectedRole}
       />
     </ProfileFormProvider>
   );
