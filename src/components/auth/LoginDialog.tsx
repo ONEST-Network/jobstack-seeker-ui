@@ -82,7 +82,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
   };
 
   const handleOTPVerificationSuccess = () => {
-    onClose();
+    // Close the dialog and show success message
+    handleClose();
     toast({
       title: "Welcome back!",
       description: "You have successfully logged in."
