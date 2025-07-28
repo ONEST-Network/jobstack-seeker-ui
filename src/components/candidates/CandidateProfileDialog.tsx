@@ -12,6 +12,7 @@ interface CandidateProfileDialogProps {
   candidateId?: string;
   isUpdate?: boolean;
   profileId?: string;
+  preSelectedRole?: string;
 }
 
 const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
@@ -20,7 +21,8 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
   mode,
   candidateId,
   isUpdate,
-  profileId
+  profileId,
+  preSelectedRole
 }) => {
   const { user, addCandidate, updateCandidate, getSelectedCandidate, refreshProfileData } = useAuth();
   const { toast } = useToast();
@@ -180,6 +182,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       initialProfile={getInitialProfile()}
       isUpdate={isUpdate}
       profileId={currentProfileId}
+      preSelectedRole={preSelectedRole}
     />
   );
 };
