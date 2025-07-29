@@ -1,30 +1,44 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Building2, X } from 'lucide-react';
-import MyJobs from './MyJobs';
-import CandidateManagement from './CandidateManagement';
-import EmployerManagement from './employer/EmployerManagement';
-import LoginDialog from './auth/LoginDialog';
-import RegistrationDialog from './auth/RegistrationDialog';
+import { 
+  Building2, 
+  Users, 
+  FileText, 
+  Plus, 
+  Search, 
+  Menu, 
+  X,
+  Briefcase,
+  Clock,
+  CheckCircle,
+  AlertCircle
+} from 'lucide-react';
+import UnauthenticatedView from './provider/UnauthenticatedView';
+import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
 import OrganizationProfileDialog from './profile/OrganizationProfileDialog';
+import EmployerManagement from './employer/EmployerManagement';
 import EmployerProfileDialog from './employer/EmployerProfileDialog';
 import PostJobDialog from './PostJobDialog';
 import DraftManager from './postJob/DraftManager';
-import UnauthenticatedView from './provider/UnauthenticatedView';
+import ApplicationList from './my-jobs/ApplicationList';
+import JobPostingCard from './my-jobs/JobPostingCard';
 import ProfileSetupView from './provider/ProfileSetupView';
 import DashboardHeader from './provider/DashboardHeader';
 import QuickStats from './provider/QuickStats';
+import MyJobs from './MyJobs';
+import CandidateManagement from './CandidateManagement';
 
 const ProviderDashboard = () => {
   const [activeTab, setActiveTab] = useState('my-jobs');
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
+  const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const [showOrgProfile, setShowOrgProfile] = useState(false);
   const [showEmployerDialog, setShowEmployerDialog] = useState(false);
   const [showEmployerManagement, setShowEmployerManagement] = useState(false);
@@ -42,25 +56,15 @@ const ProviderDashboard = () => {
     return (
       <>
         <UnauthenticatedView
-          onLogin={() => setShowLogin(true)}
-          onRegister={() => setShowRegister(true)}
+          onLogin={() => setShowUnifiedAuth(true)}
+          onRegister={() => setShowUnifiedAuth(true)}
         />
 
-        {/* Authentication Dialogs */}
-        <LoginDialog
-          isOpen={showLogin}
-          onClose={() => setShowLogin(false)}
-          onSwitchToRegister={() => {
-            setShowLogin(false);
-            setShowRegister(true);
-          }}
-          defaultRole="individual"
-        />
-        
-        <RegistrationDialog
-          isOpen={showRegister}
-          onClose={() => setShowRegister(false)}
-          defaultRole="individual"
+        {/* Unified Auth Dialog */}
+        <UnifiedAuthDialog
+          isOpen={showUnifiedAuth}
+          onClose={() => setShowUnifiedAuth(false)}
+          defaultRole="organization"
         />
       </>
     );
