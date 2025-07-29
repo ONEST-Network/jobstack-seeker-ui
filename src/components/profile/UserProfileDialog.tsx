@@ -18,9 +18,9 @@ import { Loader2 } from 'lucide-react';
 interface UserProfileDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete?: (profile: any) => void;
+  onComplete?: (profile: Record<string, unknown>) => void;
   mode?: 'user' | 'candidate';
-  initialProfile?: any;
+  initialProfile?: Record<string, unknown>;
   isUpdate?: boolean;
   profileId?: string;
   preSelectedRole?: string;
@@ -50,7 +50,32 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
     if (isOpen) {
       if (initialProfile) {
         // Use the provided initialProfile (for editing existing profiles)
-        setProfile(initialProfile);
+        // Merge initial profile with current profile state to preserve any changes made during this session
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setProfile((prevProfile: any) => {
+          // If we have existing data in the current session, merge it with the initial profile
+          const mergedProfile = { ...initialProfile };
+          
+          // Preserve any step data that has been modified in the current session
+          Object.keys(prevProfile).forEach(stepKey => {
+            if (stepKey !== 'candidateId' && prevProfile[stepKey] && 
+                typeof prevProfile[stepKey] === 'object' && 
+                Object.keys(prevProfile[stepKey] as Record<string, unknown>).length > 0) {
+              
+              // Merge step data, keeping current session values for fields that have been set
+              const currentStepData = prevProfile[stepKey] as Record<string, unknown>;
+              const initialStepData = (mergedProfile as Record<string, unknown>)[stepKey] as Record<string, unknown> || {};
+              
+              (mergedProfile as Record<string, unknown>)[stepKey] = {
+                ...initialStepData,
+                ...currentStepData  // Current session data takes precedence
+              };
+            }
+          });
+          
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return mergedProfile as any;
+        });
       } else {
         // For new profiles, start with completely fresh data
         const freshProfile = {
@@ -352,11 +377,12 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       }, 1000); // Small delay to show the success toast
 
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Profile creation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: isUpdate ? "Profile Update Failed" : "Profile Creation Failed",
-        description: error.message || (isUpdate ? "Failed to update profile. Please try again." : "Failed to create profile. Please try again."),
+        description: errorMessage || (isUpdate ? "Failed to update profile. Please try again." : "Failed to create profile. Please try again."),
         variant: "destructive"
       });
     } finally {
@@ -497,7 +523,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       
       if (unifiedStepIndex >= 0 && unifiedStepIndex < steps.length) {
         const currentStep = steps[unifiedStepIndex];
-        const stepData = (profile[currentStep.id as keyof typeof profile] as Record<string, any>) || {};
+        const stepData = (profile[currentStep.id as keyof typeof profile] as Record<string, unknown>) || {};
         
         // Check required fields for the current step
         const stepSchema = unifiedSchema.properties?.[currentStep.id];
@@ -516,11 +542,12 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
     } else {
       // Legacy validation (offset by 1)
       switch (step) {
-        case 1: // Basic Personal Information - require name, location, and phone
+        case 1: {// Basic Personal Information - require name, location, and phone
           const hasName = (profile.name?.trim() !== '') || (profile.whoIAm?.name?.trim() !== '');
           const hasLocation = (profile.currentLocation?.trim() !== '') || (profile.whoIAm?.location?.trim() !== '');
           const hasPhone = (profile.phone?.trim() !== '') || (profile.whoIAm?.phone?.trim() !== '');
           return hasName && hasLocation && hasPhone;
+        }
         case 2: // Education, Skills, and Work Experience - optional
           return true;
         case 3: // Job Preferences - optional
@@ -633,7 +660,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   const dialogKey = `${isOpen ? 'open' : 'closed'}-${preSelectedRole || 'no-role'}-${isUpdate ? 'edit' : 'add'}`;
   
   return (
-    <ProfileFormProvider key={dialogKey} initialProfile={initialProfile}>
+    <ProfileFormProvider key={dialogKey} initialProfile={initialProfile as unknown as Parameters<typeof ProfileFormProvider>[0]['initialProfile']}>
       <UserProfileDialogContent 
         isOpen={isOpen} 
         onClose={onClose} 
