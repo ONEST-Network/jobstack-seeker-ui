@@ -24,6 +24,8 @@ interface DynamicFormStepProps {
 
 const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => {
   const { profile, setProfile } = useProfileForm();
+  
+
   const [showDigiLocker, setShowDigiLocker] = React.useState(false);
   const [showQRScanner, setShowQRScanner] = React.useState(false);
   const [qrFieldName, setQrFieldName] = React.useState<string>('');
@@ -83,11 +85,14 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   if (!schema) {
     return (
       <div className="p-4 text-center">
-        <div className="text-red-600 mb-2">Schema not found</div>
-        <div className="text-sm text-gray-600">
-          Step: {stepName}<br />
+        <div className="text-red-600 mb-2">Schema not found for step: {stepName}</div>
+        <div className="text-sm text-gray-600 mb-4">
           Role: {role}<br />
+          Step: {stepName}<br />
           Available schemas: {Object.keys(getUnifiedSchema(role) || {}).join(', ')}
+        </div>
+        <div className="text-sm text-gray-500">
+          This might be due to a missing schema configuration for the selected role.
         </div>
       </div>
     );

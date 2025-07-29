@@ -259,8 +259,18 @@ const CandidateProfileApplicationContent: React.FC<CandidateProfileApplicationPr
 
   const jobTitle = getJobTitle(job);
   const mappedRole = getRoleFromJobTitle(jobTitle);
-  const unifiedSchema = getUnifiedSchema(mappedRole);
 
+  // Get existing profile data
+  let existingProfile = null;
+  if (user?.profile && 'age' in user.profile) {
+    existingProfile = user.profile;
+  } else if (selectedCandidate) {
+    existingProfile = selectedCandidate;
+  }
+
+  // Transform existing profile to unified schema format
+  const unifiedProfile = transformProfileToUnifiedSchema(existingProfile, mappedRole);
+  
   // Show loading state while data is being loaded
   if (!isDataLoaded) {
     return (
@@ -286,6 +296,7 @@ const CandidateProfileApplicationContent: React.FC<CandidateProfileApplicationPr
   }
 
   // Check if we have a valid schema for this role
+  const unifiedSchema = getUnifiedSchema(mappedRole);
   if (!unifiedSchema) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -332,14 +343,18 @@ const CandidateProfileApplicationContent: React.FC<CandidateProfileApplicationPr
         
         <div className="flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="whoIAm" className="text-base py-3">
+            <TabsList className="flex w-full mb-4 overflow-x-auto">
+              <TabsTrigger value="whoIAm" className="flex-1 text-sm sm:text-base py-2 sm:py-3 min-w-0 whitespace-nowrap">
                 Who I Am
               </TabsTrigger>
-              <TabsTrigger value="whatIHave" className="text-base py-3">
+              <TabsTrigger value="whatIHave" className="flex-1 text-sm sm:text-base py-2 sm:py-3 min-w-0 whitespace-nowrap">
                 What I Have
               </TabsTrigger>
+              <TabsTrigger value="whatIWant" className="flex-1 text-sm sm:text-base py-2 sm:py-3 min-w-0 whitespace-nowrap">
+                What I Want
+              </TabsTrigger>
             </TabsList>
+
             
             <div className="flex-1 overflow-y-auto">
               <TabsContent value="whoIAm" className="mt-0 h-full">
@@ -348,6 +363,10 @@ const CandidateProfileApplicationContent: React.FC<CandidateProfileApplicationPr
               
               <TabsContent value="whatIHave" className="mt-0 h-full">
                 <DynamicFormStep stepName="whatIHave" role={mappedRole} />
+              </TabsContent>
+              
+              <TabsContent value="whatIWant" className="mt-0 h-full">
+                <DynamicFormStep stepName="whatIWant" role={mappedRole} />
               </TabsContent>
             </div>
           </Tabs>
