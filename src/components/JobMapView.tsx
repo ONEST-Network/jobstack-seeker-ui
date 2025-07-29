@@ -330,7 +330,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery }) => {
 
   // Custom Toast Component
   const MapToastContainer = () => (
-    <div className="fixed top-4 right-4 z-[1001] space-y-2 max-w-sm">
+    <div className="fixed top-4 right-4 z-[9999999] space-y-2 max-w-sm">
       {mapToasts.map((toast) => (
         <div
           key={toast.id}
