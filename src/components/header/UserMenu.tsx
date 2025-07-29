@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { User, LogOut, Building2, Users, FileText } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { User, LogOut, Building2, Users, FileText, Mail, Phone } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
@@ -70,6 +70,23 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {/* User Contact Information */}
+          {user.email && (
+            <DropdownMenuItem className="pointer-events-none cursor-default">
+              <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">{user.email}</span>
+            </DropdownMenuItem>
+          )}
+          {user.phone && (
+            <DropdownMenuItem className="pointer-events-none cursor-default">
+              <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">{user.phone}</span>
+            </DropdownMenuItem>
+          )}
+          
+          {/* Separator between contact info and menu items */}
+          {(user.email || user.phone) && <DropdownMenuSeparator />}
+          
           {/* Only show Complete Profile if user has no profile data */}
           {!user.profile && user.managedCandidates.length === 0 && (
             <DropdownMenuItem onClick={handleCompleteProfile}>
