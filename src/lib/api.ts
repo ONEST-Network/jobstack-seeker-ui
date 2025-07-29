@@ -744,32 +744,15 @@ class ApiClient {
     bucketName: string;
     contentType: string;
     objectKey: string;
-  }) {
+  }): Promise<{ uploadUrl: string; accessUrl: string }> {
     console.log('🚀 Getting presigned URL:', request);
     
     try {
-      const response = await fetch(`${this.baseUrl}/storage/presigned-url`, {
+      const data = await this.request<{ uploadUrl: string; accessUrl: string }>('/storage/presigned-url', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(request),
-        credentials: 'include'
       });
 
-      console.log('📡 Presigned URL response status:', response.status, response.statusText);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Failed to get presigned URL:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorText
-        });
-        throw new Error(`Failed to get presigned URL: ${response.status} ${response.statusText} - ${errorText}`);
-      }
-
-      const data = await response.json();
       console.log('✅ Presigned URL response:', data);
       return data;
     } catch (error) {
@@ -835,16 +818,14 @@ class ApiClient {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch(`${this.baseUrl}/storage/upload`, {
+      // Use the request method to ensure authentication headers are included
+      await this.request('/storage/upload', {
         method: 'POST',
         body: formData,
-        credentials: 'include'
+        headers: {
+          // Don't set Content-Type for FormData, let the browser set it with boundary
+        }
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Server upload failed: ${response.status} ${response.statusText} - ${errorText}`);
-      }
 
       console.log('✅ File uploaded successfully through server');
     } catch (error) {

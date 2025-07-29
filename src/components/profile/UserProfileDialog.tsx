@@ -432,14 +432,22 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       
       if (unifiedStepIndex >= 0 && unifiedStepIndex < steps.length) {
         const currentStep = steps[unifiedStepIndex];
-        return `${profileType} - ${currentStep.title} (${step + 1} of ${getTotalSteps()})`;
+        // When role selection is skipped, step 1 should show as "2 of 4", step 2 as "3 of 4", step 3 as "4 of 4"
+        const displayStep = shouldSkipRoleSelection ? step + 1 : step + 1;
+        const totalSteps = getTotalSteps();
+        const title = `${profileType} - ${currentStep.title} (${displayStep} of ${totalSteps})`;
+        return title;
       }
     } else {
       // Legacy step titles (offset by 1)
       const stepTitles = ['Basic Personal Information', 'Education, Skills, and Work Experience', 'Job Preferences'];
       const legacyStepIndex = step - 1;
       if (legacyStepIndex >= 0 && legacyStepIndex < stepTitles.length) {
-        return `${profileType} - ${stepTitles[legacyStepIndex]} (${step + 1} of ${getTotalSteps()})`;
+        // When role selection is skipped, step 1 should show as "2 of 4", step 2 as "3 of 4", step 3 as "4 of 4"
+        const displayStep = shouldSkipRoleSelection ? step + 1 : step + 1;
+        const totalSteps = getTotalSteps();
+        const title = `${profileType} - ${stepTitles[legacyStepIndex]} (${displayStep} of ${totalSteps})`;
+        return title;
       }
     }
     
@@ -453,9 +461,11 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
     const unifiedSchema = getUnifiedSchema(profile.interestedRole);
     if (unifiedSchema && profile.interestedRole) {
       const steps = unifiedSchema.ui?.steps || [];
-      return shouldSkipRoleSelection ? steps.length : steps.length + 1; // +1 for role selection step
+      // Always return 4 steps total (role selection + 3 form steps) for proper step numbering
+      // Even when role selection is skipped, we want to show "2 out of 4", "3 out of 4", "4 out of 4"
+      return 4; // Role selection + whoIAm + whatIHave + whatIWant
     } else {
-      return shouldSkipRoleSelection ? 3 : 4; // Role selection + 3 legacy steps
+      return 4; // Role selection + 3 legacy steps
     }
   };
 

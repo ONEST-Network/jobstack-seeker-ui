@@ -249,6 +249,7 @@
       "title": "What I Want",
       "description": "Your salary expectations and work preferences",
       "properties": {
+
         "workHoursPerDay": {
           "type": "integer",
           "title": "Number hours willing to work / day",
@@ -322,8 +323,8 @@
         "description": "Tell us about your salary expectations and work preferences",
         "sections": [
           {
-            "title": "Migration & Work Preferences",
-            "fields": ["readyToMigrate", "workHoursPerDay"]
+            "title": "Work Preferences",
+            "fields": ["workHoursPerDay"]
           },
           {
             "title": "Salary Expectations",
