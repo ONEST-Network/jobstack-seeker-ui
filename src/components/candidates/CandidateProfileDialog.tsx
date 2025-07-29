@@ -145,8 +145,6 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
     return undefined;
   };
 
-
-
   // Get the current user to access the profileId
   const { user: currentUser } = useAuth();
   
@@ -166,12 +164,15 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           console.log('Error getting profile ID:', error);
         }
       } else {
-        setCurrentProfileId(profileId || currentUser?.profileId);
+        // For edit mode with a specific candidate, use the candidateId as the profileId
+        // since the candidate ID is actually the profile ID from the backend
+        const effectiveProfileId = mode === 'edit' && candidateId ? candidateId : (profileId || currentUser?.profileId);
+        setCurrentProfileId(effectiveProfileId);
       }
     };
     
     getProfileId();
-  }, [isUpdate, profileId, currentUser?.profileId]);
+  }, [isUpdate, profileId, currentUser?.profileId, mode, candidateId]);
   
   return (
     <UserProfileDialog

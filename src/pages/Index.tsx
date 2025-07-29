@@ -7,15 +7,24 @@ import TopEmployers from '@/components/TopEmployers';
 import JobDiscovery from '@/components/JobDiscovery';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
 
 const Index = () => {
   const [showJobDiscovery, setShowJobDiscovery] = useState(false);
+  const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
 
   if (showJobDiscovery) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <JobDiscovery />
+        <JobDiscovery onPromptLogin={() => setShowUnifiedAuth(true)} />
+        
+        {/* Unified Auth Dialog */}
+        <UnifiedAuthDialog
+          isOpen={showUnifiedAuth}
+          onClose={() => setShowUnifiedAuth(false)}
+          defaultRole="individual"
+        />
       </div>
     );
   }

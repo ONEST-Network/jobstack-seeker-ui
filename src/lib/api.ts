@@ -89,8 +89,18 @@ class ApiClient {
     phoneNumber?: string;
     email?: string;
     name?: string;
-  }) {
+  }): Promise<RequestOTPResponse> {
     return this.request('/auth/unified-otp/request', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async checkUser(data: {
+    email?: string;
+    phoneNumber?: string;
+  }): Promise<CheckUserResponse> {
+    return this.request('/auth/unified-otp/check-user', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -1154,6 +1164,15 @@ export const testProfileCreation = () => {
 export const apiClient = new ApiClient(API_BASE_URL);
 
 // Export types for better TypeScript support
+export interface CheckUserResponse {
+  userExists: boolean;
+}
+
+export interface RequestOTPResponse {
+  ok: boolean;
+  otp: string;
+}
+
 export interface AuthResponse {
   user: {
     id: string;

@@ -8,8 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import JobMapView from './JobMapView';
 import JobListView from './JobListView';
 import JobFilters from './JobFilters';
-import LoginDialog from './auth/LoginDialog';
-import RegistrationDialog from './auth/RegistrationDialog';
+import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
 import { useJobSearch } from '@/hooks/useJobSearch';
 
 interface JobDiscoveryProps {
@@ -20,8 +19,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   const [activeView, setActiveView] = useState('list');
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
+  const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const isMobile = useIsMobile();
 
   // Get loading state from job search hook
@@ -31,13 +29,8 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
     if (onPromptLogin) {
       onPromptLogin();
     } else {
-      setShowLogin(true);
+      setShowUnifiedAuth(true);
     }
-  };
-
-  const handleSwitchToRegister = () => {
-    setShowLogin(false);
-    setShowRegister(true);
   };
 
   const FiltersContent = () => <JobFilters />;
@@ -118,22 +111,17 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
             <JobListView searchQuery={searchQuery} onPromptLogin={handlePromptLogin} />
           </TabsContent>
           <TabsContent value="map" className="mt-0 h-full">
-            <JobMapView searchQuery={searchQuery} />
+            <JobMapView searchQuery={searchQuery} onPromptLogin={handlePromptLogin} />
           </TabsContent>
         </Tabs>
       </div>
 
       {/* Login/Register Dialogs */}
-      <LoginDialog
-        isOpen={showLogin}
-        onClose={() => setShowLogin(false)}
-        onSwitchToRegister={handleSwitchToRegister}
-        defaultRole="individual"
-      />
-      
-      <RegistrationDialog
-        isOpen={showRegister}
-        onClose={() => setShowRegister(false)}
+      <UnifiedAuthDialog
+        isOpen={showUnifiedAuth}
+        onClose={() => {
+          setShowUnifiedAuth(false);
+        }}
         defaultRole="individual"
       />
     </div>
