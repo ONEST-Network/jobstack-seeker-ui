@@ -98,9 +98,9 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     );
   }
 
-  const stepData = (profile[stepName as keyof typeof profile] as Record<string, any>) || {};
+  const stepData = (profile[stepName as keyof typeof profile] as Record<string, unknown>) || {};
 
-  const setStepData = (newData: Record<string, any>) => {
+  const setStepData = (newData: Record<string, unknown>) => {
     setProfile(prev => ({
       ...prev,
       [stepName]: { ...stepData, ...newData }
@@ -114,17 +114,23 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
       return profile.whoIAm?.phone || stepData[fieldName] || '';
     }
     
-    // Check if the field exists in global profile state first
+    // For file upload fields and other step-specific fields, check step data first
+    if (stepData[fieldName] !== undefined) {
+      return stepData[fieldName];
+    }
+    
+    // Check if the field exists in global profile state
     if (profile[fieldName as keyof typeof profile] !== undefined) {
       return profile[fieldName as keyof typeof profile];
     }
-    // Fallback to step data
-    return stepData[fieldName];
+    
+    // Return undefined if not found anywhere
+    return undefined;
   };
 
 
 
-  const handleFieldChange = (fieldName: string, value: any) => {
+  const handleFieldChange = (fieldName: string, value: unknown) => {
 
     // Update step data
     setStepData({ [fieldName]: value });
@@ -151,15 +157,15 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     }
   };
 
-  const handleDigiLockerSuccess = (data: any) => {
+  const handleDigiLockerSuccess = (data: Record<string, unknown>) => {
     // Extract only the properties we care about from the DigiLocker response
     // Prefer common naming variations if they exist
     const fullName: string | undefined =
-      data?.name || data?.fullName || [data?.firstName, data?.lastName].filter(Boolean).join(' ').trim();
+      (data?.name as string) || (data?.fullName as string) || [data?.firstName, data?.lastName].filter(Boolean).join(' ').trim();
 
     // Calculate age more accurately from date of birth
     let derivedAge: number | undefined;
-    const dob: string | undefined = data?.dateOfBirth || data?.dob || data?.birthDate;
+    const dob: string | undefined = (data?.dateOfBirth as string) || (data?.dob as string) || (data?.birthDate as string);
 
     if (dob) {
       const birthDate = new Date(dob);
@@ -176,8 +182,8 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
 
     // Update both the step data and the global profile state
-    const mappedData: Record<string, any> = {};
-    const verificationFlags: Record<string, any> = {};
+    const mappedData: Record<string, unknown> = {};
+    const verificationFlags: Record<string, unknown> = {};
 
     if (fullName) {
       mappedData.name = fullName;
@@ -190,17 +196,17 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     }
 
     if (data?.gender) {
-      mappedData.gender = data.gender;
+      mappedData.gender = data.gender as string;
       verificationFlags.isGenderVerified = true;
     }
 
     if (data?.hometown) {
-      mappedData.hometown = data.hometown;
+      mappedData.hometown = data.hometown as string;
       verificationFlags.isHometownVerified = true;
     }
 
     if (data?.aadharNumber) {
-      mappedData.aadharNumber = data.aadharNumber;
+      mappedData.aadharNumber = data.aadharNumber as string;
       verificationFlags.isAadharVerified = true;
     }
 
@@ -223,7 +229,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     setShowDigiLocker(false);
   };
 
-  const handleQRScanComplete = (data: any) => {
+  const handleQRScanComplete = (data: unknown) => {
     console.log('data: ', data)
     if (qrFieldName) {
       console.log("qr: ", qrFieldName)
@@ -231,6 +237,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderField = (fieldName: string, fieldConfig: any) => {
     const value = getFieldValue(fieldName);
     const isRequired = schema.required?.includes(fieldName);
@@ -256,6 +263,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     if (fieldConfig.type === 'object') {
       const subsectionData = value || {};
       
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const handleSubsectionFieldChange = (subsectionFieldName: string, subsectionValue: any) => {
         const updatedSubsectionData = {
           ...subsectionData,
@@ -641,11 +649,11 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
           </div>
         );
 
-      case 'multiselect-dropdown':
+      case 'multiselect-dropdown': {
         const currentDropdownValues = Array.isArray(value) ? value : [];
         const hasOtherDropdownField = fieldConfig['ui:hasOther'];
         const otherDropdownFieldName = `${fieldName}_other`;
-        const otherDropdownValue = stepData[otherDropdownFieldName] || '';
+        const otherDropdownValue = (stepData[otherDropdownFieldName] as string) || '';
         const isDropdownOpen = dropdownStates[fieldName] || false;
         const isSearchable = fieldConfig['ui:searchable'];
 
@@ -827,12 +835,13 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             )}
           </div>
         );
+      }
 
-      case 'multiselect':
+      case 'multiselect': {
         const currentValues = Array.isArray(value) ? value : [];
         const hasOtherField = fieldConfig['ui:hasOther'];
         const otherFieldName = `${fieldName}_other`;
-        const otherValue = stepData[otherFieldName] || '';
+        const otherValue = (stepData[otherFieldName] as string) || '';
 
         return (
           <div key={fieldName} className="space-y-2">
@@ -887,6 +896,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             )}
           </div>
         );
+      }
 
       case 'textarea':
         return (

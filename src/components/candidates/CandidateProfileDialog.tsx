@@ -31,12 +31,13 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
     ? user?.managedCandidates.find(c => c.id === candidateId)
     : mode === 'edit' ? getSelectedCandidate() : null;
 
-  const handleProfileComplete = (profileData: any) => {
+  const handleProfileComplete = (profileData: Record<string, unknown>) => {
     // Validate that we have the minimum required data before creating a profile
-    const hasRequiredData = profileData.name?.trim() && 
-                           profileData.interestedRole?.trim() && 
-                           (profileData.currentLocation?.trim() || profileData.whoIAm?.location?.trim()) &&
-                           (profileData.phone?.trim() || profileData.whoIAm?.phone?.trim());
+    const whoIAm = profileData.whoIAm as Record<string, unknown> | undefined;
+    const hasRequiredData = profileData.name?.toString()?.trim() && 
+                           profileData.interestedRole?.toString()?.trim() && 
+                           (profileData.currentLocation?.toString()?.trim() || whoIAm?.location?.toString()?.trim()) &&
+                           (profileData.phone?.toString()?.trim() || whoIAm?.phone?.toString()?.trim());
 
     if (!hasRequiredData) {
       console.log('Incomplete profile data, not creating profile:', profileData);
@@ -45,33 +46,33 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
     }
 
     const candidateData: Omit<CandidateProfile, 'id' | 'createdAt'> = {
-      name: profileData.name || 'New Profile',
-      age: profileData.age,
-      isNameVerified: profileData.isNameVerified || false,
-      isAgeVerified: profileData.isAgeVerified || false,
-      currentLocation: profileData.currentLocation || '',
-      desiredLocation: profileData.desiredLocation || '',
-      interestedRole: profileData.interestedRole,
-      interestedIndustry: profileData.interestedIndustry,
-      experience: profileData.experience || [],
-      skills: profileData.skills || [],
-      certificates: profileData.certificates || [],
-      assessmentScores: profileData.assessmentScores,
-      documentVerificationStatus: profileData.documentVerificationStatus,
+      name: (profileData.name as string) || 'New Profile',
+      age: profileData.age as number,
+      isNameVerified: (profileData.isNameVerified as boolean) || false,
+      isAgeVerified: (profileData.isAgeVerified as boolean) || false,
+      currentLocation: (profileData.currentLocation as string) || '',
+      desiredLocation: (profileData.desiredLocation as string) || '',
+      interestedRole: profileData.interestedRole as string,
+      interestedIndustry: profileData.interestedIndustry as string,
+      experience: (Array.isArray(profileData.experience) ? profileData.experience : []) as CandidateProfile['experience'],
+      skills: (profileData.skills as string[]) || [],
+      certificates: (Array.isArray(profileData.certificates) ? profileData.certificates : []) as CandidateProfile['certificates'],
+      assessmentScores: (Array.isArray(profileData.assessmentScores) ? profileData.assessmentScores : []) as CandidateProfile['assessmentScores'],
+      documentVerificationStatus: (Array.isArray(profileData.documentVerificationStatus) ? profileData.documentVerificationStatus : []) as CandidateProfile['documentVerificationStatus'],
       isActive: true,
-      nickname: profileData.nickname || `${profileData.interestedRole || 'Profile'} - ${new Date().toLocaleDateString()}`,
+      nickname: (profileData.nickname as string) || `${(profileData.interestedRole as string) || 'Profile'} - ${new Date().toLocaleDateString()}`,
       // Unified schema data
-      whoIAm: profileData.whoIAm,
-      whatIHave: profileData.whatIHave,
-      whatIWant: profileData.whatIWant,
+      whoIAm: profileData.whoIAm as Record<string, unknown>,
+      whatIHave: profileData.whatIHave as Record<string, unknown>,
+      whatIWant: profileData.whatIWant as Record<string, unknown>,
       // Verification status
-      isGenderVerified: profileData.isGenderVerified || false,
-      isAadharVerified: profileData.isAadharVerified || false,
-      isHometownVerified: profileData.isHometownVerified || false,
+      isGenderVerified: (profileData.isGenderVerified as boolean) || false,
+      isAadharVerified: (profileData.isAadharVerified as boolean) || false,
+      isHometownVerified: (profileData.isHometownVerified as boolean) || false,
       // Education and certifications
-      education: profileData.education || [],
-      skillCertifications: profileData.skillCertifications || [],
-      workExperience: profileData.workExperience || [],
+      education: (Array.isArray(profileData.education) ? profileData.education : []) as CandidateProfile['education'],
+      skillCertifications: (Array.isArray(profileData.skillCertifications) ? profileData.skillCertifications : []) as CandidateProfile['skillCertifications'],
+      workExperience: (Array.isArray(profileData.workExperience) ? profileData.workExperience : []) as CandidateProfile['workExperience'],
     };
 
     if (mode === 'add') {
@@ -111,7 +112,8 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
   const getInitialProfile = () => {
     // Only return initial profile data for edit mode
     if (mode === 'edit' && existingCandidate) {
-      return {
+      // Ensure we preserve all file URLs and other data properly
+      const initialProfile = {
         name: existingCandidate.name,
         age: existingCandidate.age,
         isNameVerified: existingCandidate.isNameVerified,
@@ -126,10 +128,10 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
         assessmentScores: existingCandidate.assessmentScores,
         documentVerificationStatus: existingCandidate.documentVerificationStatus,
         nickname: existingCandidate.nickname,
-        // Unified schema data
-        whoIAm: existingCandidate.whoIAm,
-        whatIHave: existingCandidate.whatIHave,
-        whatIWant: existingCandidate.whatIWant,
+        // Unified schema data - preserve all nested data including file URLs
+        whoIAm: existingCandidate.whoIAm || {},
+        whatIHave: existingCandidate.whatIHave || {},
+        whatIWant: existingCandidate.whatIWant || {},
         // Verification status
         isGenderVerified: existingCandidate.isGenderVerified,
         isAadharVerified: existingCandidate.isAadharVerified,
@@ -139,6 +141,8 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
         skillCertifications: existingCandidate.skillCertifications,
         workExperience: existingCandidate.workExperience,
       };
+
+      return initialProfile;
     }
     
     // For new profiles (mode === 'add'), return undefined to start fresh
