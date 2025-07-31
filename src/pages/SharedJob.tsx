@@ -93,7 +93,7 @@ interface SharedJobData {
 const SharedJob: React.FC = () => {
   const { providerId, jobId } = useParams<{ providerId: string; jobId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, getSelectedCandidate } = useAuth();
   const { toast } = useToast();
   
   const [jobData, setJobData] = useState<SharedJobData | null>(null);
@@ -450,20 +450,43 @@ const SharedJob: React.FC = () => {
     setApplying(true);
 
     try {
+      // Get the selected candidate/profile ID (same as regular application flow)
+      const selectedCandidate = getSelectedCandidate();
+      const profileId = selectedCandidate?.id || 'default';
+
       const response = await apiClient.applyToJobBAP({
         providerId,
         jobId,
         userId: user.id,
+        profileId, // Use profile ID as the primary identifier for the application
         userData: applicationData,
         profileData: applicationData.profileData
       });
 
       toast({
         title: "Application Submitted!",
-        description: "Your job application has been successfully submitted.",
+        description: "Your job application has been successfully submitted. You can view it in My Applications.",
       });
 
       setShowApplicationDialog(false);
+      
+      // Show a follow-up message with navigation option
+      setTimeout(() => {
+        toast({
+          title: "View Your Application",
+          description: "Click here to view all your applications",
+          action: (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/seeker?tab=applications')}
+            >
+              View Applications
+            </Button>
+          ),
+        });
+      }, 2000);
+
     } catch (error: any) {
       console.error('Job application error:', error);
       toast({
