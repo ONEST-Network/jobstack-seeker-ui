@@ -593,6 +593,68 @@ class ApiClient {
     }
   }
 
+  // BAP Job Select API
+  async selectJob(providerId: string, jobId: string) {
+    const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const url = `${BAP_URL}/api/v1/select`;
+    
+    const payload = {
+      context: {
+        bpp_id: "bpp1.dhiway.com",
+        bpp_uri: "https://beckn-adapter.dhiway.net/bpp/receiver",
+        transaction_id: `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      },
+      message: {
+        order: {
+          provider: {
+            id: providerId
+          },
+          items: [
+            {
+              id: jobId
+            }
+          ]
+        }
+      }
+    };
+
+    try {
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Validate the response structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from BAP API');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('BAP Select API Error:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+      throw error;
+    }
+  }
+
   // Trust Score API
   async getTrustScore(jobData: any, seekerData: any): Promise<{ trustScore: number; matchScore: number }> {
     const TRUST_SCORE_URL = import.meta.env.VITE_TRUST_MATCH_SCORE_URL;

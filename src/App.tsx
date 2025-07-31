@@ -8,6 +8,7 @@ import Jobs from "./pages/Jobs";
 import Provider from "./pages/Provider";
 import NotFound from "./pages/NotFound";
 import EmailVerification from "./pages/EmailVerification";
+import SharedJob from "./pages/SharedJob";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { apiClient } from "./lib/api";
@@ -99,6 +100,7 @@ const AppContent = () => (
         <Route path="/seeker" element={<Jobs />} />
         <Route path="/verify/email" element={<EmailVerification />} />
         <Route path="/auth/reset-password" element={<PasswordResetRoute />} />
+        <Route path="/:providerId/:jobId" element={<SharedJob />} />
         {/* Provider route disabled to prevent organization registration */}
         {/* <Route path="/provider" element={<Provider />} /> */}
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Clock, Users, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { Building, MapPin, Clock, Users, Star, ChevronDown, ChevronUp, Share2, Copy } from 'lucide-react';
 import { JobItem } from '@/hooks/useJobSearch';
 import JobMediaCarousel from '../JobMediaCarousel';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface JobCardProps {
   job: JobItem;
@@ -15,7 +16,67 @@ interface JobCardProps {
 
 const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [showAllDetails, setShowAllDetails] = useState(false);
+
+  // Helper function to get provider and job IDs for sharing
+  const getShareableLink = () => {
+    // Try to find provider and job IDs from the job data
+    // This assumes the job data contains the necessary IDs from the search API
+    const providerId = job.providerId;
+    const jobId = job.id;
+    
+    if (providerId && jobId) {
+      return `${window.location.origin}/${providerId}/${jobId}`;
+    }
+    
+    return null;
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const shareUrl = getShareableLink();
+    
+    if (!shareUrl) {
+      toast({
+        title: "Share Unavailable",
+        description: "This job cannot be shared at the moment.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Always copy to clipboard first
+      await navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Link Copied!",
+        description: "Job link has been copied to clipboard. You can now share it manually.",
+      });
+
+      // Then try native sharing if available (mobile devices)
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: job.title,
+            text: `Check out this job opportunity: ${job.title}`,
+            url: shareUrl
+          });
+        } catch (shareError) {
+          // If native sharing fails, that's okay - we already copied to clipboard
+          console.log('Native sharing cancelled or failed, but link was copied to clipboard');
+        }
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast({
+        title: "Share Failed",
+        description: "Failed to copy job link. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Helper function to format location display from BAP API response
   const formatLocation = (location: any): string => {
@@ -346,6 +407,17 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
           }}
         >
           Apply Now
+        </Button>
+
+        {/* Share Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleShare}
+          className="w-full text-xs text-muted-foreground hover:text-foreground"
+        >
+          <Copy className="h-3 w-3 mr-1" />
+          Share Job
         </Button>
       </CardContent>
     </Card>
