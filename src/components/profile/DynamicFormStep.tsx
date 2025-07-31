@@ -367,6 +367,39 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                       </div>
                     );
 
+                  case 'select':
+                    return (
+                      <div key={subsectionFieldName} className="space-y-2">
+                        <Label htmlFor={`${fieldName}_${subsectionFieldName}`} className="text-sm font-medium">
+                          {subsectionFieldConfig.title}
+                          {subsectionTooltip && (
+                            <span className="ml-1 text-xs text-gray-500" title={subsectionTooltip}>ⓘ</span>
+                          )}
+                        </Label>
+                        <div className="relative">
+                          <Select
+                            value={subsectionValue || ''}
+                            onValueChange={(val) => handleSubsectionFieldChange(subsectionFieldName, val)}
+                            disabled={subsectionDisabled}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={subsectionPlaceholder} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {subsectionFieldConfig.enum?.map((option: string, index: number) => (
+                                <SelectItem key={option} value={option}>
+                                  {subsectionFieldConfig.enumNames?.[index] || option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {subsectionFieldConfig.description && (
+                          <p className="text-xs text-muted-foreground">{subsectionFieldConfig.description}</p>
+                        )}
+                      </div>
+                    );
+
                   case 'file-upload':
                     return (
                       <div key={subsectionFieldName} className="space-y-2">
