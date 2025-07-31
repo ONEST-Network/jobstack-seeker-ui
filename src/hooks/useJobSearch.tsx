@@ -23,6 +23,7 @@ export interface JobItem {
   experience?: string;
   positions?: number;
   status?: string; // Job status (draft, active, closed, etc.)
+  providerId?: string; // Provider ID for sharing functionality
   media?: Array<{
     type: 'image' | 'video';
     url: string;
@@ -634,6 +635,7 @@ export const useJobSearch = () => {
             experience,
             positions,
             status: jobStatus, // Include job status
+            providerId: provider.id, // Add provider ID for sharing
             contactPerson,
             jobProviderName: tags?.basicInfo?.jobProviderName || provider.descriptor?.name || 'Unknown Company',
             jobProviderLocation: jobProviderLocation,
