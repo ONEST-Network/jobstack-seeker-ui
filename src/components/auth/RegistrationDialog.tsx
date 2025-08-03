@@ -71,6 +71,16 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
       });
       return;
     }
+    // Phone registration validation commented out - phone registration not implemented
+    // if (method === 'phone' && !phone) {
+    //   toast({
+    //     title: "Error",
+    //     description: "Please enter your phone number.",
+    //     variant: "destructive"
+    //   });
+    //   return;
+    // }
+
 
     // Validate email if provided
     if (email && !email.includes('@')) {
