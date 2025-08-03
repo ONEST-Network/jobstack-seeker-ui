@@ -1,0 +1,303 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Field Sales Person Profile Schema",
+    "description": "Complete profile schema for field sales person role",
+    "type": "object",
+    "properties": {
+      "whoIAm": {
+        "type": "object",
+        "title": "Who I Am",
+        "description": "Basic personal information",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Full Name",
+            "description": "Enter your full name",
+            "required": true,
+            "ui:widget": "text",
+            "ui:placeholder": "Enter your full name",
+            "ui:disabled": false,
+            "ui:verified": false,
+            "ui:verificationMessage": "✓ Verified from DigiLocker"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "Your current location",
+            "required": true,
+            "ui:widget": "text",
+            "ui:placeholder": "Enter your current location",
+            "ui:disabled": false,
+            "ui:hasLocationButton": true
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone Number",
+            "description": "Your contact phone number",
+            "required": true,
+            "pattern": "^[0-9]{10}$",
+            "ui:widget": "tel",
+            "ui:placeholder": "Enter phone number",
+            "ui:disabled": false,
+            "ui:verified": false
+          }
+        },
+        "required": ["name", "location", "phone"],
+        "ui": {
+          "order": ["name", "location", "phone"],
+          "description": "Enter your basic details or import from DigiLocker for quick setup",
+          "showDigiLocker": true,
+          "digiLockerConfig": {
+            "title": "Quick Import from DigiLocker",
+            "description": "Import verified documents to auto-fill your profile information",
+            "buttonText": "Import from DigiLocker",
+            "footerText": "This will import your AADHAAR, name, date of birth and other verified details"
+          }
+        }
+      },
+      "whatIHave": {
+        "type": "object",
+        "title": "What I Have",
+        "description": "Your qualifications, skills, and experience",
+        "properties": {
+          "age": {
+            "type": "integer",
+            "title": "Age",
+            "description": "Your age",
+            "minimum": 18,
+            "maximum": 65,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter your age",
+            "ui:disabled": false
+          },
+          "languagesKnown": {
+            "type": "array",
+            "title": "Languages Known",
+            "description": "Select all languages you can speak",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select languages",
+            "ui:hasOther": true,
+            "enum": [
+              "Assamese",
+              "Bengali",
+              "Bodo",
+              "Dogri",
+              "English",
+              "Gujarati",
+              "Hindi",
+              "Kannada",
+              "Kashmiri",
+              "Konkani",
+              "Maithili",
+              "Malayalam",
+              "Manipuri",
+              "Marathi",
+              "Mizo",
+              "Nepali",
+              "Odia",
+              "Punjabi",
+              "Sanskrit",
+              "Santali",
+              "Sindhi",
+              "Tamil",
+              "Telugu",
+              "Urdu"
+            ],
+            "enumNames": [
+              "Assamese (অসমীয়া)",
+              "Bengali (বাংলা)",
+              "Bodo (बड़ो)",
+              "Dogri (डोगरी)",
+              "English",
+              "Gujarati (ગુજરાતી)",
+              "Hindi (हिन्दी)",
+              "Kannada (ಕನ್ನಡ)",
+              "Kashmiri (कॉशुर)",
+              "Konkani (कोंकणी)",
+              "Maithili (मैथिली)",
+              "Malayalam (മലയാളം)",
+              "Manipuri (মৈতৈলোন্)",
+              "Marathi (मराठी)",
+              "Mizo (Mizo ṭawng)",
+              "Nepali (नेपाली)",
+              "Odia (ଓଡ଼ିଆ)",
+              "Punjabi (ਪੰਜਾਬੀ)",
+              "Sanskrit (संस्कृतम्)",
+              "Santali (ᱥᱟᱱᱛᱟᱲᱤ)",
+              "Sindhi (سنڌي)",
+              "Tamil (தமிழ்)",
+              "Telugu (తెలుగు)",
+              "Urdu (اردو)"
+            ]
+          },
+          "highestEducation": {
+            "type": "array",
+            "title": "Highest Educational Qualification",
+            "description": "Select all your educational qualifications",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select qualifications",
+            "ui:hasOther": true,
+            "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
+            "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"]
+          },
+          "communicationSkillsScore": {
+            "type": "string",
+            "title": "Communication Skills Score",
+            "description": "Enter the score for communication skills",
+            "ui:widget": "text",
+            "ui:placeholder": "Enter the score for communication skills",
+            "ui:disabled": false
+          },
+          "vehicleOwnership": {
+            "type": "string",
+            "title": "Vehicle Owned",
+            "description": "Select all the vehicles you own",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select vehicle ownership",
+            "ui:disabled": false,
+            "enum": ["Motorbike", "Car", "Other"],
+            "enumNames": ["Motorbike", "Car", "Other"]
+          },
+          "domainKnowledge": {
+            "type": "array",
+            "title": "Domain Knowledge",
+            "description": "Select all the domains you are familiar with",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select domain knowledge",
+            "ui:disabled": false,
+            "enum": ["General", "Cashcards","Electronics","Mobile Phones","Kitchen Appliances", "Furniture","Other"],
+            "enumNames": ["General", "Cashcards","Electronics","Mobile Phones","Kitchen Appliances", "Furniture","Other"]
+          },
+          "taskVideo": {
+            "type": "string",
+            "title": "Task Upload",
+            "description": "Upload any file (document, image, video) showing your work",
+            "ui:widget": "file-upload",
+            "ui:placeholder": "Upload file showing your work",
+            "ui:disabled": false,
+            "ui:accept": "*/*",
+            "ui:noSizeLimit": true
+          },
+          "scanQRCode": {
+            "type": "string",
+            "title": "Scan QR Code",
+            "description": "Scan QR code to import additional information",
+            "required": false,
+            "ui:widget": "qr-scanner",
+            "ui:placeholder": "Scan QR code"
+          }
+        },
+        "ui": {
+          "order": ["age", "languagesKnown", "highestEducation", "communicationSkillsScore", "vehicleOwnership", "domainKnowledge", "taskVideo", "scanQRCode"],
+          "description": "Tell us about your qualifications, skills, and experience"
+        }
+      },
+      "whatIWant": {
+        "type": "object",
+        "title": "What I Want",
+        "description": "Your salary expectations and work preferences",
+        "properties": {
+          "workHoursPerDay": {
+            "type": "integer",
+            "title": "Number of hours willing to work / day",
+            "description": "How many hours are you willing to work per day?",
+            "minimum": 4,
+            "maximum": 12,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter hours (4-12)",
+            "ui:disabled": false
+          },
+          "preferredWorkMode": {
+            "type": "array",
+            "title": "Preferred mode of work",
+            "description": "Select your preferred work arrangements",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select work modes",
+            "ui:hasOther": true,
+            "enum": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling"],
+            "enumNames": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling"]
+          },
+          "maxDistanceofDailyTravel": {
+            "type": "integer",
+            "title": "Maximum distance of daily travel",
+            "description": "Enter the maximum distance you are willing to travel daily",
+            "minimum": 0,
+            "maximum": 1000,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter distance in km",
+            "ui:disabled": false
+          },
+          "monthlyInHandPreferred": {
+            "type": "integer",
+            "title": "Monthly In-hand Preferred (INR)",
+            "description": "Your expected monthly take-home salary",
+            "minimum": 0,
+            "maximum": 1000000,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter amount in INR",
+            "ui:currency": "₹",
+            "ui:disabled": false
+          },
+          "monthlyPerformanceVariable": {
+            "type": "integer",
+            "title": "Monthly performance based variable expectation (INR)",
+            "description": "Expected performance-based variable pay",
+            "required": false,
+            "minimum": 0,
+            "maximum": 50000,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter amount in INR",
+            "ui:currency": "₹",
+            "ui:disabled": false
+          },
+          "monthlyTravelAllowance": {
+            "type": "integer",
+            "title": "Monthly travel allowance (INR)",
+            "description": "Expected monthly travel allowance",
+            "minimum": 0,
+            "maximum": 50000,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter amount in INR",
+            "ui:currency": "₹",
+            "ui:disabled": false
+          },
+          "monthlyPFHealthInsurance": {
+            "type": "string",
+            "title": "Monthly PF & Health Insurance",
+            "description": "Do you want PF and health insurance benefits?",
+            "ui:widget": "select",
+            "ui:placeholder": "Select option",
+            "ui:disabled": false,
+            "enum": ["Y", "N"],
+            "enumNames": ["Yes", "No"]
+          }
+        },
+        "ui": {
+          "order": ["workHoursPerDay", "preferredWorkMode", "maxDistanceofDailyTravel", "monthlyInHandPreferred", "monthlyPerformanceVariable", "monthlyTravelAllowance", "monthlyPFHealthInsurance"],
+          "description": "Tell us about your salary expectations and work preferences"
+        }
+      }
+    },
+    "ui": {
+      "steps": [
+        {
+          "id": "whoIAm",
+          "title": "Who I Am",
+          "description": "Basic personal information",
+          "icon": "User"
+        },
+        {
+          "id": "whatIHave",
+          "title": "What I Have",
+          "description": "Qualifications, skills, and experience",
+          "icon": "Briefcase"
+        },
+        {
+          "id": "whatIWant",
+          "title": "What I Want",
+          "description": "Salary expectations and preferences",
+          "icon": "Target"
+        }
+      ]
+    }
+  } 
