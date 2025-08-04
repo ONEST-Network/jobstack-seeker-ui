@@ -40,6 +40,23 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
   const getRoleFromJobTitle = (jobTitle: string): string => {
     const lowerJobTitle = jobTitle.toLowerCase();
     
+    // Map based on keywords in the job title - Order matters! More specific patterns first
+    
+    // Check for specific multi-word patterns first
+    if (lowerJobTitle.includes('data entry operator') || lowerJobTitle.includes('data entry') || lowerJobTitle.includes('data-entry-operator') || lowerJobTitle.includes('data-entry')) {
+      return 'Data Entry Operator';
+    }
+    if (lowerJobTitle.includes('tele sales') || lowerJobTitle.includes('telesales') || lowerJobTitle.includes('tele salesperson') || lowerJobTitle.includes('telecaller') || lowerJobTitle.includes('tele-sales') || lowerJobTitle.includes('tele-salesperson')) {
+      return 'Tele Salesperson';
+    }
+    if (lowerJobTitle.includes('field sales person') || lowerJobTitle.includes('field salesperson') || lowerJobTitle.includes('field-sales-person') || lowerJobTitle.includes('field-salesperson')) {
+      return 'Field Sales Person';
+    }
+    if (lowerJobTitle.includes('machine operator')) {
+      return 'Machine Operator';
+    }
+    
+    // Then check for more general patterns
     if (lowerJobTitle.includes('tailor') || lowerJobTitle.includes('stitch') || lowerJobTitle.includes('garment')) {
       return 'Industrial Tailor';
     }
@@ -64,7 +81,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
     if (lowerJobTitle.includes('mechanic') || lowerJobTitle.includes('maintenance') || lowerJobTitle.includes('repair')) {
       return 'Mechanic';
     }
-    if (lowerJobTitle.includes('machine operator') || lowerJobTitle.includes('operator') || lowerJobTitle.includes('machine')) {
+    if (lowerJobTitle.includes('operator') || lowerJobTitle.includes('machine')) {
       return 'Machine Operator';
     }
     
