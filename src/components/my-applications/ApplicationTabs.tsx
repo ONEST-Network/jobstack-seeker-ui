@@ -13,7 +13,8 @@ interface JobApplication {
   location: string;
   salary: string;
   appliedDate: string;
-  status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'deleted';
+  status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'draft';
+
   media?: Array<{
     type: 'image' | 'video';
     url: string;
@@ -26,28 +27,38 @@ interface JobApplication {
 interface ApplicationTabsProps {
   activeApplications: JobApplication[];
   completedApplications: JobApplication[];
+  draftApplications: JobApplication[];
+  onApplicationSubmitted?: () => void;
 }
 
 const ApplicationTabs: React.FC<ApplicationTabsProps> = ({ 
   activeApplications, 
-  completedApplications 
+  completedApplications,
+  draftApplications,
+  onApplicationSubmitted
 }) => {
   const isMobile = useIsMobile();
 
   return (
     <Tabs defaultValue="active" className="w-full">
-      <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'h-12' : 'h-touch'}`}>
+      <TabsList className={`grid w-full ${isMobile ? 'grid-cols-3 h-12' : 'grid-cols-3 h-touch'}`}>
         <TabsTrigger 
           value="active" 
-          className={`${isMobile ? 'text-base font-medium' : 'text-sm font-medium'}`}
+          className={`${isMobile ? 'text-sm font-medium' : 'text-sm font-medium'}`}
         >
           Active ({activeApplications.length})
         </TabsTrigger>
         <TabsTrigger 
           value="completed" 
-          className={`${isMobile ? 'text-base font-medium' : 'text-sm font-medium'}`}
+          className={`${isMobile ? 'text-sm font-medium' : 'text-sm font-medium'}`}
         >
           Completed ({completedApplications.length})
+        </TabsTrigger>
+        <TabsTrigger 
+          value="draft" 
+          className={`${isMobile ? 'text-sm font-medium' : 'text-sm font-medium'}`}
+        >
+          Draft ({draftApplications.length})
         </TabsTrigger>
       </TabsList>
 
@@ -82,6 +93,26 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
               key={application.id} 
               application={application} 
               isCompleted={true}
+            />
+          ))
+        )}
+      </TabsContent>
+
+      <TabsContent value="draft" className={`${isMobile ? 'space-y-3 mt-4' : 'space-y-4'}`}>
+        {draftApplications.length === 0 ? (
+          <Card>
+            <CardContent className={`${isMobile ? 'p-6' : 'p-8'} text-center`}>
+              <p className="text-muted-foreground">No draft applications found</p>
+            </CardContent>
+          </Card>
+        ) : (
+          draftApplications.map(application => (
+            <ApplicationCard 
+              key={application.id} 
+              application={application} 
+              isCompleted={false}
+              isDraft={true}
+              onApplicationSubmitted={onApplicationSubmitted}
             />
           ))
         )}

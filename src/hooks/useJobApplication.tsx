@@ -32,13 +32,15 @@ export interface JobApplicationData {
 
 export const useJobApplication = () => {
   const [applying, setApplying] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const { user, getSelectedCandidate } = useAuth();
   const { toast } = useToast();
 
   const applyToJob = async (
     jobId: string,
     providerId: string,
-    applicationData: JobApplicationData
+    applicationData: JobApplicationData,
+    transactionId?: string
   ) => {
     if (!user?.id) {
       toast({
@@ -62,7 +64,8 @@ export const useJobApplication = () => {
         userId: user.id,
         profileId, // Use profile ID as the primary identifier for the application
         userData: applicationData,
-        profileData: applicationData.profileData
+        profileData: applicationData.profileData,
+        transactionId // Pass the transaction ID if provided (for draft conversion)
       });
 
       // If server indicates the user has already applied, show an info toast and short-circuit
@@ -108,8 +111,100 @@ export const useJobApplication = () => {
     }
   };
 
+  const saveDraft = async (
+    jobId: string,
+    providerId: string,
+    applicationData: JobApplicationData
+  ) => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to save a draft.",
+        variant: "destructive",
+      });
+      return { success: false, error: "User not authenticated" };
+    }
+
+    setSavingDraft(true);
+
+    try {
+      // Get the selected candidate/profile ID
+      const selectedCandidate = getSelectedCandidate();
+      const profileId = selectedCandidate?.id || 'default';
+
+      const response = await apiClient.saveJobDraft({
+        providerId,
+        jobId,
+        userId: user.id,
+        profileId, // Use profile ID as the primary identifier for the application
+        userData: applicationData,
+        profileData: applicationData.profileData
+      });
+
+      // Check if the response indicates the user has already saved a draft
+      if (response?.message && typeof response.message === "string" && 
+          (response.message.toLowerCase().includes("already drafted") || 
+           response.message.toLowerCase().includes("already saved") || 
+           response.message.toLowerCase().includes("draft exists") ||
+           response.message.toLowerCase().includes("already in draft"))) {
+        toast({
+          title: "Draft Already Exists",
+          description: "You have already saved a draft for this job with this profile.",
+          variant: "default",
+        });
+        return { success: true, data: response };
+      }
+
+      // Check if the response has a status field indicating it's a draft
+      if (response?.status === "DRAFT" && response?.message) {
+        toast({
+          title: "Draft Already Exists",
+          description: "You have already saved a draft for this job with this profile.",
+          variant: "default",
+        });
+        return { success: true, data: response };
+      }
+
+      toast({
+        title: "Draft Saved!",
+        description: "Your job application draft has been successfully saved.",
+      });
+
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('Job draft save error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
+      
+      // Show appropriate toast based on server error message
+      if (typeof errorMessage === "string" && 
+          (errorMessage.toLowerCase().includes("already drafted") ||
+           errorMessage.toLowerCase().includes("already saved") || 
+           errorMessage.toLowerCase().includes("draft exists") ||
+           errorMessage.toLowerCase().includes("already in draft"))) {
+        toast({
+          title: "Draft Already Exists",
+          description: "You have already saved a draft for this job with this profile.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Draft Save Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+
+      return { success: false, error: errorMessage };
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
   return {
     applyToJob,
-    applying
+    saveDraft,
+    applying,
+    savingDraft
   };
 }; 

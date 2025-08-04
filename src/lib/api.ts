@@ -113,7 +113,10 @@ class ApiClient {
   }) {
     const response = await this.request<{ token: string; user: any; redirect: string }>('/auth/unified-otp/verify', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        rememberMe: true
+      }),
     });
     
     // Store the token from the response
@@ -428,9 +431,206 @@ class ApiClient {
       whatIWant?: Record<string, any>;
       [key: string]: any;
     };
+    transactionId?: string; // Optional transaction ID for draft conversion
   }) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v1/apply`;
+    
+    // Use provided transaction ID or generate a new one
+    const transactionId = applyData.transactionId || `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Use profileId as the primary identifier for the application, fallback to userId if no profileId
+    const applicationId = applyData.profileId || applyData.userId;
+    
+    const payload = {
+      context: {
+        bpp_id: "bpp1.dhiway.com",
+        bpp_uri: "https://beckn-adapter.dhiway.net/bpp/receiver",
+        transaction_id: transactionId
+      },
+      message: {
+        order: {
+          provider: {
+            id: applyData.providerId
+          },
+          items: [
+            {
+              id: applyData.jobId,
+              fulfillment_ids: [applicationId]
+            }
+          ],
+          fulfillments: [
+            {
+              id: applicationId,
+              customer: {
+                person: {
+                  id: applicationId,
+                  name: applyData.userData.name,
+                  age: applyData.userData.age,
+                  gender: applyData.userData.gender,
+                  skills: applyData.userData.skills || [
+                    {
+                      code: "UI",
+                      name: "UI Design"
+                    }
+                  ],
+                  languages: applyData.userData.languages || [
+                    {
+                      code: "en",
+                      name: "English"
+                    }
+                  ],
+                  metadata: applyData.profileData ? {
+                    whoIAm: applyData.profileData.whoIAm || {},
+                    whatIHave: applyData.profileData.whatIHave || {},
+                    whatIWant: applyData.profileData.whatIWant || {},
+                    profileId: applyData.profileId, // Include profile ID in metadata
+                    userId: applyData.userId, // Include user ID for reference
+                    ...applyData.profileData
+                  } : {
+                    profileId: applyData.profileId, // Include profile ID even if no other profile data
+                    userId: applyData.userId // Include user ID for reference
+                  },
+                  tags: [
+                    {
+                      descriptor: {
+                        code: "emp-details",
+                        name: "Employee Details"
+                      },
+                      list: [
+                        {
+                          descriptor: {
+                            code: "expected-salary",
+                            name: "Expected Salary"
+                          },
+                          value: applyData.userData.expectedSalary || "1200000"
+                        },
+                        {
+                          descriptor: {
+                            code: "total-experience",
+                            name: "Total Experience"
+                          },
+                          value: applyData.userData.totalExperience || "5"
+                        },
+                        {
+                          descriptor: {
+                            code: "profile-id",
+                            name: "Profile ID"
+                          },
+                          value: applyData.profileId || "default"
+                        },
+                        {
+                          descriptor: {
+                            code: "user-id",
+                            name: "User ID"
+                          },
+                          value: applyData.userId
+                        }
+                      ]
+                    }
+                  ]
+                },
+                contact: {
+                  phone: applyData.userData.phone,
+                  email: applyData.userData.email
+                },
+                location: {
+                  gps: {
+                    lat: applyData.userData.location.lat,
+                    lng: applyData.userData.location.lng
+                  },
+                  address: applyData.userData.location.address,
+                  city: {
+                    name: applyData.userData.location.city,
+                    code: "std:080"
+                  },
+                  state: {
+                    name: applyData.userData.location.state,
+                    code: "IN-KA"
+                  },
+                  country: {
+                    name: applyData.userData.location.country,
+                    code: "IN"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    };
+
+    try {
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Validate the response structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from BAP API');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('BAP Apply API Error:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+      throw error;
+    }
+  }
+
+  // BAP Job Draft API - Same payload as apply but saves as draft
+  async saveJobDraft(applyData: {
+    providerId: string;
+    jobId: string;
+    userId: string;
+    profileId?: string; // Profile ID to use as the primary identifier for the application
+    userData: {
+      name: string;
+      age?: string;
+      gender?: string;
+      skills?: Array<{ code: string; name: string }>;
+      languages?: Array<{ code: string; name: string }>;
+      expectedSalary?: string;
+      totalExperience?: string;
+      phone: string;
+      email: string;
+      location: {
+        lat: number;
+        lng: number;
+        address: string;
+        city: string;
+        state: string;
+        country: string;
+      };
+    };
+    profileData?: {
+      whoIAm?: Record<string, any>;
+      whatIHave?: Record<string, any>;
+      whatIWant?: Record<string, any>;
+      [key: string]: any;
+    };
+  }) {
+    const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const url = `${BAP_URL}/api/v1/job-draft`;
     
     // Generate a unique transaction ID
     const transactionId = `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -585,7 +785,7 @@ class ApiClient {
 
       return data;
     } catch (error) {
-      console.error('BAP Apply API Error:', error);
+      console.error('BAP Draft API Error:', error);
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
       }
