@@ -113,7 +113,10 @@ class ApiClient {
   }) {
     const response = await this.request<{ token: string; user: any; redirect: string }>('/auth/unified-otp/verify', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        rememberMe: true
+      }),
     });
     
     // Store the token from the response
