@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Building, MapPin, Clock, Users, Star, ArrowLeft, Share2, Copy } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useJobApplication } from '@/hooks/useJobApplication';
 import JobMediaCarousel from '@/components/JobMediaCarousel';
 import JobApplicationDialog from '@/components/JobApplicationDialog';
 import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
@@ -95,13 +96,13 @@ const SharedJob: React.FC = () => {
   const navigate = useNavigate();
   const { user, getSelectedCandidate } = useAuth();
   const { toast } = useToast();
+  const { applyToJob, saveDraft, applying, savingDraft } = useJobApplication();
   
   const [jobData, setJobData] = useState<SharedJobData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showApplicationDialog, setShowApplicationDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [applying, setApplying] = useState(false);
 
   // Helper function to format location display
   const formatLocation = (location: any): string => {
@@ -447,7 +448,7 @@ const SharedJob: React.FC = () => {
       return;
     }
 
-    setApplying(true);
+    // setApplying(true); // This line is removed as applying state is now managed by useJobApplication hook
 
     try {
       // Get the selected candidate/profile ID (same as regular application flow)
@@ -495,7 +496,48 @@ const SharedJob: React.FC = () => {
         variant: "destructive"
       });
     } finally {
-      setApplying(false);
+      // setApplying(false); // This line is removed as applying state is now managed by useJobApplication hook
+    }
+  };
+
+  const handleSaveDraft = async (applicationData: any) => {
+    if (!user?.id || !providerId || !jobId) {
+      toast({
+        title: "Error",
+        description: "Please log in to save a draft.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Get the selected candidate/profile ID (same as regular application flow)
+      const selectedCandidate = getSelectedCandidate();
+      const profileId = selectedCandidate?.id || 'default';
+
+      const response = await apiClient.saveJobDraft({
+        providerId,
+        jobId,
+        userId: user.id,
+        profileId, // Use profile ID as the primary identifier for the application
+        userData: applicationData,
+        profileData: applicationData.profileData
+      });
+
+      toast({
+        title: "Draft Saved!",
+        description: "Your job application draft has been successfully saved.",
+      });
+
+      // Don't close the dialog when saving draft, let user continue editing
+
+    } catch (error: any) {
+      console.error('Job draft save error:', error);
+      toast({
+        title: "Draft Save Failed",
+        description: error.message || "Failed to save draft. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -656,7 +698,9 @@ const SharedJob: React.FC = () => {
           isOpen={showApplicationDialog}
           onClose={() => setShowApplicationDialog(false)}
           onSubmit={handleApplicationSubmit}
+          onSaveDraft={handleSaveDraft}
           applying={applying}
+          savingDraft={savingDraft}
         />
       )}
 

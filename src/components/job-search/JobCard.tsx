@@ -79,7 +79,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
   };
 
   // Helper function to format location display from BAP API response
-  const formatLocation = (location: any): string => {
+  const formatLocation = (location: string | { city?: string; state?: string } | null | undefined): string => {
     if (!location) {
       return 'Location not specified';
     }
@@ -110,18 +110,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
     return 'Location not specified';
   };
 
-  // Helper function to format field names for better display
-  const formatFieldName = (key: string): string => {
-    return key
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, str => str.toUpperCase())
-      .replace(/([A-Z])/g, ' $1')
-      .trim()
-      .replace(/\s+/g, ' ');
-  };
-
   // Helper function to format field values for better display
-  const formatFieldValue = (value: any): string => {
+  const formatFieldValue = (value: string | number | boolean | null | undefined): string => {
     if (value === null || value === undefined || value === '') {
       return 'Not specified';
     }
@@ -151,116 +141,106 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
     return String(value);
   };
 
-  // Helper function to check if a field should be skipped
-  const shouldSkipField = (key: string, value: any): boolean => {
-    if (value === null || value === undefined || value === '') {
-      return true;
-    }
-
-    // Skip video and photo related fields
-    const skipFields = [
-      'jobDetailsVideo',
-      'jobLocationPhotos',
-      'factoryWalkthroughVideo',
-      'workerTestimonialVideo',
-      'skillProofVideo',
-      'qualityProofImage',
-      'sampleTaskVideo',
-      'sampleTaskImage',
-      'uploadSpeedProof',
-      'uploadSpeedSampleMedia',
-      'jobProviderLogo',
-      'video',
-      'photo',
-      'image',
-      'thumbnail',
-      'media',
-      'url',
-      'jobDetailsParagraph',
-      'paragraph',
-      'description'
-    ];
-    
-    const keyLower = key.toLowerCase();
-    return skipFields.some(field => keyLower.includes(field));
-  };
-
-  // Helper function to group related fields
-  const groupRelatedFields = (details: [string, any][]): [string, any][][] => {
-    const groups: [string, any][][] = [];
-    const processed = new Set<string>();
-
-    // Define related field pairs
-    const relatedPairs = [
-      ['monthlyInHand', 'monthlyMaxPerformanceBasedVariable'],
-      ['startTime', 'endTime'],
-      ['ageAllowedLowerLimit', 'ageAllowedUpperLimit'],
-      ['monthlyAverageOT', 'monthlyAverageOt'],
-      ['monthlyPfHealthInsurance', 'monthlyPfEsicBenefits']
-    ];
-
-    // Group related fields
-    relatedPairs.forEach(([field1, field2]) => {
-      const field1Entry = details.find(([key]) => key === field1);
-      const field2Entry = details.find(([key]) => key === field2);
-      
-      if (field1Entry && field2Entry) {
-        groups.push([field1Entry, field2Entry]);
-        processed.add(field1);
-        processed.add(field2);
-      } else if (field1Entry) {
-        groups.push([field1Entry]);
-        processed.add(field1);
-      } else if (field2Entry) {
-        groups.push([field2Entry]);
-        processed.add(field2);
-      }
-    });
-
-    // Add remaining unprocessed fields
-    details.forEach(([key, value]) => {
-      if (!processed.has(key)) {
-        groups.push([[key, value]]);
-      }
-    });
-
-    return groups;
-  };
-
   const renderJobDetailsTable = () => {
-    if (!job.jobDetails || Object.keys(job.jobDetails).length === 0) {
-      return null;
-    }
+    // Helper function to get salary range
+    const getSalaryRange = () => {
+      const minSalary = job.tags?.jobDetails?.minMonthlyInHand || job.jobDetails?.minMonthlyInHand;
+      const maxSalary = job.tags?.jobDetails?.maxMonthlyInHand || job.jobDetails?.maxMonthlyInHand;
+      
+      if (minSalary && maxSalary) {
+        return `₹${minSalary.toLocaleString()} - ₹${maxSalary.toLocaleString()}`;
+      } else if (maxSalary) {
+        return `Up to ₹${maxSalary.toLocaleString()}`;
+      } else if (minSalary) {
+        return `From ₹${minSalary.toLocaleString()}`;
+      }
+      return 'Not specified';
+    };
 
-    // Convert jobDetails object to array of key-value pairs
-    const detailsArray = Object.entries(job.jobDetails).filter(([key, value]) => {
-      return !shouldSkipField(key, value);
+    // Helper function to get location from BAP API format
+    const getJobLocation = () => {
+      const location = job.tags?.basicInfo?.jobProviderLocation;
+      if (location && location.city && location.state) {
+        return `${location.city}, ${location.state}`;
+      }
+      return formatLocation(job.jobProviderLocation || job.location);
+    };
+
+    // Define structured job details in the required order
+    const structuredDetails = [
+      {
+        label: 'Role Name',
+        value: job.title, // Using title as role name
+        key: 'roleName'
+      },
+      {
+        label: 'Openings',
+        value: job.tags?.jobDetails?.positions || job.positions || job.openings || 1,
+        key: 'openings'
+      },
+      {
+        label: 'Role Details',
+        value: '', // Empty for now as requested
+        key: 'roleDetails'
+      },
+      {
+        label: 'Location',
+        value: getJobLocation(),
+        key: 'location'
+      },
+      {
+        label: 'Work Timings',
+        value: job.tags?.jobDetails?.workingHoursPerDay || job.jobDetails?.workingHoursPerDay || 'Not specified',
+        key: 'workTimings'
+      },
+      {
+        label: 'Monthly Salary Range',
+        value: getSalaryRange(),
+        key: 'salaryRange'
+      },
+      {
+        label: 'Monthly PF & ESIC',
+        value: job.tags?.jobDetails?.monthlyPfEsicBenefits || job.jobDetails?.monthlyPfEsicBenefits || 'Not specified',
+        key: 'pfEsic'
+      },
+      {
+        label: 'Monthly Avg. Overtime (OT)',
+        value: job.tags?.jobDetails?.monthlyAverageOT || job.jobDetails?.monthlyAverageOT || 'Not specified',
+        key: 'overtime'
+      },
+      {
+        label: 'Stay Provided',
+        value: job.tags?.jobDetails?.stayProvided || job.jobDetails?.stayProvided || 'Not specified',
+        key: 'stayProvided'
+      },
+      {
+        label: 'Minimum Age',
+        value: job.tags?.jobNeeds?.ageAllowedLowerLimit || job.jobDetails?.ageAllowedLowerLimit || 'Not specified',
+        key: 'minimumAge'
+      }
+    ];
+
+    // Filter out empty role details and any other fields that shouldn't be shown
+    const displayDetails = structuredDetails.filter(detail => {
+      if (detail.key === 'roleDetails' && !detail.value) {
+        return false; // Skip empty role details
+      }
+      return detail.value !== null && detail.value !== undefined && detail.value !== '';
     });
 
-    if (detailsArray.length === 0) {
+    if (displayDetails.length === 0) {
       return null;
     }
-
-    // Group related fields
-    const groupedDetails = groupRelatedFields(detailsArray);
-
-    // Flatten the grouped details into a single array
-    const flattenedDetails: [string, any][] = [];
-    groupedDetails.forEach(group => {
-      group.forEach(([key, value]) => {
-        flattenedDetails.push([key, value]);
-      });
-    });
 
     // Limit to 8 items initially (4 rows × 2 columns)
     const maxItems = 8;
-    const displayDetails = showAllDetails ? flattenedDetails : flattenedDetails.slice(0, maxItems);
-    const hasMoreDetails = flattenedDetails.length > maxItems;
+    const visibleDetails = showAllDetails ? displayDetails : displayDetails.slice(0, maxItems);
+    const hasMoreDetails = displayDetails.length > maxItems;
 
     // Create rows with 2 columns each
     const rows = [];
-    for (let i = 0; i < displayDetails.length; i += 2) {
-      const row = displayDetails.slice(i, i + 2);
+    for (let i = 0; i < visibleDetails.length; i += 2) {
+      const row = visibleDetails.slice(i, i + 2);
       rows.push(row);
     }
 
@@ -272,13 +252,13 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
             <tbody>
               {rows.map((row, rowIndex) => (
                 <tr key={rowIndex} className="border-b last:border-b-0">
-                  {row.map(([key, value], colIndex) => (
+                  {row.map((detail, colIndex) => (
                     <td key={colIndex} className="p-2 sm:p-3 text-xs sm:text-sm">
                       <div className="font-medium text-muted-foreground">
-                        {formatFieldName(key)}
+                        {detail.label}
                       </div>
                       <div className="text-foreground font-semibold">
-                        {formatFieldValue(value)}
+                        {formatFieldValue(detail.value)}
                       </div>
                     </td>
                   ))}
@@ -311,7 +291,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
             ) : (
               <>
                 <ChevronDown className="h-3 w-3 mr-1" />
-                View More ({flattenedDetails.length - maxItems} more)
+                View More ({displayDetails.length - maxItems} more)
               </>
             )}
           </Button>

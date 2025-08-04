@@ -13,7 +13,7 @@ interface JobApplication {
   location: string;
   salary: string;
   appliedDate: string;
-  status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
+  status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'draft';
   raw?: any;
   media?: Array<{
     type: 'image' | 'video';
@@ -64,6 +64,7 @@ const MyApplications = () => {
   const { user, getSelectedCandidate } = useAuth();
   const selectedCandidate = getSelectedCandidate();
   const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [draftApplications, setDraftApplications] = useState<JobApplication[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statusLoading, setStatusLoading] = useState<boolean>(false);
   const isMobile = useIsMobile();
@@ -198,6 +199,100 @@ const MyApplications = () => {
     
     // Default to 'default' if no profile ID found
     return 'default';
+  };
+
+  // Function to fetch draft applications
+  const fetchDraftApplications = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const profileIdForApi = selectedCandidate?.id || user.id;
+      const url = `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${profileIdForApi}&status=DRAFT`;
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      const draftApplicationsData = data?.applications || [];
+      
+      const processedDraftApplications = draftApplicationsData.map((app: any) => {
+        const item = app?.metadata?.message?.order?.items?.[0] || {};
+        const provider = app?.metadata?.message?.order?.provider || {};
+        const locationObj = (provider.locations && provider.locations[0]) || {};
+        const tag = item?.tag || {};
+        const basicInfo = tag?.basicInfo || {};
+        const jobDetails = tag?.jobDetails || {};
+        const profileId = extractProfileId(app);
+
+        // Extract salary from various possible locations
+        let salary = 'N/A';
+        
+        // Check for salary range first (maxMonthlyInHand and minMonthlyInHand)
+        const maxSalary = jobDetails?.maxMonthlyInHand || tag?.jobDetails?.maxMonthlyInHand || item?.tag?.jobDetails?.maxMonthlyInHand;
+        const minSalary = jobDetails?.minMonthlyInHand || tag?.jobDetails?.minMonthlyInHand || item?.tag?.jobDetails?.minMonthlyInHand;
+        
+        if (maxSalary && minSalary) {
+          // Both min and max available - show as range
+          const minValue = typeof minSalary === 'string' ? parseFloat(minSalary) : minSalary;
+          const maxValue = typeof maxSalary === 'string' ? parseFloat(maxSalary) : maxSalary;
+          
+          if (!isNaN(minValue) && !isNaN(maxValue)) {
+            salary = `₹${minValue.toLocaleString()} - ₹${maxValue.toLocaleString()}`;
+          }
+        } else if (maxSalary) {
+          // Only max available
+          const maxValue = typeof maxSalary === 'string' ? parseFloat(maxSalary) : maxSalary;
+          if (!isNaN(maxValue)) {
+            salary = `Up to ₹${maxValue.toLocaleString()}`;
+          }
+        } else if (minSalary) {
+          // Only min available
+          const minValue = typeof minSalary === 'string' ? parseFloat(minSalary) : minSalary;
+          if (!isNaN(minValue)) {
+            salary = `From ₹${minValue.toLocaleString()}`;
+          }
+        } else {
+          // Fallback to existing single salary extraction logic
+          const salaryValue = 
+            jobDetails?.salaryCTC ||
+            jobDetails?.monthlyInHand ||
+            jobDetails?.monthlySalary ||
+            tag?.jobDetails?.monthlyInHand ||
+            tag?.jobDetails?.salaryCTC ||
+            item?.tag?.jobDetails?.monthlyInHand ||
+            item?.tag?.jobDetails?.salaryCTC ||
+            item?.tag?.basicInfo?.salaryCTC ||
+            item?.tag?.basicInfo?.monthlyInHand ||
+            item?.tag?.jobDetails?.salaryCTC ||
+            item?.tag?.jobDetails?.monthlyInHand;
+          
+          if (salaryValue && salaryValue !== 'N/A' && salaryValue !== 'undefined') {
+            // Handle both string and number values
+            const numValue = typeof salaryValue === 'string' ? parseFloat(salaryValue) : salaryValue;
+            if (!isNaN(numValue)) {
+              salary = `₹${numValue.toLocaleString()}`;
+            }
+          }
+        }
+
+        return {
+          id: app.order_id ?? app.transaction_id ?? app.job_id,
+          jobId: item.id ?? app.job_id,
+          jobTitle: item?.descriptor?.name ?? 'Unknown',
+          company: basicInfo?.jobProviderName ?? provider?.descriptor?.name ?? 'Unknown',
+          location: `${locationObj.city ?? ''}${locationObj.state ? ', ' + locationObj.state : ''}`.trim(),
+          salary: salary,
+          appliedDate: app?.metadata?.context?.timestamp ?? new Date().toISOString(),
+          status: 'draft' as JobApplication['status'],
+          raw: app,
+          media: [],
+          profileId,
+        } as JobApplication;
+      });
+
+      setDraftApplications(processedDraftApplications);
+    } catch (error) {
+      console.error('Failed to fetch draft applications', error);
+      setDraftApplications([]);
+    }
   };
 
   // Function to fetch all applications with their statuses
@@ -428,6 +523,7 @@ const MyApplications = () => {
     // Clear cache when user or selected candidate changes
     statusCache.current.clear();
     fetchApplicationsWithStatus();
+    fetchDraftApplications();
   }, [user, selectedCandidate]); // Re-fetch when selected candidate changes
 
   // Add a refresh mechanism when component mounts to catch new applications
@@ -436,6 +532,7 @@ const MyApplications = () => {
       // Refresh applications when the window regains focus (user navigates back)
       if (user?.id) {
         fetchApplicationsWithStatus();
+        fetchDraftApplications();
       }
     };
 
@@ -449,6 +546,7 @@ const MyApplications = () => {
       // Small delay to ensure any pending applications are processed
       const timer = setTimeout(() => {
         fetchApplicationsWithStatus();
+        fetchDraftApplications();
       }, 1000);
       
       return () => clearTimeout(timer);
@@ -485,7 +583,7 @@ const MyApplications = () => {
             <div className="text-center py-8">
               <p className="text-muted-foreground">Updating application statuses...</p>
             </div>
-          ) : applications.length === 0 ? (
+          ) : applications.length === 0 && draftApplications.length === 0 ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <User className="h-8 w-8 text-muted-foreground" />
@@ -501,7 +599,10 @@ const MyApplications = () => {
                 Switch to a different profile or apply to jobs to see your applications here.
               </p>
               <Button 
-                onClick={fetchApplicationsWithStatus}
+                onClick={() => {
+                  fetchApplicationsWithStatus();
+                  fetchDraftApplications();
+                }}
                 disabled={isLoading}
                 variant="outline"
                 className="flex items-center gap-2"
@@ -514,6 +615,11 @@ const MyApplications = () => {
             <ApplicationTabs 
               activeApplications={activeApplications}
               completedApplications={completedApplications}
+              draftApplications={draftApplications}
+              onApplicationSubmitted={() => {
+                fetchApplicationsWithStatus();
+                fetchDraftApplications();
+              }}
             />
           )}
         </>
