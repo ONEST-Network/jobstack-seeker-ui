@@ -5,9 +5,24 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001
 // API Client configuration
 class ApiClient {
   private baseUrl: string;
+  private authToken: string | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+    // Try to get token from localStorage on initialization
+    this.authToken = localStorage.getItem('authToken');
+  }
+
+  // Method to set auth token
+  setAuthToken(token: string) {
+    this.authToken = token;
+    localStorage.setItem('authToken', token);
+  }
+
+  // Method to clear auth token
+  clearAuthToken() {
+    this.authToken = null;
+    localStorage.removeItem('authToken');
   }
 
   private async request<T>(
@@ -16,7 +31,7 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
-    // Only set Content-Type if we have a body
+    // Set up headers
     const headers: Record<string, string> = {
       ...options.headers as Record<string, string>,
     };
@@ -24,14 +39,17 @@ class ApiClient {
     if (options.body) {
       headers['Content-Type'] = 'application/json';
     }
+
+    // Add authorization header if we have a token
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
     
     const config: RequestInit = {
       headers,
-      credentials: 'include', // Important for cookies
+      credentials: 'include', // Keep for cookie-based auth as fallback
       ...options,
     };
-
-
 
     const response = await fetch(url, config);
     
@@ -66,10 +84,55 @@ class ApiClient {
     });
   }
 
+  // New OTP-based authentication methods
+  async requestOTP(data: {
+    phoneNumber?: string;
+    email?: string;
+    name?: string;
+  }): Promise<RequestOTPResponse> {
+    return this.request('/auth/unified-otp/request', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async checkUser(data: {
+    email?: string;
+    phoneNumber?: string;
+  }): Promise<CheckUserResponse> {
+    return this.request('/auth/unified-otp/check-user', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async verifyOTP(data: {
+    phoneNumber?: string;
+    email?: string;
+    otp: string;
+  }) {
+    const response = await this.request<{ token: string; user: any; redirect: string }>('/auth/unified-otp/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    
+    // Store the token from the response
+    if (response && response.token) {
+      this.setAuthToken(response.token);
+    }
+    
+    return response;
+  }
+
   async signOut() {
-    return this.request('/auth/sign-out', {
+    const response = await this.request('/auth/sign-out', {
       method: 'POST',
     });
+    
+    // Clear the token on sign out
+    this.clearAuthToken();
+    
+    return response;
   }
 
   async getSession() {
@@ -530,6 +593,68 @@ class ApiClient {
     }
   }
 
+  // BAP Job Select API
+  async selectJob(providerId: string, jobId: string) {
+    const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const url = `${BAP_URL}/api/v1/select`;
+    
+    const payload = {
+      context: {
+        bpp_id: "bpp1.dhiway.com",
+        bpp_uri: "https://beckn-adapter.dhiway.net/bpp/receiver",
+        transaction_id: `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      },
+      message: {
+        order: {
+          provider: {
+            id: providerId
+          },
+          items: [
+            {
+              id: jobId
+            }
+          ]
+        }
+      }
+    };
+
+    try {
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Validate the response structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from BAP API');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('BAP Select API Error:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+      throw error;
+    }
+  }
+
   // Trust Score API
   async getTrustScore(jobData: any, seekerData: any): Promise<{ trustScore: number; matchScore: number }> {
     const TRUST_SCORE_URL = import.meta.env.VITE_TRUST_MATCH_SCORE_URL;
@@ -681,32 +806,15 @@ class ApiClient {
     bucketName: string;
     contentType: string;
     objectKey: string;
-  }) {
+  }): Promise<{ uploadUrl: string; accessUrl: string }> {
     console.log('🚀 Getting presigned URL:', request);
     
     try {
-      const response = await fetch(`${this.baseUrl}/storage/presigned-url`, {
+      const data = await this.request<{ uploadUrl: string; accessUrl: string }>('/storage/presigned-url', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(request),
-        credentials: 'include'
       });
 
-      console.log('📡 Presigned URL response status:', response.status, response.statusText);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Failed to get presigned URL:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorText
-        });
-        throw new Error(`Failed to get presigned URL: ${response.status} ${response.statusText} - ${errorText}`);
-      }
-
-      const data = await response.json();
       console.log('✅ Presigned URL response:', data);
       return data;
     } catch (error) {
@@ -772,16 +880,14 @@ class ApiClient {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch(`${this.baseUrl}/storage/upload`, {
+      // Use the request method to ensure authentication headers are included
+      await this.request('/storage/upload', {
         method: 'POST',
         body: formData,
-        credentials: 'include'
+        headers: {
+          // Don't set Content-Type for FormData, let the browser set it with boundary
+        }
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Server upload failed: ${response.status} ${response.statusText} - ${errorText}`);
-      }
 
       console.log('✅ File uploaded successfully through server');
     } catch (error) {
@@ -1101,6 +1207,15 @@ export const testProfileCreation = () => {
 export const apiClient = new ApiClient(API_BASE_URL);
 
 // Export types for better TypeScript support
+export interface CheckUserResponse {
+  userExists: boolean;
+}
+
+export interface RequestOTPResponse {
+  ok: boolean;
+  otp: string;
+}
+
 export interface AuthResponse {
   user: {
     id: string;

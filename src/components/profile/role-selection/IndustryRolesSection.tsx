@@ -27,6 +27,7 @@ const IndustryRolesSection: React.FC<IndustryRolesSectionProps> = ({
       case 'Manufacturing': return '🏭';
       case 'Electric Vehicles': return '🚗';
       case 'Sales': return '💼';
+      case 'Administration': return '📋';
       default: return '💼';
     }
   };

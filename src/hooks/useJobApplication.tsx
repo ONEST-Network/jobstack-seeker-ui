@@ -78,7 +78,7 @@ export const useJobApplication = () => {
 
       toast({
         title: "Application Submitted!",
-        description: "Your job application has been successfully submitted.",
+        description: "Your job application has been successfully submitted. You can view it in My Applications.",
       });
 
       return { success: true, data: response };

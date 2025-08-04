@@ -18,11 +18,12 @@ import { Loader2 } from 'lucide-react';
 interface UserProfileDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete?: (profile: any) => void;
+  onComplete?: (profile: Record<string, unknown>) => void;
   mode?: 'user' | 'candidate';
-  initialProfile?: any;
+  initialProfile?: Record<string, unknown>;
   isUpdate?: boolean;
   profileId?: string;
+  preSelectedRole?: string;
 }
 
 const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({ 
@@ -32,7 +33,8 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   mode = 'user',
   initialProfile,
   isUpdate,
-  profileId
+  profileId,
+  preSelectedRole
 }) => {
   const { updateProfile, user, getSelectedCandidate, refreshProfileData } = useAuth();
   const { toast } = useToast();
@@ -48,7 +50,32 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
     if (isOpen) {
       if (initialProfile) {
         // Use the provided initialProfile (for editing existing profiles)
-        setProfile(initialProfile);
+        // Merge initial profile with current profile state to preserve any changes made during this session
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setProfile((prevProfile: any) => {
+          // If we have existing data in the current session, merge it with the initial profile
+          const mergedProfile = { ...initialProfile };
+          
+          // Preserve any step data that has been modified in the current session
+          Object.keys(prevProfile).forEach(stepKey => {
+            if (stepKey !== 'candidateId' && prevProfile[stepKey] && 
+                typeof prevProfile[stepKey] === 'object' && 
+                Object.keys(prevProfile[stepKey] as Record<string, unknown>).length > 0) {
+              
+              // Merge step data, keeping current session values for fields that have been set
+              const currentStepData = prevProfile[stepKey] as Record<string, unknown>;
+              const initialStepData = (mergedProfile as Record<string, unknown>)[stepKey] as Record<string, unknown> || {};
+              
+              (mergedProfile as Record<string, unknown>)[stepKey] = {
+                ...initialStepData,
+                ...currentStepData  // Current session data takes precedence
+              };
+            }
+          });
+          
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return mergedProfile as any;
+        });
       } else {
         // For new profiles, start with completely fresh data
         const freshProfile = {
@@ -91,8 +118,8 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           gradeUpgradation: undefined,
           factoryTrustScore: undefined,
           
-          // Role and industry - start empty
-          interestedRole: '',
+          // Role and industry - start empty or use pre-selected role
+          interestedRole: preSelectedRole || '',
           interestedIndustry: '',
           
           // Legacy fields - start empty
@@ -158,16 +185,16 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
         
         setProfile(freshProfile);
       }
-    }
-  }, [isOpen, initialProfile, setProfile]);
-
-  // Reset step when dialog opens
-  useEffect(() => {
-    if (isOpen) {
+    } else {
+      // Reset state when dialog closes
       setStep(0);
       setPreviousRole('');
+      setShowVoiceDialog(false);
+      setIsSaving(false);
     }
-  }, [isOpen]);
+  }, [isOpen, initialProfile, setProfile, preSelectedRole]);
+
+
 
   // Handle role change - don't auto-advance
   useEffect(() => {
@@ -176,6 +203,15 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       // Don't auto-advance - let user click Next
     }
   }, [profile.interestedRole, previousRole]);
+
+  // Automatically set the role and skip to the first form step if a pre-selected role is provided
+  // This effect should run after the profile is initialized
+  useEffect(() => {
+    if (isOpen && preSelectedRole && !isUpdate && mode === 'candidate' && profile.interestedRole === preSelectedRole) {
+      // Only set step to 1 if the profile has been properly initialized with the preSelectedRole
+      setStep(1);
+    }
+  }, [isOpen, preSelectedRole, isUpdate, mode, profile.interestedRole]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -341,11 +377,12 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       }, 1000); // Small delay to show the success toast
 
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Profile creation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: isUpdate ? "Profile Update Failed" : "Profile Creation Failed",
-        description: error.message || (isUpdate ? "Failed to update profile. Please try again." : "Failed to create profile. Please try again."),
+        description: errorMessage || (isUpdate ? "Failed to update profile. Please try again." : "Failed to create profile. Please try again."),
         variant: "destructive"
       });
     } finally {
@@ -359,8 +396,11 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   };
 
   const renderStep = () => {
-    // Step 0 is ALWAYS role selection, regardless of unified schema
-    if (step === 0) {
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
+    // Step 0 is role selection (unless skipped)
+    if (step === 0 && !shouldSkipRoleSelection) {
       return <RoleSelectionStep onVoiceStart={() => setShowVoiceDialog(true)} isUpdate={isUpdate} />;
     }
     
@@ -400,8 +440,11 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   const getStepTitle = () => {
     const profileType = mode === 'candidate' ? 'Candidate Profile' : 'Your Profile';
     
-    // Step 0 is always role selection
-    if (step === 0) {
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
+    // Step 0 is always role selection (unless skipped)
+    if (step === 0 && !shouldSkipRoleSelection) {
       const title = isUpdate ? `${profileType} - Role Selection (Read Only) (1 of ${getTotalSteps()})` : `${profileType} - Role Selection (1 of ${getTotalSteps()})`;
       return title;
     }
@@ -415,14 +458,22 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       
       if (unifiedStepIndex >= 0 && unifiedStepIndex < steps.length) {
         const currentStep = steps[unifiedStepIndex];
-        return `${profileType} - ${currentStep.title} (${step + 1} of ${getTotalSteps()})`;
+        // When role selection is skipped, step 1 should show as "2 of 4", step 2 as "3 of 4", step 3 as "4 of 4"
+        const displayStep = shouldSkipRoleSelection ? step + 1 : step + 1;
+        const totalSteps = getTotalSteps();
+        const title = `${profileType} - ${currentStep.title} (${displayStep} of ${totalSteps})`;
+        return title;
       }
     } else {
       // Legacy step titles (offset by 1)
       const stepTitles = ['Basic Personal Information', 'Education, Skills, and Work Experience', 'Job Preferences'];
       const legacyStepIndex = step - 1;
       if (legacyStepIndex >= 0 && legacyStepIndex < stepTitles.length) {
-        return `${profileType} - ${stepTitles[legacyStepIndex]} (${step + 1} of ${getTotalSteps()})`;
+        // When role selection is skipped, step 1 should show as "2 of 4", step 2 as "3 of 4", step 3 as "4 of 4"
+        const displayStep = shouldSkipRoleSelection ? step + 1 : step + 1;
+        const totalSteps = getTotalSteps();
+        const title = `${profileType} - ${stepTitles[legacyStepIndex]} (${displayStep} of ${totalSteps})`;
+        return title;
       }
     }
     
@@ -430,10 +481,15 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   };
 
   const getTotalSteps = () => {
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
     const unifiedSchema = getUnifiedSchema(profile.interestedRole);
     if (unifiedSchema && profile.interestedRole) {
       const steps = unifiedSchema.ui?.steps || [];
-      return steps.length + 1; // +1 for role selection step
+      // Always return 4 steps total (role selection + 3 form steps) for proper step numbering
+      // Even when role selection is skipped, we want to show "2 out of 4", "3 out of 4", "4 out of 4"
+      return 4; // Role selection + whoIAm + whatIHave + whatIWant
     } else {
       return 4; // Role selection + 3 legacy steps
     }
@@ -445,8 +501,11 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       return false;
     }
     
-    // Step 0 is always role selection - require a role to be selected
-    if (step === 0) {
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
+    // Step 0 is always role selection - require a role to be selected (unless skipped)
+    if (step === 0 && !shouldSkipRoleSelection) {
       // In update mode, we already have a role, so we can proceed
       if (isUpdate) {
         return true;
@@ -464,7 +523,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       
       if (unifiedStepIndex >= 0 && unifiedStepIndex < steps.length) {
         const currentStep = steps[unifiedStepIndex];
-        const stepData = (profile[currentStep.id as keyof typeof profile] as Record<string, any>) || {};
+        const stepData = (profile[currentStep.id as keyof typeof profile] as Record<string, unknown>) || {};
         
         // Check required fields for the current step
         const stepSchema = unifiedSchema.properties?.[currentStep.id];
@@ -483,11 +542,12 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
     } else {
       // Legacy validation (offset by 1)
       switch (step) {
-        case 1: // Basic Personal Information - require name, location, and phone
+        case 1: {// Basic Personal Information - require name, location, and phone
           const hasName = (profile.name?.trim() !== '') || (profile.whoIAm?.name?.trim() !== '');
           const hasLocation = (profile.currentLocation?.trim() !== '') || (profile.whoIAm?.location?.trim() !== '');
           const hasPhone = (profile.phone?.trim() !== '') || (profile.whoIAm?.phone?.trim() !== '');
           return hasName && hasLocation && hasPhone;
+        }
         case 2: // Education, Skills, and Work Experience - optional
           return true;
         case 3: // Job Preferences - optional
@@ -501,11 +561,27 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   };
 
   const handleNext = () => {
-    setStep(step + 1);
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
+    if (step === 0 && shouldSkipRoleSelection) {
+      // Skip to step 1 (first form step) when role selection is skipped
+      setStep(1);
+    } else {
+      setStep(step + 1);
+    }
   };
 
   const handlePrevious = () => {
-    setStep(Math.max(0, step - 1));
+    // If we have a pre-selected role and we're not in update mode, skip role selection
+    const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+    
+    if (step === 1 && shouldSkipRoleSelection) {
+      // Go back to step 0 (role selection) when role selection is skipped
+      setStep(0);
+    } else {
+      setStep(Math.max(0, step - 1));
+    }
   };
 
   return (
@@ -577,10 +653,14 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   mode,
   initialProfile,
   isUpdate,
-  profileId
+  profileId,
+  preSelectedRole
 }) => {
+  // Create a unique key to force ProfileFormProvider reset when dialog opens
+  const dialogKey = `${isOpen ? 'open' : 'closed'}-${preSelectedRole || 'no-role'}-${isUpdate ? 'edit' : 'add'}`;
+  
   return (
-    <ProfileFormProvider initialProfile={initialProfile}>
+    <ProfileFormProvider key={dialogKey} initialProfile={initialProfile as unknown as Parameters<typeof ProfileFormProvider>[0]['initialProfile']}>
       <UserProfileDialogContent 
         isOpen={isOpen} 
         onClose={onClose} 
@@ -589,6 +669,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
         initialProfile={initialProfile}
         isUpdate={isUpdate}
         profileId={profileId}
+        preSelectedRole={preSelectedRole}
       />
     </ProfileFormProvider>
   );

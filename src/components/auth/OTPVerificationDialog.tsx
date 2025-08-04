@@ -12,6 +12,8 @@ interface OTPVerificationDialogProps {
   onSuccess: () => void;
   contactMethod: string;
   method: 'email' | 'phone';
+  phoneNumber?: string;
+  email?: string;
 }
 
 const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
@@ -19,7 +21,9 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
   onClose,
   onSuccess,
   contactMethod,
-  method
+  method,
+  phoneNumber,
+  email
 }) => {
   const [otp, setOtp] = useState('');
   const { verifyOTP, isLoading } = useAuth();
@@ -36,16 +40,38 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
     }
 
     try {
-      await verifyOTP(otp);
+      await verifyOTP({
+        phoneNumber,
+        email,
+        otp
+      });
+      
+      // Clear OTP input
+      setOtp('');
+      
+      // Call success callback
       onSuccess();
-    } catch (error) {
+      
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "OTP verified successfully!"
+      });
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Invalid OTP. Please try again.",
+        description: error.message || "Invalid OTP. Please try again.",
         variant: "destructive"
       });
     }
   };
+
+  // Reset OTP when dialog opens/closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setOtp('');
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -73,10 +99,6 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
             </InputOTP>
           </div>
 
-          <p className="text-sm text-muted-foreground">
-            For demo purposes, use <strong>123456</strong>
-          </p>
-
           <div className="space-y-2">
             <Button
               onClick={handleVerify}
@@ -86,9 +108,9 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
               {isLoading ? 'Verifying...' : 'Verify OTP'}
             </Button>
 
-            <Button variant="ghost" className="w-full">
+            {/* <Button variant="ghost" className="w-full">
               Resend Code
-            </Button>
+            </Button> */}
           </div>
         </div>
       </DialogContent>

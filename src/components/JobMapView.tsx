@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface JobMapViewProps {
   searchQuery: string;
+  onPromptLogin?: () => void;
 }
 
 interface JobLocation {
@@ -43,7 +44,7 @@ interface MapToast {
 
 const DEFAULT_CENTER: LatLng = { lat: 20.5937, lng: 78.9629 }; // Center of India
 
-const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery }) => {
+const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) => {
   const [selectedLocation, setSelectedLocation] = useState<JobLocation | null>(null);
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
   const [selectedJobForDetails, setSelectedJobForDetails] = useState<JobItem | null>(null);
@@ -255,7 +256,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery }) => {
 
   const handleJobApplication = (job: JobItem) => {
     if (!user) {
-      showMapToast('error', 'Authentication Required', 'Please login to apply for jobs');
+      onPromptLogin?.();
       return;
     }
     setSelectedJob(job);
@@ -263,7 +264,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery }) => {
 
   const handleApplyFromDetails = (job: JobItem) => {
     if (!user) {
-      showMapToast('error', 'Authentication Required', 'Please login to apply for jobs');
+      onPromptLogin?.();
       return;
     }
     // Close the job details dialog and open application dialog

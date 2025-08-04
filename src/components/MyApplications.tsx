@@ -479,23 +479,33 @@ const MyApplications = () => {
     fetchApplicationsWithStatus();
   }, [user, selectedCandidate, fetchApplicationsWithStatus]);
 
+  // Add a refresh mechanism when component mounts to catch new applications
   useEffect(() => {
-    // Start auto refresh when we have applications
-    if (applications.length > 0) {
-      startAutoRefresh();
-    }
-
-    // Cleanup interval on unmount
-    return () => {
-      if (autoRefreshInterval.current) {
-        clearInterval(autoRefreshInterval.current);
+    const handleFocus = () => {
+      // Refresh applications when the window regains focus (user navigates back)
+      if (user?.id) {
+        fetchApplicationsWithStatus();
       }
     };
-  }, [applications.length, startAutoRefresh]);
 
-  // Filter applications - exclude deleted jobs from active applications
-  const activeApplications = applications.filter(app => !['rejected', 'deleted'].includes(app.status));
-  const completedApplications = applications.filter(app => ['rejected', 'deleted'].includes(app.status));
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user?.id]);
+
+  // Additional refresh when component mounts and user is available
+  useEffect(() => {
+    if (user?.id && !isFetchingRef.current) {
+      // Small delay to ensure any pending applications are processed
+      const timer = setTimeout(() => {
+        fetchApplicationsWithStatus();
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [user?.id]);
+
+  const activeApplications = applications.filter(app => !['rejected'].includes(app.status));
+  const completedApplications = applications.filter(app => ['rejected'].includes(app.status));
 
   return (
     <div className={`${isMobile ? 'space-y-4' : 'space-y-6'}`}>
@@ -536,9 +546,18 @@ const MyApplications = () => {
                   : "You haven't applied to any jobs yet."
                 }
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 Switch to a different profile or apply to jobs to see your applications here.
               </p>
+              <Button 
+                onClick={fetchApplicationsWithStatus}
+                disabled={isLoading}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                {isLoading ? 'Refreshing...' : 'Refresh Applications'}
+              </Button>
             </div>
           ) : (
             <ApplicationTabs 

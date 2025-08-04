@@ -28,7 +28,54 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   const [showCandidateDialog, setShowCandidateDialog] = useState(false);
   const [profileMode, setProfileMode] = useState<'add' | 'edit'>('add');
   const [tempSelectedCandidate, setTempSelectedCandidate] = useState<any>(selectedCandidate);
+  const [preSelectedRole, setPreSelectedRole] = useState<string>('');
   const isMobile = useIsMobile();
+
+  // Helper function to map job title to role name
+  const getRoleFromJobTitle = (jobTitle: string): string => {
+    const lowerJobTitle = jobTitle.toLowerCase();
+    
+    if (lowerJobTitle.includes('tailor') || lowerJobTitle.includes('stitch') || lowerJobTitle.includes('garment')) {
+      return 'Industrial Tailor';
+    }
+    if (lowerJobTitle.includes('warehouse') || lowerJobTitle.includes('loader') || lowerJobTitle.includes('picker') || lowerJobTitle.includes('logistics')) {
+      return 'Warehouse Loader & Picker';
+    }
+    if (lowerJobTitle.includes('recruitment') || lowerJobTitle.includes('hr') || lowerJobTitle.includes('talent') || lowerJobTitle.includes('hiring')) {
+      return 'Recruitment Associate';
+    }
+    if (lowerJobTitle.includes('sales') || lowerJobTitle.includes('field') || lowerJobTitle.includes('executive')) {
+      return 'Field Sales Executive';
+    }
+    if (lowerJobTitle.includes('promoter') || lowerJobTitle.includes('store') || lowerJobTitle.includes('retail')) {
+      return 'In Store Promoter';
+    }
+    if (lowerJobTitle.includes('electrician') || lowerJobTitle.includes('electrical') || lowerJobTitle.includes('wiring')) {
+      return 'Electrician';
+    }
+    if (lowerJobTitle.includes('fitter') || lowerJobTitle.includes('fitting') || lowerJobTitle.includes('assembly')) {
+      return 'Fitter';
+    }
+    if (lowerJobTitle.includes('mechanic') || lowerJobTitle.includes('maintenance') || lowerJobTitle.includes('repair')) {
+      return 'Mechanic';
+    }
+    if (lowerJobTitle.includes('machine operator') || lowerJobTitle.includes('operator') || lowerJobTitle.includes('machine')) {
+      return 'Machine Operator';
+    }
+    
+    return 'Industrial Tailor';
+  };
+
+  // Get job title from job object
+  const getJobTitle = (job: any): string => {
+    if (job.descriptor?.name) {
+      return job.descriptor.name;
+    }
+    if (job.title) {
+      return job.title;
+    }
+    return 'Unknown Job';
+  };
 
   const handleProfileSelect = (candidateId: string) => {
     // Only select the candidate temporarily, don't proceed to next step
@@ -47,7 +94,29 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
 
   const handleAddNewProfile = () => {
     setProfileMode('add');
+    // Extract role from job and set it
+    const jobTitle = getJobTitle(job);
+    const mappedRole = getRoleFromJobTitle(jobTitle);
+    setPreSelectedRole(mappedRole);
     setShowCandidateDialog(true);
+  };
+
+  // Reset state when dialog closes
+  const handleClose = () => {
+    setShowCandidateDialog(false);
+    setTempSelectedCandidate(null);
+    setPreSelectedRole('');
+    setProfileMode('add');
+    onClose();
+  };
+
+  // Reset state when main dialog closes
+  const handleMainClose = () => {
+    setTempSelectedCandidate(null);
+    setPreSelectedRole('');
+    setProfileMode('add');
+    setShowCandidateDialog(false);
+    onClose();
   };
 
   const handleUpdateProfile = async () => {
@@ -66,10 +135,18 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
             setShowCandidateDialog(true);
           } else {
             setProfileMode('add');
+            // Extract role from job and set it
+            const jobTitle = getJobTitle(job);
+            const mappedRole = getRoleFromJobTitle(jobTitle);
+            setPreSelectedRole(mappedRole);
             setShowCandidateDialog(true);
           }
         } else {
           setProfileMode('add');
+          // Extract role from job and set it
+          const jobTitle = getJobTitle(job);
+          const mappedRole = getRoleFromJobTitle(jobTitle);
+          setPreSelectedRole(mappedRole);
           setShowCandidateDialog(true);
         }
       } catch (error) {
@@ -87,16 +164,6 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     
     // Refresh profile data to ensure UI updates
     refreshProfileData();
-  };
-
-  const getJobTitle = (job: any): string => {
-    if (job.descriptor?.name) {
-      return job.descriptor.name;
-    }
-    if (job.title) {
-      return job.title;
-    }
-    return 'Unknown Job';
   };
 
   const jobTitle = getJobTitle(job);
@@ -294,12 +361,12 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   if (isMobile) {
     return (
       <>
-        <Drawer open={isOpen} onOpenChange={onClose}>
+        <Drawer open={isOpen} onOpenChange={handleMainClose}>
           <DrawerContent className="h-[95vh]">
             <DrawerHeader className="text-left border-b pb-3">
               <div className="flex items-center justify-between">
                 <DrawerTitle className="text-lg">Select Profile for {jobTitle}</DrawerTitle>
-                <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+                <Button variant="ghost" size="sm" onClick={handleMainClose} className="h-8 w-8 p-0">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -318,6 +385,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
             mode={profileMode}
             isUpdate={profileMode === 'edit'}
             profileId={user.profileId}
+            preSelectedRole={preSelectedRole}
           />
         )}
       </>
@@ -327,7 +395,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   // Desktop version with Dialog
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={handleMainClose}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">Select Profile for {jobTitle}</DialogTitle>
@@ -344,6 +412,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
           mode={profileMode}
           isUpdate={profileMode === 'edit'}
           profileId={user.profileId}
+          preSelectedRole={preSelectedRole}
         />
       )}
     </>

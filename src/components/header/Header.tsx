@@ -9,10 +9,10 @@ import Logo from './Logo';
 import LanguageSelector from './LanguageSelector';
 import UserMenu from './UserMenu';
 import HeaderDialogs from './HeaderDialogs';
+import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
 
 const Header = () => {
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
+  const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showOrgProfile, setShowOrgProfile] = useState(false);
   const [showCandidateDialog, setShowCandidateDialog] = useState(false);
@@ -28,9 +28,8 @@ const Header = () => {
     }
   };
 
-  const handleSwitchToRegister = () => {
-    setShowLogin(false);
-    setShowRegister(true);
+  const handleShowAuth = () => {
+    setShowUnifiedAuth(true);
   };
 
   return (
@@ -55,23 +54,30 @@ const Header = () => {
             </Button> */}
 
 
-            <UserMenu onShowLogin={() => setShowLogin(true)} />
+            <UserMenu onShowLogin={handleShowAuth} />
           </div>
         </div>
       </div>
 
+      {/* Unified Auth Dialog */}
+      <UnifiedAuthDialog
+        isOpen={showUnifiedAuth}
+        onClose={() => setShowUnifiedAuth(false)}
+        defaultRole="individual"
+      />
+
       <HeaderDialogs
-        showLogin={showLogin}
-        showRegister={showRegister}
+        showLogin={false}
+        showRegister={false}
         showUserProfile={showUserProfile}
         showOrgProfile={showOrgProfile}
         showCandidateDialog={showCandidateDialog}
-        onCloseLogin={() => setShowLogin(false)}
-        onCloseRegister={() => setShowRegister(false)}
+        onCloseLogin={() => {}}
+        onCloseRegister={() => {}}
         onCloseUserProfile={() => setShowUserProfile(false)}
         onCloseOrgProfile={() => setShowOrgProfile(false)}
         onCloseCandidateDialog={() => setShowCandidateDialog(false)}
-        onSwitchToRegister={handleSwitchToRegister}
+        onSwitchToRegister={() => {}}
         currentPath={location.pathname}
       />
     </header>

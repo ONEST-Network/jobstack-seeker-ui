@@ -8,12 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
+import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
 
 const Jobs = () => {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('discover');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -39,7 +41,7 @@ const Jobs = () => {
   // Render different content based on tab parameter, but without visible tabs
   const renderContent = () => {
     if (!user) {
-      return <JobDiscovery />;
+      return <JobDiscovery onPromptLogin={() => setShowUnifiedAuth(true)} />;
     }
 
     switch (activeTab) {
@@ -56,7 +58,7 @@ const Jobs = () => {
       case 'profiles':
         return <CandidateManagement />;
       default:
-        return <JobDiscovery />;
+        return <JobDiscovery onPromptLogin={() => setShowUnifiedAuth(true)} />;
     }
   };
 
@@ -64,6 +66,13 @@ const Jobs = () => {
     <div className="min-h-screen bg-background">
       <Header />
       {renderContent()}
+      
+      {/* Unified Auth Dialog */}
+      <UnifiedAuthDialog
+        isOpen={showUnifiedAuth}
+        onClose={() => setShowUnifiedAuth(false)}
+        defaultRole="individual"
+      />
     </div>
   );
 };

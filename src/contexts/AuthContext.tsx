@@ -210,9 +210,8 @@ export interface EmployerProfile {
 
 interface AuthContextType {
   user: User | null;
-  login: (identifier: string, password: string, intendedRole?: 'individual' | 'organization') => Promise<void>;
-  register: (data: { email?: string; phone?: string; name?: string; password?: string; role: 'individual' | 'organization'; callbackURL?: string }) => Promise<void>;
-  // verifyOTP: (otp: string) => Promise<void>; // Commented out for magic link verification
+  requestOTP: (data: { phoneNumber?: string; email?: string; name?: string }) => Promise<{ ok: boolean; otp: string }>;
+  verifyOTP: (data: { phoneNumber?: string; email?: string; otp: string }) => Promise<{ token: string; user: any }>;
   logout: () => void;
   updateProfile: (profile: UserProfile | OrganizationProfile) => void;
   refreshProfileData: () => Promise<void>;
@@ -578,26 +577,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (identifier: string, password: string, intendedRole?: 'individual' | 'organization') => {
+
+
+  // New OTP-based authentication methods
+  const requestOTP = async (data: { phoneNumber?: string; email?: string; name?: string }) => {
     setIsLoading(true);
     try {
-      // Determine if identifier is email or phone
-      const isEmail = identifier.includes('@');
+      const response = await apiClient.requestOTP(data);
+      return response as { ok: boolean; otp: string };
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyOTP = async (data: { phoneNumber?: string; email?: string; otp: string }) => {
+    setIsLoading(true);
+    try {
+      const response = await apiClient.verifyOTP(data) as { token: string; user: any };
       
-      if (isEmail) {
-        const authResponse = await apiClient.signIn({
-          email: identifier,
-          password: password
-        }) as AuthResponse;
-        
-        const backendUser = authResponse.user;
+      // After successful OTP verification, get the complete session data
+      const sessionData = await apiClient.getSession() as SessionResponse;
+      
+      if (sessionData.user && sessionData.session) {
+        const backendUser = sessionData.user;
         
         // Transform backend user to our User interface
         const transformedUser: User = {
           id: backendUser.id,
           email: backendUser.email,
           name: backendUser.name,
-          role: intendedRole || 'organization',
+          role: 'individual', // Default to individual, will be updated based on profile data
           isVerified: backendUser.emailVerified,
           emailVerified: backendUser.emailVerified,
           image: backendUser.image,
@@ -609,11 +620,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           selectedCandidateId: undefined
         };
 
-        // Fetch user's profile if they have one
+        // Check for saved local data and merge
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          
+          // Merge local profile data with backend user
+          transformedUser.profile = parsedUser.profile;
+          transformedUser.profileId = parsedUser.profileId;
+          transformedUser.managedEmployers = parsedUser.managedEmployers || [];
+          transformedUser.selectedEmployerId = parsedUser.selectedEmployerId;
+          transformedUser.managedCandidates = parsedUser.managedCandidates || [];
+          transformedUser.selectedCandidateId = parsedUser.selectedCandidateId;
+          transformedUser.role = parsedUser.role || 'individual';
+        }
+
+        // Always fetch fresh profile data to ensure we have the latest
         try {
           const profileResponse = await apiClient.getProfile() as ProfileResponse;
+          
           if (profileResponse && profileResponse.data) {
             const profileData = profileResponse.data;
+            
+            // Determine role based on profile type or metadata
+            const isOrganization = profileData.metadata?.gstNumber || 
+                                 profileData.metadata?.contactPersonName ||
+                                 profileData.metadata?.organizationName ||
+                                 profileData.metadata?.address;
+            
+            const profileType = profileData.type;
+            const isOrgByType = profileType === 'organization' || profileType === 'employer';
+            
+            transformedUser.role = (isOrganization || isOrgByType) ? 'organization' : 'individual';
             
             // Transform API profile data to our UserProfile format
             const userProfile: UserProfile = {
@@ -660,10 +698,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             };
 
             transformedUser.profile = userProfile;
-            transformedUser.profileId = profileData.id; // Store profile ID
+            transformedUser.profileId = profileData.id;
 
             // Create default candidate for individual users
-            if (intendedRole === 'individual') {
+            if (transformedUser.role === 'individual') {
               const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
               transformedUser.managedCandidates = [defaultCandidate];
               transformedUser.selectedCandidateId = defaultCandidate.id;
@@ -671,10 +709,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         } catch (profileError) {
           // No profile found or error fetching profile - user can create one later
+          console.log('No profile found for user:', profileError);
         }
 
-        // Fetch profiles for individual users
-        if (intendedRole === 'individual') {
+        // Always fetch profiles for individual users to ensure we have the latest data
+        if (transformedUser.role === 'individual') {
           try {
             const profiles = await fetchAndTransformProfiles();
             if (profiles.length > 0) {
@@ -689,6 +728,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
           } catch (profilesError) {
+            console.log('Error fetching profiles:', profilesError);
             // Create default candidate if error
             if (transformedUser.profile) {
               const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
@@ -698,39 +738,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
         
+        // Handle backward compatibility - create default employer if none exists but org profile exists
+        if (transformedUser.profile && transformedUser.role === 'organization' && transformedUser.managedEmployers.length === 0) {
+          const defaultEmployer = createDefaultEmployerFromProfile(transformedUser.profile as OrganizationProfile);
+          transformedUser.managedEmployers = [defaultEmployer];
+          transformedUser.selectedEmployerId = defaultEmployer.id;
+        }
+        
+        // Handle backward compatibility - create default candidate if none exists but user profile exists
+        if (transformedUser.profile && transformedUser.role === 'individual' && transformedUser.managedCandidates.length === 0) {
+          const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
+          transformedUser.managedCandidates = [defaultCandidate];
+          transformedUser.selectedCandidateId = defaultCandidate.id;
+        }
+        
+        // Store user data
         setUser(transformedUser);
         localStorage.setItem('user', JSON.stringify(transformedUser));
       } else {
-        // Phone login not implemented in backend yet, fallback to mock
-        throw new Error('Phone login not yet supported. Please use email.');
-      }
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const register = async (data: { email?: string; phone?: string; name?: string; password?: string; role: 'individual' | 'organization'; callbackURL?: string }) => {
-    setIsLoading(true);
-    try {
-      if (data.email && data.password && data.name) {
-        const signUpResponse = await apiClient.signUp({
-          email: data.email,
-          name: data.name,
-          password: data.password,
-          callbackURL: data.callbackURL
-        }) as SignUpResponse;
-        
-        const backendUser = signUpResponse.user;
-        
-        // Transform backend user to our User interface
+        // Fallback to the original response if session is not available
+        const backendUser = response.user;
         const transformedUser: User = {
           id: backendUser.id,
           email: backendUser.email,
+          phone: backendUser.phoneNumber,
           name: backendUser.name,
-          role: data.role,
-          isVerified: backendUser.emailVerified,
+          role: 'individual',
+          isVerified: backendUser.emailVerified || backendUser.phoneNumberVerified,
           emailVerified: backendUser.emailVerified,
           image: backendUser.image,
           createdAt: backendUser.createdAt,
@@ -741,46 +775,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           selectedCandidateId: undefined
         };
         
-        // Store user data but don't set as current user until email is verified
-        localStorage.setItem('pendingUser', JSON.stringify(transformedUser));
-        
-        // If already verified (e.g., in development), set as current user
-        if (backendUser.emailVerified) {
-          setUser(transformedUser);
-          localStorage.setItem('user', JSON.stringify(transformedUser));
-        }
-      } else if (data.phone) {
-        // Phone registration not implemented in backend yet
-        throw new Error('Phone registration not yet supported. Please use email.');
-      } else {
-        throw new Error('Email, name and password are required for registration.');
+        setUser(transformedUser);
+        localStorage.setItem('user', JSON.stringify(transformedUser));
       }
+      
+      return response;
     } catch (error) {
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
-
-  // OTP verification commented out for magic link verification
-  // const verifyOTP = async (otp: string) => {
-  //   setIsLoading(true);
-  //   // Mock OTP verification
-  //   await new Promise(resolve => setTimeout(resolve, 1000));
-  //   
-  //   if (otp === '123456') {
-  //     const pendingUser = localStorage.getItem('pendingUser');
-  //     if (pendingUser) {
-  //       const verifiedUser = { ...JSON.parse(pendingUser), isVerified: true };
-  //       setUser(verifiedUser);
-  //       localStorage.setItem('user', JSON.stringify(verifiedUser));
-  //       localStorage.removeItem('pendingUser');
-  //     }
-  //   } else {
-  //     throw new Error('Invalid OTP');
-  //   }
-  //   setIsLoading(false);
-  // };
 
   const logout = async () => {
     try {
@@ -791,6 +796,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       localStorage.removeItem('user');
       localStorage.removeItem('pendingUser');
+      // Clear auth token is handled in apiClient.signOut()
     }
   };
 
@@ -1322,9 +1328,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{
       user,
-      login,
-      register,
-      // verifyOTP, // Commented out for magic link verification
+      requestOTP,
+      verifyOTP,
       logout,
       updateProfile,
       refreshProfileData,

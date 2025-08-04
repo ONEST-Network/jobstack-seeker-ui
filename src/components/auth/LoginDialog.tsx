@@ -4,11 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import ForgotPasswordDialog from './ForgotPasswordDialog';
+import OTPVerificationDialog from './OTPVerificationDialog';
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -19,30 +17,24 @@ interface LoginDialogProps {
 
 const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRegister, defaultRole }) => {
   const [email, setEmail] = useState('');
-  // const [phone, setPhone] = useState(''); // Commented out - phone login not implemented
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  // const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email'); // Commented out - phone login not implemented
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [step, setStep] = useState<'login' | 'otp-verification'>('login');
   
-  const { login, isLoading } = useAuth();
+  const { requestOTP, isLoading } = useAuth();
   const { toast } = useToast();
 
   const handleLogin = async () => {
-    // const identifier = loginMethod === 'email' ? email : phone; // Commented out - phone login not implemented
-    const identifier = email; // Only email login is supported
-    
-    if (!identifier || !password) {
+    if (!email && !phone) {
       toast({
         title: "Error",
-        description: "Please enter both email and password.",
+        description: "Please enter either your email address or phone number.",
         variant: "destructive"
       });
       return;
     }
 
-    // Basic validation
-    if (!identifier.includes('@')) {
+    // Validate email if provided
+    if (email && !email.includes('@')) {
       toast({
         title: "Error",
         description: "Please enter a valid email address.",
@@ -51,27 +43,32 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
       return;
     }
 
-    // Phone validation commented out - phone login not implemented
-    // if (loginMethod === 'phone' && identifier.length < 10) {
-    //   toast({
-    //     title: "Error",
-    //     description: "Please enter a valid phone number.",
-    //     variant: "destructive"
-    //   });
-    //   return;
-    // }
+    // Validate phone if provided
+    if (phone && phone.length < 10) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid phone number.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
-      await login(identifier, password, defaultRole);
-      onClose();
+      const otpData = {
+        ...(email && { email }),
+        ...(phone && { phoneNumber: phone })
+      };
+
+      await requestOTP(otpData);
+      setStep('otp-verification');
       toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in."
+        title: "OTP Sent",
+        description: `A 6-digit OTP has been sent to your ${email ? 'email' : 'phone'}.`
       });
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Login failed. Please check your credentials.",
+        description: error.message || "Failed to send OTP. Please try again.",
         variant: "destructive"
       });
     }
@@ -79,141 +76,67 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
 
   const handleClose = () => {
     setEmail('');
-    // setPhone(''); // Commented out - phone login not implemented
-    setPassword('');
-    setShowPassword(false);
-    // setLoginMethod('email'); // Commented out - phone login not implemented
-    setShowForgotPassword(false);
+    setPhone('');
+    setStep('login');
     onClose();
   };
 
-  const handleForgotPassword = () => {
-    setShowForgotPassword(true);
+  const handleOTPVerificationSuccess = () => {
+    // Close the dialog and show success message
+    handleClose();
+    toast({
+      title: "Welcome back!",
+      description: "You have successfully logged in."
+    });
   };
 
-  const handleForgotPasswordClose = () => {
-    setShowForgotPassword(false);
-  };
-
-  const handleBackToLogin = () => {
-    setShowForgotPassword(false);
+  const canSubmit = () => {
+    return email.trim() || phone.trim();
   };
 
   return (
     <>
-      <Dialog open={isOpen && !showForgotPassword} onOpenChange={handleClose}>
+      <Dialog open={isOpen && step !== 'otp-verification'} onOpenChange={handleClose}>
         <DialogContent className="w-[95vw] max-w-md mx-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl">Sign In</DialogTitle>
           </DialogHeader>
 
-          {/* Phone login tabs commented out - phone login not implemented */}
-          {/* <Tabs value={loginMethod} onValueChange={(value) => setLoginMethod(value as 'email' | 'phone')} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 h-10">
-              <TabsTrigger value="email" className="text-sm font-medium">Email</TabsTrigger>
-              <TabsTrigger value="phone" className="text-sm font-medium">Phone</TabsTrigger>
-            </TabsList> */}
-
-            {/* Email login content - always visible since phone is disabled */}
-            <div className="space-y-4 mt-4">
-              <div>
-                <Label htmlFor="login-email">Email Address</Label>
-                <Input
-                  id="login-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="login-password-email">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="login-password-email"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </div>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label htmlFor="login-email">Email Address</Label>
+              <Input
+                id="login-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+              />
             </div>
 
-            {/* Phone login content commented out - phone login not implemented */}
-            {/* <TabsContent value="phone" className="space-y-4 mt-4">
-              <div>
-                <Label htmlFor="login-phone">Phone Number</Label>
-                <Input
-                  id="login-phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 9876543210"
-                />
-              </div>
+            <div>
+              <Label htmlFor="login-phone">Phone Number</Label>
+              <Input
+                id="login-phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+91 9876543210"
+              />
+            </div>
 
-              <div>
-                <Label htmlFor="login-password-phone">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="login-password-phone"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </TabsContent> */}
-          {/* </Tabs> */}
+            <p className="text-sm text-muted-foreground">
+              Please provide at least one contact method (email or phone)
+            </p>
+          </div>
 
           <div className="space-y-4 mt-4">
-            <Button 
-              variant="ghost" 
-              className="text-sm text-primary"
-              onClick={handleForgotPassword}
-            >
-              Forgot Password?
-            </Button>
-
             <Button
               onClick={handleLogin}
-              disabled={isLoading}
+              disabled={isLoading || !canSubmit()}
               className="w-full"
             >
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isLoading ? 'Sending OTP...' : 'Send OTP'}
             </Button>
 
             <div className="text-center text-sm">
@@ -233,10 +156,14 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
         </DialogContent>
       </Dialog>
 
-      <ForgotPasswordDialog
-        isOpen={showForgotPassword}
-        onClose={handleForgotPasswordClose}
-        onBackToLogin={handleBackToLogin}
+      <OTPVerificationDialog
+        isOpen={step === 'otp-verification'}
+        onClose={handleClose}
+        onSuccess={handleOTPVerificationSuccess}
+        contactMethod={email || phone}
+        method={email ? 'email' : 'phone'}
+        email={email || undefined}
+        phoneNumber={phone || undefined}
       />
     </>
   );

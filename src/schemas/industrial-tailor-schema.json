@@ -82,34 +82,22 @@
         },
         "jukiMachineStraightLine": {
           "type": "object",
-          "title": "Juki Machine - Straight Line",
+          "title": "Juki Machine - Straight Line Stitch Assessment",
           "description": "Assessment for straight line stitching",
           "properties": {
-            "qualityScore1a": {
-              "type": "number",
-              "title": "Quality Score 1a",
-              "description": "How many of the 100 boxes are squares?",
-              "minimum": 0,
-              "maximum": 100,
-              "ui:widget": "number",
-              "ui:placeholder": "How many of the 100 boxes are squares?",
-              "ui:disabled": false,
-              "ui:tooltip": "How many of the 100 boxes are squares?"
-            },
-            "qualityScore1b": {
-              "type": "number",
-              "title": "Quality Score 1b",
-              "description": "How many of the 10 rows are equidistant?",
-              "minimum": 0,
-              "maximum": 10,
-              "ui:widget": "number",
-              "ui:placeholder": "How many of the 10 rows are equidistant?",
-              "ui:disabled": false,
-              "ui:tooltip": "How many of the 10 rows are equidistant?"
+            "completedTaskResult": {
+              "type": "string",
+              "title": "Completed Task Result - Quality",
+              "description": "Pass means the candidate is able to stitch straight lines with atleast a 70% accuracy",
+              "enum": ["Pass", "Fail"],
+              "enumNames": ["Pass", "Fail"],
+              "ui:widget": "select",
+              "ui:placeholder": "Select your experience",
+              "ui:disabled": false
             },
             "timeTaken1": {
               "type": "number",
-              "title": "Time taken (minutes) 1",
+              "title": "Time taken (minutes)",
               "description": "How long was taken to do the task?",
               "minimum": 0,
               "ui:widget": "number",
@@ -117,77 +105,19 @@
               "ui:disabled": false,
               "ui:tooltip": "How long was taken to do the task?"
             },
-            "qualityScoreExplanation1": {
+            "qualityScoreExplanation": {
               "type": "string",
-              "title": "Quality Score Explanation 1",
-              "description": "Explain your quality score for straight line task",
+              "title": "Qualitative Comments",
+              "description": "",
               "ui:widget": "textarea",
-              "ui:placeholder": "Explain your quality score and experience",
+              "ui:placeholder": "",
               "ui:disabled": false
             }
           },
           "ui": {
-            "order": ["qualityScore1a", "qualityScore1b", "timeTaken1", "qualityScoreExplanation1", "taskUpload1"],
+            "order": ["completedTaskResult", "timeTaken1", "qualityScoreExplanation"],
             "description": "Assessment for straight line stitching on Juki machine"
           }
-        },
-        "jukiMachineMachineControl": {
-          "type": "object",
-          "title": "Juki Machine - Machine Control",
-          "description": "Assessment for machine control",
-          "properties": {
-            "qualityScore2": {
-              "type": "number",
-              "title": "Quality Score 2",
-              "description": "What % of the corners have noticeable holes?",
-              "minimum": 0,
-              "maximum": 100,
-              "ui:widget": "number",
-              "ui:placeholder": "What % of the corners have noticeable holes?",
-              "ui:disabled": false,
-              "ui:tooltip": "What % of the corners have noticeable holes?"
-            },
-            "timeTaken2": {
-              "type": "number",
-              "title": "Time taken (minutes) 2",
-              "description": "How long was taken to do the task?",
-              "minimum": 0,
-              "ui:widget": "number",
-              "ui:placeholder": "Enter time taken in minutes",
-              "ui:disabled": false,
-              "ui:tooltip": "How long was taken to do the task?"
-            },
-            "qualityScoreExplanation2": {
-              "type": "string",
-              "title": "Quality Score Explanation 2",
-              "description": "Explain your quality score for machine control task",
-              "ui:widget": "textarea",
-              "ui:placeholder": "Explain your quality score and experience",
-              "ui:disabled": false
-            }
-          },
-          "ui": {
-            "order": ["qualityScore2", "timeTaken2", "qualityScoreExplanation2", "taskUpload2"],
-            "description": "Assessment for machine control on Juki machine"
-          }
-        },
-        "qualityScore": {
-          "type": "number",
-          "title": "Quality Score",
-          "description": "Your quality score (1-10)",
-          "minimum": 1,
-          "maximum": 10,
-          "ui:widget": "number",
-          "ui:placeholder": "Enter quality score (1-10)",
-          "ui:disabled": false
-        },
-        "qualityScoreExplanation": {
-          "type": "string",
-          "title": "Quality Score Explanation",
-          "description": "Explain your quality score",
-          "ui:widget": "textarea",
-          "ui:placeholder": "Explain your quality score and experience",
-          "ui:disabled": false
         },
         "taskVideo": {
           "type": "string",
@@ -213,9 +143,6 @@
           "age",
           "jukiMachineExperience",
           "jukiMachineStraightLine",
-          "jukiMachineMachineControl",
-          "qualityScore",
-          "qualityScoreExplanation",
           "taskVideo",
           "qrCodeScan"
         ],
@@ -228,10 +155,6 @@
           {
             "title": "Juki Machine - Straight Line",
             "fields": ["jukiMachineStraightLine"]
-          },
-          {
-            "title": "Juki Machine - Machine Control",
-            "fields": ["jukiMachineMachineControl"]
           },
           {
             "title": "Skills & Performance",
@@ -249,6 +172,7 @@
       "title": "What I Want",
       "description": "Your salary expectations and work preferences",
       "properties": {
+
         "workHoursPerDay": {
           "type": "integer",
           "title": "Number hours willing to work / day",
@@ -322,8 +246,8 @@
         "description": "Tell us about your salary expectations and work preferences",
         "sections": [
           {
-            "title": "Migration & Work Preferences",
-            "fields": ["readyToMigrate", "workHoursPerDay"]
+            "title": "Work Preferences",
+            "fields": ["workHoursPerDay"]
           },
           {
             "title": "Salary Expectations",

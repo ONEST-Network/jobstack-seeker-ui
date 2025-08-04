@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { User, LogOut, Building2, Users, FileText } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { User, LogOut, Building2, Users, FileText, Mail, Phone } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
@@ -34,50 +34,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
     }
   };
 
-  const handleUpdateProfile = async () => {
-    if (user?.role === 'individual') {
-      // For update profile, we should always use edit mode if user has any profile data
-      const hasExistingProfile = selectedCandidate || user.profile || user.managedCandidates.length > 0;
-      
-      if (hasExistingProfile) {
-        // Always use edit mode when updating existing profile
-        setProfileMode('edit');
-        setShowCompleteProfile(true);
-      } else {
-        // Only use add mode if there's truly no existing profile
-        try {
-          const profilesResponse = await apiClient.getProfiles() as ProfilesResponse;
-          
-          if (profilesResponse?.data && profilesResponse.data.length > 0) {
-            // Get the most recent profile (first in the array based on your API response)
-            const mostRecentProfile = profilesResponse.data[0];
-            const profileId = mostRecentProfile.id;
-            
-            if (profileId) {
-              // Refresh profile data to update the user state
-              await refreshProfileData();
-              setProfileMode('edit');
-              setShowCompleteProfile(true);
-            } else {
-              setProfileMode('add');
-              setShowCompleteProfile(true);
-            }
-          } else {
-            setProfileMode('add');
-            setShowCompleteProfile(true);
-          }
-        } catch (error) {
-          console.log('Error getting profiles data:', error);
-          // If API fails but user has local profile data, still use edit mode
-          setProfileMode('edit');
-          setShowCompleteProfile(true);
-        }
-      }
-    } else if (user?.role === 'organization') {
-      // This will be handled by parent component
-    }
-  };
-
   const handleManageEmployers = () => {
     navigate('/provider');
   };
@@ -99,11 +55,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
     );
   }
 
-  const hasProfileName =
-    (selectedCandidate && selectedCandidate.name) ||
-    (user.profile && user.profile.name);
-
-
+  // Always show user name from session, fallback to email if no name
+  const displayName = user.name || user.email || user.phone || 'User';
 
   return (
     <>
@@ -112,19 +65,32 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           <Button variant="ghost" size="sm" className="gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">
-              {selectedCandidate?.name || user.profile?.name || user.email || user.phone}
+              {displayName}
             </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {!hasProfileName ? (
+          {/* User Contact Information */}
+          {user.email && (
+            <DropdownMenuItem className="pointer-events-none cursor-default">
+              <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">{user.email}</span>
+            </DropdownMenuItem>
+          )}
+          {user.phone && (
+            <DropdownMenuItem className="pointer-events-none cursor-default">
+              <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">{user.phone}</span>
+            </DropdownMenuItem>
+          )}
+          
+          {/* Separator between contact info and menu items */}
+          {(user.email || user.phone) && <DropdownMenuSeparator />}
+          
+          {/* Only show Complete Profile if user has no profile data */}
+          {!user.profile && user.managedCandidates.length === 0 && (
             <DropdownMenuItem onClick={handleCompleteProfile}>
               Complete Profile
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onClick={handleUpdateProfile}>
-              <Users className="h-4 w-4 mr-2" />
-              Update Profile
             </DropdownMenuItem>
           )}
           {(user.role === 'individual' || !user.role) && (

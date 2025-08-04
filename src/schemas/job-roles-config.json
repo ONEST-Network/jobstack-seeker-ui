@@ -35,6 +35,18 @@
     "Machine Operator": {
       "industry": "Manufacturing",
       "description": "Operating and monitoring industrial machinery and equipment"
+    },
+    "Data Entry Operator": {
+      "industry": "Administration",
+      "description": "Data entry and administrative work"
+    },
+    "Tele Salesperson": {
+      "industry": "Sales",
+      "description": "Telephone-based sales and customer service"
+    },
+    "Field Sales Person": {
+      "industry": "Sales",
+      "description": "Field-based sales and business development"
     }
   }
 } 

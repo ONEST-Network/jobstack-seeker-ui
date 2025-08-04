@@ -39,6 +39,11 @@ export const JOB_ROLES_BY_INDUSTRY = {
     'FMCG Salesman', 'Kiosk Sales Executive', 'Telecaller (Telesales Agent)',
     'Chatbox Sales Associate', 'Feet-on-Street Promoter', 'Customer Service Sales',
     'Product Demonstrator', 'Social Commerce Sales Agent', 'WhatsApp/DM Seller',
-    'Trade Fair Sales Assistant', 'Technical Sales Executive'
+    'Trade Fair Sales Assistant', 'Technical Sales Executive', 'Tele Salesperson',
+    'Field Sales Person'
+  ],
+  'Administration': [
+    'Data Entry Operator', 'Office Assistant', 'Receptionist', 'Administrative Assistant',
+    'Document Controller', 'Records Manager', 'Data Processor', 'Typist'
   ]
 };

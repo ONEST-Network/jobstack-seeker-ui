@@ -44,23 +44,31 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
     if (files.length > 0) {
       const previewUrls: string[] = [];
       
-      files.forEach((file) => {
+      files.forEach((file, index) => {
         if (file instanceof File) {
           // Create preview for images
           if (fileType === 'image' && file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onloadend = () => {
-              previewUrls.push(reader.result as string);
-              if (previewUrls.length === files.length) {
+              previewUrls[index] = reader.result as string;
+              if (previewUrls.filter(Boolean).length === files.length) {
                 setPreviews([...previewUrls]);
               }
             };
             reader.readAsDataURL(file);
           }
+        } else if (typeof file === 'string' && file.startsWith('http')) {
+          // For URL strings, use the URL directly as preview for images
+          if (fileType === 'image') {
+            previewUrls[index] = file;
+          }
         }
       });
       
-      if (fileType !== 'image') {
+      // For URL strings, set previews immediately
+      if (fileType === 'image' && files.some(f => typeof f === 'string' && f.startsWith('http'))) {
+        setPreviews(previewUrls);
+      } else if (fileType !== 'image') {
         setPreviews([]);
       }
     } else {

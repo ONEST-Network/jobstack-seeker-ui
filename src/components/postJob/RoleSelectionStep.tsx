@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Briefcase, X } from 'lucide-react';
+import { Search, Briefcase, SearchX } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { JOB_ROLES_BY_INDUSTRY } from '@/constants/jobRoles';
 
@@ -85,6 +85,7 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   const filteredRoles = getFilteredRoles();
   const filteredPriorityRoles = getFilteredPriorityRoles();
   const industries = Object.keys(filteredRoles);
+  const hasSearchResults = filteredPriorityRoles.length > 0 || Object.keys(filteredRoles).length > 0;
 
   const content = (
     <div className="space-y-4 sm:space-y-6">
@@ -109,6 +110,28 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
             <div className="flex-1 overflow-hidden">
               <ScrollArea className="h-full">
                 <div className="space-y-6">
+                  {/* No Results Message */}
+                  {searchQuery && !hasSearchResults && (
+                    <div className="text-center py-8">
+                      <SearchX className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <h3 className="text-lg font-medium text-foreground mb-2">No roles found</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        We couldn't find any job roles matching "{searchQuery}"
+                      </p>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>Try searching for:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Industrial Tailor</li>
+                          <li>Warehouse Loader & Picker</li>
+                          <li>In Store Promoter</li>
+                          <li>Recruitment Associate</li>
+                          <li>Electrician, Fitter, Mechanic</li>
+                          <li>Machine Operator</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Priority Roles - Always visible at top */}
                   {filteredPriorityRoles.length > 0 && (
                     <div>
@@ -197,46 +220,54 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
         </CardContent>
       </Card>
 
-      <div className="flex flex-col sm:flex-row gap-2 sticky bottom-0 bg-background pb-4 sm:pb-0 sm:static border-t sm:border-t-0 -mx-4 px-4 sm:mx-0 sm:px-0 pt-4 sm:pt-0">
-        <Button variant="outline" onClick={onBack} className="h-touch">
+      {/* Navigation Buttons */}
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button variant="outline" onClick={onClose} className="h-touch">
-          Cancel
-        </Button>
+        {selectedJobRole && (
+          <Button onClick={onProceed}>
+            Continue
+          </Button>
+        )}
       </div>
     </div>
   );
 
+  // Mobile version with Drawer
   if (isMobile) {
     return (
-      <Drawer open={isOpen} onOpenChange={onClose}>
-        <DrawerContent className="h-[95vh]">
-          <DrawerHeader className="text-left border-b pb-3">
-            <div className="flex items-center justify-between">
-              <DrawerTitle className="text-lg">Select Job Role</DrawerTitle>
-              <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </DrawerHeader>
+      <div className="fixed inset-0 z-50 bg-background">
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b">
+            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+            <h2 className="text-lg font-semibold">Select Job Role</h2>
+            <div className="w-8"></div>
+          </div>
+
+          {/* Content */}
           <div className="flex-1 overflow-y-auto p-4">
             {content}
           </div>
-        </DrawerContent>
-      </Drawer>
+        </div>
+      </div>
     );
   }
 
+  // Desktop version with Dialog
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Select Job Role</DialogTitle>
-        </DialogHeader>
-        {content}
-      </DialogContent>
-    </Dialog>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-background rounded-lg shadow-lg border">
+        <div className="p-6">
+          {content}
+        </div>
+      </div>
+    </div>
   );
 };
 
