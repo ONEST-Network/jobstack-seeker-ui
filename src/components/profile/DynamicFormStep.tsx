@@ -4,6 +4,7 @@ import { getUnifiedSchemaStep, getUnifiedSchema } from '@/schemas';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -664,6 +665,74 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                   ))}
                 </SelectContent>
               </Select>
+              {isVerified && (
+                <div className="absolute right-2 top-2 flex items-center gap-1">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                </div>
+              )}
+            </div>
+            {isVerified && (
+              <p className="text-xs text-green-600">
+                {verificationMessage || `Verified via DigiLocker`}
+              </p>
+            )}
+            {fieldConfig.description && (
+              <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
+            )}
+          </div>
+        );
+
+      case 'radio':
+        return (
+          <div key={fieldName} className="space-y-2">
+            <Label className="text-sm font-medium">
+              {fieldConfig.title}
+              {isRequired && <span className="text-red-500 ml-1">*</span>}
+            </Label>
+            <RadioGroup
+              value={value || ''}
+              onValueChange={(val) => handleFieldChange(fieldName, val)}
+              disabled={disabled || isVerified}
+              className={isVerified ? 'border-green-500' : ''}
+            >
+              {fieldConfig.enum?.map((option: string, index: number) => (
+                <div key={option} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option} id={`${fieldName}_${option}`} />
+                  <Label htmlFor={`${fieldName}_${option}`} className="text-sm">
+                    {fieldConfig.enumNames?.[index] || option}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+            {isVerified && (
+              <p className="text-xs text-green-600">
+                {verificationMessage || `Verified via DigiLocker`}
+              </p>
+            )}
+            {fieldConfig.description && (
+              <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
+            )}
+          </div>
+        );
+
+      case 'date':
+        return (
+          <div key={fieldName} className="space-y-2">
+            <Label htmlFor={fieldName} className="text-sm font-medium">
+              {fieldConfig.title}
+              {isRequired && <span className="text-red-500 ml-1">*</span>}
+            </Label>
+            <div className="relative">
+              <Input
+                id={fieldName}
+                type="date"
+                value={value || ''}
+                onChange={(e) => handleFieldChange(fieldName, e.target.value)}
+                placeholder={placeholder}
+                disabled={disabled || isVerified}
+                className={isVerified ? 'border-green-500' : ''}
+              />
               {isVerified && (
                 <div className="absolute right-2 top-2 flex items-center gap-1">
                   <Shield className="h-4 w-4 text-green-600" />
