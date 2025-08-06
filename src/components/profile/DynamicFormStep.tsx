@@ -234,7 +234,25 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     console.log('data: ', data)
     if (qrFieldName) {
       console.log("qr: ", qrFieldName)
-      handleFieldChange(qrFieldName, data);
+      // Get current value - could be string, array, or undefined
+      const currentValue = getFieldValue(qrFieldName);
+      
+      // Convert to array format if it's not already
+      let currentArray: string[] = [];
+      if (currentValue) {
+        if (Array.isArray(currentValue)) {
+          currentArray = currentValue as string[];
+        } else if (typeof currentValue === 'string') {
+          currentArray = [currentValue];
+        }
+      }
+      
+      // Add new scan data to the array
+      const newData = typeof data === 'string' ? data : String(data);
+      const updatedArray = [...currentArray, newData];
+      
+      // Update the field with the new array
+      handleFieldChange(qrFieldName, updatedArray);
     }
   };
 
@@ -1062,12 +1080,56 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </Label>
             <div className="space-y-2">
               {value && (
-                <div className="p-3 bg-gray-50 rounded-lg border">
-                  <p className="text-sm font-medium">Scanned Data:</p>
-                  <p className="text-xs text-muted-foreground break-all">{value}</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm font-medium">Scanned Data:</p>
+                    {Array.isArray(value) && value.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleFieldChange(fieldName, '')}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        Clear All
+                      </Button>
+                    )}
+                  </div>
+                  {Array.isArray(value) ? (
+                    // Display multiple scanned URLs
+                    <div className="space-y-2">
+                      {value.length > 0 ? (
+                        value.map((scanData: string, index: number) => (
+                          <div key={index} className="p-3 bg-gray-50 rounded-lg border flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="text-xs text-muted-foreground break-all">{scanData}</p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const updatedArray = (value as string[]).filter((_, i) => i !== index);
+                                handleFieldChange(fieldName, updatedArray.length > 0 ? updatedArray : '');
+                              }}
+                              className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-muted-foreground">No QR codes scanned yet.</p>
+                      )}
+                    </div>
+                  ) : (
+                    // Display single scanned URL (for backward compatibility)
+                    <div className="p-3 bg-gray-50 rounded-lg border">
+                      <p className="text-xs text-muted-foreground break-all">{value}</p>
+                    </div>
+                  )}
                 </div>
               )}
-              {/* here make changes  */}
               <Button
                 type="button"
                 variant="outline"
@@ -1076,7 +1138,13 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 className="w-full"
               >
                 <QrCode className="h-4 w-4 mr-2" />
-                {value ? 'Scan Again' : 'Scan QR Code'}
+                {(() => {
+                  if (!value) return 'Scan QR Credential';
+                  if (Array.isArray(value)) {
+                    return value.length > 0 ? 'Scan Another QR Credential' : 'Scan QR Credential';
+                  }
+                  return 'Scan Another QR Credential';
+                })()}
               </Button>
             </div>
             {fieldConfig.description && (
