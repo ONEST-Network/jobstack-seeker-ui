@@ -323,7 +323,7 @@ const QRCodeScannerDialog: React.FC<QRCodeScannerDialogProps> = ({
               {isScanning ? <></> :
                 <CardContent className="p-6 text-center">
                   <QrCode className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="font-semibold mb-2">Scan QR Code</h3>
+                  <h3 className="font-semibold mb-2">Scan QR Credential</h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     Point your camera at the QR code on your certificate
                   </p>

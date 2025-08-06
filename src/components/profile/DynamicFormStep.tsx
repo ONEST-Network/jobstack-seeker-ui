@@ -1139,11 +1139,11 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               >
                 <QrCode className="h-4 w-4 mr-2" />
                 {(() => {
-                  if (!value) return 'Scan QR Code';
+                  if (!value) return 'Scan QR Credential';
                   if (Array.isArray(value)) {
-                    return value.length > 0 ? 'Scan Another QR Code' : 'Scan QR Code';
+                    return value.length > 0 ? 'Scan Another QR Credential' : 'Scan QR Credential';
                   }
-                  return 'Scan Another QR Code';
+                  return 'Scan Another QR Credential';
                 })()}
               </Button>
             </div>
