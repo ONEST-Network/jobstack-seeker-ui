@@ -79,8 +79,8 @@ const ScoreImprovementDialog: React.FC<ScoreImprovementDialogProps> = ({
                   <Shield className="h-4 w-4 text-blue-600" />
                   <span className="text-sm font-medium">Trust Score</span>
                 </div>
-                <div className="text-2xl font-bold text-blue-600">{scores.trustScore}/10</div>
-                <Progress value={scores.trustScore * 10} className="mt-2" />
+                <div className="text-2xl font-bold text-blue-600">NA</div>
+                <Progress value={0} className="mt-2" />
                 {trustNeedsImprovement && (
                   <Badge variant="secondary" className="mt-2 text-xs">
                     Needs Improvement

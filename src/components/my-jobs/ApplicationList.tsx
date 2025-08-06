@@ -39,7 +39,7 @@ const ApplicationList: React.FC<ApplicationListProps> = ({
                   <span>Applied on {new Date(application.applicationDate).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs">Trust: {application.trustScore}%</span>
+                  <span className="text-xs">Trust: NA</span>
                   <span className="text-xs">Match: {application.matchScore}%</span>
                 </div>
               </div>
