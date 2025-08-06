@@ -163,7 +163,7 @@ const CandidateListView: React.FC<CandidateListViewProps> = ({ searchQuery }) =>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm font-medium">Trust: {candidate.trustScore}%</span>
+                    <span className="text-sm font-medium">Trust: NA</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 text-green-500" />

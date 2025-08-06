@@ -364,7 +364,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
         <div className="flex gap-2 sm:gap-4">
           <div className="bg-blue-50 rounded-lg p-2 sm:p-3 flex-1 text-center">
             <div className="text-xs text-blue-600">Trust Score</div>
-            <div className="text-sm sm:text-base font-bold text-blue-700">{displayTrustScore}/10</div>
+            <div className="text-sm sm:text-base font-bold text-blue-700">NA</div>
             {!shouldShowRealScores && (
               <div className="text-xs text-blue-500 mt-1">Login to see</div>
             )}

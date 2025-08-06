@@ -273,7 +273,7 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <Star className="h-4 w-4 text-yellow-500" />
-                      <span className="font-medium">{candidate.trustScore}%</span>
+                      <span className="font-medium">NA</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
