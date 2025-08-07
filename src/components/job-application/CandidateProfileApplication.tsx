@@ -48,6 +48,9 @@ const CandidateProfileApplicationContent: React.FC<CandidateProfileApplicationPr
     if (lowerJobTitle.includes('machine operator')) {
       return 'Machine Operator';
     }
+    if (lowerJobTitle.includes('iti') || lowerJobTitle.includes('industrial training') || lowerJobTitle.includes('technical') || lowerJobTitle.includes('vocational')) {
+      return 'Generic ITI';
+    }
     
     // Then check for more general patterns
     if (lowerJobTitle.includes('tailor') || lowerJobTitle.includes('stitch') || lowerJobTitle.includes('garment')) {
@@ -327,7 +330,7 @@ const CandidateProfileApplicationContent: React.FC<CandidateProfileApplicationPr
             <div className="text-center">
               <div className="text-red-600 mb-2">Schema not found for role: {mappedRole}</div>
               <div className="text-sm text-gray-600">
-                Available roles: Industrial Tailor, Warehouse Loader & Picker, Recruitment Associate, Field Sales Executive, In Store Promoter, Electrician, Fitter, Mechanic, Machine Operator, Data Entry Operator, Tele Salesperson, Field Sales Person
+                Available roles: Industrial Tailor, Warehouse Loader & Picker, Recruitment Associate, Field Sales Executive, In Store Promoter, Electrician, Fitter, Mechanic, Machine Operator, Data Entry Operator, Tele Salesperson, Field Sales Person, Generic ITI
               </div>
             </div>
           </div>

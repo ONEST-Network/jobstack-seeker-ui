@@ -47,6 +47,10 @@
     "Field Sales Person": {
       "industry": "Sales",
       "description": "Field-based sales and business development"
+    },
+    "Generic ITI": {
+      "industry": "Manufacturing",
+      "description": "Generic ITI (Industrial Training Institute) roles and specializations"
     }
   }
 } 
