@@ -213,7 +213,92 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
     return String(value);
   };
 
+  // Transform API profile structure to UserProfileDialog format
+  const transformProfileForEdit = (profile: Profile): Record<string, unknown> => {
+    const transformed = {
+      // Basic info
+      name: profile.metadata.name || '',
+      role: profile.metadata.role || '',
+      gender: profile.metadata.gender || '',
+      
+      // Who I Am data
+      whoIAm: {
+        phone: profile.metadata.whoIAm?.phone || '',
+        hometown: profile.metadata.whoIAm?.hometown || '',
+        location: profile.metadata.whoIAm?.location || '',
+        currentLocation: profile.metadata.whoIAm?.currentLocation || '',
+        desiredLocation: profile.metadata.whoIAm?.desiredLocation || '',
+        dateOfBirth: profile.metadata.whoIAm?.dateOfBirth || profile.metadata.dateOfBirth || '',
+        aadharNumber: profile.metadata.whoIAm?.aadharNumber || '',
+        fatherName: profile.metadata.whoIAm?.fatherName || '',
+        motherName: profile.metadata.whoIAm?.motherName || '',
+        isAgeVerified: profile.metadata.whoIAm?.isAgeVerified || profile.metadata.isAgeVerified || false,
+        isNameVerified: profile.metadata.whoIAm?.isNameVerified || profile.metadata.isNameVerified || false,
+        isPhoneVerified: profile.metadata.whoIAm?.isPhoneVerified || false,
+        isLocationVerified: profile.metadata.whoIAm?.isLocationVerified || false,
+        locationData: profile.metadata.whoIAm?.locationData || {}
+      },
+      
+      // What I Have data
+      whatIHave: {
+        age: profile.metadata.whatIHave?.age || undefined,
+        rollNumber: profile.metadata.whatIHave?.rollNumber || '',
+        itiInstitute: profile.metadata.whatIHave?.itiInstitute || '',
+        isAgeVerified: profile.metadata.whatIHave?.isAgeVerified || false,
+        languageSpoken: profile.metadata.whatIHave?.languageSpoken || [],
+        previousCompany: profile.metadata.whatIHave?.previousCompany || profile.metadata.previousCompany || '',
+        skillProofVideo: profile.metadata.whatIHave?.skillProofVideo || profile.metadata.skillProofVideo || '',
+        machinesOperated: profile.metadata.whatIHave?.machinesOperated || [],
+        previousLocation: profile.metadata.whatIHave?.previousLocation || '',
+        trainingDuration: profile.metadata.whatIHave?.trainingDuration || undefined,
+        itiSpecialization: profile.metadata.whatIHave?.itiSpecialization || [],
+        qualityProofImage: profile.metadata.whatIHave?.qualityProofImage || '',
+        currentMonthlySalary: profile.metadata.whatIHave?.currentMonthlySalary || undefined,
+        highestQualification: profile.metadata.whatIHave?.highestQualification || [],
+        fitterAssessmentScore: profile.metadata.whatIHave?.fitterAssessmentScore || undefined,
+        intentAssessmentScore: profile.metadata.whatIHave?.intentAssessmentScore || undefined,
+        totalYearsOfExperience: profile.metadata.whatIHave?.totalYearsOfExperience || undefined
+      },
+      
+      // What I Want data
+      whatIWant: {
+        monthlyPFESIC: profile.metadata.whatIWant?.monthlyPFESIC || '',
+        workHoursPerDay: profile.metadata.whatIWant?.workHoursPerDay || profile.metadata.workHoursPerDay || undefined,
+        preferredModeOfWork: profile.metadata.whatIWant?.preferredModeOfWork || [],
+        monthlyOTExpectation: profile.metadata.whatIWant?.monthlyOTExpectation || undefined,
+        monthlyInHandPreferred: profile.metadata.whatIWant?.monthlyInHandPreferred || undefined
+      },
+      
+      // Legacy fields
+      interestedRole: profile.metadata.role || '',
+      interestedIndustry: '',
+      currentLocation: profile.metadata.whoIAm?.currentLocation || profile.metadata.whoIAm?.location || '',
+      desiredLocation: profile.metadata.whoIAm?.desiredLocation || '',
+      phone: profile.metadata.whoIAm?.phone || '',
+      age: profile.metadata.whatIHave?.age || undefined,
+      dateOfBirth: profile.metadata.whoIAm?.dateOfBirth || profile.metadata.dateOfBirth || '',
+      hometown: profile.metadata.whoIAm?.hometown || '',
+      aadharNumber: profile.metadata.whoIAm?.aadharNumber || '',
+      isNameVerified: profile.metadata.whoIAm?.isNameVerified || profile.metadata.isNameVerified || false,
+      isAgeVerified: profile.metadata.whoIAm?.isAgeVerified || profile.metadata.isAgeVerified || false,
+      previousCompany: profile.metadata.whatIHave?.previousCompany || profile.metadata.previousCompany || '',
+      skillProofVideo: profile.metadata.whatIHave?.skillProofVideo || profile.metadata.skillProofVideo || '',
+      workHoursPerDay: profile.metadata.whatIWant?.workHoursPerDay || profile.metadata.workHoursPerDay || undefined,
+      experience: profile.metadata.workExperience || [],
+      skills: [],
+      certificates: [],
+      education: [],
+      skillCertifications: [],
+      workExperience: profile.metadata.workExperience || [],
+      assessmentScores: [],
+      documentVerificationStatus: []
+    };
+    
+    return transformed;
+  };
+
   const handleEditProfile = (profile: Profile) => {
+    const transformedProfile = transformProfileForEdit(profile);
     setEditingProfile(profile);
     setShowEditDialog(true);
   };
@@ -419,7 +504,7 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
           mode="user"
           isUpdate={true}
           profileId={editingProfile.id}
-          initialProfile={editingProfile.metadata}
+          initialProfile={transformProfileForEdit(editingProfile)}
         />
       )}
     </>

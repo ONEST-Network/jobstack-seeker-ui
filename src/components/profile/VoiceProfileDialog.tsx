@@ -236,7 +236,7 @@ const VoiceProfileDialog: React.FC<VoiceProfileDialogProps> = ({ isOpen, onClose
                       {profile.age && <p><strong>Age:</strong> {profile.age}</p>}
                       {profile.currentLocation && <p><strong>Location:</strong> {profile.currentLocation}</p>}
                       {profile.desiredLocation && <p><strong>Preferred Location:</strong> {profile.desiredLocation}</p>}
-                      {profile.experience.length > 0 && <p><strong>Experience:</strong> {profile.experience[0].designation}</p>}
+                      {profile.experience && profile.experience.length > 0 && <p><strong>Experience:</strong> {profile.experience[0].designation}</p>}
                     </div>
                   </CardContent>
                 </Card>
