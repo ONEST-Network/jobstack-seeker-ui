@@ -216,17 +216,36 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
   // Transform API profile structure to UserProfileDialog format
   const transformProfileForEdit = (profile: Profile): Record<string, unknown> => {
     const transformed = {
-      // Basic info
+      // Basic info - these are used by legacy steps
       name: profile.metadata.name || '',
-      role: profile.metadata.role || '',
-      gender: profile.metadata.gender || '',
+      age: profile.metadata.whatIHave?.age || undefined,
+      dateOfBirth: profile.metadata.whoIAm?.dateOfBirth || profile.metadata.dateOfBirth || '',
+      gender: profile.metadata.gender || undefined,
+      hometown: profile.metadata.whoIAm?.hometown || '',
+      aadharNumber: profile.metadata.whoIAm?.aadharNumber || '',
+      phone: profile.metadata.whoIAm?.phone || '',
+      currentLocation: profile.metadata.whoIAm?.currentLocation || profile.metadata.whoIAm?.location || '',
+      desiredLocation: profile.metadata.whoIAm?.desiredLocation || '',
+      interestedRole: profile.metadata.role || '',
+      interestedIndustry: '',
+      isNameVerified: profile.metadata.whoIAm?.isNameVerified || profile.metadata.isNameVerified || false,
+      isAgeVerified: profile.metadata.whoIAm?.isAgeVerified || profile.metadata.isAgeVerified || false,
       
-      // Who I Am data
+      // Legacy fields for backward compatibility
+      experience: profile.metadata.workExperience || [],
+      skills: [],
+      certificates: [],
+      assessmentScores: [],
+      documentVerificationStatus: [],
+      nickname: profile.metadata.name || '',
+      
+      // Unified schema data - preserve all nested data including file URLs
       whoIAm: {
+        name: profile.metadata.name || '',
         phone: profile.metadata.whoIAm?.phone || '',
         hometown: profile.metadata.whoIAm?.hometown || '',
-        location: profile.metadata.whoIAm?.location || '',
-        currentLocation: profile.metadata.whoIAm?.currentLocation || '',
+        location: profile.metadata.whoIAm?.location || profile.metadata.whoIAm?.currentLocation || '',
+        currentLocation: profile.metadata.whoIAm?.currentLocation || profile.metadata.whoIAm?.location || '',
         desiredLocation: profile.metadata.whoIAm?.desiredLocation || '',
         dateOfBirth: profile.metadata.whoIAm?.dateOfBirth || profile.metadata.dateOfBirth || '',
         aadharNumber: profile.metadata.whoIAm?.aadharNumber || '',
@@ -239,7 +258,6 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
         locationData: profile.metadata.whoIAm?.locationData || {}
       },
       
-      // What I Have data
       whatIHave: {
         age: profile.metadata.whatIHave?.age || undefined,
         rollNumber: profile.metadata.whatIHave?.rollNumber || '',
@@ -260,7 +278,6 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
         totalYearsOfExperience: profile.metadata.whatIHave?.totalYearsOfExperience || undefined
       },
       
-      // What I Want data
       whatIWant: {
         monthlyPFESIC: profile.metadata.whatIWant?.monthlyPFESIC || '',
         workHoursPerDay: profile.metadata.whatIWant?.workHoursPerDay || profile.metadata.workHoursPerDay || undefined,
@@ -269,29 +286,15 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
         monthlyInHandPreferred: profile.metadata.whatIWant?.monthlyInHandPreferred || undefined
       },
       
-      // Legacy fields
-      interestedRole: profile.metadata.role || '',
-      interestedIndustry: '',
-      currentLocation: profile.metadata.whoIAm?.currentLocation || profile.metadata.whoIAm?.location || '',
-      desiredLocation: profile.metadata.whoIAm?.desiredLocation || '',
-      phone: profile.metadata.whoIAm?.phone || '',
-      age: profile.metadata.whatIHave?.age || undefined,
-      dateOfBirth: profile.metadata.whoIAm?.dateOfBirth || profile.metadata.dateOfBirth || '',
-      hometown: profile.metadata.whoIAm?.hometown || '',
-      aadharNumber: profile.metadata.whoIAm?.aadharNumber || '',
-      isNameVerified: profile.metadata.whoIAm?.isNameVerified || profile.metadata.isNameVerified || false,
-      isAgeVerified: profile.metadata.whoIAm?.isAgeVerified || profile.metadata.isAgeVerified || false,
-      previousCompany: profile.metadata.whatIHave?.previousCompany || profile.metadata.previousCompany || '',
-      skillProofVideo: profile.metadata.whatIHave?.skillProofVideo || profile.metadata.skillProofVideo || '',
-      workHoursPerDay: profile.metadata.whatIWant?.workHoursPerDay || profile.metadata.workHoursPerDay || undefined,
-      experience: profile.metadata.workExperience || [],
-      skills: [],
-      certificates: [],
+      // Verification status
+      isGenderVerified: false,
+      isAadharVerified: false,
+      isHometownVerified: false,
+      
+      // Education and certifications
       education: [],
       skillCertifications: [],
-      workExperience: profile.metadata.workExperience || [],
-      assessmentScores: [],
-      documentVerificationStatus: []
+      workExperience: profile.metadata.workExperience || []
     };
     
     return transformed;
@@ -501,7 +504,7 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
         <UserProfileDialog
           isOpen={showEditDialog}
           onClose={handleCloseEditDialog}
-          mode="user"
+          mode="candidate"
           isUpdate={true}
           profileId={editingProfile.id}
           initialProfile={transformProfileForEdit(editingProfile)}
