@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { User, LogOut, Building2, Users, FileText, Mail, Phone } from 'lucide-react';
+import { User, LogOut, Building2, Users, FileText, Mail, Phone, Eye } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
+import ViewAllProfiles from '@/components/ViewAllProfiles';
 import { apiClient, ProfileResponse, ProfilesResponse } from '@/lib/api';
 
 interface UserMenuProps {
@@ -16,6 +17,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
   const { user, logout, getSelectedCandidate, refreshProfileData, cleanupIncompleteProfiles } = useAuth();
   const selectedCandidate = getSelectedCandidate();
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
+  const [showViewAllProfiles, setShowViewAllProfiles] = useState(false);
   const [profileMode, setProfileMode] = useState<'add' | 'edit'>('add');
 
   // Clean up incomplete profiles when component mounts
@@ -44,6 +46,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
 
   const handleMyApplications = () => {
     navigate('/seeker?tab=applications');
+  };
+
+  const handleViewAllProfiles = () => {
+    setShowViewAllProfiles(true);
   };
 
   if (!user) {
@@ -99,6 +105,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
                 <FileText className="h-4 w-4 mr-2" />
                 My Applications
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleViewAllProfiles}>
+                <Eye className="h-4 w-4 mr-2" />
+                View All Profiles
+              </DropdownMenuItem>
             </>
           )}
           {user.role === 'organization' && (
@@ -127,6 +137,12 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           profileId={user.profileId}
         />
       )}
+
+      {/* View All Profiles Dialog */}
+      <ViewAllProfiles
+        isOpen={showViewAllProfiles}
+        onClose={() => setShowViewAllProfiles(false)}
+      />
     </>
   );
 };

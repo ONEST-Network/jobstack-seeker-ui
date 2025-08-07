@@ -93,12 +93,27 @@ const CandidateMapView: React.FC<CandidateMapViewProps> = ({ searchQuery }) => {
     }
   };
 
-  const filteredCandidates = mockCandidates.filter(candidate =>
-    candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    candidate.appliedFor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    candidate.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    candidate.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredCandidates = mockCandidates.filter(candidate => {
+    if (!searchQuery.trim()) return true;
+    
+    const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+    if (searchTerms.length === 0) return true;
+
+    const searchableFields = [
+      candidate.name || '',
+      candidate.appliedFor || '',
+      candidate.location || '',
+      candidate.email || '',
+      candidate.phone || '',
+      candidate.experience || '',
+      ...(candidate.skills || [])
+    ].map(field => field.toLowerCase());
+
+    // Check if all search terms are found in any of the searchable fields
+    return searchTerms.every(term => 
+      searchableFields.some(field => field.includes(term))
+    );
+  });
 
   const handleCandidateCardClick = (candidate: Candidate) => {
     setSelectedCandidate(candidate);

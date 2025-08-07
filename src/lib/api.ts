@@ -281,6 +281,21 @@ class ApiClient {
     });
   }
 
+  // Get profiles with pagination support
+  async getProfilesPaginated(page: number = 1, limit: number = 20, search?: string): Promise<ProfilesResponse> {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (search) {
+      params.append('search', search);
+    }
+    
+    const endpoint = `/profile?${params.toString()}`;
+    return this.request(endpoint, {
+      method: 'GET',
+    });
+  }
+
   // Job-related methods (for future use)
   async createJobPost(organizationId: string, jobData: any) {
     return this.request(`/jobs/${organizationId}`, {
