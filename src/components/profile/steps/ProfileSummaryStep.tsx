@@ -43,8 +43,8 @@ const ProfileSummaryStep: React.FC = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium">Experience ({profile.experience.length})</p>
-            {profile.experience.slice(0, 2).map((exp) => (
+            <p className="text-sm font-medium">Experience ({profile.experience?.length || 0})</p>
+            {profile.experience && profile.experience.slice(0, 2).map((exp) => (
               <p key={exp.id} className="text-xs text-muted-foreground">
                 {exp.designation} at {exp.company}
               </p>
@@ -52,9 +52,9 @@ const ProfileSummaryStep: React.FC = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium">Skills ({profile.skills.length})</p>
+            <p className="text-sm font-medium">Skills ({profile.skills?.length || 0})</p>
             <div className="flex flex-wrap gap-1 mt-1">
-              {profile.skills.slice(0, 5).map((skill, index) => (
+              {profile.skills && profile.skills.slice(0, 5).map((skill, index) => (
                 <Badge key={index} variant="outline" className="text-xs">
                   {skill}
                 </Badge>

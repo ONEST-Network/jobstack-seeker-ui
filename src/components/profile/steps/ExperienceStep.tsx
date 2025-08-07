@@ -25,7 +25,7 @@ const ExperienceStep: React.FC = () => {
       
       setProfile({
         ...profile,
-        experience: [...profile.experience, experience]
+        experience: [...(profile.experience || []), experience]
       });
       
       setNewExperience({
@@ -42,7 +42,7 @@ const ExperienceStep: React.FC = () => {
   const removeExperience = (id: string) => {
     setProfile({
       ...profile,
-      experience: profile.experience.filter(exp => exp.id !== id)
+      experience: (profile.experience || []).filter(exp => exp.id !== id)
     });
   };
 
@@ -50,7 +50,7 @@ const ExperienceStep: React.FC = () => {
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Work Experience</h3>
       
-      {profile.experience.length > 0 && (
+      {profile.experience && profile.experience.length > 0 && (
         <div className="space-y-2">
           {profile.experience.map((exp) => (
             <Card key={exp.id} className="p-3">
