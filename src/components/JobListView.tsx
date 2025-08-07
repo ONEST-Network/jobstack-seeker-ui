@@ -57,13 +57,28 @@ const JobListView: React.FC<JobListViewProps> = ({
   } = useJobSearch();
   const { applyToJob, saveDraft, applying, savingDraft } = useJobApplication();
 
-  // Filter jobs based on search query
-  const filteredJobs = (jobs || []).filter(job => 
-    job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.industry?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter jobs based on search query with improved exact word matching
+  const filteredJobs = (jobs || []).filter(job => {
+    if (!searchQuery.trim()) return true;
+    
+    const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+    if (searchTerms.length === 0) return true;
+
+    const searchableFields = [
+      job.title || '',
+      job.company || '',
+      job.location || '',
+      job.industry || '',
+      job.description || '',
+      job.skills?.join(' ') || '',
+      job.requirements?.join(' ') || ''
+    ].map(field => field.toLowerCase());
+
+    // Check if all search terms are found in any of the searchable fields
+    return searchTerms.every(term => 
+      searchableFields.some(field => field.includes(term))
+    );
+  });
 
   // Pagination logic
   const jobsPerPage = 5;
