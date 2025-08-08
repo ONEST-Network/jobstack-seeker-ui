@@ -92,7 +92,7 @@ interface SharedJobData {
 }
 
 const SharedJob: React.FC = () => {
-  const { providerId, jobId } = useParams<{ providerId: string; jobId: string }>();
+  const { orgSlug, providerId, jobId } = useParams<{ orgSlug: string; providerId: string; jobId: string }>();
   const navigate = useNavigate();
   const { user, getSelectedCandidate } = useAuth();
   const { toast } = useToast();
@@ -405,7 +405,7 @@ const SharedJob: React.FC = () => {
   };
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/${providerId}/${jobId}`;
+    const shareUrl = `${window.location.origin}/${orgSlug || '0'}/${providerId}/${jobId}`;
     
     try {
       // Always copy to clipboard first
@@ -480,7 +480,7 @@ const SharedJob: React.FC = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => navigate('/seeker?tab=applications')}
+              onClick={() => navigate(`/${orgSlug || '0'}/seeker?tab=applications`)}
             >
               View Applications
             </Button>
@@ -561,7 +561,7 @@ const SharedJob: React.FC = () => {
           </div>
           <h2 className="text-xl font-semibold mb-2">Job Not Found</h2>
           <p className="text-muted-foreground mb-6">{error || 'The job you are looking for does not exist or has been removed.'}</p>
-          <Button onClick={() => navigate('/seeker?tab=discover')}>
+          <Button onClick={() => navigate(`/${orgSlug || '0'}/seeker?tab=discover`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Browse Jobs
           </Button>
@@ -590,7 +590,7 @@ const SharedJob: React.FC = () => {
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
-              onClick={() => navigate('/seeker?tab=discover')}
+              onClick={() => navigate(`/${orgSlug || '0'}/seeker?tab=discover`)}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />

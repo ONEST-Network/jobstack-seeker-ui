@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useParams } from 'react-router-dom';
 import OTPVerificationDialog from './OTPVerificationDialog';
 
 interface LoginDialogProps {
@@ -18,10 +19,50 @@ interface LoginDialogProps {
 const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRegister, defaultRole }) => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [formattedPhone, setFormattedPhone] = useState('');
   const [step, setStep] = useState<'login' | 'otp-verification'>('login');
   
   const { requestOTP, isLoading } = useAuth();
   const { toast } = useToast();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
+
+  // Format phone number with country code
+  const formatPhoneNumber = (input: string): string => {
+    const digits = input.replace(/\D/g, '');
+    
+    // If it already starts with +91, return as is
+    if (input.startsWith('+91')) {
+      return input;
+    }
+    
+    // If it's a 10-digit number, add +91
+    if (digits.length === 10) {
+      return `+91${digits}`;
+    }
+    
+    // If it's an 11-digit number starting with 91, add +
+    if (digits.length === 11 && digits.startsWith('91')) {
+      return `+${digits}`;
+    }
+    
+    // If it's a 12-digit number starting with 91, add +
+    if (digits.length === 12 && digits.startsWith('91')) {
+      return `+${digits}`;
+    }
+    
+    // For other cases, just add +91 if it's a 10-digit number
+    if (digits.length === 10) {
+      return `+91${digits}`;
+    }
+    
+    return input;
+  };
+
+  const handlePhoneChange = (value: string) => {
+    setPhone(value);
+    const formatted = formatPhoneNumber(value);
+    setFormattedPhone(formatted);
+  };
 
   const handleLogin = async () => {
     if (!email && !phone) {
@@ -44,7 +85,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
     }
 
     // Validate phone if provided
-    if (phone && phone.length < 10) {
+    if (phone && phone.replace(/\D/g, '').length < 10) {
       toast({
         title: "Error",
         description: "Please enter a valid phone number.",
@@ -56,7 +97,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
     try {
       const otpData = {
         ...(email && { email }),
-        ...(phone && { phoneNumber: phone })
+        ...(phone && { phoneNumber: formattedPhone || formatPhoneNumber(phone) })
       };
 
       await requestOTP(otpData);
@@ -77,6 +118,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
   const handleClose = () => {
     setEmail('');
     setPhone('');
+    setFormattedPhone('');
     setStep('login');
     onClose();
   };
@@ -120,7 +162,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
                 id="login-phone"
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => handlePhoneChange(e.target.value)}
                 placeholder="+91 9876543210"
               />
             </div>
@@ -163,7 +205,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
         contactMethod={email || phone}
         method={email ? 'email' : 'phone'}
         email={email || undefined}
-        phoneNumber={phone || undefined}
+        phoneNumber={formattedPhone || undefined}
+        name={email ? email.split('@')[0] : phone}
       />
     </>
   );

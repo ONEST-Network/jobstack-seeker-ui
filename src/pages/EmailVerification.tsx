@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 const EmailVerification = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { refreshSession, user } = useAuth();
   const { toast } = useToast();
   
@@ -93,7 +94,7 @@ const EmailVerification = () => {
         
         // Redirect after a short delay
         setTimeout(() => {
-          navigate('/seeker?tab=discover');
+          navigate(`/${orgSlug || '0'}/seeker?tab=discover`);
         }, 2000);
         
       } catch (error: any) {
@@ -129,7 +130,7 @@ const EmailVerification = () => {
           description: "Your email is already verified. Redirecting to dashboard...",
         });
         setTimeout(() => {
-          navigate('/seeker?tab=discover');
+          navigate(`/${orgSlug || '0'}/seeker?tab=discover`);
         }, 2000);
       } else {
         // No token provided and user not verified
@@ -173,7 +174,7 @@ const EmailVerification = () => {
   };
 
   const handleGoToLogin = () => {
-    navigate('/seeker?tab=discover');
+    navigate(`/${orgSlug || '0'}/seeker?tab=discover`);
   };
 
   const getErrorMessage = (errorType: string) => {

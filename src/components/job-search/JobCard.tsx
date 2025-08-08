@@ -7,6 +7,7 @@ import { JobItem } from '@/hooks/useJobSearch';
 import JobMediaCarousel from '../JobMediaCarousel';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useParams } from 'react-router-dom';
 
 interface JobCardProps {
   job: JobItem;
@@ -17,6 +18,7 @@ interface JobCardProps {
 const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
   const [showAllDetails, setShowAllDetails] = useState(false);
 
   // Helper function to get provider and job IDs for sharing
@@ -27,7 +29,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
     const jobId = job.id;
     
     if (providerId && jobId) {
-      return `${window.location.origin}/${providerId}/${jobId}`;
+      // Use the new route structure with organization slug
+      return `${window.location.origin}/${orgSlug || '0'}/${providerId}/${jobId}`;
     }
     
     return null;

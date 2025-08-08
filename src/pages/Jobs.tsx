@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import Header from '@/components/header/Header';
 import JobDiscovery from '@/components/JobDiscovery';
 import MyApplications from '@/components/MyApplications';
 import CandidateManagement from '@/components/candidates/CandidateManagement';
@@ -64,7 +63,6 @@ const Jobs = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       {renderContent()}
       
       {/* Unified Auth Dialog */}
