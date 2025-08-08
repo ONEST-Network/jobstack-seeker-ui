@@ -3104,7 +3104,7 @@
             {
               "name": "Acharya Industrial Training Institute",
               "code": "PU29000111",
-              "slug": "acharya-industrial-training-institute",
+              "slug": "acharya-industrial-training-institute-bengaluru-urban",
               "type": "Private",
               "location": "Urban",
               "address": "#15, 1st cross, 1st Stage, Peenya Industrial Estat",
@@ -5624,7 +5624,7 @@
             {
               "name": "Sir M. Vishweshwaraiah ITC",
               "code": "PR29000993",
-              "slug": "sir-m-vishweshwaraiah-itc",
+              "slug": "sir-m-vishweshwaraiah-itc-chikballapur",
               "type": "Private",
               "location": "Rural",
               "address": "Muddenahalli, Tq",
@@ -9524,7 +9524,7 @@
             {
               "name": "Nethaji Industrial Training Centre",
               "code": "PU29000235",
-              "slug": "nethaji-industrial-training-centre",
+              "slug": "nethaji-industrial-training-centre-hassan",
               "type": "Private",
               "location": "Urban",
               "address": "Vidyanagar",
@@ -9884,7 +9884,7 @@
             {
               "name": "Umachagi Industrial Training Institute",
               "code": "PU29000512",
-              "slug": "umachagi-industrial-training-institute",
+              "slug": "umachagi-industrial-training-institute-hassan",
               "type": "Private",
               "location": "Urban",
               "address": "Pete Main Road Hoolenarsipura",
@@ -12874,7 +12874,7 @@
             {
               "name": "Sree Siddaganga Industrial Training Centre",
               "code": "PR29000692",
-              "slug": "sree-siddaganga-industrial-training-centre",
+              "slug": "sree-siddaganga-industrial-training-centre-ramanagara",
               "type": "Private",
               "location": "Rural",
               "address": "K.B Math Magadi Talluk",
@@ -13369,7 +13369,7 @@
             {
               "name": "TMAE Society Industrial Training Centre",
               "code": "PR29000334",
-              "slug": "tmae-society-industrial-training-centre",
+              "slug": "tmae-society-industrial-training-centre-shivamogga",
               "type": "Private",
               "location": "Rural",
               "address": "Chennagiri Road BHADRAVATHI",
@@ -13774,7 +13774,7 @@
             {
               "name": "S.R.S ITC",
               "code": "PR29001132",
-              "slug": "srs-itc",
+              "slug": "srs-itc-tumakuru",
               "type": "Private",
               "location": "Rural",
               "address": "Shetikere Road, Chikkanyakanahalli",
@@ -13824,7 +13824,7 @@
             {
               "name": "Sir M. Vishweshwaraiah ITC",
               "code": "PR29000729",
-              "slug": "sir-m-vishweshwaraiah-itc",
+              "slug": "sir-m-vishweshwaraiah-itc-tumakuru",
               "type": "Private",
               "location": "Rural",
               "address": "Sira Dt-Tumkur",
@@ -13894,7 +13894,7 @@
             {
               "name": "Sri Basaveshwara Rural ITC",
               "code": "PR29000558",
-              "slug": "sri-basaveshwara-rural-itc",
+              "slug": "sri-basaveshwara-rural-itc-tumakuru",
               "type": "Private",
               "location": "Rural",
               "address": "Dandinaditta, Madhugiri Tq.",
