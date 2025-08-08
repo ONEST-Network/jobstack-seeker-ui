@@ -96,6 +96,16 @@ class ApiClient {
     });
   }
 
+  async checkUser(data: {
+    phoneNumber?: string;
+    email?: string;
+  }): Promise<{ userExists: boolean }> {
+    return this.request('/auth/unified-otp/check-user', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async verifyOTP(data: {
     phoneNumber?: string;
     email?: string;
