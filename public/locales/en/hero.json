@@ -1,0 +1,55 @@
+{
+  "hero": {
+    "title": "Find Your Perfect",
+    "jobMatch": "Job Match",
+    "subtitle": "Discover opportunities across India with AI-powered matching, verified credentials, and support in your local language",
+    "searchForm": {
+      "locationLabel": "Location",
+      "locationPlaceholder": "Select Location",
+      "roleLabel": "Role",
+      "rolePlaceholder": "Select Role",
+      "findJobs": "Find Jobs",
+      "searchJobs": "Search Jobs"
+    },
+    "stats": {
+      "activeJobs": "Active Jobs",
+      "jobSeekers": "Job Seekers",
+      "companies": "Companies",
+      "languages": "Languages",
+      "values": {
+        "activeJobs": "50K+",
+        "jobSeekers": "100K+",
+        "companies": "5K+",
+        "languages": "15"
+      }
+    },
+    "locations": [
+      "Mumbai",
+      "Delhi",
+      "Bangalore",
+      "Chennai",
+      "Hyderabad",
+      "Kolkata",
+      "Pune",
+      "Ahmedabad",
+      "Surat",
+      "Jaipur",
+      "Lucknow",
+      "Kanpur"
+    ],
+    "jobRoles": [
+      "Electrician",
+      "Plumber",
+      "Carpenter",
+      "Welder",
+      "Driver",
+      "Security Guard",
+      "Tailor",
+      "Mason",
+      "Painter",
+      "Machine Operator",
+      "Factory Worker",
+      "Sales Representative"
+    ]
+  }
+}
