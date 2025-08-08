@@ -6,6 +6,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'react-router-dom';
+import { Organization } from '@/hooks/useOrganizationSelection';
 
 interface OTPVerificationDialogProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface OTPVerificationDialogProps {
   phoneNumber?: string;
   email?: string;
   name?: string;
+  selectedOrganization?: Organization | null;
 }
 
 const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
@@ -26,7 +28,8 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
   method,
   phoneNumber,
   email,
-  name
+  name,
+  selectedOrganization
 }) => {
   const [otp, setOtp] = useState('');
   const { verifyOTP, isLoading } = useAuth();
@@ -46,14 +49,29 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
     try {
       // Prepare the verify payload
       const verifyPayload: any = {
-        phoneNumber,
-        email,
-        otp,
         name,
+        otp,
         rememberMe: true
       };
 
-      // Add orgSlug and createAdmin if we're on an organization route
+      // Add email or phone based on method
+      if (method === 'email' && email) {
+        verifyPayload.email = email;
+      } else if (method === 'phone' && phoneNumber) {
+        verifyPayload.phoneNumber = phoneNumber;
+      }
+
+      // Add organization data if selected
+      if (selectedOrganization) {
+        verifyPayload.joinOrg = {
+          join: true,
+          orgSlug: selectedOrganization.slug,
+          role: 'viewer'
+        };
+        verifyPayload.createAdmin = true;
+      }
+
+      // Add orgSlug and createAdmin if we're on an organization route (existing logic)
       if (orgSlug && orgSlug !== '0') {
         verifyPayload.joinOrg = {
           join: true,
@@ -104,6 +122,16 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
             We've sent a 6-digit verification code to{' '}
             <span className="font-medium">{contactMethod}</span>
           </p>
+
+          {selectedOrganization && (
+            <div className="p-3 bg-muted rounded-lg text-left">
+              <h4 className="font-medium text-sm">Selected Organization:</h4>
+              <p className="text-sm font-medium">{selectedOrganization.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {selectedOrganization.type} • {selectedOrganization.location} • {selectedOrganization.district}
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-center">
             <InputOTP value={otp} onChange={setOtp} maxLength={6}>

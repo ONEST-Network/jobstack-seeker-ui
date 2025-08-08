@@ -141,36 +141,40 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
 
     try {
       // Prepare payload based on contact type
-      const payload = contactType === 'email' 
+      const checkPayload = contactType === 'email' 
         ? { email: contactInput }
         : { phoneNumber: formattedPhoneNumber || formatPhoneNumber(contactInput) };
 
-      // Request OTP and check user existence
-      const otpResponse = await apiClient.requestOTP(payload) as RequestOTPResponse;
+      // First, check if user exists
+      const checkResponse = await apiClient.checkUser(checkPayload);
       
-      if (otpResponse.ok) {
-        if (otpResponse.user) {
-          // User exists - show OTP verification
-          setUserExists(true);
-          setStep('otp');
+      if (checkResponse.userExists) {
+        // User exists - request OTP and show verification
+        setUserExists(true);
+        setStep('otp');
+        
+        // Request OTP for existing user
+        const otpResponse = await apiClient.requestOTP(checkPayload);
+        
+        if (otpResponse.ok) {
           setShowOTPDialog(true);
         } else {
-          // User doesn't exist - show registration
-          setUserExists(false);
-          setStep('register');
-          setShowRegisterDialog(true);
           toast({
-            title: "Account Not Found",
-            description: `No account found with ${contactType === 'email' ? 'email' : 'phone number'} ${contactInput}. Please create a new account.`,
+            title: "Error",
+            description: "Failed to send OTP. Please try again.",
+            variant: "destructive"
           });
+          setStep('initial');
         }
       } else {
+        // User doesn't exist - show registration
+        setUserExists(false);
+        setStep('register');
+        setShowRegisterDialog(true);
         toast({
-          title: "Error",
-          description: "Failed to send OTP. Please try again.",
-          variant: "destructive"
+          title: "Account Not Found",
+          description: `No account found with ${contactType === 'email' ? 'email' : 'phone number'} ${contactInput}. Please create a new account.`,
         });
-        setStep('initial');
       }
     } catch (error) {
       console.error('Error checking user:', error);
@@ -337,6 +341,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           isOpen={showRegisterDialog}
           onClose={() => setShowRegisterDialog(false)}
           defaultRole={defaultRole}
+          preFilledEmail={contactType === 'email' ? contactInput : undefined}
+          preFilledPhone={contactType === 'phone' ? contactInput : undefined}
         />
       )}
     </>

@@ -10,14 +10,24 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocation, useParams } from 'react-router-dom';
 import OTPVerificationDialog from './OTPVerificationDialog';
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
+import OrganizationSelection from './OrganizationSelection';
+import { Organization } from '@/hooks/useOrganizationSelection';
 
 interface RegistrationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   defaultRole: 'individual' | 'organization';
+  preFilledEmail?: string;
+  preFilledPhone?: string;
 }
 
-const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose, defaultRole }) => {
+const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ 
+  isOpen, 
+  onClose, 
+  defaultRole,
+  preFilledEmail,
+  preFilledPhone
+}) => {
   const [step, setStep] = useState<'register' | 'otp-verification'>('register');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -27,6 +37,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   
   const { requestOTP, isLoading } = useAuth();
   const { toast } = useToast();
@@ -70,6 +81,20 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
     return input;
   };
 
+  // Handle pre-filled contact information
+  useEffect(() => {
+    if (preFilledEmail) {
+      setEmail(preFilledEmail);
+      setPhone('');
+      setFormattedPhone('');
+    } else if (preFilledPhone) {
+      setPhone(preFilledPhone);
+      setEmail('');
+      const formatted = formatPhoneNumber(preFilledPhone);
+      setFormattedPhone(formatted);
+    }
+  }, [preFilledEmail, preFilledPhone]);
+
   const handlePhoneChange = (value: string) => {
     setPhone(value);
     const formatted = formatPhoneNumber(value);
@@ -82,6 +107,10 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
 
   const handlePrivacyChange = (checked: boolean | "indeterminate") => {
     setPrivacyAccepted(checked === true);
+  };
+
+  const handleOrganizationSelect = (organization: Organization | null) => {
+    setSelectedOrganization(organization);
   };
 
   const handleRegister = async () => {
@@ -164,6 +193,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
     setTermsAccepted(false);
     setPrivacyAccepted(false);
     setShowProfileDialog(false);
+    setSelectedOrganization(null);
     onClose();
   };
 
@@ -237,6 +267,18 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
                 </p>
               </div>
 
+              {/* Organization Selection */}
+              <div>
+                <Label>Organization/College (Optional)</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Select your state, district, and organization if you're associated with one
+                </p>
+                <OrganizationSelection
+                  onOrganizationSelect={handleOrganizationSelect}
+                  selectedOrganization={selectedOrganization}
+                />
+              </div>
+
               <div className="space-y-4">
                 <Label>Account Type</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -306,6 +348,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
         email={email || undefined}
         phoneNumber={formattedPhone || undefined}
         name={name}
+        selectedOrganization={selectedOrganization}
       />
 
       <UserProfileDialog
@@ -319,6 +362,11 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
           });
         }}
         mode="user"
+        initialProfile={selectedOrganization ? {
+          whatIHave: {
+            itiInstitute: selectedOrganization.name
+          }
+        } : undefined}
       />
     </>
   );

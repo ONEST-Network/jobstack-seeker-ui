@@ -115,6 +115,11 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
       return profile.whoIAm?.phone || stepData[fieldName] || '';
     }
     
+    // Special handling for itiInstitute field - check whatIHave section first
+    if (fieldName === 'itiInstitute') {
+      return stepData[fieldName] || profile.whatIHave?.itiInstitute || '';
+    }
+    
     // For file upload fields and other step-specific fields, check step data first
     if (stepData[fieldName] !== undefined) {
       return stepData[fieldName];
@@ -132,7 +137,6 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
 
   const handleFieldChange = (fieldName: string, value: unknown) => {
-
     // Update step data
     setStepData({ [fieldName]: value });
 
@@ -153,6 +157,17 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         whoIAm: {
           ...prev.whoIAm,
           phone: value
+        }
+      }));
+    }
+
+    // Special handling for itiInstitute field - update whatIHave section
+    if (fieldName === 'itiInstitute') {
+      setProfile(prev => ({
+        ...prev,
+        whatIHave: {
+          ...prev.whatIHave,
+          itiInstitute: value
         }
       }));
     }
