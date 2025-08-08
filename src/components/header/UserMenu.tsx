@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { User, LogOut, Building2, Users, FileText, Mail, Phone, Eye } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
 import ViewAllProfiles from '@/components/ViewAllProfiles';
@@ -14,6 +14,7 @@ interface UserMenuProps {
 
 const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
   const navigate = useNavigate();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { user, logout, getSelectedCandidate, refreshProfileData, cleanupIncompleteProfiles } = useAuth();
   const selectedCandidate = getSelectedCandidate();
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
@@ -37,15 +38,15 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
   };
 
   const handleManageEmployers = () => {
-    navigate('/provider');
+    navigate(`/${orgSlug || '0'}/provider`);
   };
 
   const handleManageCandidates = () => {
-    navigate('/seeker?tab=profiles');
+    navigate(`/${orgSlug || '0'}/seeker?tab=profiles`);
   };
 
   const handleMyApplications = () => {
-    navigate('/seeker?tab=applications');
+    navigate(`/${orgSlug || '0'}/seeker?tab=applications`);
   };
 
   const handleViewAllProfiles = () => {

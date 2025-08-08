@@ -96,26 +96,24 @@ class ApiClient {
     });
   }
 
-  async checkUser(data: {
-    email?: string;
-    phoneNumber?: string;
-  }): Promise<CheckUserResponse> {
-    return this.request('/auth/unified-otp/check-user', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
   async verifyOTP(data: {
     phoneNumber?: string;
     email?: string;
     otp: string;
+    name?: string;
+    rememberMe?: boolean;
+    joinOrg?: {
+      join: boolean;
+      orgSlug: string;
+      role: string;
+    };
+    createAdmin?: boolean;
   }) {
     const response = await this.request<{ token: string; user: any; redirect: string }>('/auth/unified-otp/verify', {
       method: 'POST',
       body: JSON.stringify({
         ...data,
-        rememberMe: true
+        rememberMe: data.rememberMe ?? true
       }),
     });
     
@@ -1110,6 +1108,34 @@ class ApiClient {
       throw new Error('Upload failed due to CORS restrictions. Please contact support to configure CORS for the storage bucket.');
     }
   }
+
+  // Organization details API
+  async getOrgDetails(orgSlug: string) {
+    const API_ENDPOINT = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
+    const url = `${API_ENDPOINT}/admin/org-details?orgSlug=${orgSlug}`;
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add API key if available
+    const apiKey = import.meta.env.VITE_ORG_API_KEY;
+    if (apiKey) {
+      headers['x-api-key'] = apiKey;
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
 }
 
 // Utility function to transform profile data for API
@@ -1422,13 +1448,10 @@ export const testProfileCreation = () => {
 export const apiClient = new ApiClient(API_BASE_URL);
 
 // Export types for better TypeScript support
-export interface CheckUserResponse {
-  userExists: boolean;
-}
-
 export interface RequestOTPResponse {
   ok: boolean;
-  otp: string;
+  user: boolean;
+  otp?: string;
 }
 
 export interface AuthResponse {

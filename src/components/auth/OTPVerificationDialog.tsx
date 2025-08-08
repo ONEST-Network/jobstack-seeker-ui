@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useParams } from 'react-router-dom';
 
 interface OTPVerificationDialogProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface OTPVerificationDialogProps {
   method: 'email' | 'phone';
   phoneNumber?: string;
   email?: string;
+  name?: string;
 }
 
 const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
@@ -23,11 +25,13 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
   contactMethod,
   method,
   phoneNumber,
-  email
+  email,
+  name
 }) => {
   const [otp, setOtp] = useState('');
   const { verifyOTP, isLoading } = useAuth();
   const { toast } = useToast();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -40,11 +44,26 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
     }
 
     try {
-      await verifyOTP({
+      // Prepare the verify payload
+      const verifyPayload: any = {
         phoneNumber,
         email,
-        otp
-      });
+        otp,
+        name,
+        rememberMe: true
+      };
+
+      // Add orgSlug and createAdmin if we're on an organization route
+      if (orgSlug && orgSlug !== '0') {
+        verifyPayload.joinOrg = {
+          join: true,
+          orgSlug: orgSlug,
+          role: 'viewer'
+        };
+        verifyPayload.createAdmin = true;
+      }
+
+      await verifyOTP(verifyPayload);
       
       // Clear OTP input
       setOtp('');

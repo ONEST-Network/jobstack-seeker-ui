@@ -7,8 +7,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { User, Mail, Phone, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiClient, CheckUserResponse, RequestOTPResponse } from '@/lib/api';
+import { apiClient, RequestOTPResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { useParams } from 'react-router-dom';
 import OTPVerificationDialog from './OTPVerificationDialog';
 import RegistrationDialog from './RegistrationDialog';
 
@@ -30,10 +31,12 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   const [userExists, setUserExists] = useState(false);
   const [showOTPDialog, setShowOTPDialog] = useState(false);
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
+  const [formattedPhoneNumber, setFormattedPhoneNumber] = useState('');
   
   const inputRef = useRef<HTMLInputElement>(null);
   const { verifyOTP } = useAuth();
   const { toast } = useToast();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
 
   // Debounced contact type detection
   useEffect(() => {
@@ -56,11 +59,51 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     return () => clearTimeout(timer);
   }, [contactInput]);
 
+  // Format phone number with country code
+  const formatPhoneNumber = (input: string): string => {
+    const digits = input.replace(/\D/g, '');
+    
+    // If it already starts with +91, return as is
+    if (input.startsWith('+91')) {
+      return input;
+    }
+    
+    // If it's a 10-digit number, add +91
+    if (digits.length === 10) {
+      return `+91${digits}`;
+    }
+    
+    // If it's an 11-digit number starting with 91, add +
+    if (digits.length === 11 && digits.startsWith('91')) {
+      return `+${digits}`;
+    }
+    
+    // If it's a 12-digit number starting with 91, add +
+    if (digits.length === 12 && digits.startsWith('91')) {
+      return `+${digits}`;
+    }
+    
+    // For other cases, just add +91 if it's a 10-digit number
+    if (digits.length === 10) {
+      return `+91${digits}`;
+    }
+    
+    return input;
+  };
+
   const handleContactInputChange = (value: string) => {
     // Preserve cursor position
     const cursorPosition = inputRef.current?.selectionStart || 0;
     
     setContactInput(value);
+    
+    // Format phone number if it's a phone input
+    if (contactType === 'phone' || value.replace(/\D/g, '').length >= 10) {
+      const formatted = formatPhoneNumber(value);
+      setFormattedPhoneNumber(formatted);
+    } else {
+      setFormattedPhoneNumber('');
+    }
     
     // Restore cursor position after state update
     setTimeout(() => {
@@ -100,36 +143,34 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
       // Prepare payload based on contact type
       const payload = contactType === 'email' 
         ? { email: contactInput }
-        : { phoneNumber: contactInput };
+        : { phoneNumber: formattedPhoneNumber || formatPhoneNumber(contactInput) };
 
-      // Check if user exists
-      const checkResponse = await apiClient.checkUser(payload) as CheckUserResponse;
+      // Request OTP and check user existence
+      const otpResponse = await apiClient.requestOTP(payload) as RequestOTPResponse;
       
-      if (checkResponse.userExists) {
-        // User exists - request OTP
-        setUserExists(true);
-        const otpResponse = await apiClient.requestOTP(payload) as RequestOTPResponse;
-        
-        if (otpResponse.ok) {
+      if (otpResponse.ok) {
+        if (otpResponse.user) {
+          // User exists - show OTP verification
+          setUserExists(true);
           setStep('otp');
           setShowOTPDialog(true);
         } else {
+          // User doesn't exist - show registration
+          setUserExists(false);
+          setStep('register');
+          setShowRegisterDialog(true);
           toast({
-            title: "Error",
-            description: "Failed to send OTP. Please try again.",
-            variant: "destructive"
+            title: "Account Not Found",
+            description: `No account found with ${contactType === 'email' ? 'email' : 'phone number'} ${contactInput}. Please create a new account.`,
           });
-          setStep('initial');
         }
       } else {
-        // User doesn't exist - show registration
-        setUserExists(false);
-        setStep('register');
-        setShowRegisterDialog(true);
         toast({
-          title: "Account Not Found",
-          description: `No account found with ${contactType === 'email' ? 'email' : 'phone number'} ${contactInput}. Please create a new account.`,
+          title: "Error",
+          description: "Failed to send OTP. Please try again.",
+          variant: "destructive"
         });
+        setStep('initial');
       }
     } catch (error) {
       console.error('Error checking user:', error);
@@ -170,6 +211,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     setUserExists(false);
     setShowOTPDialog(false);
     setShowRegisterDialog(false);
+    setFormattedPhoneNumber('');
     onClose();
   };
 
@@ -182,6 +224,13 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
       return "Enter your phone number";
     }
     return "Enter your phone number or email";
+  };
+
+  const getDisplayValue = () => {
+    if (contactType === 'phone' && formattedPhoneNumber) {
+      return formattedPhoneNumber;
+    }
+    return contactInput;
   };
 
   return (
@@ -209,7 +258,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
                   id="contact"
                   type="text"
                   placeholder={getPlaceholder()}
-                  value={contactInput}
+                  value={getDisplayValue()}
                   onChange={(e) => handleContactInputChange(e.target.value)}
                   className="pl-10"
                   disabled={isLoading}
@@ -276,8 +325,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           onSuccess={handleOTPSuccess}
           contactMethod={contactInput}
           method={contactType}
-          phoneNumber={contactType === 'phone' ? contactInput : undefined}
+          phoneNumber={contactType === 'phone' ? formattedPhoneNumber || formatPhoneNumber(contactInput) : undefined}
           email={contactType === 'email' ? contactInput : undefined}
+          name={contactInput.split('@')[0]} // Use the part before @ for email, or full input for phone
         />
       )}
 

@@ -211,7 +211,19 @@ export interface EmployerProfile {
 interface AuthContextType {
   user: User | null;
   requestOTP: (data: { phoneNumber?: string; email?: string; name?: string }) => Promise<{ ok: boolean; otp: string }>;
-  verifyOTP: (data: { phoneNumber?: string; email?: string; otp: string }) => Promise<{ token: string; user: any }>;
+  verifyOTP: (data: { 
+    phoneNumber?: string; 
+    email?: string; 
+    otp: string;
+    name?: string;
+    rememberMe?: boolean;
+    joinOrg?: {
+      join: boolean;
+      orgSlug: string;
+      role: string;
+    };
+    createAdmin?: boolean;
+  }) => Promise<{ token: string; user: any }>;
   logout: () => void;
   updateProfile: (profile: UserProfile | OrganizationProfile) => void;
   refreshProfileData: () => Promise<void>;
@@ -592,7 +604,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const verifyOTP = async (data: { phoneNumber?: string; email?: string; otp: string }) => {
+  const verifyOTP = async (data: { 
+    phoneNumber?: string; 
+    email?: string; 
+    otp: string;
+    name?: string;
+    rememberMe?: boolean;
+    joinOrg?: {
+      join: boolean;
+      orgSlug: string;
+      role: string;
+    };
+    createAdmin?: boolean;
+  }) => {
     setIsLoading(true);
     try {
       const response = await apiClient.verifyOTP(data) as { token: string; user: any };

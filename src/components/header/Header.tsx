@@ -5,13 +5,17 @@ import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateSelector from '@/components/candidates/CandidateSelector';
-import Logo from './Logo';
+import OrgLogo from './OrgLogo';
 import LanguageSelector from './LanguageSelector';
 import UserMenu from './UserMenu';
 import HeaderDialogs from './HeaderDialogs';
 import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
 
-const Header = () => {
+interface HeaderProps {
+  orgSlug?: string | null;
+}
+
+const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
   const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showOrgProfile, setShowOrgProfile] = useState(false);
@@ -36,7 +40,7 @@ const Header = () => {
     <header className="bg-white border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <Logo />
+          <OrgLogo orgSlug={orgSlug} />
 
           {/* Right Section */}
           <div className="flex items-center gap-1 sm:gap-3">

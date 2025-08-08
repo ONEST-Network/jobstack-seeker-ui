@@ -2,7 +2,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Jobs from "./pages/Jobs";
 import Provider from "./pages/Provider";
@@ -14,6 +14,7 @@ import { useSearchParams } from "react-router-dom";
 import { apiClient } from "./lib/api";
 import { useToast } from "@/hooks/use-toast";
 import ResetPasswordDialog from "@/components/auth/ResetPasswordDialog";
+import OrgWrapper from "@/components/OrgWrapper";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const EmailVerificationHandler = () => {
 const PasswordResetRoute = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { toast } = useToast();
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
@@ -55,14 +57,14 @@ const PasswordResetRoute = () => {
         description: "The password reset link is invalid or has expired.",
         variant: "destructive"
       });
-      navigate('/seeker?tab=discover');
+      navigate(`/${orgSlug || '0'}/seeker?tab=discover`);
     }
   }, [searchParams, navigate, toast]);
 
   const handleResetDialogClose = () => {
     setShowResetDialog(false);
     setResetToken(null);
-    navigate('/seeker?tab=discover');
+    navigate(`/${orgSlug || '0'}/seeker?tab=discover`);
   };
 
   const handleResetSuccess = () => {
@@ -72,7 +74,7 @@ const PasswordResetRoute = () => {
       title: "Password Reset Successful",
       description: "Your password has been updated. You can now sign in with your new password.",
     });
-    navigate('/seeker?tab=discover');
+    navigate(`/${orgSlug || '0'}/seeker?tab=discover`);
   };
 
   return (
@@ -96,13 +98,33 @@ const AppContent = () => (
     <BrowserRouter>
       <EmailVerificationHandler />
       <Routes>
-        <Route path="/" element={<Navigate to="/seeker?tab=discover" replace />} />
-        <Route path="/seeker" element={<Jobs />} />
+        <Route path="/" element={<Navigate to="/0/seeker?tab=discover" replace />} />
+        
+        {/* Organization-specific routes - must come before provider/job routes */}
+        <Route path="/:orgSlug/seeker" element={
+          <OrgWrapper>
+            <Jobs />
+          </OrgWrapper>
+        } />
+        
+        {/* Default routes (when orgSlug is '0' or not provided) */}
+        <Route path="/seeker" element={<Navigate to="/0/seeker?tab=discover" replace />} />
+        <Route path="/0/seeker" element={
+          <OrgWrapper>
+            <Jobs />
+          </OrgWrapper>
+        } />
+        
+        {/* Other routes */}
         <Route path="/verify/email" element={<EmailVerification />} />
         <Route path="/auth/reset-password" element={<PasswordResetRoute />} />
-        <Route path="/:providerId/:jobId" element={<SharedJob />} />
-        {/* Provider route disabled to prevent organization registration */}
-        {/* <Route path="/provider" element={<Provider />} /> */}
+        
+        {/* Provider/job routes - must come after organization routes */}
+        <Route path="/:orgSlug/:providerId/:jobId" element={<SharedJob />} />
+        
+        {/* Provider route */}
+        {/* <Route path="/:orgSlug/provider" element={<Provider />} /> */}
+        
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
