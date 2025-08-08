@@ -1,0 +1,113 @@
+{
+  "jobs": {
+    "search": {
+      "title": "Job Search",
+      "subtitle": "Find your perfect job match",
+      "searchPlaceholder": "Search jobs...",
+      "locationPlaceholder": "Select Location",
+      "rolePlaceholder": "Select Role",
+      "searchButton": "Search Jobs",
+      "clearFilters": "Clear Filters",
+      "filters": "Filters",
+      "sortBy": "Sort by",
+      "sortOptions": {
+        "relevance": "Relevance",
+        "date": "Date",
+        "salary": "Salary",
+        "experience": "Experience"
+      }
+    },
+    "card": {
+      "apply": "Apply",
+      "viewDetails": "View Details",
+      "share": "Share",
+      "save": "Save",
+      "saved": "Saved",
+      "posted": "Posted",
+      "ago": "ago",
+      "salary": "Salary",
+      "experience": "Experience",
+      "location": "Location",
+      "jobType": "Job Type",
+      "company": "Company",
+      "skills": "Skills",
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "description": "Description",
+      "fullTime": "Full Time",
+      "partTime": "Part Time",
+      "contract": "Contract",
+      "internship": "Internship",
+      "freelance": "Freelance"
+    },
+    "detail": {
+      "title": "Job Details",
+      "applyNow": "Apply Now",
+      "saveJob": "Save Job",
+      "shareJob": "Share Job",
+      "companyInfo": "Company Information",
+      "jobDescription": "Job Description",
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "location": "Location",
+      "salary": "Salary",
+      "experience": "Experience",
+      "jobType": "Job Type",
+      "postedDate": "Posted Date",
+      "applicationDeadline": "Application Deadline",
+      "contactInfo": "Contact Information",
+      "similarJobs": "Similar Jobs",
+      "noSimilarJobs": "No similar jobs found"
+    },
+    "application": {
+      "title": "Job Application",
+      "subtitle": "Apply for this position",
+      "personalInfo": "Personal Information",
+      "experience": "Experience",
+      "skills": "Skills",
+      "education": "Education",
+      "coverLetter": "Cover Letter",
+      "resume": "Resume",
+      "submit": "Submit Application",
+      "saving": "Saving...",
+      "submitting": "Submitting...",
+      "draft": "Save as Draft",
+      "savingDraft": "Saving Draft...",
+      "success": "Application submitted successfully",
+      "draftSaved": "Draft saved successfully",
+      "errors": {
+        "required": "This field is required",
+        "invalidEmail": "Please enter a valid email address",
+        "invalidPhone": "Please enter a valid phone number"
+      }
+    },
+    "filters": {
+      "title": "Filters",
+      "location": "Location",
+      "role": "Role",
+      "experience": "Experience",
+      "salary": "Salary",
+      "jobType": "Job Type",
+      "company": "Company",
+      "skills": "Skills",
+      "clearAll": "Clear All",
+      "applyFilters": "Apply Filters",
+      "results": "results found"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page",
+      "of": "of",
+      "showing": "Showing",
+      "to": "to",
+      "results": "results"
+    },
+    "status": {
+      "active": "Active",
+      "closed": "Closed",
+      "draft": "Draft",
+      "expired": "Expired"
+    }
+  }
+}

@@ -1,0 +1,897 @@
+{
+  "common": {
+    "buttons": {
+      "login": "Login",
+      "logout": "Logout",
+      "signIn": "Sign In",
+      "signUp": "Sign Up",
+      "register": "Register",
+      "createAccount": "Create Account",
+      "submit": "Submit",
+      "cancel": "Cancel",
+      "close": "Close",
+      "save": "Save",
+      "edit": "Edit",
+      "delete": "Delete",
+      "add": "Add",
+      "remove": "Remove",
+      "continue": "Continue",
+      "back": "Back",
+      "next": "Next",
+      "previous": "Previous",
+      "apply": "Apply",
+      "view": "View",
+      "search": "Search",
+      "findJobs": "Find Jobs",
+      "startJobDiscovery": "Start Job Discovery",
+      "completeProfile": "Complete Profile",
+      "manageEmployers": "Manage Employers",
+      "manageCandidates": "Manage Candidates",
+      "myApplications": "My Applications",
+      "viewAllProfiles": "View All Profiles",
+      "accountSettings": "Account Settings",
+      "sendOTP": "Send OTP",
+      "sendingOTP": "Sending OTP...",
+      "verify": "Verify",
+      "resend": "Resend",
+      "confirm": "Confirm",
+      "accept": "Accept",
+      "reject": "Reject",
+      "shortlist": "Shortlist",
+      "publish": "Publish",
+      "draft": "Draft",
+      "saveDraft": "Save Draft"
+    },
+    "labels": {
+      "email": "Email",
+      "emailAddress": "Email Address",
+      "phone": "Phone",
+      "phoneNumber": "Phone Number",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "name": "Name",
+      "fullName": "Full Name",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "location": "Location",
+      "role": "Role",
+      "jobRole": "Job Role",
+      "experience": "Experience",
+      "skills": "Skills",
+      "education": "Education",
+      "company": "Company",
+      "organization": "Organization",
+      "status": "Status",
+      "date": "Date",
+      "salary": "Salary",
+      "jobType": "Job Type",
+      "description": "Description",
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "contact": "Contact",
+      "address": "Address",
+      "city": "City",
+      "state": "State",
+      "country": "Country",
+      "zipCode": "Zip Code",
+      "website": "Website",
+      "linkedin": "LinkedIn",
+      "twitter": "Twitter",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "youtube": "YouTube"
+    },
+    "placeholders": {
+      "selectLocation": "Select Location",
+      "selectRole": "Select Role",
+      "selectOption": "Select Option",
+      "enterEmail": "your@email.com",
+      "enterPhone": "+91 9876543210",
+      "enterName": "Enter your name",
+      "enterLocation": "Enter location",
+      "searchJobs": "Search jobs...",
+      "searchCandidates": "Search candidates...",
+      "enterDescription": "Enter description...",
+      "enterRequirements": "Enter requirements...",
+      "enterBenefits": "Enter benefits..."
+    },
+    "messages": {
+      "loading": "Loading...",
+      "error": "Error",
+      "success": "Success",
+      "warning": "Warning",
+      "info": "Information",
+      "noData": "No data available",
+      "noResults": "No results found",
+      "tryAgain": "Please try again",
+      "somethingWentWrong": "Something went wrong",
+      "networkError": "Network error",
+      "unauthorized": "Unauthorized",
+      "forbidden": "Forbidden",
+      "notFound": "Not found",
+      "serverError": "Server error",
+      "validationError": "Validation error",
+      "requiredField": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidPhone": "Please enter a valid phone number",
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "emailOrPhoneRequired": "Please enter either your email address or phone number",
+      "otpSent": "OTP sent successfully",
+      "otpVerified": "OTP verified successfully",
+      "loginSuccess": "Welcome back! You have successfully logged in.",
+      "registrationSuccess": "Account created successfully",
+      "profileUpdated": "Profile updated successfully",
+      "applicationSubmitted": "Application submitted successfully",
+      "draftSaved": "Draft saved successfully",
+      "jobPosted": "Job posted successfully",
+      "candidateAdded": "Candidate added successfully",
+      "candidateUpdated": "Candidate updated successfully",
+      "candidateDeleted": "Candidate deleted successfully"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "draft": "Draft",
+      "published": "Published",
+      "closed": "Closed",
+      "applied": "Applied",
+      "viewed": "Viewed",
+      "shortlisted": "Shortlisted",
+      "interview": "Interview",
+      "hired": "Hired",
+      "rejected": "Rejected"
+    },
+    "navigation": {
+      "home": "Home",
+      "jobs": "Jobs",
+      "candidates": "Candidates",
+      "employers": "Employers",
+      "applications": "Applications",
+      "profile": "Profile",
+      "dashboard": "Dashboard",
+      "settings": "Settings",
+      "help": "Help",
+      "about": "About",
+      "contact": "Contact",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "faq": "FAQ"
+    },
+    "time": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month",
+      "thisYear": "This Year",
+      "ago": "ago",
+      "justNow": "Just now",
+      "minutesAgo": "minutes ago",
+      "hoursAgo": "hours ago",
+      "daysAgo": "days ago",
+      "weeksAgo": "weeks ago",
+      "monthsAgo": "months ago",
+      "yearsAgo": "years ago"
+    },
+    "filters": {
+      "all": "All",
+      "filter": "Filter",
+      "clear": "Clear",
+      "clearAll": "Clear All",
+      "applyFilters": "Apply Filters",
+      "sortBy": "Sort by",
+      "sortByDate": "Sort by Date",
+      "sortByName": "Sort by Name",
+      "sortBySalary": "Sort by Salary",
+      "sortByExperience": "Sort by Experience",
+      "sortByRelevance": "Sort by Relevance",
+      "ascending": "Ascending",
+      "descending": "Descending"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page",
+      "of": "of",
+      "showing": "Showing",
+      "to": "to",
+      "results": "results",
+      "perPage": "per page"
+    }
+  },
+  "header": {
+    "navigation": {
+      "home": "Home",
+      "jobs": "Jobs",
+      "candidates": "Candidates",
+      "employers": "Employers",
+      "applications": "Applications",
+      "profile": "Profile",
+      "dashboard": "Dashboard",
+      "settings": "Settings",
+      "help": "Help",
+      "about": "About",
+      "contact": "Contact"
+    },
+    "userMenu": {
+      "login": "Login",
+      "logout": "Logout",
+      "completeProfile": "Complete Profile",
+      "myApplications": "My Applications",
+      "viewAllProfiles": "View All Profiles",
+      "manageEmployers": "Manage Employers",
+      "manageCandidates": "Manage Candidates",
+      "accountSettings": "Account Settings",
+      "user": "User",
+      "contactInfo": "Contact Information",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "languageSelector": {
+      "title": "Language",
+      "english": "English",
+      "hindi": "Hindi",
+      "marathi": "Marathi",
+      "gujarati": "Gujarati",
+      "tamil": "Tamil",
+      "telugu": "Telugu",
+      "kannada": "Kannada",
+      "malayalam": "Malayalam",
+      "bengali": "Bengali",
+      "punjabi": "Punjabi",
+      "urdu": "Urdu",
+      "odia": "Odia",
+      "assamese": "Assamese",
+      "nepali": "Nepali"
+    },
+    "candidateSelector": {
+      "title": "Candidates",
+      "addCandidate": "Add Candidate",
+      "selectCandidate": "Select Candidate",
+      "noCandidates": "No candidates available",
+      "manageCandidates": "Manage Candidates"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Welcome back! Please sign in to your account",
+      "emailLabel": "Email Address",
+      "phoneLabel": "Phone Number",
+      "emailPlaceholder": "your@email.com",
+      "phonePlaceholder": "+91 9876543210",
+      "contactMethodNote": "Please provide at least one contact method (email or phone)",
+      "sendOTP": "Send OTP",
+      "sendingOTP": "Sending OTP...",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Create Account",
+      "errors": {
+        "emailOrPhoneRequired": "Please enter either your email address or phone number",
+        "invalidEmail": "Please enter a valid email address",
+        "invalidPhone": "Please enter a valid phone number"
+      },
+      "success": {
+        "welcomeBack": "Welcome back!",
+        "loginSuccess": "You have successfully logged in."
+      }
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Join us and start your journey",
+      "individual": "Individual",
+      "organization": "Organization",
+      "emailLabel": "Email Address",
+      "phoneLabel": "Phone Number",
+      "nameLabel": "Full Name",
+      "emailPlaceholder": "your@email.com",
+      "phonePlaceholder": "+91 9876543210",
+      "namePlaceholder": "Enter your full name",
+      "contactMethodNote": "Please provide at least one contact method (email or phone)",
+      "termsAndConditions": "I agree to the Terms & Conditions",
+      "privacyPolicy": "I agree to the Privacy Policy",
+      "createAccount": "Create Account",
+      "creatingAccount": "Creating Account...",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign In",
+      "errors": {
+        "emailOrPhoneRequired": "Please enter either your email address or phone number",
+        "invalidEmail": "Please enter a valid email address",
+        "invalidPhone": "Please enter a valid phone number",
+        "nameRequired": "Please enter your full name",
+        "termsRequired": "Please accept the Terms & Conditions",
+        "privacyRequired": "Please accept the Privacy Policy"
+      },
+      "success": {
+        "accountCreated": "Account created successfully",
+        "verificationEmailSent": "Verification email sent to your email address"
+      }
+    },
+    "otpVerification": {
+      "title": "OTP Verification",
+      "subtitle": "Enter the OTP sent to your",
+      "email": "email",
+      "phone": "phone",
+      "otpPlaceholder": "Enter OTP",
+      "verify": "Verify",
+      "verifying": "Verifying...",
+      "resend": "Resend OTP",
+      "resending": "Resending...",
+      "didntReceive": "Didn't receive the OTP?",
+      "errors": {
+        "invalidOTP": "Please enter a valid OTP",
+        "otpExpired": "OTP has expired. Please request a new one",
+        "verificationFailed": "OTP verification failed. Please try again"
+      },
+      "success": {
+        "otpVerified": "OTP verified successfully",
+        "accountVerified": "Your account has been verified successfully"
+      }
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Enter your email address and we'll send you a link to reset your password",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "your@email.com",
+      "sendResetLink": "Send Reset Link",
+      "sending": "Sending...",
+      "backToLogin": "Back to Login",
+      "errors": {
+        "emailRequired": "Please enter your email address",
+        "invalidEmail": "Please enter a valid email address"
+      },
+      "success": {
+        "resetLinkSent": "Password reset link sent to your email address"
+      }
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "subtitle": "Enter your new password",
+      "passwordLabel": "New Password",
+      "confirmPasswordLabel": "Confirm New Password",
+      "passwordPlaceholder": "Enter new password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "resetPassword": "Reset Password",
+      "resetting": "Resetting...",
+      "errors": {
+        "passwordRequired": "Please enter a new password",
+        "confirmPasswordRequired": "Please confirm your new password",
+        "passwordMismatch": "Passwords do not match",
+        "passwordTooShort": "Password must be at least 8 characters"
+      },
+      "success": {
+        "passwordReset": "Password reset successfully",
+        "loginRedirect": "You can now login with your new password"
+      }
+    },
+    "emailVerification": {
+      "title": "Email Verification",
+      "subtitle": "Please verify your email address",
+      "verificationSent": "Verification email sent to",
+      "checkEmail": "Please check your email and click the verification link",
+      "resendEmail": "Resend Verification Email",
+      "resending": "Resending...",
+      "openEmail": "Open Email",
+      "errors": {
+        "verificationFailed": "Email verification failed",
+        "linkExpired": "Verification link has expired"
+      },
+      "success": {
+        "emailVerified": "Email verified successfully"
+      }
+    },
+    "unifiedAuth": {
+      "title": "Welcome to JobBridge",
+      "subtitle": "Sign in or create an account to continue",
+      "individual": "I'm looking for a job",
+      "organization": "I'm hiring",
+      "continue": "Continue",
+      "or": "or",
+      "contactMethod": "Contact Method",
+      "email": "Email",
+      "phone": "Phone",
+      "contactPlaceholder": "Enter your email or phone number",
+      "errors": {
+        "contactRequired": "Please enter your email or phone number",
+        "invalidContact": "Please enter a valid email or phone number"
+      }
+    }
+  },
+  "hero": {
+    "title": "Find Your Perfect",
+    "jobMatch": "Job Match",
+    "subtitle": "Discover opportunities across India with AI-powered matching, verified credentials, and support in your local language",
+    "searchForm": {
+      "locationLabel": "Location",
+      "locationPlaceholder": "Select Location",
+      "roleLabel": "Role",
+      "rolePlaceholder": "Select Role",
+      "findJobs": "Find Jobs",
+      "searchJobs": "Search Jobs"
+    },
+    "stats": {
+      "activeJobs": "Active Jobs",
+      "jobSeekers": "Job Seekers",
+      "companies": "Companies",
+      "languages": "Languages",
+      "values": {
+        "activeJobs": "50K+",
+        "jobSeekers": "100K+",
+        "companies": "5K+",
+        "languages": "15"
+      }
+    },
+    "locations": [
+      "Mumbai",
+      "Delhi",
+      "Bangalore",
+      "Chennai",
+      "Hyderabad",
+      "Kolkata",
+      "Pune",
+      "Ahmedabad",
+      "Surat",
+      "Jaipur",
+      "Lucknow",
+      "Kanpur"
+    ],
+    "jobRoles": [
+      "Electrician",
+      "Plumber",
+      "Carpenter",
+      "Welder",
+      "Driver",
+      "Security Guard",
+      "Tailor",
+      "Mason",
+      "Painter",
+      "Machine Operator",
+      "Factory Worker",
+      "Sales Representative"
+    ]
+  },
+  "footer": {
+    "companyInfo": {
+      "name": "JobBridge",
+      "description": "Connecting talent with opportunities across India. Built for MSME and blue-collar workforce with AI-powered matching and local language support.",
+      "tagline": "Connecting talent with opportunities across India"
+    },
+    "sections": {
+      "platform": {
+        "title": "Platform",
+        "links": {
+          "findJobs": "Find Jobs",
+          "postJob": "Post a Job",
+          "issueCertificates": "Issue Certificates",
+          "publicDashboard": "Public Dashboard",
+          "mobileApp": "Mobile App"
+        }
+      },
+      "resources": {
+        "title": "Resources",
+        "links": {
+          "helpCenter": "Help Center",
+          "careerGuides": "Career Guides",
+          "skillDevelopment": "Skill Development",
+          "interviewTips": "Interview Tips",
+          "resumeBuilder": "Resume Builder"
+        }
+      },
+      "company": {
+        "title": "Company",
+        "links": {
+          "aboutUs": "About Us",
+          "career": "Career",
+          "press": "Press",
+          "partnerWithUs": "Partner with Us",
+          "investorRelations": "Investor Relations"
+        }
+      },
+      "legal": {
+        "title": "Legal",
+        "links": {
+          "termsConditions": "Terms & Conditions",
+          "privacyPolicy": "Privacy Policy",
+          "cookiePolicy": "Cookie Policy",
+          "dataProtection": "Data Protection",
+          "accessibility": "Accessibility"
+        }
+      }
+    },
+    "social": {
+      "linkedin": "LinkedIn",
+      "twitter": "Twitter",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "youtube": "YouTube"
+    },
+    "copyright": "© 2024 JobBridge. All rights reserved."
+  },
+  "jobs": {
+    "search": {
+      "title": "Job Search",
+      "subtitle": "Find your perfect job match",
+      "searchPlaceholder": "Search jobs...",
+      "locationPlaceholder": "Select Location",
+      "rolePlaceholder": "Select Role",
+      "searchButton": "Search Jobs",
+      "clearFilters": "Clear Filters",
+      "filters": "Filters",
+      "sortBy": "Sort by",
+      "sortOptions": {
+        "relevance": "Relevance",
+        "date": "Date",
+        "salary": "Salary",
+        "experience": "Experience"
+      }
+    },
+    "card": {
+      "apply": "Apply",
+      "viewDetails": "View Details",
+      "share": "Share",
+      "save": "Save",
+      "saved": "Saved",
+      "posted": "Posted",
+      "ago": "ago",
+      "salary": "Salary",
+      "experience": "Experience",
+      "location": "Location",
+      "jobType": "Job Type",
+      "company": "Company",
+      "skills": "Skills",
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "description": "Description",
+      "fullTime": "Full Time",
+      "partTime": "Part Time",
+      "contract": "Contract",
+      "internship": "Internship",
+      "freelance": "Freelance"
+    },
+    "detail": {
+      "title": "Job Details",
+      "applyNow": "Apply Now",
+      "saveJob": "Save Job",
+      "shareJob": "Share Job",
+      "companyInfo": "Company Information",
+      "jobDescription": "Job Description",
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "location": "Location",
+      "salary": "Salary",
+      "experience": "Experience",
+      "jobType": "Job Type",
+      "postedDate": "Posted Date",
+      "applicationDeadline": "Application Deadline",
+      "contactInfo": "Contact Information",
+      "similarJobs": "Similar Jobs",
+      "noSimilarJobs": "No similar jobs found"
+    },
+    "application": {
+      "title": "Job Application",
+      "subtitle": "Apply for this position",
+      "personalInfo": "Personal Information",
+      "experience": "Experience",
+      "skills": "Skills",
+      "education": "Education",
+      "coverLetter": "Cover Letter",
+      "resume": "Resume",
+      "submit": "Submit Application",
+      "saving": "Saving...",
+      "submitting": "Submitting...",
+      "draft": "Save as Draft",
+      "savingDraft": "Saving Draft...",
+      "success": "Application submitted successfully",
+      "draftSaved": "Draft saved successfully",
+      "errors": {
+        "required": "This field is required",
+        "invalidEmail": "Please enter a valid email address",
+        "invalidPhone": "Please enter a valid phone number"
+      }
+    },
+    "filters": {
+      "title": "Filters",
+      "location": "Location",
+      "role": "Role",
+      "experience": "Experience",
+      "salary": "Salary",
+      "jobType": "Job Type",
+      "company": "Company",
+      "skills": "Skills",
+      "clearAll": "Clear All",
+      "applyFilters": "Apply Filters",
+      "results": "results found"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page",
+      "of": "of",
+      "showing": "Showing",
+      "to": "to",
+      "results": "results"
+    },
+    "status": {
+      "active": "Active",
+      "closed": "Closed",
+      "draft": "Draft",
+      "expired": "Expired"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Complete your profile to get better job matches",
+    "personalInfo": {
+      "title": "Personal Information",
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "dateOfBirth": "Date of Birth",
+      "gender": "Gender",
+      "location": "Location",
+      "address": "Address",
+      "city": "City",
+      "state": "State",
+      "country": "Country",
+      "zipCode": "Zip Code",
+      "hometown": "Hometown",
+      "currentLocation": "Current Location",
+      "desiredLocation": "Desired Location"
+    },
+    "experience": {
+      "title": "Work Experience",
+      "addExperience": "Add Experience",
+      "editExperience": "Edit Experience",
+      "company": "Company",
+      "position": "Position",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "current": "Current",
+      "description": "Description",
+      "responsibilities": "Responsibilities",
+      "achievements": "Achievements",
+      "skills": "Skills Used",
+      "noExperience": "No work experience added yet"
+    },
+    "education": {
+      "title": "Education",
+      "addEducation": "Add Education",
+      "editEducation": "Edit Education",
+      "institution": "Institution",
+      "degree": "Degree",
+      "field": "Field of Study",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "current": "Current",
+      "grade": "Grade",
+      "description": "Description",
+      "noEducation": "No education added yet"
+    },
+    "skills": {
+      "title": "Skills",
+      "addSkill": "Add Skill",
+      "skillName": "Skill Name",
+      "proficiency": "Proficiency Level",
+      "yearsOfExperience": "Years of Experience",
+      "certifications": "Certifications",
+      "addCertification": "Add Certification",
+      "certificationName": "Certification Name",
+      "issuingOrganization": "Issuing Organization",
+      "issueDate": "Issue Date",
+      "expiryDate": "Expiry Date",
+      "credentialId": "Credential ID",
+      "noSkills": "No skills added yet",
+      "noCertifications": "No certifications added yet"
+    },
+    "preferences": {
+      "title": "Job Preferences",
+      "desiredRole": "Desired Role",
+      "desiredLocation": "Desired Location",
+      "salaryExpectation": "Salary Expectation",
+      "jobType": "Preferred Job Type",
+      "workMode": "Work Mode",
+      "remote": "Remote",
+      "hybrid": "Hybrid",
+      "onsite": "On-site",
+      "fullTime": "Full Time",
+      "partTime": "Part Time",
+      "contract": "Contract",
+      "internship": "Internship",
+      "freelance": "Freelance"
+    },
+    "verification": {
+      "title": "Verification",
+      "emailVerified": "Email Verified",
+      "phoneVerified": "Phone Verified",
+      "identityVerified": "Identity Verified",
+      "skillsVerified": "Skills Verified",
+      "notVerified": "Not Verified",
+      "verifyNow": "Verify Now",
+      "verificationPending": "Verification Pending",
+      "verificationFailed": "Verification Failed"
+    },
+    "actions": {
+      "save": "Save Profile",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "edit": "Edit Profile",
+      "delete": "Delete Profile",
+      "duplicate": "Duplicate Profile",
+      "setDefault": "Set as Default",
+      "complete": "Complete Profile",
+      "update": "Update Profile"
+    },
+    "steps": {
+      "basicInfo": "Basic Information",
+      "experience": "Work Experience",
+      "education": "Education",
+      "skills": "Skills & Certifications",
+      "preferences": "Job Preferences",
+      "verification": "Verification",
+      "summary": "Summary"
+    },
+    "messages": {
+      "profileSaved": "Profile saved successfully",
+      "profileUpdated": "Profile updated successfully",
+      "profileDeleted": "Profile deleted successfully",
+      "profileDuplicated": "Profile duplicated successfully",
+      "profileSetDefault": "Profile set as default",
+      "profileCompleted": "Profile completed successfully",
+      "verificationRequired": "Please complete verification to continue",
+      "profileIncomplete": "Please complete your profile to continue"
+    }
+  },
+  "applications": {
+    "title": "My Applications",
+    "subtitle": "Track your job applications",
+    "tabs": {
+      "active": "Active",
+      "completed": "Completed",
+      "drafts": "Drafts"
+    },
+    "card": {
+      "jobTitle": "Job Title",
+      "company": "Company",
+      "location": "Location",
+      "salary": "Salary",
+      "appliedDate": "Applied Date",
+      "status": "Status",
+      "viewDetails": "View Details",
+      "editApplication": "Edit Application",
+      "withdrawApplication": "Withdraw Application",
+      "submitApplication": "Submit Application",
+      "deleteDraft": "Delete Draft"
+    },
+    "status": {
+      "applied": "Applied",
+      "viewed": "Viewed",
+      "shortlisted": "Shortlisted",
+      "interview": "Interview",
+      "hired": "Hired",
+      "rejected": "Rejected",
+      "draft": "Draft",
+      "withdrawn": "Withdrawn"
+    },
+    "detail": {
+      "title": "Application Details",
+      "jobInfo": "Job Information",
+      "applicationInfo": "Application Information",
+      "personalInfo": "Personal Information",
+      "experience": "Experience",
+      "skills": "Skills",
+      "education": "Education",
+      "coverLetter": "Cover Letter",
+      "resume": "Resume",
+      "submittedDate": "Submitted Date",
+      "lastUpdated": "Last Updated",
+      "applicationId": "Application ID",
+      "trackingId": "Tracking ID"
+    },
+    "filters": {
+      "title": "Filters",
+      "status": "Status",
+      "dateRange": "Date Range",
+      "company": "Company",
+      "location": "Location",
+      "clearAll": "Clear All",
+      "applyFilters": "Apply Filters"
+    },
+    "actions": {
+      "submit": "Submit Application",
+      "saving": "Saving...",
+      "submitting": "Submitting...",
+      "withdraw": "Withdraw Application",
+      "withdrawing": "Withdrawing...",
+      "delete": "Delete Application",
+      "deleting": "Deleting...",
+      "edit": "Edit Application",
+      "duplicate": "Duplicate Application"
+    },
+    "messages": {
+      "applicationSubmitted": "Application submitted successfully",
+      "applicationWithdrawn": "Application withdrawn successfully",
+      "applicationDeleted": "Application deleted successfully",
+      "applicationUpdated": "Application updated successfully",
+      "draftSaved": "Draft saved successfully",
+      "noApplications": "No applications found",
+      "noDrafts": "No drafts found",
+      "loading": "Loading applications...",
+      "error": "Error loading applications"
+    },
+    "stats": {
+      "totalApplications": "Total Applications",
+      "activeApplications": "Active Applications",
+      "completedApplications": "Completed Applications",
+      "draftApplications": "Draft Applications",
+      "successRate": "Success Rate",
+      "averageResponseTime": "Average Response Time"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "overview": "Overview",
+    "quickStats": "Quick Stats",
+    "recentActivity": "Recent Activity",
+    "upcomingEvents": "Upcoming Events",
+    "recommendations": "Recommendations",
+    "stats": {
+      "totalJobs": "Total Jobs",
+      "activeJobs": "Active Jobs",
+      "totalApplications": "Total Applications",
+      "pendingApplications": "Pending Applications",
+      "shortlistedApplications": "Shortlisted Applications",
+      "hiredCandidates": "Hired Candidates",
+      "totalCandidates": "Total Candidates",
+      "activeCandidates": "Active Candidates",
+      "totalEmployers": "Total Employers",
+      "activeEmployers": "Active Employers"
+    },
+    "charts": {
+      "applicationsOverTime": "Applications Over Time",
+      "jobPostingsOverTime": "Job Postings Over Time",
+      "applicationStatus": "Application Status",
+      "jobCategories": "Job Categories",
+      "candidateDemographics": "Candidate Demographics"
+    },
+    "actions": {
+      "postJob": "Post a Job",
+      "viewApplications": "View Applications",
+      "manageCandidates": "Manage Candidates",
+      "manageEmployers": "Manage Employers",
+      "viewAnalytics": "View Analytics",
+      "exportData": "Export Data",
+      "settings": "Settings"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "newApplication": "New application received",
+      "applicationStatusChanged": "Application status changed",
+      "newJobPosted": "New job posted",
+      "candidateHired": "Candidate hired",
+      "systemUpdate": "System update",
+      "markAllRead": "Mark all as read",
+      "noNotifications": "No new notifications"
+    },
+    "recentJobs": {
+      "title": "Recent Jobs",
+      "viewAll": "View All Jobs",
+      "noJobs": "No recent jobs"
+    },
+    "recentApplications": {
+      "title": "Recent Applications",
+      "viewAll": "View All Applications",
+      "noApplications": "No recent applications"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "postJob": "Post a Job",
+      "searchCandidates": "Search Candidates",
+      "viewApplications": "View Applications",
+      "manageProfile": "Manage Profile",
+      "settings": "Settings"
+    }
+  }
+}

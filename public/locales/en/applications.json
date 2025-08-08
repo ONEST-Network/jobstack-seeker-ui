@@ -1,0 +1,88 @@
+{
+  "applications": {
+    "title": "My Applications",
+    "subtitle": "Track your job applications",
+    "tabs": {
+      "active": "Active",
+      "completed": "Completed",
+      "drafts": "Drafts"
+    },
+    "card": {
+      "jobTitle": "Job Title",
+      "company": "Company",
+      "location": "Location",
+      "salary": "Salary",
+      "appliedDate": "Applied Date",
+      "status": "Status",
+      "viewDetails": "View Details",
+      "editApplication": "Edit Application",
+      "withdrawApplication": "Withdraw Application",
+      "submitApplication": "Submit Application",
+      "deleteDraft": "Delete Draft"
+    },
+    "status": {
+      "applied": "Applied",
+      "viewed": "Viewed",
+      "shortlisted": "Shortlisted",
+      "interview": "Interview",
+      "hired": "Hired",
+      "rejected": "Rejected",
+      "draft": "Draft",
+      "withdrawn": "Withdrawn"
+    },
+    "detail": {
+      "title": "Application Details",
+      "jobInfo": "Job Information",
+      "applicationInfo": "Application Information",
+      "personalInfo": "Personal Information",
+      "experience": "Experience",
+      "skills": "Skills",
+      "education": "Education",
+      "coverLetter": "Cover Letter",
+      "resume": "Resume",
+      "submittedDate": "Submitted Date",
+      "lastUpdated": "Last Updated",
+      "applicationId": "Application ID",
+      "trackingId": "Tracking ID"
+    },
+    "filters": {
+      "title": "Filters",
+      "status": "Status",
+      "dateRange": "Date Range",
+      "company": "Company",
+      "location": "Location",
+      "clearAll": "Clear All",
+      "applyFilters": "Apply Filters"
+    },
+    "actions": {
+      "submit": "Submit Application",
+      "saving": "Saving...",
+      "submitting": "Submitting...",
+      "withdraw": "Withdraw Application",
+      "withdrawing": "Withdrawing...",
+      "delete": "Delete Application",
+      "deleting": "Deleting...",
+      "edit": "Edit Application",
+      "duplicate": "Duplicate Application"
+    },
+    "messages": {
+      "applicationSubmitted": "Application submitted successfully",
+      "applicationWithdrawn": "Application withdrawn successfully",
+      "applicationDeleted": "Application deleted successfully",
+      "applicationUpdated": "Application updated successfully",
+      "draftSaved": "Draft saved successfully",
+      "noApplications": "No applications found",
+      "noDrafts": "No drafts found",
+      "loading": "Loading applications...",
+      "error": "Error loading applications"
+    },
+    "stats": {
+      "totalApplications": "Total Applications",
+      "activeApplications": "Active Applications",
+      "completedApplications": "Completed Applications",
+      "draftApplications": "Draft Applications",
+      "successRate": "Success Rate",
+      "averageResponseTime": "Average Response Time"
+    }
+  }
+}
