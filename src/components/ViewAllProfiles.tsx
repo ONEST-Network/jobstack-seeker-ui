@@ -14,6 +14,12 @@ import {
   PaginationContent,
   PaginationItem,
 } from '@/components/ui/pagination';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Search, Loader2, ChevronLeft, ChevronRight, Edit } from 'lucide-react';
 import { apiClient, ProfilesResponse } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -317,10 +323,10 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-[90vh] flex flex-col">
-          <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-2xl font-bold">View All Profiles</h2>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="w-full max-w-7xl h-[90vh] max-h-[90vh] flex flex-col p-0 [&>button]:hidden">
+          <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
+            <DialogTitle className="text-2xl font-bold">View All Profiles</DialogTitle>
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
@@ -328,7 +334,7 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
 
           <div className="flex-1 overflow-hidden flex flex-col">
             {/* Search Bar */}
-            <div className="p-6 border-b">
+            <div className="p-6 border-b flex-shrink-0">
               <form onSubmit={handleSearch} className="flex gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -432,7 +438,7 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="p-6 border-t">
+              <div className="p-6 border-t flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-600">
                     Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalProfiles)} of {totalProfiles} profiles
@@ -496,8 +502,8 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Profile Dialog */}
       {showEditDialog && editingProfile && (
