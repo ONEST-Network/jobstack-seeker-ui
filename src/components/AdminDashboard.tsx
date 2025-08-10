@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { buildSeekerUrl } from '@/lib/utils';
 
 
 
@@ -61,6 +62,7 @@ const AdminDashboard = () => {
   const { user, hasAdminRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
 
 
 
@@ -182,7 +184,7 @@ const AdminDashboard = () => {
             <p className="text-muted-foreground mb-4">
               Please log in to access the admin dashboard.
             </p>
-            <Button onClick={() => navigate('/')} className="w-full sm:w-auto">
+            <Button onClick={() => navigate(buildSeekerUrl(orgSlug, 'discover'))} className="w-full sm:w-auto">
               <Home className="h-4 w-4 mr-2" />
               Go to Home
             </Button>
@@ -206,7 +208,7 @@ const AdminDashboard = () => {
             <p className="text-sm text-muted-foreground mb-6">
               Contact your administrator if you believe this is an error.
             </p>
-            <Button onClick={() => navigate('/')} className="w-full sm:w-auto">
+            <Button onClick={() => navigate(buildSeekerUrl(orgSlug, 'discover'))} className="w-full sm:w-auto">
               <Home className="h-4 w-4 mr-2" />
               Go to Home
             </Button>

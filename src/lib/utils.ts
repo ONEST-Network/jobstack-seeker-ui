@@ -5,6 +5,24 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// URL utilities
+export const buildOrgUrl = (orgSlug: string | undefined, path: string, params?: Record<string, string>): string => {
+  const slug = orgSlug || '0';
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  let url = `/${slug}/${cleanPath}`;
+  
+  if (params && Object.keys(params).length > 0) {
+    const searchParams = new URLSearchParams(params);
+    url += `?${searchParams.toString()}`;
+  }
+  
+  return url;
+};
+
+export const buildSeekerUrl = (orgSlug: string | undefined, tab?: string): string => {
+  return buildOrgUrl(orgSlug, 'seeker', tab ? { tab } : undefined);
+};
+
 // Location utilities
 export interface LocationData {
   address: string;
