@@ -66,7 +66,7 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
         verifyPayload.joinOrg = {
           join: true,
           orgSlug: selectedOrganization.slug,
-          role: 'viewer'
+          role: 'seeker'
         };
         verifyPayload.createAdmin = true;
       }
@@ -76,7 +76,7 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
         verifyPayload.joinOrg = {
           join: true,
           orgSlug: orgSlug,
-          role: 'viewer'
+          role: 'seeker'
         };
         verifyPayload.createAdmin = true;
       }
