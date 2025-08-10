@@ -486,15 +486,14 @@
           "ui:placeholder": "Enter your roll number (R250806027829)",
           "ui:disabled": false
         },
-        "itiInstitute": {
-          "type": "string",
-          "title": "ITI Institute",
-          "description": "Enter your ITI institute",
-          "required": true,
-          "ui:widget": "text",
-          "ui:placeholder": "Enter your ITI institute",
-          "ui:disabled": false
-        },
+                  "itiInstitute": {
+            "type": "string",
+            "description": "Enter your ITI institute",
+            "required": true,
+            "ui:widget": "text",
+            "ui:placeholder": "Enter your ITI institute",
+            "ui:disabled": true
+          },
         "trainingDuration": {
           "type": "number",
           "title": "Training Duration (Years)",

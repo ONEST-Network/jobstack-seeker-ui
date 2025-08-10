@@ -493,7 +493,7 @@
             "required": true,
             "ui:widget": "text",
             "ui:placeholder": "Enter your ITI institute",
-            "ui:disabled": false
+            "ui:disabled": true
           },
           "trainingDuration": {
             "type": "number",
@@ -586,11 +586,11 @@
           },
           "fitterAssessmentScore": {
             "type": "number",
-            "title": "Fitter Assessment Score",
-            "description": "Assessment for fitter",
+            "title": "Trade Assessment Score",
+            "description": "Assessment for trade",
             "minimum": 0,
             "ui:widget": "number",
-            "ui:placeholder": "Enter fitter assessment score",
+            "ui:placeholder": "Enter trade assessment score",
             "ui:disabled": false
           },
           "intentAssessmentScore": {

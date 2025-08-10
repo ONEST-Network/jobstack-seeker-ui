@@ -136,14 +136,21 @@ class ApiClient {
   }
 
   async signOut() {
-    const response = await this.request('/auth/sign-out', {
-      method: 'POST',
-    });
-    
-    // Clear the token on sign out
-    this.clearAuthToken();
-    
-    return response;
+    try {
+      const response = await this.request('/auth/sign-out', {
+        method: 'POST',
+      });
+      
+      // Clear the token on sign out
+      this.clearAuthToken();
+      
+      return response;
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Even if the API call fails, clear the local token
+      this.clearAuthToken();
+      throw error;
+    }
   }
 
   async getSession() {
@@ -621,7 +628,7 @@ class ApiClient {
   }
 
   // BAP Job Draft API - Same payload as apply but saves as draft
-  async saveJobDraft(applyData: {
+  /* async saveJobDraft(applyData: {
     providerId: string;
     jobId: string;
     userId: string;
@@ -814,7 +821,7 @@ class ApiClient {
       }
       throw error;
     }
-  }
+  } */
 
   // BAP Job Select API
   async selectJob(providerId: string, jobId: string) {
@@ -1145,6 +1152,26 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  // Organization management APIs
+  async getOrganizationList(): Promise<OrganizationListResponse> {
+    return this.request('/auth/organization/list/', {
+      method: 'GET',
+    });
+  }
+
+  async setActiveOrganization(organizationId: string): Promise<SetActiveOrgResponse> {
+    return this.request('/auth/organization/set-active', {
+      method: 'POST',
+      body: JSON.stringify({ organizationId }),
+    });
+  }
+
+  async getActiveOrganizationMember(): Promise<ActiveMemberResponse> {
+    return this.request('/auth/organization/get-active-member', {
+      method: 'GET',
+    });
   }
 }
 
@@ -1642,3 +1669,35 @@ export interface ProfilesResponse {
     updatedAt: string;
   }>;
 } 
+
+// Organization management API types
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  logo: string | null;
+  createdAt: string;
+  metadata: string;
+  type: string;
+}
+
+export type OrganizationListResponse = Organization[];
+
+export interface SetActiveOrgResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface ActiveMemberResponse {
+  organizationId: string;
+  userId: string;
+  role: 'admin' | 'member' | 'viewer' | 'owner';
+  createdAt: string;
+  id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
+  };
+}

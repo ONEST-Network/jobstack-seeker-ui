@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { UserProfile, Experience } from '@/contexts/AuthContext';
 import { Education, SkillCertification, WorkExperience } from '@/types/profile';
+import { useITIAutoFill } from '@/hooks/useITIAutoFill';
 
 interface ProfileFormContextType {
   profile: UserProfile & {
@@ -97,6 +98,9 @@ export const ProfileFormProvider: React.FC<ProfileFormProviderProps> = ({
     description: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Use the ITI auto-fill hook
+  useITIAutoFill({ profile, setProfile });
 
   return (
     <ProfileFormContext.Provider value={{

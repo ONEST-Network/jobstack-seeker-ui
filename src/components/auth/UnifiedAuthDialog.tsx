@@ -208,6 +208,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   };
 
   const handleClose = () => {
+    // Reset all state
     setStep('initial');
     setContactInput('');
     setContactType('email');
@@ -216,8 +217,35 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     setShowOTPDialog(false);
     setShowRegisterDialog(false);
     setFormattedPhoneNumber('');
+    
+    // Close the modal
     onClose();
   };
+
+  // Handle modal open/close changes
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset state when modal is closed
+      setStep('initial');
+      setContactInput('');
+      setContactType('email');
+      setIsLoading(false);
+      setUserExists(false);
+      setShowOTPDialog(false);
+      setShowRegisterDialog(false);
+      setFormattedPhoneNumber('');
+    } else {
+      // Reset state when modal is opened
+      setStep('initial');
+      setContactInput('');
+      setContactType('email');
+      setIsLoading(false);
+      setUserExists(false);
+      setShowOTPDialog(false);
+      setShowRegisterDialog(false);
+      setFormattedPhoneNumber('');
+    }
+  }, [isOpen]);
 
   const getContactIcon = () => {
     return contactType === 'email' ? <Mail className="h-4 w-4" /> : <Phone className="h-4 w-4" />;

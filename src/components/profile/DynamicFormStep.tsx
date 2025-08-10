@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useProfileForm } from './ProfileFormProvider';
 import { getUnifiedSchemaStep, getUnifiedSchema } from '@/schemas';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { getSchema, getSchemaDescription } from '@/schemas';
 import { getCurrentLocation, parseLocationString, formatLocationForDisplay } from '@/lib/utils';
 import { LocationInput } from '@/components/ui/location-input';
+import { useITIAutoFill } from '@/hooks/useITIAutoFill';
 
 interface DynamicFormStepProps {
   stepName: string;
@@ -25,7 +26,8 @@ interface DynamicFormStepProps {
 
 const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => {
   const { profile, setProfile } = useProfileForm();
-  
+  const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const [showDigiLocker, setShowDigiLocker] = React.useState(false);
   const [showQRScanner, setShowQRScanner] = React.useState(false);
@@ -33,8 +35,9 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const [dropdownStates, setDropdownStates] = React.useState<Record<string, boolean>>({});
   const dropdownRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const [searchQueries, setSearchQueries] = React.useState<Record<string, string>>({});
-  const { toast } = useToast();
-  const isMobile = useIsMobile();
+
+  // Use the ITI auto-fill hook
+  useITIAutoFill({ profile, setProfile, role });
 
   // Handle clicking outside dropdowns to close them
   React.useEffect(() => {
