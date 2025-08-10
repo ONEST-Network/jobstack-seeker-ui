@@ -170,11 +170,17 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
         // User doesn't exist - show registration
         setUserExists(false);
         setStep('register');
-        setShowRegisterDialog(true);
+        
+        // Show toast first
         toast({
           title: "Account Not Found",
           description: `No account found with ${contactType === 'email' ? 'email' : 'phone number'} ${contactInput}. Please create a new account.`,
         });
+        
+        // Small delay before showing registration dialog to ensure toast is properly established
+        setTimeout(() => {
+          setShowRegisterDialog(true);
+        }, 100);
       }
     } catch (error) {
       console.error('Error checking user:', error);
