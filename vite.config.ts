@@ -24,4 +24,5 @@ export default defineConfig(({ mode }) => ({
       // Removed html5-qrcode from externals to allow proper bundling
     },
   },
+  base: "/",
 }));

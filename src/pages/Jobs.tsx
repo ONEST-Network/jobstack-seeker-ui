@@ -31,7 +31,9 @@ const Jobs = () => {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    setSearchParams({ tab: value });
+    const params = new URLSearchParams(searchParams);
+    params.set('tab', value);
+    setSearchParams(params, { replace: true });
     // Force refresh when switching to applications tab
     if (value === 'applications') {
       setRefreshKey(prev => prev + 1);
