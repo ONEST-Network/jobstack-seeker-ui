@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { User, LogOut, Building2, Users, FileText, Mail, Phone, Eye } from 'lucide-react';
+import { User, LogOut, Building2, Users, FileText, Mail, Phone, Eye, Settings, Loader2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,7 +15,7 @@ interface UserMenuProps {
 const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
   const navigate = useNavigate();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
-  const { user, logout, getSelectedCandidate, refreshProfileData, cleanupIncompleteProfiles } = useAuth();
+  const { user, logout, getSelectedCandidate, refreshProfileData, cleanupIncompleteProfiles, hasAdminRole, isLoading } = useAuth();
   const selectedCandidate = getSelectedCandidate();
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
   const [showViewAllProfiles, setShowViewAllProfiles] = useState(false);
@@ -53,11 +53,27 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
     setShowViewAllProfiles(true);
   };
 
+  const handleAdminDashboard = () => {
+    navigate(`/${orgSlug || '0'}/seeker?tab=admin`);
+  };
+
   if (!user) {
     return (
-      <Button variant="ghost" size="sm" className="gap-2" onClick={onShowLogin}>
-        <User className="h-4 w-4" />
-        <span className="hidden sm:inline">Login</span>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="gap-2" 
+        onClick={onShowLogin}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <User className="h-4 w-4" />
+        )}
+        <span className="hidden sm:inline">
+          {isLoading ? 'Loading...' : 'Login'}
+        </span>
       </Button>
     );
   }
@@ -118,12 +134,21 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
               Manage Employers
             </DropdownMenuItem>
           )}
+          
+          {/* Admin Dashboard - Only show if user has admin role */}
+          {hasAdminRole() && (
+            <DropdownMenuItem onClick={handleAdminDashboard}>
+              <Settings className="h-4 w-4 mr-2" />
+              Admin Dashboard
+            </DropdownMenuItem>
+          )}
+          
           {/* <DropdownMenuItem onClick={() => {}}>
             Account Settings
           </DropdownMenuItem> */}
-          <DropdownMenuItem onClick={logout}>
+          <DropdownMenuItem onClick={logout} disabled={isLoading}>
             <LogOut className="h-4 w-4 mr-2" />
-            Logout
+            {isLoading ? 'Logging out...' : 'Logout'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

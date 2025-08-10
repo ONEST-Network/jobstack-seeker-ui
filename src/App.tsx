@@ -1,4 +1,5 @@
 
+import React, { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -9,12 +10,12 @@ import Provider from "./pages/Provider";
 import NotFound from "./pages/NotFound";
 import EmailVerification from "./pages/EmailVerification";
 import SharedJob from "./pages/SharedJob";
-import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { apiClient } from "./lib/api";
 import { useToast } from "@/hooks/use-toast";
 import ResetPasswordDialog from "@/components/auth/ResetPasswordDialog";
 import OrgWrapper from "@/components/OrgWrapper";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -23,24 +24,18 @@ const EmailVerificationHandler = () => {
   return null;
 };
 
-// Password Reset Route Component
+// Component to handle password reset routes
 const PasswordResetRoute = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { orgSlug } = useParams<{ orgSlug?: string }>();
+  const { orgSlug } = useParams();
   const { toast } = useToast();
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
 
   useEffect(() => {
     const token = searchParams.get('token');
-    
-    // Validate token
-    const isValidToken = token && 
-                        token.trim() !== '' && 
-                        token.length > 10 && 
-                        !token.includes('undefined') && 
-                        !token.includes('null');
+    const isValidToken = token && token.length > 0;
     
     if (isValidToken) {
       setResetToken(token);

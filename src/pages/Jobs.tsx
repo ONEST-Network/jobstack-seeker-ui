@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import JobDiscovery from '@/components/JobDiscovery';
 import MyApplications from '@/components/MyApplications';
 import CandidateManagement from '@/components/candidates/CandidateManagement';
+import AdminDashboard from '@/components/AdminDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'react-router-dom';
@@ -19,7 +20,7 @@ const Jobs = () => {
 
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['discover', 'applications', 'profiles'].includes(tab)) {
+    if (tab && ['discover', 'applications', 'profiles', 'admin'].includes(tab)) {
       setActiveTab(tab);
       // Force refresh when applications tab is accessed
       if (tab === 'applications') {
@@ -56,6 +57,8 @@ const Jobs = () => {
         );
       case 'profiles':
         return <CandidateManagement />;
+      case 'admin':
+        return <AdminDashboard />;
       default:
         return <JobDiscovery onPromptLogin={() => setShowUnifiedAuth(true)} />;
     }

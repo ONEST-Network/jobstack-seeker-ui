@@ -493,7 +493,7 @@
             "required": true,
             "ui:widget": "text",
             "ui:placeholder": "Enter your ITI institute",
-            "ui:disabled": false
+            "ui:disabled": true
           },
           "trainingDuration": {
             "type": "number",

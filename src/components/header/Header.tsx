@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
@@ -21,8 +21,25 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
   const [showOrgProfile, setShowOrgProfile] = useState(false);
   const [showCandidateDialog, setShowCandidateDialog] = useState(false);
   
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
+
+  // Reset auth modal state when user changes (login/logout)
+  useEffect(() => {
+    if (!user) {
+      setShowUnifiedAuth(false);
+    }
+  }, [user]);
+
+  // Cleanup effect to reset modal state
+  useEffect(() => {
+    return () => {
+      setShowUnifiedAuth(false);
+      setShowUserProfile(false);
+      setShowOrgProfile(false);
+      setShowCandidateDialog(false);
+    };
+  }, []);
 
   const handleProfileComplete = () => {
     if (user?.role === 'individual') {
@@ -33,7 +50,20 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
   };
 
   const handleShowAuth = () => {
-    setShowUnifiedAuth(true);
+    // Prevent opening auth modal if still loading from logout
+    if (isLoading) return;
+    
+    // Ensure modal state is clean before opening
+    setShowUnifiedAuth(false);
+    
+    // Use setTimeout to ensure state is properly reset before opening
+    setTimeout(() => {
+      setShowUnifiedAuth(true);
+    }, 10);
+  };
+
+  const handleCloseAuth = () => {
+    setShowUnifiedAuth(false);
   };
 
   return (
@@ -66,7 +96,7 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
       {/* Unified Auth Dialog */}
       <UnifiedAuthDialog
         isOpen={showUnifiedAuth}
-        onClose={() => setShowUnifiedAuth(false)}
+        onClose={handleCloseAuth}
         defaultRole="individual"
       />
 

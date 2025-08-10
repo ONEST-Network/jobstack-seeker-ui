@@ -370,7 +370,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
             >
               {applying ? 'Submitting...' : 'Submit Application'}
             </Button>
-            {onSaveDraft && (
+            {/* {onSaveDraft && (
               <Button 
                 onClick={handleSaveDraft} 
                 variant="secondary"
@@ -379,7 +379,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
               >
                 {savingDraft ? 'Saving...' : 'Save as Draft'}
               </Button>
-            )}
+            )} */}
             <Button 
               variant="outline" 
               onClick={onClose} 
