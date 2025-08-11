@@ -19,6 +19,16 @@ export interface User {
   selectedEmployerId?: string;
   managedCandidates: CandidateProfile[];
   selectedCandidateId?: string;
+  // Organization role properties
+  organizationRole?: 'admin' | 'member' | 'viewer' | 'owner';
+  activeOrganizationId?: string;
+  organizations?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    role: string;
+    type: string;
+  }>;
 }
 
 export interface UserProfile {
@@ -211,7 +221,19 @@ export interface EmployerProfile {
 interface AuthContextType {
   user: User | null;
   requestOTP: (data: { phoneNumber?: string; email?: string; name?: string }) => Promise<{ ok: boolean; otp: string }>;
-  verifyOTP: (data: { phoneNumber?: string; email?: string; otp: string }) => Promise<{ token: string; user: any }>;
+  verifyOTP: (data: { 
+    phoneNumber?: string; 
+    email?: string; 
+    otp: string;
+    name?: string;
+    rememberMe?: boolean;
+    joinOrg?: {
+      join: boolean;
+      orgSlug: string;
+      role: string;
+    };
+    createAdmin?: boolean;
+  }) => Promise<{ token: string; user: any }>;
   logout: () => void;
   updateProfile: (profile: UserProfile | OrganizationProfile) => void;
   refreshProfileData: () => Promise<void>;
@@ -227,6 +249,10 @@ interface AuthContextType {
   selectCandidate: (candidateId: string) => void;
   getSelectedCandidate: () => CandidateProfile | null;
   cleanupIncompleteProfiles: () => void;
+  hasAdminRole: () => boolean;
+  // Organization management methods
+  initializeOrganizationData: () => Promise<void>;
+  setActiveOrganization: (organizationId: string) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -415,6 +441,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           localStorage.setItem('user', JSON.stringify(transformedUser));
           setUser(transformedUser);
+          
+          // Initialize organization data after successful session check
+          try {
+            // Get list of organizations
+            const organizations = await apiClient.getOrganizationList();
+            
+            if (organizations.length > 0) {
+              // Set the first organization as active
+              const firstOrg = organizations[0];
+              await apiClient.setActiveOrganization(firstOrg.id);
+              
+              // Get active member details to determine role
+              const memberInfo = await apiClient.getActiveOrganizationMember();
+              
+              // Update user with organization data
+              const updatedUserWithOrg: User = {
+                ...transformedUser,
+                organizationRole: memberInfo.role as 'admin' | 'member' | 'viewer' | 'owner',
+                activeOrganizationId: memberInfo.organizationId,
+                organizations: organizations.map(org => ({
+                  id: org.id,
+                  name: org.name,
+                  slug: org.slug,
+                  role: memberInfo.role, // For now, assume same role across orgs
+                  type: org.type
+                }))
+              };
+              
+              setUser(updatedUserWithOrg);
+              localStorage.setItem('user', JSON.stringify(updatedUserWithOrg));
+            }
+          } catch (orgError) {
+            console.log('No organization data available or error fetching during initial load:', orgError);
+            // Don't throw error to avoid breaking the main flow
+          }
         } else {
           // No valid session, check localStorage for fallback (development mode)
           const savedUser = localStorage.getItem('user');
@@ -592,7 +653,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const verifyOTP = async (data: { phoneNumber?: string; email?: string; otp: string }) => {
+  const verifyOTP = async (data: { 
+    phoneNumber?: string; 
+    email?: string; 
+    otp: string;
+    name?: string;
+    rememberMe?: boolean;
+    joinOrg?: {
+      join: boolean;
+      orgSlug: string;
+      role: string;
+    };
+    createAdmin?: boolean;
+  }) => {
     setIsLoading(true);
     try {
       const response = await apiClient.verifyOTP(data) as { token: string; user: any };
@@ -755,6 +828,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Store user data
         setUser(transformedUser);
         localStorage.setItem('user', JSON.stringify(transformedUser));
+        
+        // Initialize organization data after successful verification
+        try {
+          // Get list of organizations
+          const organizations = await apiClient.getOrganizationList();
+          
+          if (organizations.length > 0) {
+            // Set the first organization as active
+            const firstOrg = organizations[0];
+            await apiClient.setActiveOrganization(firstOrg.id);
+            
+            // Get active member details to determine role
+            const memberInfo = await apiClient.getActiveOrganizationMember();
+            
+            // Update user with organization data
+            const updatedUserWithOrg: User = {
+              ...transformedUser,
+              organizationRole: memberInfo.role as 'admin' | 'member' | 'viewer' | 'owner',
+              activeOrganizationId: memberInfo.organizationId,
+              organizations: organizations.map(org => ({
+                id: org.id,
+                name: org.name,
+                slug: org.slug,
+                role: memberInfo.role, // For now, assume same role across orgs
+                type: org.type
+              }))
+            };
+            
+            setUser(updatedUserWithOrg);
+            localStorage.setItem('user', JSON.stringify(updatedUserWithOrg));
+          }
+        } catch (orgError) {
+          console.log('No organization data available or error fetching:', orgError);
+          // Don't throw error to avoid breaking the main flow
+        }
       } else {
         // Fallback to the original response if session is not available
         const backendUser = response.user;
@@ -789,14 +897,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await apiClient.signOut();
-    } catch (error) {
-      console.log('Logout error:', error);
-    } finally {
+      // Set loading state to prevent multiple logout attempts
+      setIsLoading(true);
+      
+      // Clear user state immediately to prevent UI issues
       setUser(null);
       localStorage.removeItem('user');
       localStorage.removeItem('pendingUser');
+      
       // Clear auth token is handled in apiClient.signOut()
+      await apiClient.signOut();
+      
+      // Additional cleanup
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('session');
+      
+      // Small delay to ensure all state changes are processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+    } catch (error) {
+      console.log('Logout error:', error);
+      // Even if API call fails, we still want to clear local state
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -1041,6 +1164,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         localStorage.setItem('user', JSON.stringify(transformedUser));
         setUser(transformedUser);
+        
+        // Initialize organization data after successful session refresh
+        try {
+          // Get list of organizations
+          const organizations = await apiClient.getOrganizationList();
+          
+          if (organizations.length > 0) {
+            // Set the first organization as active
+            const firstOrg = organizations[0];
+            await apiClient.setActiveOrganization(firstOrg.id);
+            
+            // Get active member details to determine role
+            const memberInfo = await apiClient.getActiveOrganizationMember();
+            
+            // Update user with organization data
+            const updatedUserWithOrg: User = {
+              ...transformedUser,
+              organizationRole: memberInfo.role as 'admin' | 'member' | 'viewer' | 'owner',
+              activeOrganizationId: memberInfo.organizationId,
+              organizations: organizations.map(org => ({
+                id: org.id,
+                name: org.name,
+                slug: org.slug,
+                role: memberInfo.role, // For now, assume same role across orgs
+                type: org.type
+              }))
+            };
+            
+            setUser(updatedUserWithOrg);
+            localStorage.setItem('user', JSON.stringify(updatedUserWithOrg));
+          }
+        } catch (orgError) {
+          console.log('No organization data available or error fetching during refresh:', orgError);
+          // Don't throw error to avoid breaking the main flow
+        }
       } else {
         console.log('🔍 refreshSession - No valid session found');
         // No valid session, clear user state
@@ -1325,6 +1483,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Check if user has admin role
+  const hasAdminRole = (): boolean => {
+    if (!user) return false;
+    
+    // Check if user has admin or owner role in any organization
+    return user.organizationRole === 'admin' || user.organizationRole === 'owner';
+  };
+
+  // Initialize organization data after successful OTP verification
+  const initializeOrganizationData = async (): Promise<void> => {
+    if (!user) return;
+    
+    try {
+      // 1. Get list of organizations
+      const organizations = await apiClient.getOrganizationList();
+      
+      if (organizations.length > 0) {
+        // 2. Set the first organization as active (or use existing logic)
+        const firstOrg = organizations[0];
+        await apiClient.setActiveOrganization(firstOrg.id);
+        
+        // 3. Get active member details to determine role
+        const memberInfo = await apiClient.getActiveOrganizationMember();
+        
+        // Update user with organization data
+        const updatedUser: User = {
+          ...user,
+          organizationRole: memberInfo.role as 'admin' | 'member' | 'viewer' | 'owner',
+          activeOrganizationId: memberInfo.organizationId,
+          organizations: organizations.map(org => ({
+            id: org.id,
+            name: org.name,
+            slug: org.slug,
+            role: memberInfo.role, // For now, assume same role across orgs
+            type: org.type
+          }))
+        };
+        
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error('Error initializing organization data:', error);
+      // Don't throw error to avoid breaking the flow
+    }
+  };
+
+  // Set active organization
+  const setActiveOrganization = async (organizationId: string): Promise<void> => {
+    if (!user) return;
+    
+    try {
+      // Set active organization
+      await apiClient.setActiveOrganization(organizationId);
+      
+      // Get updated member info
+      const memberInfo = await apiClient.getActiveOrganizationMember();
+      
+      // Update user with new active organization and role
+      const updatedUser: User = {
+        ...user,
+        organizationRole: memberInfo.role as 'admin' | 'member' | 'viewer' | 'owner',
+        activeOrganizationId: memberInfo.organizationId
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error('Error setting active organization:', error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -1345,6 +1576,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       selectCandidate,
       getSelectedCandidate,
       cleanupIncompleteProfiles,
+      hasAdminRole,
+      initializeOrganizationData,
+      setActiveOrganization,
       isLoading
     }}>
       {children}

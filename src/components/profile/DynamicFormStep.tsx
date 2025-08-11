@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useProfileForm } from './ProfileFormProvider';
 import { getUnifiedSchemaStep, getUnifiedSchema } from '@/schemas';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { getSchema, getSchemaDescription } from '@/schemas';
 import { getCurrentLocation, parseLocationString, formatLocationForDisplay } from '@/lib/utils';
 import { LocationInput } from '@/components/ui/location-input';
+import { useITIAutoFill } from '@/hooks/useITIAutoFill';
+import { ITIInstituteDropdown } from '@/components/ui/iti-institute-dropdown';
 
 interface DynamicFormStepProps {
   stepName: string;
@@ -24,7 +27,8 @@ interface DynamicFormStepProps {
 
 const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => {
   const { profile, setProfile } = useProfileForm();
-  
+  const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const [showDigiLocker, setShowDigiLocker] = React.useState(false);
   const [showQRScanner, setShowQRScanner] = React.useState(false);
@@ -32,8 +36,9 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const [dropdownStates, setDropdownStates] = React.useState<Record<string, boolean>>({});
   const dropdownRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const [searchQueries, setSearchQueries] = React.useState<Record<string, string>>({});
-  const { toast } = useToast();
-  const isMobile = useIsMobile();
+
+  // Use the ITI auto-fill hook
+  useITIAutoFill({ profile, setProfile, role });
 
   // Handle clicking outside dropdowns to close them
   React.useEffect(() => {
@@ -114,6 +119,11 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
       return profile.whoIAm?.phone || stepData[fieldName] || '';
     }
     
+    // Special handling for itiInstitute field - check whatIHave section first
+    if (fieldName === 'itiInstitute') {
+      return stepData[fieldName] || profile.whatIHave?.itiInstitute || '';
+    }
+    
     // For file upload fields and other step-specific fields, check step data first
     if (stepData[fieldName] !== undefined) {
       return stepData[fieldName];
@@ -131,7 +141,6 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
 
   const handleFieldChange = (fieldName: string, value: unknown) => {
-
     // Update step data
     setStepData({ [fieldName]: value });
 
@@ -152,6 +161,17 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         whoIAm: {
           ...prev.whoIAm,
           phone: value
+        }
+      }));
+    }
+
+    // Special handling for itiInstitute field - update whatIHave section
+    if (fieldName === 'itiInstitute') {
+      setProfile(prev => ({
+        ...prev,
+        whatIHave: {
+          ...prev.whatIHave,
+          itiInstitute: value
         }
       }));
     }
@@ -233,7 +253,25 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     console.log('data: ', data)
     if (qrFieldName) {
       console.log("qr: ", qrFieldName)
-      handleFieldChange(qrFieldName, data);
+      // Get current value - could be string, array, or undefined
+      const currentValue = getFieldValue(qrFieldName);
+      
+      // Convert to array format if it's not already
+      let currentArray: string[] = [];
+      if (currentValue) {
+        if (Array.isArray(currentValue)) {
+          currentArray = currentValue as string[];
+        } else if (typeof currentValue === 'string') {
+          currentArray = [currentValue];
+        }
+      }
+      
+      // Add new scan data to the array
+      const newData = typeof data === 'string' ? data : String(data);
+      const updatedArray = [...currentArray, newData];
+      
+      // Update the field with the new array
+      handleFieldChange(qrFieldName, updatedArray);
     }
   };
 
@@ -501,6 +539,47 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
     switch (widget) {
       case 'text':
+        // Special handling for ITI Institute field - use searchable dropdown
+        if (fieldName === 'itiInstitute') {
+          const instituteSlug = profile.whatIHave?.itiInstituteSlug || '';
+          
+          return (
+            <div key={fieldName} className="space-y-2">
+              <ITIInstituteDropdown
+                value={value || ''}
+                slug={instituteSlug}
+                onChange={(name, slug) => {
+                  // Update both the displayed name and store the slug for API
+                  handleFieldChange(fieldName, name);
+                  setProfile(prevProfile => ({
+                    ...prevProfile,
+                    [stepName]: {
+                      ...prevProfile[stepName],
+                      itiInstituteSlug: slug
+                    }
+                  }));
+                }}
+                placeholder="Search and select your ITI Institute..."
+                disabled={disabled || isVerified}
+                label={fieldConfig.title + (isRequired ? ' *' : '')}
+                description="Select your institute name from the list below"
+              />
+              
+              {/* Verification indicators */}
+              {isVerified && (
+                <div className="flex items-center gap-2 text-sm text-green-600">
+                  <Shield className="h-4 w-4" />
+                  <span>{verificationMessage || `Verified via DigiLocker`}</span>
+                </div>
+              )}
+              
+              {fieldConfig.description && (
+                <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
+              )}
+            </div>
+          );
+        }
+
         // Special handling for location fields
         if (hasLocationButton) {
           return (
@@ -664,6 +743,74 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                   ))}
                 </SelectContent>
               </Select>
+              {isVerified && (
+                <div className="absolute right-2 top-2 flex items-center gap-1">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                </div>
+              )}
+            </div>
+            {isVerified && (
+              <p className="text-xs text-green-600">
+                {verificationMessage || `Verified via DigiLocker`}
+              </p>
+            )}
+            {fieldConfig.description && (
+              <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
+            )}
+          </div>
+        );
+
+      case 'radio':
+        return (
+          <div key={fieldName} className="space-y-2">
+            <Label className="text-sm font-medium">
+              {fieldConfig.title}
+              {isRequired && <span className="text-red-500 ml-1">*</span>}
+            </Label>
+            <RadioGroup
+              value={value || ''}
+              onValueChange={(val) => handleFieldChange(fieldName, val)}
+              disabled={disabled || isVerified}
+              className={isVerified ? 'border-green-500' : ''}
+            >
+              {fieldConfig.enum?.map((option: string, index: number) => (
+                <div key={option} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option} id={`${fieldName}_${option}`} />
+                  <Label htmlFor={`${fieldName}_${option}`} className="text-sm">
+                    {fieldConfig.enumNames?.[index] || option}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+            {isVerified && (
+              <p className="text-xs text-green-600">
+                {verificationMessage || `Verified via DigiLocker`}
+              </p>
+            )}
+            {fieldConfig.description && (
+              <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
+            )}
+          </div>
+        );
+
+      case 'date':
+        return (
+          <div key={fieldName} className="space-y-2">
+            <Label htmlFor={fieldName} className="text-sm font-medium">
+              {fieldConfig.title}
+              {isRequired && <span className="text-red-500 ml-1">*</span>}
+            </Label>
+            <div className="relative">
+              <Input
+                id={fieldName}
+                type="date"
+                value={value || ''}
+                onChange={(e) => handleFieldChange(fieldName, e.target.value)}
+                placeholder={placeholder}
+                disabled={disabled || isVerified}
+                className={isVerified ? 'border-green-500' : ''}
+              />
               {isVerified && (
                 <div className="absolute right-2 top-2 flex items-center gap-1">
                   <Shield className="h-4 w-4 text-green-600" />
@@ -993,12 +1140,56 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </Label>
             <div className="space-y-2">
               {value && (
-                <div className="p-3 bg-gray-50 rounded-lg border">
-                  <p className="text-sm font-medium">Scanned Data:</p>
-                  <p className="text-xs text-muted-foreground break-all">{value}</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm font-medium">Scanned Data:</p>
+                    {Array.isArray(value) && value.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleFieldChange(fieldName, '')}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        Clear All
+                      </Button>
+                    )}
+                  </div>
+                  {Array.isArray(value) ? (
+                    // Display multiple scanned URLs
+                    <div className="space-y-2">
+                      {value.length > 0 ? (
+                        value.map((scanData: string, index: number) => (
+                          <div key={index} className="p-3 bg-gray-50 rounded-lg border flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="text-xs text-muted-foreground break-all">{scanData}</p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const updatedArray = (value as string[]).filter((_, i) => i !== index);
+                                handleFieldChange(fieldName, updatedArray.length > 0 ? updatedArray : '');
+                              }}
+                              className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-muted-foreground">No QR codes scanned yet.</p>
+                      )}
+                    </div>
+                  ) : (
+                    // Display single scanned URL (for backward compatibility)
+                    <div className="p-3 bg-gray-50 rounded-lg border">
+                      <p className="text-xs text-muted-foreground break-all">{value}</p>
+                    </div>
+                  )}
                 </div>
               )}
-              {/* here make changes  */}
               <Button
                 type="button"
                 variant="outline"
@@ -1007,7 +1198,13 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 className="w-full"
               >
                 <QrCode className="h-4 w-4 mr-2" />
-                {value ? 'Scan Again' : 'Scan QR Code'}
+                {(() => {
+                  if (!value) return 'Scan QR Credential';
+                  if (Array.isArray(value)) {
+                    return value.length > 0 ? 'Scan Another QR Credential' : 'Scan QR Credential';
+                  }
+                  return 'Scan Another QR Credential';
+                })()}
               </Button>
             </div>
             {fieldConfig.description && (

@@ -9,12 +9,16 @@ import { Shield, Lock } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { getFieldConfig } from '@/schemas';
+import { useITIAutoFill } from '@/hooks/useITIAutoFill';
 
 const WhatIHaveStep: React.FC = () => {
   const { profile, setProfile } = useProfileForm();
   const stepName = 'whatIHave';
   const description = getSchemaDescription(stepName, profile.interestedRole);
   const sections = getSchemaSections(stepName, profile.interestedRole);
+
+  // Use the ITI auto-fill hook
+  useITIAutoFill({ profile, setProfile });
 
   const handleMachineToggle = (machine: string, checked: boolean) => {
     setProfile(prevProfile => {

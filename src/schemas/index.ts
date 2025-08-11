@@ -9,6 +9,7 @@ import machineOperatorSchema from './machine-operator.json';
 import dataEntryOperatorSchema from './data-entry-operator.json';
 import teleSalespersonSchema from './tele-salesperson.json';
 import fieldSalesPersonSchema from './field-sales-person.json';
+import genericITISchema from './GenericITI.json';
 import jobRolesConfig from './job-roles-config.json';
 
 export interface ProfileStepSchema {
@@ -90,6 +91,9 @@ export const getUnifiedSchema = (role?: string): any => {
   }
   if (role === 'Field Sales Person') {
     return fieldSalesPersonSchema;
+  }
+  if (role === 'ITI Student') {
+    return genericITISchema;
   }
   // For roles without specific schemas, fall back to Industrial Tailor
   if (role === 'Field Sales Executive') {

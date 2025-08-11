@@ -15,18 +15,22 @@ interface ConsolidatedJobApplicationProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (applicationData: JobApplicationData) => Promise<void>;
+  onSaveDraft?: (applicationData: JobApplicationData) => Promise<void>;
   job: any;
   selectedProfile: any;
   applying?: boolean;
+  savingDraft?: boolean;
 }
 
 const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  onSaveDraft,
   job,
   selectedProfile,
-  applying = false
+  applying = false,
+  savingDraft = false
 }) => {
   const { user } = useAuth();
   const { profile, setProfile } = useProfileForm();
@@ -36,6 +40,26 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
   const getRoleFromJobTitle = (jobTitle: string): string => {
     const lowerJobTitle = jobTitle.toLowerCase();
     
+    // Map based on keywords in the job title - Order matters! More specific patterns first
+    
+    // Check for specific multi-word patterns first
+    if (lowerJobTitle.includes('data entry operator') || lowerJobTitle.includes('data entry') || lowerJobTitle.includes('data-entry-operator') || lowerJobTitle.includes('data-entry')) {
+      return 'Data Entry Operator';
+    }
+    if (lowerJobTitle.includes('tele sales') || lowerJobTitle.includes('telesales') || lowerJobTitle.includes('tele salesperson') || lowerJobTitle.includes('telecaller') || lowerJobTitle.includes('tele-sales') || lowerJobTitle.includes('tele-salesperson')) {
+      return 'Tele Salesperson';
+    }
+    if (lowerJobTitle.includes('field sales person') || lowerJobTitle.includes('field salesperson') || lowerJobTitle.includes('field-sales-person') || lowerJobTitle.includes('field-salesperson')) {
+      return 'Field Sales Person';
+    }
+    if (lowerJobTitle.includes('machine operator')) {
+      return 'Machine Operator';
+    }
+    if (lowerJobTitle.includes('iti') || lowerJobTitle.includes('industrial training') || lowerJobTitle.includes('technical') || lowerJobTitle.includes('vocational')) {
+      return 'ITI Student';
+    }
+    
+    // Then check for more general patterns
     if (lowerJobTitle.includes('tailor') || lowerJobTitle.includes('stitch') || lowerJobTitle.includes('garment')) {
       return 'Industrial Tailor';
     }
@@ -60,7 +84,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
     if (lowerJobTitle.includes('mechanic') || lowerJobTitle.includes('maintenance') || lowerJobTitle.includes('repair')) {
       return 'Mechanic';
     }
-    if (lowerJobTitle.includes('machine operator') || lowerJobTitle.includes('operator') || lowerJobTitle.includes('machine')) {
+    if (lowerJobTitle.includes('operator') || lowerJobTitle.includes('machine')) {
       return 'Machine Operator';
     }
     
@@ -187,6 +211,43 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
     await onSubmit(applicationData);
   };
 
+  const handleSaveDraft = async () => {
+    const applicationData: JobApplicationData = {
+      name: profile.name || profile.whoIAm?.name || user?.name || '',
+      age: profile.age?.toString() || profile.whoIAm?.age?.toString() || profile.whatIHave?.age?.toString(),
+      gender: profile.gender || profile.whoIAm?.gender,
+      phone: profile.phone || profile.whoIAm?.phone || user?.phone || '',
+      email: user?.email || '',
+      expectedSalary: profile.monthlyInHandPreferred?.toString() || profile.whatIWant?.monthlyInHandPreferred?.toString() || profile.monthlySalary?.toString() || '1200000',
+      totalExperience: profile.experienceMonths?.toString() || profile.whatIHave?.experienceMonths?.toString() || '0',
+      location: {
+        lat: 12.9716,
+        lng: 77.5946,
+        address: profile.currentLocation || profile.whoIAm?.currentLocation || 'Bangalore',
+        city: 'Bangalore',
+        state: 'Karnataka',
+        country: 'India'
+      },
+      skills: profile.skills?.map(skill => ({ code: skill, name: skill })) || [
+        { code: "UI", name: "UI Design" }
+      ],
+      languages: [
+        { code: "en", name: "English" }
+      ],
+      profileId: selectedProfile?.id, // Include the profile ID
+      profileData: {
+        whoIAm: profile.whoIAm || {},
+        whatIHave: profile.whatIHave || {},
+        whatIWant: profile.whatIWant || {},
+        ...profile
+      }
+    };
+
+    if (onSaveDraft) {
+      await onSaveDraft(applicationData);
+    }
+  };
+
   const canSubmit = () => {
     const name = profile.name || profile.whoIAm?.name;
     return name?.trim() !== '';
@@ -305,15 +366,25 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
             <Button 
               onClick={handleSubmit} 
               className="flex-1 h-12 text-base font-medium"
-              disabled={applying || !canSubmit()}
+              disabled={applying || savingDraft || !canSubmit()}
             >
               {applying ? 'Submitting...' : 'Submit Application'}
             </Button>
+            {/* {onSaveDraft && (
+              <Button 
+                onClick={handleSaveDraft} 
+                variant="secondary"
+                className="h-12 px-6 text-base font-medium"
+                disabled={applying || savingDraft || !canSubmit()}
+              >
+                {savingDraft ? 'Saving...' : 'Save as Draft'}
+              </Button>
+            )} */}
             <Button 
               variant="outline" 
               onClick={onClose} 
               className="h-12 px-8 text-base"
-              disabled={applying}
+              disabled={applying || savingDraft}
             >
               Cancel
             </Button>

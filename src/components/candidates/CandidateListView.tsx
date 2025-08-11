@@ -91,12 +91,27 @@ const CandidateListView: React.FC<CandidateListViewProps> = ({ searchQuery }) =>
     }
   };
 
-  const filteredCandidates = mockCandidates.filter(candidate =>
-    candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    candidate.appliedFor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    candidate.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    candidate.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredCandidates = mockCandidates.filter(candidate => {
+    if (!searchQuery.trim()) return true;
+    
+    const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+    if (searchTerms.length === 0) return true;
+
+    const searchableFields = [
+      candidate.name || '',
+      candidate.appliedFor || '',
+      candidate.location || '',
+      candidate.email || '',
+      candidate.phone || '',
+      candidate.experience || '',
+      ...(candidate.skills || [])
+    ].map(field => field.toLowerCase());
+
+    // Check if all search terms are found in any of the searchable fields
+    return searchTerms.every(term => 
+      searchableFields.some(field => field.includes(term))
+    );
+  });
 
   const handleCardClick = (candidate: Candidate, event: React.MouseEvent) => {
     // Don't open dialog if clicking on action buttons
@@ -163,7 +178,7 @@ const CandidateListView: React.FC<CandidateListViewProps> = ({ searchQuery }) =>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm font-medium">Trust: {candidate.trustScore}%</span>
+                    <span className="text-sm font-medium">Trust: NA</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 text-green-500" />

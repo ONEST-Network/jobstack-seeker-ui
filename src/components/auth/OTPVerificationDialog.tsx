@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useParams } from 'react-router-dom';
+import { useOrgDetails } from '@/hooks/useOrgDetails';
 
 interface OTPVerificationDialogProps {
   isOpen: boolean;
@@ -14,6 +16,7 @@ interface OTPVerificationDialogProps {
   method: 'email' | 'phone';
   phoneNumber?: string;
   email?: string;
+  name?: string;
 }
 
 const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
@@ -23,11 +26,14 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
   contactMethod,
   method,
   phoneNumber,
-  email
+  email,
+  name
 }) => {
   const [otp, setOtp] = useState('');
   const { verifyOTP, isLoading } = useAuth();
   const { toast } = useToast();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
+  const { data: orgDetails } = useOrgDetails(orgSlug || null);
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -40,11 +46,23 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
     }
 
     try {
-      await verifyOTP({
-        phoneNumber,
-        email,
-        otp
-      });
+      // Prepare the verify payload
+      const verifyPayload = {
+        name,
+        otp,
+        rememberMe: true,
+        ...(method === 'email' && email ? { email } : {}),
+        ...(method === 'phone' && phoneNumber ? { phoneNumber } : {}),
+        ...(orgSlug && orgSlug !== '0' ? {
+          joinOrg: {
+            join: true,
+            orgSlug: orgSlug,
+            role: 'seeker'
+          }
+        } : {})
+      };
+
+      await verifyOTP(verifyPayload);
       
       // Clear OTP input
       setOtp('');
@@ -57,10 +75,10 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
         title: "Success",
         description: "OTP verified successfully!"
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Invalid OTP. Please try again.",
+        description: error instanceof Error ? error.message : "Invalid OTP. Please try again.",
         variant: "destructive"
       });
     }
@@ -85,6 +103,16 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
             We've sent a 6-digit verification code to{' '}
             <span className="font-medium">{contactMethod}</span>
           </p>
+
+          {orgDetails?.data && orgSlug && orgSlug !== '0' && (
+            <div className="p-3 bg-muted rounded-lg text-left">
+              <h4 className="font-medium text-sm">Organization:</h4>
+              <p className="text-sm font-medium">{orgDetails.data.name}</p>
+              <p className="text-xs text-muted-foreground">
+                Signing up for {orgDetails.data.name}
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-center">
             <InputOTP value={otp} onChange={setOtp} maxLength={6}>

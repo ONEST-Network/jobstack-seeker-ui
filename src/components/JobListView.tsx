@@ -55,15 +55,30 @@ const JobListView: React.FC<JobListViewProps> = ({
     fetchScoresForJobs,
     isAutoRetrying
   } = useJobSearch();
-  const { applyToJob, applying } = useJobApplication();
+  const { applyToJob, saveDraft, applying, savingDraft } = useJobApplication();
 
-  // Filter jobs based on search query
-  const filteredJobs = (jobs || []).filter(job => 
-    job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.industry?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter jobs based on search query with improved exact word matching
+  const filteredJobs = (jobs || []).filter(job => {
+    if (!searchQuery.trim()) return true;
+    
+    const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+    if (searchTerms.length === 0) return true;
+
+    const searchableFields = [
+      job.title || '',
+      job.company || '',
+      job.location || '',
+      job.industry || '',
+      job.description || '',
+      job.skills?.join(' ') || '',
+      job.requirements?.join(' ') || ''
+    ].map(field => field.toLowerCase());
+
+    // Check if all search terms are found in any of the searchable fields
+    return searchTerms.every(term => 
+      searchableFields.some(field => field.includes(term))
+    );
+  });
 
   // Pagination logic
   const jobsPerPage = 5;
@@ -100,7 +115,7 @@ const JobListView: React.FC<JobListViewProps> = ({
         });
         return updated;
       });
-
+      
       // Mark these jobs as scored
       setScoredJobIds(prev => {
         const newSet = new Set(prev);
@@ -108,16 +123,14 @@ const JobListView: React.FC<JobListViewProps> = ({
         return newSet;
       });
     } catch (error) {
-      console.error('Failed to fetch trust and match scores for current page:', error);
+      console.error('Error fetching scores:', error);
     }
   };
 
-  // Fetch trust and match scores when page changes or user logs in
+  // Fetch scores for current page when it changes
   useEffect(() => {
-    if (user && user.profile && paginatedJobs.length > 0) {
-      fetchScoresForCurrentPage();
-    }
-  }, [currentPage, user?.profile, paginatedJobs, selectedCandidate]);
+    fetchScoresForCurrentPage();
+  }, [currentPage, paginatedJobs]);
 
   // Reset scored jobs when selected candidate changes (to recalculate scores with new profile)
   useEffect(() => {
@@ -168,6 +181,22 @@ const JobListView: React.FC<JobListViewProps> = ({
       // Close the application dialog on success
       setSelectedJob(null);
     }
+  };
+
+  const handleSaveDraft = async (applicationData: JobApplicationData) => {
+    if (!selectedJob) return;
+
+    // Find provider and job IDs from the original API response
+    const ids = findProviderAndJobIds(selectedJob.id);
+    if (!ids) {
+      console.error('Could not find provider and job IDs for job:', selectedJob.id);
+      return;
+    }
+
+    const result = await saveDraft(ids.jobId, ids.providerId, applicationData);
+    
+    // Don't close the dialog when saving draft, let user continue editing
+    // The success/error message is handled by the saveDraft function
   };
 
   const handleRetry = () => {
@@ -419,7 +448,9 @@ const JobListView: React.FC<JobListViewProps> = ({
           isOpen={!!selectedJob} 
           onClose={() => setSelectedJob(null)}
           onSubmit={handleJobApplicationSubmit}
+          onSaveDraft={handleSaveDraft}
           applying={applying}
+          savingDraft={savingDraft}
         />
       )}
 

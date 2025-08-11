@@ -7,20 +7,38 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import OTPVerificationDialog from './OTPVerificationDialog';
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
+import { useOrgDetails } from '@/hooks/useOrgDetails';
 
 interface RegistrationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   defaultRole: 'individual' | 'organization';
+  preFilledEmail?: string;
+  preFilledPhone?: string;
 }
 
-const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose, defaultRole }) => {
+interface RegistrationDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  defaultRole: 'individual' | 'organization';
+  preFilledEmail?: string;
+  preFilledPhone?: string;
+}
+
+const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ 
+  isOpen, 
+  onClose, 
+  defaultRole,
+  preFilledEmail,
+  preFilledPhone
+}) => {
   const [step, setStep] = useState<'register' | 'otp-verification'>('register');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [formattedPhone, setFormattedPhone] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState<'individual' | 'organization'>('individual');
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -30,11 +48,65 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
   const { requestOTP, isLoading } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
+  const { data: orgDetails } = useOrgDetails(orgSlug || null);
 
   // Always set role to individual - organization registration is disabled
   useEffect(() => {
     setRole('individual');
   }, [defaultRole]);
+
+  // Format phone number with country code
+  const formatPhoneNumber = (input: string): string => {
+    const digits = input.replace(/\D/g, '');
+    
+    // If it already starts with +91, return as is
+    if (input.startsWith('+91')) {
+      return input;
+    }
+    
+    // If it's a 10-digit number, add +91
+    if (digits.length === 10) {
+      return `+91${digits}`;
+    }
+    
+    // If it's an 11-digit number starting with 91, add +
+    if (digits.length === 11 && digits.startsWith('91')) {
+      return `+${digits}`;
+    }
+    
+    // If it's a 12-digit number starting with 91, add +
+    if (digits.length === 12 && digits.startsWith('91')) {
+      return `+${digits}`;
+    }
+    
+    // For other cases, just add +91 if it's a 10-digit number
+    if (digits.length === 10) {
+      return `+91${digits}`;
+    }
+    
+    return input;
+  };
+
+  // Handle pre-filled contact information
+  useEffect(() => {
+    if (preFilledEmail) {
+      setEmail(preFilledEmail);
+      setPhone('');
+      setFormattedPhone('');
+    } else if (preFilledPhone) {
+      setPhone(preFilledPhone);
+      setEmail('');
+      const formatted = formatPhoneNumber(preFilledPhone);
+      setFormattedPhone(formatted);
+    }
+  }, [preFilledEmail, preFilledPhone]);
+
+  const handlePhoneChange = (value: string) => {
+    setPhone(value);
+    const formatted = formatPhoneNumber(value);
+    setFormattedPhone(formatted);
+  };
 
   const handleTermsChange = (checked: boolean | "indeterminate") => {
     setTermsAccepted(checked === true);
@@ -93,7 +165,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
     }
 
     // Validate phone if provided
-    if (phone && phone.length < 10) {
+    if (phone && phone.replace(/\D/g, '').length < 10) {
       toast({
         title: "Error",
         description: "Please enter a valid phone number.",
@@ -106,7 +178,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
       const otpData = {
         name,
         ...(email && { email }),
-        ...(phone && { phoneNumber: phone })
+        ...(phone && { phoneNumber: formattedPhone || formatPhoneNumber(phone) })
       };
 
       await requestOTP(otpData);
@@ -115,10 +187,10 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
         title: "OTP Sent",
         description: `A 6-digit OTP has been sent to your ${email ? 'email' : 'phone'}.`
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to send OTP. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to send OTP. Please try again.",
         variant: "destructive"
       });
     }
@@ -128,6 +200,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
     setStep('register');
     setEmail('');
     setPhone('');
+    setFormattedPhone('');
     setName('');
     setRole(defaultRole);
     setTermsAccepted(false);
@@ -196,7 +269,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
                     id="phone"
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
                     placeholder="+91 98765 43210"
                   />
                 </div>
@@ -273,7 +346,8 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
         contactMethod={email || phone}
         method={email ? 'email' : 'phone'}
         email={email || undefined}
-        phoneNumber={phone || undefined}
+        phoneNumber={formattedPhone || undefined}
+        name={name}
       />
 
       <UserProfileDialog
@@ -287,6 +361,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ isOpen, onClose
           });
         }}
         mode="user"
+        initialProfile={undefined}
       />
     </>
   );

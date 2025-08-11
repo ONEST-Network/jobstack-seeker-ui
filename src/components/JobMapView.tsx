@@ -61,7 +61,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
 
   const { user } = useAuth();
   const { jobs, loading, error, findProviderAndJobIds, fetchScoresForJobs, scoresLoading } = useJobSearch();
-  const { applyToJob, applying } = useJobApplication();
+  const { applyToJob, saveDraft, applying, savingDraft } = useJobApplication();
 
   // Custom toast function for map container
   const showMapToast = (type: 'success' | 'error' | 'info', title: string, description?: string, duration = 4000) => {
@@ -157,13 +157,28 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
       return;
     }
 
-    // Filter jobs based on search query first
-    const filteredJobs = jobs.filter(job => 
-      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.industry?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Filter jobs based on search query with improved exact word matching
+    const filteredJobs = jobs.filter(job => {
+      if (!searchQuery.trim()) return true;
+      
+      const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+      if (searchTerms.length === 0) return true;
+
+      const searchableFields = [
+        job.title || '',
+        job.company || '',
+        job.location || '',
+        job.industry || '',
+        job.description || '',
+        job.skills?.join(' ') || '',
+        job.requirements?.join(' ') || ''
+      ].map(field => field.toLowerCase());
+
+      // Check if all search terms are found in any of the searchable fields
+      return searchTerms.every(term => 
+        searchableFields.some(field => field.includes(term))
+      );
+    });
 
     // Group jobs by location
     const locationMap = new Map<string, {
@@ -305,6 +320,33 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
     }
   };
 
+  const handleSaveDraft = async (applicationData: JobApplicationData) => {
+    if (!selectedJob) return;
+
+    try {
+      // Find provider and job IDs from the original API response
+      const ids = findProviderAndJobIds(selectedJob.id);
+      if (!ids) {
+        console.error('Could not find provider and job IDs for job:', selectedJob.id);
+        showMapToast('error', 'Draft Save Failed', 'Failed to save job application draft. Please try again.');
+        return;
+      }
+
+      const result = await saveDraft(ids.jobId, ids.providerId, applicationData);
+      
+      if (result.success) {
+        showMapToast('success', 'Draft Saved!', 'Your job application draft has been successfully saved.');
+        // Don't close the dialog when saving draft, let user continue editing
+      } else {
+        const errorMessage = result.error || 'Failed to save draft';
+        showMapToast('error', 'Draft Save Failed', errorMessage);
+      }
+    } catch (error) {
+      console.error('Job draft save error:', error);
+      showMapToast('error', 'Draft Save Failed', 'Failed to save job application draft. Please try again.');
+    }
+  };
+
   // Find My Location handler
   const handleFindMyLocation = () => {
     if (!navigator.geolocation) {
@@ -370,6 +412,8 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
                 toast.type === 'success' ? 'text-green-400 hover:text-green-600' : 
                 toast.type === 'error' ? 'text-red-400 hover:text-red-600' : 'text-blue-400 hover:text-blue-600'
               }`}
+              aria-label="Close notification"
+              title="Close notification"
             >
               <X className="h-4 w-4" />
             </button>
@@ -459,7 +503,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
 
       {/* Job Detail Dialog - Rendered outside map container with highest z-index */}
       {selectedJobForDetails && (
-        <div style={{ zIndex: 999999 }}>
+        <div className="fixed inset-0 z-[999999]">
           <JobDetailDialog
             job={selectedJobForDetails}
             isOpen={true}
@@ -471,13 +515,15 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
 
       {/* Job Application Dialog - Rendered outside map container with highest z-index */}
       {selectedJob && (
-        <div style={{ zIndex: 999999 }}>
+        <div className="fixed inset-0 z-[999999]">
           <JobApplicationDialog 
             job={selectedJob}
             isOpen={true}
             onClose={() => setSelectedJob(null)}
             onSubmit={handleJobApplicationSubmit}
+            onSaveDraft={handleSaveDraft}
             applying={applying}
+            savingDraft={savingDraft}
           />
         </div>
       )}

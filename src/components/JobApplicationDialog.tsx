@@ -8,7 +8,9 @@ interface JobApplicationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (applicationData: JobApplicationData) => Promise<void>;
+  onSaveDraft?: (applicationData: JobApplicationData) => Promise<void>;
   applying?: boolean;
+  savingDraft?: boolean;
 }
 
 const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({ 
@@ -16,7 +18,9 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   isOpen, 
   onClose, 
   onSubmit,
-  applying = false 
+  onSaveDraft,
+  applying = false,
+  savingDraft = false
 }) => {
   const [showProfileSelection, setShowProfileSelection] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
@@ -33,6 +37,13 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
       await onSubmit(applicationData);
     }
     handleClose();
+  };
+
+  const handleSaveDraft = async (applicationData: JobApplicationData) => {
+    if (onSaveDraft) {
+      await onSaveDraft(applicationData);
+    }
+    // Don't close the dialog when saving draft, let user continue editing
   };
 
   const handleClose = () => {
@@ -55,9 +66,11 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
         isOpen={showConsolidatedApplication}
         onClose={handleClose}
         onSubmit={handleApplicationSubmit}
+        onSaveDraft={onSaveDraft ? handleSaveDraft : undefined}
         job={job}
         selectedProfile={selectedProfile}
         applying={applying}
+        savingDraft={savingDraft}
       />
     </>
   );

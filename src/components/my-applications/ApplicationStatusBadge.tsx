@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Eye, Clock, Trash2 } from 'lucide-react';
+
+import { CheckCircle, XCircle, Eye, Clock, FileText } from 'lucide-react';
 
 interface ApplicationStatusBadgeProps {
-  status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'deleted';
+  status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'draft';
 }
 
 const ApplicationStatusBadge: React.FC<ApplicationStatusBadgeProps> = ({ status }) => {
@@ -22,8 +23,8 @@ const ApplicationStatusBadge: React.FC<ApplicationStatusBadgeProps> = ({ status 
         return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       case 'rejected':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'deleted':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'draft':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -41,8 +42,10 @@ const ApplicationStatusBadge: React.FC<ApplicationStatusBadgeProps> = ({ status 
         return <CheckCircle className="h-4 w-4" />;
       case 'interview':
         return <Eye className="h-4 w-4" />;
-      case 'deleted':
-        return <Trash2 className="h-4 w-4" />;
+
+      case 'draft':
+        return <FileText className="h-4 w-4" />;
+
       default:
         return <Clock className="h-4 w-4" />;
     }
@@ -62,8 +65,9 @@ const ApplicationStatusBadge: React.FC<ApplicationStatusBadgeProps> = ({ status 
         return 'Hired';
       case 'rejected':
         return 'Rejected';
-      case 'deleted':
-        return 'Job Deleted';
+
+      case 'draft':
+        return 'Draft';
       default:
         return status;
     }

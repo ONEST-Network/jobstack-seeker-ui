@@ -97,9 +97,9 @@ class ApiClient {
   }
 
   async checkUser(data: {
-    email?: string;
     phoneNumber?: string;
-  }): Promise<CheckUserResponse> {
+    email?: string;
+  }): Promise<{ userExists: boolean }> {
     return this.request('/auth/unified-otp/check-user', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -110,12 +110,21 @@ class ApiClient {
     phoneNumber?: string;
     email?: string;
     otp: string;
+    name?: string;
+    rememberMe?: boolean;
+    joinOrg?: {
+      join: boolean;
+      orgSlug: string;
+      role: string;
+    };
+    createAdmin?: boolean;
   }) {
     const response = await this.request<{ token: string; user: any; redirect: string }>('/auth/unified-otp/verify', {
       method: 'POST',
       body: JSON.stringify({
         ...data,
-        rememberMe: true
+        rememberMe: data.rememberMe ?? true
+
       }),
     });
     
@@ -128,14 +137,21 @@ class ApiClient {
   }
 
   async signOut() {
-    const response = await this.request('/auth/sign-out', {
-      method: 'POST',
-    });
-    
-    // Clear the token on sign out
-    this.clearAuthToken();
-    
-    return response;
+    try {
+      const response = await this.request('/auth/sign-out', {
+        method: 'POST',
+      });
+      
+      // Clear the token on sign out
+      this.clearAuthToken();
+      
+      return response;
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Even if the API call fails, clear the local token
+      this.clearAuthToken();
+      throw error;
+    }
   }
 
   async getSession() {
@@ -277,6 +293,21 @@ class ApiClient {
   // Get all profiles for the user
   async getProfiles(): Promise<ProfilesResponse> {
     return this.request('/profile', {
+      method: 'GET',
+    });
+  }
+
+  // Get profiles with pagination support
+  async getProfilesPaginated(page: number = 1, limit: number = 20, search?: string): Promise<ProfilesResponse> {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    if (search) {
+      params.append('search', search);
+    }
+    
+    const endpoint = `/profile?${params.toString()}`;
+    return this.request(endpoint, {
       method: 'GET',
     });
   }
@@ -431,12 +462,13 @@ class ApiClient {
       whatIWant?: Record<string, any>;
       [key: string]: any;
     };
+    transactionId?: string; // Optional transaction ID for draft conversion
   }) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v1/apply`;
     
-    // Generate a unique transaction ID
-    const transactionId = `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Use provided transaction ID or generate a new one
+    const transactionId = applyData.transactionId || `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     // Use profileId as the primary identifier for the application, fallback to userId if no profileId
     const applicationId = applyData.profileId || applyData.userId;
@@ -595,6 +627,202 @@ class ApiClient {
       throw error;
     }
   }
+
+  // BAP Job Draft API - Same payload as apply but saves as draft
+  /* async saveJobDraft(applyData: {
+    providerId: string;
+    jobId: string;
+    userId: string;
+    profileId?: string; // Profile ID to use as the primary identifier for the application
+    userData: {
+      name: string;
+      age?: string;
+      gender?: string;
+      skills?: Array<{ code: string; name: string }>;
+      languages?: Array<{ code: string; name: string }>;
+      expectedSalary?: string;
+      totalExperience?: string;
+      phone: string;
+      email: string;
+      location: {
+        lat: number;
+        lng: number;
+        address: string;
+        city: string;
+        state: string;
+        country: string;
+      };
+    };
+    profileData?: {
+      whoIAm?: Record<string, any>;
+      whatIHave?: Record<string, any>;
+      whatIWant?: Record<string, any>;
+      [key: string]: any;
+    };
+  }) {
+    const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const url = `${BAP_URL}/api/v1/job-draft`;
+    
+    // Generate a unique transaction ID
+    const transactionId = `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Use profileId as the primary identifier for the application, fallback to userId if no profileId
+    const applicationId = applyData.profileId || applyData.userId;
+    
+    const payload = {
+      context: {
+        bpp_id: "bpp1.dhiway.com",
+        bpp_uri: "https://beckn-adapter.dhiway.net/bpp/receiver",
+        transaction_id: transactionId
+      },
+      message: {
+        order: {
+          provider: {
+            id: applyData.providerId
+          },
+          items: [
+            {
+              id: applyData.jobId,
+              fulfillment_ids: [applicationId]
+            }
+          ],
+          fulfillments: [
+            {
+              id: applicationId,
+              customer: {
+                person: {
+                  id: applicationId,
+                  name: applyData.userData.name,
+                  age: applyData.userData.age,
+                  gender: applyData.userData.gender,
+                  skills: applyData.userData.skills || [
+                    {
+                      code: "UI",
+                      name: "UI Design"
+                    }
+                  ],
+                  languages: applyData.userData.languages || [
+                    {
+                      code: "en",
+                      name: "English"
+                    }
+                  ],
+                  metadata: applyData.profileData ? {
+                    whoIAm: applyData.profileData.whoIAm || {},
+                    whatIHave: applyData.profileData.whatIHave || {},
+                    whatIWant: applyData.profileData.whatIWant || {},
+                    profileId: applyData.profileId, // Include profile ID in metadata
+                    userId: applyData.userId, // Include user ID for reference
+                    ...applyData.profileData
+                  } : {
+                    profileId: applyData.profileId, // Include profile ID even if no other profile data
+                    userId: applyData.userId // Include user ID for reference
+                  },
+                  tags: [
+                    {
+                      descriptor: {
+                        code: "emp-details",
+                        name: "Employee Details"
+                      },
+                      list: [
+                        {
+                          descriptor: {
+                            code: "expected-salary",
+                            name: "Expected Salary"
+                          },
+                          value: applyData.userData.expectedSalary || "1200000"
+                        },
+                        {
+                          descriptor: {
+                            code: "total-experience",
+                            name: "Total Experience"
+                          },
+                          value: applyData.userData.totalExperience || "5"
+                        },
+                        {
+                          descriptor: {
+                            code: "profile-id",
+                            name: "Profile ID"
+                          },
+                          value: applyData.profileId || "default"
+                        },
+                        {
+                          descriptor: {
+                            code: "user-id",
+                            name: "User ID"
+                          },
+                          value: applyData.userId
+                        }
+                      ]
+                    }
+                  ]
+                },
+                contact: {
+                  phone: applyData.userData.phone,
+                  email: applyData.userData.email
+                },
+                location: {
+                  gps: {
+                    lat: applyData.userData.location.lat,
+                    lng: applyData.userData.location.lng
+                  },
+                  address: applyData.userData.location.address,
+                  city: {
+                    name: applyData.userData.location.city,
+                    code: "std:080"
+                  },
+                  state: {
+                    name: applyData.userData.location.state,
+                    code: "IN-KA"
+                  },
+                  country: {
+                    name: applyData.userData.location.country,
+                    code: "IN"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    };
+
+    try {
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Validate the response structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from BAP API');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('BAP Draft API Error:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+      throw error;
+    }
+  } */
 
   // BAP Job Select API
   async selectJob(providerId: string, jobId: string) {
@@ -898,6 +1126,54 @@ class ApiClient {
       throw new Error('Upload failed due to CORS restrictions. Please contact support to configure CORS for the storage bucket.');
     }
   }
+
+  // Organization details API
+  async getOrgDetails(orgSlug: string) {
+    const API_ENDPOINT = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
+    const url = `${API_ENDPOINT}/admin/org-details?orgSlug=${orgSlug}`;
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add API key if available
+    const apiKey = import.meta.env.VITE_ORG_API_KEY;
+    if (apiKey) {
+      headers['x-api-key'] = apiKey;
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Organization management APIs
+  async getOrganizationList(): Promise<OrganizationListResponse> {
+    return this.request('/auth/organization/list/', {
+      method: 'GET',
+    });
+  }
+
+  async setActiveOrganization(organizationId: string): Promise<SetActiveOrgResponse> {
+    return this.request('/auth/organization/set-active', {
+      method: 'POST',
+      body: JSON.stringify({ organizationId }),
+    });
+  }
+
+  async getActiveOrganizationMember(): Promise<ActiveMemberResponse> {
+    return this.request('/auth/organization/get-active-member', {
+      method: 'GET',
+    });
+  }
 }
 
 // Utility function to transform profile data for API
@@ -1011,6 +1287,9 @@ export const transformProfileForAPI = (profile: any, userEmail?: string, locatio
     whoIAm: cleanedWhoIAm,
     whatIHave: cleanedWhatIHave,
     whatIWant: cleanedWhatIWant,
+    // ITI Institute information (for ITI-related roles)
+    itiInstitute: profile.whatIHave?.itiInstitute || profile.itiInstitute,
+    itiInstituteSlug: profile.whatIHave?.itiInstituteSlug || profile.itiInstituteSlug,
     // Education and certifications
     education: profile.education,
     skillCertifications: profile.skillCertifications,
@@ -1210,13 +1489,10 @@ export const testProfileCreation = () => {
 export const apiClient = new ApiClient(API_BASE_URL);
 
 // Export types for better TypeScript support
-export interface CheckUserResponse {
-  userExists: boolean;
-}
-
 export interface RequestOTPResponse {
   ok: boolean;
-  otp: string;
+  user: boolean;
+  otp?: string;
 }
 
 export interface AuthResponse {
@@ -1397,3 +1673,35 @@ export interface ProfilesResponse {
     updatedAt: string;
   }>;
 } 
+
+// Organization management API types
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  logo: string | null;
+  createdAt: string;
+  metadata: string;
+  type: string;
+}
+
+export type OrganizationListResponse = Organization[];
+
+export interface SetActiveOrgResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface ActiveMemberResponse {
+  organizationId: string;
+  userId: string;
+  role: 'admin' | 'member' | 'viewer' | 'owner';
+  createdAt: string;
+  id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
+  };
+}

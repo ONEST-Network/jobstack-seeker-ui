@@ -1,0 +1,59 @@
+{
+  "footer": {
+    "companyInfo": {
+      "name": "JobBridge",
+      "description": "Connecting talent with opportunities across India. Built for MSME and blue-collar workforce with AI-powered matching and local language support.",
+      "tagline": "Connecting talent with opportunities across India"
+    },
+    "sections": {
+      "platform": {
+        "title": "Platform",
+        "links": {
+          "findJobs": "Find Jobs",
+          "postJob": "Post a Job",
+          "issueCertificates": "Issue Certificates",
+          "publicDashboard": "Public Dashboard",
+          "mobileApp": "Mobile App"
+        }
+      },
+      "resources": {
+        "title": "Resources",
+        "links": {
+          "helpCenter": "Help Center",
+          "careerGuides": "Career Guides",
+          "skillDevelopment": "Skill Development",
+          "interviewTips": "Interview Tips",
+          "resumeBuilder": "Resume Builder"
+        }
+      },
+      "company": {
+        "title": "Company",
+        "links": {
+          "aboutUs": "About Us",
+          "career": "Career",
+          "press": "Press",
+          "partnerWithUs": "Partner with Us",
+          "investorRelations": "Investor Relations"
+        }
+      },
+      "legal": {
+        "title": "Legal",
+        "links": {
+          "termsConditions": "Terms & Conditions",
+          "privacyPolicy": "Privacy Policy",
+          "cookiePolicy": "Cookie Policy",
+          "dataProtection": "Data Protection",
+          "accessibility": "Accessibility"
+        }
+      }
+    },
+    "social": {
+      "linkedin": "LinkedIn",
+      "twitter": "Twitter",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "youtube": "YouTube"
+    },
+    "copyright": "© 2024 JobBridge. All rights reserved."
+  }
+}

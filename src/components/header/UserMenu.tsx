@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { User, LogOut, Building2, Users, FileText, Mail, Phone } from 'lucide-react';
+import { User, LogOut, Building2, Users, FileText, Mail, Phone, Eye, Settings, Loader2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
+import ViewAllProfiles from '@/components/ViewAllProfiles';
 import { apiClient, ProfileResponse, ProfilesResponse } from '@/lib/api';
 
 interface UserMenuProps {
@@ -13,9 +14,11 @@ interface UserMenuProps {
 
 const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
   const navigate = useNavigate();
-  const { user, logout, getSelectedCandidate, refreshProfileData, cleanupIncompleteProfiles } = useAuth();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
+  const { user, logout, getSelectedCandidate, refreshProfileData, cleanupIncompleteProfiles, hasAdminRole, isLoading } = useAuth();
   const selectedCandidate = getSelectedCandidate();
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
+  const [showViewAllProfiles, setShowViewAllProfiles] = useState(false);
   const [profileMode, setProfileMode] = useState<'add' | 'edit'>('add');
 
   // Clean up incomplete profiles when component mounts
@@ -35,22 +38,42 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
   };
 
   const handleManageEmployers = () => {
-    navigate('/provider');
+    navigate(`/${orgSlug || '0'}/provider`);
   };
 
   const handleManageCandidates = () => {
-    navigate('/seeker?tab=profiles');
+    navigate(`/${orgSlug || '0'}/seeker?tab=profiles`);
   };
 
   const handleMyApplications = () => {
-    navigate('/seeker?tab=applications');
+    navigate(`/${orgSlug || '0'}/seeker?tab=applications`);
+  };
+
+  const handleViewAllProfiles = () => {
+    setShowViewAllProfiles(true);
+  };
+
+  const handleAdminDashboard = () => {
+    navigate(`/${orgSlug || '0'}/seeker?tab=admin`);
   };
 
   if (!user) {
     return (
-      <Button variant="ghost" size="sm" className="gap-2" onClick={onShowLogin}>
-        <User className="h-4 w-4" />
-        <span className="hidden sm:inline">Login</span>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="gap-2" 
+        onClick={onShowLogin}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <User className="h-4 w-4" />
+        )}
+        <span className="hidden sm:inline">
+          {isLoading ? 'Loading...' : 'Login'}
+        </span>
       </Button>
     );
   }
@@ -99,6 +122,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
                 <FileText className="h-4 w-4 mr-2" />
                 My Applications
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleViewAllProfiles}>
+                <Eye className="h-4 w-4 mr-2" />
+                View All Profiles
+              </DropdownMenuItem>
             </>
           )}
           {user.role === 'organization' && (
@@ -107,12 +134,21 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
               Manage Employers
             </DropdownMenuItem>
           )}
+          
+          {/* Admin Dashboard - Only show if user has admin role */}
+          {hasAdminRole() && (
+            <DropdownMenuItem onClick={handleAdminDashboard}>
+              <Settings className="h-4 w-4 mr-2" />
+              Admin Dashboard
+            </DropdownMenuItem>
+          )}
+          
           {/* <DropdownMenuItem onClick={() => {}}>
             Account Settings
           </DropdownMenuItem> */}
-          <DropdownMenuItem onClick={logout}>
+          <DropdownMenuItem onClick={logout} disabled={isLoading}>
             <LogOut className="h-4 w-4 mr-2" />
-            Logout
+            {isLoading ? 'Logging out...' : 'Logout'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -127,6 +163,12 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           profileId={user.profileId}
         />
       )}
+
+      {/* View All Profiles Dialog */}
+      <ViewAllProfiles
+        isOpen={showViewAllProfiles}
+        onClose={() => setShowViewAllProfiles(false)}
+      />
     </>
   );
 };

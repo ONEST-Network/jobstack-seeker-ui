@@ -1,24 +1,45 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateSelector from '@/components/candidates/CandidateSelector';
-import Logo from './Logo';
+import OrgLogo from './OrgLogo';
 import LanguageSelector from './LanguageSelector';
 import UserMenu from './UserMenu';
 import HeaderDialogs from './HeaderDialogs';
 import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
 
-const Header = () => {
+interface HeaderProps {
+  orgSlug?: string | null;
+}
+
+const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
   const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showOrgProfile, setShowOrgProfile] = useState(false);
   const [showCandidateDialog, setShowCandidateDialog] = useState(false);
   
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
+
+  // Reset auth modal state when user changes (login/logout)
+  useEffect(() => {
+    if (!user) {
+      setShowUnifiedAuth(false);
+    }
+  }, [user]);
+
+  // Cleanup effect to reset modal state
+  useEffect(() => {
+    return () => {
+      setShowUnifiedAuth(false);
+      setShowUserProfile(false);
+      setShowOrgProfile(false);
+      setShowCandidateDialog(false);
+    };
+  }, []);
 
   const handleProfileComplete = () => {
     if (user?.role === 'individual') {
@@ -29,14 +50,27 @@ const Header = () => {
   };
 
   const handleShowAuth = () => {
-    setShowUnifiedAuth(true);
+    // Prevent opening auth modal if still loading from logout
+    if (isLoading) return;
+    
+    // Ensure modal state is clean before opening
+    setShowUnifiedAuth(false);
+    
+    // Use setTimeout to ensure state is properly reset before opening
+    setTimeout(() => {
+      setShowUnifiedAuth(true);
+    }, 10);
+  };
+
+  const handleCloseAuth = () => {
+    setShowUnifiedAuth(false);
   };
 
   return (
-    <header className="bg-white border-b border-border sticky top-0 z-50">
+    <header className="bg-gray-50/90 backdrop-blur-md border-b border-gray-200/60 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <Logo />
+          <OrgLogo orgSlug={orgSlug} />
 
           {/* Right Section */}
           <div className="flex items-center gap-1 sm:gap-3">
@@ -62,7 +96,7 @@ const Header = () => {
       {/* Unified Auth Dialog */}
       <UnifiedAuthDialog
         isOpen={showUnifiedAuth}
-        onClose={() => setShowUnifiedAuth(false)}
+        onClose={handleCloseAuth}
         defaultRole="individual"
       />
 

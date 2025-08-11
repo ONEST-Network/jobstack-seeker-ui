@@ -143,10 +143,10 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
                       <div className="w-24 h-2 bg-gray-200 rounded-full">
                         <div 
                           className="h-2 bg-yellow-500 rounded-full" 
-                          style={{ width: `${candidate.trustScore}%` }}
+                          style={{ width: `0%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium">{candidate.trustScore}%</span>
+                      <span className="text-sm font-medium">NA</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">

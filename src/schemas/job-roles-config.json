@@ -47,6 +47,10 @@
     "Field Sales Person": {
       "industry": "Sales",
       "description": "Field-based sales and business development"
+    },
+    "ITI Student": {
+      "industry": "Manufacturing",
+      "description": "ITI (Industrial Training Institute) student roles and specializations"
     }
   }
 } 

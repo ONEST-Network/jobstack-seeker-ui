@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Building, MapPin, Clock, Users, Star, ArrowLeft, Share2, Copy } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useJobApplication } from '@/hooks/useJobApplication';
 import JobMediaCarousel from '@/components/JobMediaCarousel';
 import JobApplicationDialog from '@/components/JobApplicationDialog';
 import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
@@ -91,17 +92,17 @@ interface SharedJobData {
 }
 
 const SharedJob: React.FC = () => {
-  const { providerId, jobId } = useParams<{ providerId: string; jobId: string }>();
+  const { orgSlug, providerId, jobId } = useParams<{ orgSlug: string; providerId: string; jobId: string }>();
   const navigate = useNavigate();
   const { user, getSelectedCandidate } = useAuth();
   const { toast } = useToast();
+  const { applyToJob, saveDraft, applying, savingDraft } = useJobApplication();
   
   const [jobData, setJobData] = useState<SharedJobData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showApplicationDialog, setShowApplicationDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [applying, setApplying] = useState(false);
 
   // Helper function to format location display
   const formatLocation = (location: any): string => {
@@ -404,7 +405,7 @@ const SharedJob: React.FC = () => {
   };
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/${providerId}/${jobId}`;
+    const shareUrl = `${window.location.origin}/${orgSlug || '0'}/${providerId}/${jobId}`;
     
     try {
       // Always copy to clipboard first
@@ -447,7 +448,7 @@ const SharedJob: React.FC = () => {
       return;
     }
 
-    setApplying(true);
+    // setApplying(true); // This line is removed as applying state is now managed by useJobApplication hook
 
     try {
       // Get the selected candidate/profile ID (same as regular application flow)
@@ -479,7 +480,7 @@ const SharedJob: React.FC = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => navigate('/seeker?tab=applications')}
+              onClick={() => navigate(`/${orgSlug || '0'}/seeker?tab=applications`)}
             >
               View Applications
             </Button>
@@ -495,7 +496,48 @@ const SharedJob: React.FC = () => {
         variant: "destructive"
       });
     } finally {
-      setApplying(false);
+      // setApplying(false); // This line is removed as applying state is now managed by useJobApplication hook
+    }
+  };
+
+  const handleSaveDraft = async (applicationData: any) => {
+    if (!user?.id || !providerId || !jobId) {
+      toast({
+        title: "Error",
+        description: "Please log in to save a draft.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Get the selected candidate/profile ID (same as regular application flow)
+      const selectedCandidate = getSelectedCandidate();
+      const profileId = selectedCandidate?.id || 'default';
+
+      const response = await apiClient.saveJobDraft({
+        providerId,
+        jobId,
+        userId: user.id,
+        profileId, // Use profile ID as the primary identifier for the application
+        userData: applicationData,
+        profileData: applicationData.profileData
+      });
+
+      toast({
+        title: "Draft Saved!",
+        description: "Your job application draft has been successfully saved.",
+      });
+
+      // Don't close the dialog when saving draft, let user continue editing
+
+    } catch (error: any) {
+      console.error('Job draft save error:', error);
+      toast({
+        title: "Draft Save Failed",
+        description: error.message || "Failed to save draft. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -519,7 +561,7 @@ const SharedJob: React.FC = () => {
           </div>
           <h2 className="text-xl font-semibold mb-2">Job Not Found</h2>
           <p className="text-muted-foreground mb-6">{error || 'The job you are looking for does not exist or has been removed.'}</p>
-          <Button onClick={() => navigate('/seeker?tab=discover')}>
+          <Button onClick={() => navigate(`/${orgSlug || '0'}/seeker?tab=discover`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Browse Jobs
           </Button>
@@ -548,7 +590,7 @@ const SharedJob: React.FC = () => {
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
-              onClick={() => navigate('/seeker?tab=discover')}
+              onClick={() => navigate(`/${orgSlug || '0'}/seeker?tab=discover`)}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -623,7 +665,7 @@ const SharedJob: React.FC = () => {
             <div className="flex gap-4">
               <div className="bg-blue-50 rounded-lg p-4 flex-1 text-center">
                 <div className="text-sm text-blue-600">Trust Score</div>
-                <div className="text-xl font-bold text-blue-700">{displayTrustScore}/10</div>
+                <div className="text-xl font-bold text-blue-700">NA</div>
                 {!shouldShowRealScores && (
                   <div className="text-xs text-blue-500 mt-1">Login to see</div>
                 )}
@@ -656,7 +698,9 @@ const SharedJob: React.FC = () => {
           isOpen={showApplicationDialog}
           onClose={() => setShowApplicationDialog(false)}
           onSubmit={handleApplicationSubmit}
+          onSaveDraft={handleSaveDraft}
           applying={applying}
+          savingDraft={savingDraft}
         />
       )}
 
