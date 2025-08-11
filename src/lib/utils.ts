@@ -206,3 +206,90 @@ export const validateLocationForAPI = (locationData: LocationData): { isValid: b
     errors
   };
 };
+
+/**
+ * Fetches certificate data from a URL and extracts the certificate name
+ * @param url - The certificate URL
+ * @returns Promise<string> - The certificate name or the original URL if parsing fails
+ */
+export async function getCertificateName(url: string): Promise<string> {
+  try {
+    // Add .json extension to fetch the actual data
+    const jsonUrl = url.endsWith('.json') ? url : `${url}.json`;
+    
+    // Use a proxy or handle CORS if needed
+    const response = await fetch(jsonUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      // Add timeout and other fetch options if needed
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch certificate data: ${response.status} ${response.statusText}`);
+    }
+    
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      throw new Error('Invalid JSON response from certificate server');
+    }
+    
+    // Look for the content object and extract certificate_name
+    if (data.content && data.content.certificate_name) {
+      return data.content.certificate_name;
+    }
+    
+    // Fallback: try to find certificate_name in the root object
+    if (data.certificate_name) {
+      return data.certificate_name;
+    }
+    
+    // Additional fallback: try other common field names
+    if (data.content && data.content.certificateName) {
+      return data.content.certificateName;
+    }
+    
+    if (data.certificateName) {
+      return data.certificateName;
+    }
+    
+    // Try to find any field that might contain certificate information
+    if (data.content) {
+      const contentKeys = Object.keys(data.content);
+      for (const key of contentKeys) {
+        if (key.toLowerCase().includes('certificate') || key.toLowerCase().includes('name')) {
+          const value = data.content[key];
+          if (typeof value === 'string' && value.trim()) {
+            return value.trim();
+          }
+        }
+      }
+    }
+    
+    // If no certificate name found, return the original URL
+    return url;
+  } catch (error) {
+    console.error('Error fetching certificate data:', error);
+    
+    // Handle specific error types
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('Network error or CORS issue');
+    }
+    
+    // Return the original URL if there's an error
+    return url;
+  }
+}
+
+/**
+ * Checks if a URL is a certificate URL
+ * @param url - The URL to check
+ * @returns boolean - True if it's a certificate URL
+ */
+export function isCertificateUrl(url: string): boolean {
+  return url.includes('verify.jobs.onest.dhiway.net/jobs/');
+}
