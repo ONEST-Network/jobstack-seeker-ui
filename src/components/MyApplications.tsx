@@ -13,6 +13,7 @@ interface JobApplication {
   location: string;
   salary: string;
   appliedDate: string;
+
   status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'draft';
   raw?: any;
   media?: Array<{
@@ -26,7 +27,7 @@ interface JobApplication {
 }
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 
 // Status API response interface
 interface StatusResponse {
@@ -71,14 +72,24 @@ const MyApplications = () => {
   
   // Add refs to track if we're already fetching to prevent duplicate calls
   const isFetchingRef = useRef(false);
-  const statusCache = useRef<Map<string, string>>(new Map());
+  const statusCache = useRef<Map<string, { status: string; timestamp: number }>>(new Map());
+  const autoRefreshInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to fetch status for a specific application with retry
+  // Cache duration in milliseconds (5 minutes)
+  const CACHE_DURATION = 5 * 60 * 1000;
+
+  // Function to check if cache is valid
+  const isCacheValid = (timestamp: number): boolean => {
+    return Date.now() - timestamp < CACHE_DURATION;
+  };
+
+  // Function to fetch status for a specific application with retry and better error handling
   const fetchApplicationStatus = async (orderId: string, transactionId: string, retryCount = 0): Promise<string> => {
     // Check cache first
     const cacheKey = `${orderId}-${transactionId}`;
-    if (statusCache.current.has(cacheKey)) {
-      return statusCache.current.get(cacheKey)!;
+    const cachedResult = statusCache.current.get(cacheKey);
+    if (cachedResult && isCacheValid(cachedResult.timestamp)) {
+      return cachedResult.status;
     }
 
     try {
@@ -102,11 +113,25 @@ const MyApplications = () => {
       });
 
       if (!response.ok) {
+        // Handle different HTTP error codes
+        if (response.status === 404 || response.status === 410) {
+          // Job not found or gone - likely deleted
+          const deletedStatus = 'deleted';
+          statusCache.current.set(cacheKey, { status: deletedStatus, timestamp: Date.now() });
+          return deletedStatus;
+        }
         throw new Error(`Status API failed: ${response.status}`);
       }
 
       const data: StatusResponse = await response.json();
       
+      // Check if the response indicates the job/order doesn't exist
+      if (!data.message?.order) {
+        const deletedStatus = 'deleted';
+        statusCache.current.set(cacheKey, { status: deletedStatus, timestamp: Date.now() });
+        return deletedStatus;
+      }
+
       // Validate response structure
       if (!data.message?.order?.fulfillments || !Array.isArray(data.message.order.fulfillments)) {
         return 'applied'; // Default fallback
@@ -122,28 +147,39 @@ const MyApplications = () => {
         // - 'archived' -> 'rejected' (Application was rejected)
         // - 'open' -> 'applied' (Application is still active/under review)
         // - 'closed' -> 'shortlisted' (Application was shortlisted)
+        // - 'deleted' or 'cancelled' -> 'deleted' (Job was deleted by provider)
+        // - 'inactive' or 'expired' -> 'deleted' (Job is no longer active)
         let status: string;
-        switch (code) {
+        switch (code.toLowerCase()) {
           case 'archived':
             status = 'rejected';
             break;
           case 'open':
+          case 'active':
             status = 'applied';
             break;
           case 'closed':
+          case 'completed':
             status = 'shortlisted';
+            break;
+          case 'deleted':
+          case 'cancelled':
+          case 'inactive':
+          case 'expired':
+          case 'removed':
+            status = 'deleted';
             break;
           default:
             status = 'applied'; // Default fallback
         }
         
-        // Cache the result
-        statusCache.current.set(cacheKey, status);
+        // Cache the result with timestamp
+        statusCache.current.set(cacheKey, { status, timestamp: Date.now() });
         return status;
       }
       
       const defaultStatus = 'applied';
-      statusCache.current.set(cacheKey, defaultStatus);
+      statusCache.current.set(cacheKey, { status: defaultStatus, timestamp: Date.now() });
       return defaultStatus; // Default fallback
     } catch (error) {
       console.error('Failed to fetch application status:', error);
@@ -155,9 +191,44 @@ const MyApplications = () => {
       }
       
       const fallbackStatus = 'applied';
-      statusCache.current.set(cacheKey, fallbackStatus);
+      statusCache.current.set(cacheKey, { status: fallbackStatus, timestamp: Date.now() });
       return fallbackStatus; // Default fallback on error
     }
+  };
+
+  // Optimized batch status fetching with parallel requests but rate limiting
+  const fetchMultipleStatuses = async (applications: JobApplication[]): Promise<JobApplication[]> => {
+    const batchSize = 5; // Process 5 requests at a time to avoid overwhelming the API
+    const updatedApplications: JobApplication[] = [];
+
+    for (let i = 0; i < applications.length; i += batchSize) {
+      const batch = applications.slice(i, i + batchSize);
+      
+      const batchPromises = batch.map(async (app) => {
+        const orderId = app.raw?.metadata?.message?.order?.id || app.raw?.order_id;
+        const transactionId = app.raw?.metadata?.context?.transaction_id || app.raw?.transaction_id;
+
+        if (orderId && transactionId) {
+          const status = await fetchApplicationStatus(orderId, transactionId);
+          return {
+            ...app,
+            status: status as JobApplication['status']
+          };
+        } else {
+          return app;
+        }
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      updatedApplications.push(...batchResults);
+
+      // Add a small delay between batches to be respectful to the API
+      if (i + batchSize < applications.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    return updatedApplications;
   };
 
   // Function to extract profile ID from application data
@@ -296,7 +367,7 @@ const MyApplications = () => {
   };
 
   // Function to fetch all applications with their statuses
-  const fetchApplicationsWithStatus = async () => {
+  const fetchApplicationsWithStatus = useCallback(async () => {
     if (!user?.id || isFetchingRef.current) return;
     
     isFetchingRef.current = true;
@@ -432,7 +503,6 @@ const MyApplications = () => {
           }
         }
 
-
         return {
           id: app.order_id ?? app.transaction_id ?? app.job_id,
           jobId: item.id ?? app.job_id,
@@ -452,31 +522,13 @@ const MyApplications = () => {
       // The API should return only applications for the selected profile
       const filteredApplications = applicationsWithDefaultStatus;
 
-
-
       // Set applications with default status first
       setApplications(filteredApplications);
       setIsLoading(false);
 
-      // Then fetch status for each application (only if we have applications)
+      // Then fetch status for each application using optimized batch processing
       if (filteredApplications.length > 0) {
-        const applicationsWithStatus = await Promise.all(
-          filteredApplications.map(async (app, index) => {
-            const orderId = app.raw?.metadata?.message?.order?.id || app.raw?.order_id;
-            const transactionId = app.raw?.metadata?.context?.transaction_id || app.raw?.transaction_id;
-
-            if (orderId && transactionId) {
-              const status = await fetchApplicationStatus(orderId, transactionId);
-              return {
-                ...app,
-                status: status as JobApplication['status']
-              };
-            } else {
-              return app;
-            }
-          })
-        );
-
+        const applicationsWithStatus = await fetchMultipleStatuses(filteredApplications);
         setApplications(applicationsWithStatus);
       }
     } catch (error) {
@@ -486,31 +538,15 @@ const MyApplications = () => {
       setStatusLoading(false);
       isFetchingRef.current = false;
     }
-  };
+  }, [user, selectedCandidate]);
 
-  // Function to refresh only statuses
+  // Function to refresh only statuses with optimized batch processing
   const refreshStatuses = async () => {
     if (!applications.length || statusLoading) return;
     setStatusLoading(true);
     
     try {
-      const applicationsWithUpdatedStatus = await Promise.all(
-        applications.map(async (app) => {
-          const orderId = app.raw?.metadata?.message?.order?.id || app.raw?.order_id;
-          const transactionId = app.raw?.metadata?.context?.transaction_id || app.raw?.transaction_id;
-
-          if (orderId && transactionId) {
-            const status = await fetchApplicationStatus(orderId, transactionId);
-            return {
-              ...app,
-              status: status as JobApplication['status']
-            };
-          }
-          
-          return app;
-        })
-      );
-
+      const applicationsWithUpdatedStatus = await fetchMultipleStatuses(applications);
       setApplications(applicationsWithUpdatedStatus);
     } catch (error) {
       console.error('Failed to refresh application statuses', error);
@@ -519,10 +555,25 @@ const MyApplications = () => {
     }
   };
 
+  // Auto refresh functionality
+  const startAutoRefresh = useCallback(() => {
+    if (autoRefreshInterval.current) {
+      clearInterval(autoRefreshInterval.current);
+    }
+    
+    // Refresh every 2 minutes
+    autoRefreshInterval.current = setInterval(() => {
+      if (applications.length > 0 && !statusLoading && !isLoading) {
+        refreshStatuses();
+      }
+    }, 2 * 60 * 1000);
+  }, [applications.length, statusLoading, isLoading]);
+
   useEffect(() => {
     // Clear cache when user or selected candidate changes
     statusCache.current.clear();
     fetchApplicationsWithStatus();
+
     fetchDraftApplications();
   }, [user, selectedCandidate]); // Re-fetch when selected candidate changes
 
@@ -564,8 +615,8 @@ const MyApplications = () => {
         </div>
       ) : (
         <>
-          {/* {applications.length > 0 && (
-            <div className={`flex ${isMobile ? 'justify-center' : 'justify-end'}`}>
+          {applications.length > 0 && (
+            <div className={`flex ${isMobile ? 'justify-center' : 'justify-end'} mb-4`}>
               <Button 
                 onClick={refreshStatuses} 
                 disabled={statusLoading}
@@ -577,11 +628,11 @@ const MyApplications = () => {
                 {statusLoading ? 'Updating...' : 'Refresh Status'}
               </Button>
             </div>
-          )} */}
+          )}
           
           {statusLoading ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Updating application statuses...</p>
+            <div className="text-center py-4">
+              <p className="text-muted-foreground text-sm">Updating application statuses...</p>
             </div>
           ) : applications.length === 0 && draftApplications.length === 0 ? (
             <div className="text-center py-8">
