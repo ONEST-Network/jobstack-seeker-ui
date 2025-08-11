@@ -6,7 +6,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'react-router-dom';
-import { Organization } from '@/hooks/useOrganizationSelection';
+import { useOrgDetails } from '@/hooks/useOrgDetails';
 
 interface OTPVerificationDialogProps {
   isOpen: boolean;
@@ -17,7 +17,6 @@ interface OTPVerificationDialogProps {
   phoneNumber?: string;
   email?: string;
   name?: string;
-  selectedOrganization?: Organization | null;
 }
 
 const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
@@ -28,13 +27,13 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
   method,
   phoneNumber,
   email,
-  name,
-  selectedOrganization
+  name
 }) => {
   const [otp, setOtp] = useState('');
   const { verifyOTP, isLoading } = useAuth();
   const { toast } = useToast();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
+  const { data: orgDetails } = useOrgDetails(orgSlug || null);
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -48,38 +47,20 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
 
     try {
       // Prepare the verify payload
-      const verifyPayload: any = {
+      const verifyPayload = {
         name,
         otp,
-        rememberMe: true
+        rememberMe: true,
+        ...(method === 'email' && email ? { email } : {}),
+        ...(method === 'phone' && phoneNumber ? { phoneNumber } : {}),
+        ...(orgSlug && orgSlug !== '0' ? {
+          joinOrg: {
+            join: true,
+            orgSlug: orgSlug,
+            role: 'seeker'
+          }
+        } : {})
       };
-
-      // Add email or phone based on method
-      if (method === 'email' && email) {
-        verifyPayload.email = email;
-      } else if (method === 'phone' && phoneNumber) {
-        verifyPayload.phoneNumber = phoneNumber;
-      }
-
-      // Add organization data if selected
-      if (selectedOrganization) {
-        verifyPayload.joinOrg = {
-          join: true,
-          orgSlug: selectedOrganization.slug,
-          role: 'seeker'
-        };
-        // verifyPayload.createAdmin = true;
-      }
-
-      // Add orgSlug and createAdmin if we're on an organization route (existing logic)
-      if (orgSlug && orgSlug !== '0') {
-        verifyPayload.joinOrg = {
-          join: true,
-          orgSlug: orgSlug,
-          role: 'seeker'
-        };
-        // verifyPayload.createAdmin = true;
-      }
 
       await verifyOTP(verifyPayload);
       
@@ -94,10 +75,10 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
         title: "Success",
         description: "OTP verified successfully!"
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Invalid OTP. Please try again.",
+        description: error instanceof Error ? error.message : "Invalid OTP. Please try again.",
         variant: "destructive"
       });
     }
@@ -123,12 +104,12 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
             <span className="font-medium">{contactMethod}</span>
           </p>
 
-          {selectedOrganization && (
+          {orgDetails?.data && orgSlug && orgSlug !== '0' && (
             <div className="p-3 bg-muted rounded-lg text-left">
-              <h4 className="font-medium text-sm">Selected Organization:</h4>
-              <p className="text-sm font-medium">{selectedOrganization.name}</p>
+              <h4 className="font-medium text-sm">Organization:</h4>
+              <p className="text-sm font-medium">{orgDetails.data.name}</p>
               <p className="text-xs text-muted-foreground">
-                {selectedOrganization.type} • {selectedOrganization.location} • {selectedOrganization.district}
+                Signing up for {orgDetails.data.name}
               </p>
             </div>
           )}

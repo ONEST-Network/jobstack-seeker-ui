@@ -18,6 +18,7 @@ import { getSchema, getSchemaDescription } from '@/schemas';
 import { getCurrentLocation, parseLocationString, formatLocationForDisplay } from '@/lib/utils';
 import { LocationInput } from '@/components/ui/location-input';
 import { useITIAutoFill } from '@/hooks/useITIAutoFill';
+import { ITIInstituteDropdown } from '@/components/ui/iti-institute-dropdown';
 
 interface DynamicFormStepProps {
   stepName: string;
@@ -538,6 +539,47 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
     switch (widget) {
       case 'text':
+        // Special handling for ITI Institute field - use searchable dropdown
+        if (fieldName === 'itiInstitute') {
+          const instituteSlug = profile.whatIHave?.itiInstituteSlug || '';
+          
+          return (
+            <div key={fieldName} className="space-y-2">
+              <ITIInstituteDropdown
+                value={value || ''}
+                slug={instituteSlug}
+                onChange={(name, slug) => {
+                  // Update both the displayed name and store the slug for API
+                  handleFieldChange(fieldName, name);
+                  setProfile(prevProfile => ({
+                    ...prevProfile,
+                    [stepName]: {
+                      ...prevProfile[stepName],
+                      itiInstituteSlug: slug
+                    }
+                  }));
+                }}
+                placeholder="Search and select your ITI Institute..."
+                disabled={disabled || isVerified}
+                label={fieldConfig.title + (isRequired ? ' *' : '')}
+                description="Select your institute name from the list below"
+              />
+              
+              {/* Verification indicators */}
+              {isVerified && (
+                <div className="flex items-center gap-2 text-sm text-green-600">
+                  <Shield className="h-4 w-4" />
+                  <span>{verificationMessage || `Verified via DigiLocker`}</span>
+                </div>
+              )}
+              
+              {fieldConfig.description && (
+                <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
+              )}
+            </div>
+          );
+        }
+
         // Special handling for location fields
         if (hasLocationButton) {
           return (

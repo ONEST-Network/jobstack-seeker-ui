@@ -59,8 +59,8 @@
             "description": "Enter your gender",
             "required": true,
             "ui:widget": "radio",
-            "enum": ["Male", "Female", "Other"],
-            "enumNames": ["Male", "Female", "Other"],
+            "enum": ["Male", "Female", "Other", "No Preference"],
+            "enumNames": ["Male", "Female", "Other", "No Preference"],
             "ui:placeholder": "Select your gender",
             "ui:disabled": false,
             "ui:verified": false,
@@ -123,8 +123,8 @@
             "items": {
               "type": "string"
             },
-            "enum": ["10th", "12th", "Diploma", "Graduate", "Other"],
-            "enumNames": ["10th Pass", "12th Pass", "ITI Diploma", "Graduate", "Other"],
+            "enum": ["10th", "12th", "ITI", "Diploma", "Graduate", "Other"],
+            "enumNames": ["10th Pass", "12th Pass", "ITI", "Diploma", "Graduate", "Other"],
             "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select your highest qualification(s)",
             "ui:disabled": false,
@@ -489,11 +489,10 @@
           "itiInstitute": {
             "type": "string",
             "title": "ITI Institute",
-            "description": "Enter your ITI institute",
-            "required": true,
+            "description": "Select your ITI institute from the dropdown list",
             "ui:widget": "text",
-            "ui:placeholder": "Enter your ITI institute",
-            "ui:disabled": true
+            "ui:placeholder": "Search and select your ITI Institute...",
+            "ui:disabled": false
           },
           "trainingDuration": {
             "type": "number",

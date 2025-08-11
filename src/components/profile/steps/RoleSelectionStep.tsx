@@ -23,7 +23,7 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   } = useProfileForm();
 
   // Priority roles to show at top
-  const priorityRoles = ['Industrial Tailor', 'Warehouse Loader & Picker',/* 'Field Sales Executive',*/ 'In Store Promoter', 'Recruitment Associate', 'Electrician', 'Fitter', 'Mechanic', 'Machine Operator', 'Data Entry Operator', 'Tele Salesperson', 'Field Sales Person', 'Generic ITI'];
+  const priorityRoles = ['Industrial Tailor', 'Warehouse Loader & Picker',/* 'Field Sales Executive',*/ 'In Store Promoter', 'Recruitment Associate', 'Electrician', 'Fitter', 'Mechanic', 'Machine Operator', 'Data Entry Operator', 'Tele Salesperson', 'Field Sales Person', 'ITI Student'];
   
   const getFilteredPriorityRoles = () => {
     if (!searchQuery) return priorityRoles;
@@ -96,7 +96,7 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
                     <li>Data Entry Operator</li>
                     <li>Tele Salesperson</li>
                     <li>Field Sales Person</li>
-                    <li>Generic ITI</li>
+                    <li>ITI Student</li>
                   </ul>
                 </div>
               </div>

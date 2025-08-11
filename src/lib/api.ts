@@ -1286,6 +1286,9 @@ export const transformProfileForAPI = (profile: any, userEmail?: string, locatio
     whoIAm: cleanedWhoIAm,
     whatIHave: cleanedWhatIHave,
     whatIWant: cleanedWhatIWant,
+    // ITI Institute information (for ITI-related roles)
+    itiInstitute: profile.whatIHave?.itiInstitute || profile.itiInstitute,
+    itiInstituteSlug: profile.whatIHave?.itiInstituteSlug || profile.itiInstituteSlug,
     // Education and certifications
     education: profile.education,
     skillCertifications: profile.skillCertifications,

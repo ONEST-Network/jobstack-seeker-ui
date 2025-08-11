@@ -5,7 +5,7 @@ This custom React hook automatically fills the "ITI Institute Name" field in rol
 ## Supported Roles
 
 The hook automatically detects and fills the ITI Institute field for the following roles:
-- **Generic ITI**
+- **ITI Student**
 - **Mechanic** 
 - **Machine Operator**
 - **Fitter**

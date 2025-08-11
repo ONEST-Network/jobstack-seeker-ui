@@ -51,7 +51,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
       return 'Machine Operator';
     }
     if (lowerJobTitle.includes('iti') || lowerJobTitle.includes('industrial training') || lowerJobTitle.includes('technical') || lowerJobTitle.includes('vocational')) {
-      return 'Generic ITI';
+      return 'ITI Student';
     }
     
     // Then check for more general patterns

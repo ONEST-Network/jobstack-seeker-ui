@@ -488,11 +488,11 @@
         },
                   "itiInstitute": {
             "type": "string",
-            "description": "Enter your ITI institute",
-            "required": true,
+            "title": "ITI Institute",
+            "description": "Select your ITI institute from the dropdown list",
             "ui:widget": "text",
-            "ui:placeholder": "Enter your ITI institute",
-            "ui:disabled": true
+            "ui:placeholder": "Search and select your ITI Institute...",
+            "ui:disabled": false
           },
         "trainingDuration": {
           "type": "number",

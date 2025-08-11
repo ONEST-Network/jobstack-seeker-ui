@@ -48,9 +48,9 @@
       "industry": "Sales",
       "description": "Field-based sales and business development"
     },
-    "Generic ITI": {
+    "ITI Student": {
       "industry": "Manufacturing",
-      "description": "Generic ITI (Industrial Training Institute) roles and specializations"
+      "description": "ITI (Industrial Training Institute) student roles and specializations"
     }
   }
 } 
