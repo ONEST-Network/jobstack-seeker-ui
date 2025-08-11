@@ -68,7 +68,7 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
           orgSlug: selectedOrganization.slug,
           role: 'seeker'
         };
-        verifyPayload.createAdmin = true;
+        // verifyPayload.createAdmin = true;
       }
 
       // Add orgSlug and createAdmin if we're on an organization route (existing logic)
@@ -78,7 +78,7 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
           orgSlug: orgSlug,
           role: 'seeker'
         };
-        verifyPayload.createAdmin = true;
+        // verifyPayload.createAdmin = true;
       }
 
       await verifyOTP(verifyPayload);
