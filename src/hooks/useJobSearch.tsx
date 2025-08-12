@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiClient, cleanContaminatedProfile } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useParams } from 'react-router-dom';
+import { useOrgDetails } from '@/hooks/useOrgDetails';
 
 export interface JobItem {
   id: string;
@@ -182,6 +184,46 @@ export const useJobSearch = () => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [scoresLoading, setScoresLoading] = useState(false);
   const [isAutoRetrying, setIsAutoRetrying] = useState(false);
+  const [intentOverrides, setIntentOverrides] = useState<Record<string, any> | null>(null);
+  // Derive intent overrides from organization metadata (if any)
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
+  const { data: orgDetails, isLoading: orgLoading } = useOrgDetails(orgSlug || null);
+
+  useEffect(() => {
+    // Default: no org filter or default org '0' -> no overrides
+    if (!orgSlug || orgSlug === '0') {
+      setIntentOverrides({});
+      return;
+    }
+
+    if (orgLoading) return;
+
+    try {
+      const rawMeta = orgDetails?.data?.metadata ?? null;
+      let meta: any = null;
+      if (typeof rawMeta === 'string') {
+        try { meta = JSON.parse(rawMeta); } catch { meta = null; }
+      } else if (rawMeta && typeof rawMeta === 'object') {
+        meta = rawMeta;
+      }
+
+      const overrides: Record<string, any> = {};
+      const providerName = meta?.search_on_provider;
+      const jobName = meta?.search_on_job;
+
+      if (typeof providerName === 'string' && providerName.trim().length > 0) {
+        overrides.provider = { descriptor: { name: providerName } };
+      }
+      if (typeof jobName === 'string' && jobName.trim().length > 0) {
+        overrides.item = { descriptor: { name: jobName } };
+      }
+
+      setIntentOverrides(overrides);
+    } catch {
+      setIntentOverrides({});
+    }
+  }, [orgSlug, orgLoading, orgDetails?.data?.metadata]);
+
   
   const { user, getSelectedCandidate } = useAuth();
   const selectedCandidate = getSelectedCandidate();
@@ -688,7 +730,11 @@ export const useJobSearch = () => {
   };
 
   // Internal fetch function with integrated retry logic to avoid circular dependencies
-  const fetchJobsInternal = useCallback(async (isRetry = false, currentRetryCount = 0) => {
+  const fetchJobsInternal = useCallback(async (
+    isRetry = false,
+    currentRetryCount = 0,
+    intent: Record<string, any> | null = intentOverrides
+  ) => {
     // Safety check to prevent infinite loops
     if (currentRetryCount >= maxRetries) {
       setError(`No jobs found currently. Please check later. (Retried ${maxRetries} times)`);
@@ -714,7 +760,7 @@ export const useJobSearch = () => {
         setLoadingState('partial');
       }, 2000);
 
-      const data = await apiClient.searchJobs();
+      const data = await apiClient.searchJobs(intent || undefined);
       
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
@@ -788,8 +834,8 @@ export const useJobSearch = () => {
           setLoadingState('loading'); // Show loading state during retry
           const delay = Math.min(1000 * Math.pow(2, newRetryCount), 5000); // Exponential backoff with max 5s
           
-          retryTimeoutRef.current = setTimeout(() => {
-            fetchJobsInternal(true, newRetryCount);
+           retryTimeoutRef.current = setTimeout(() => {
+            fetchJobsInternal(true, newRetryCount, intent);
           }, delay);
         } else {
           // Max retries reached, stop retrying
@@ -805,21 +851,23 @@ export const useJobSearch = () => {
         const delay = Math.min(1000 * Math.pow(2, 1), 5000); // Exponential backoff with max 5s
         
         retryTimeoutRef.current = setTimeout(() => {
-          fetchJobsInternal(true, 1);
+          fetchJobsInternal(true, 1, intent);
         }, delay);
       }
     }
-  }, [transformJobData, maxRetries]);
+  }, [transformJobData, maxRetries, intentOverrides]);
 
   // Public fetch function
   const fetchJobs = useCallback(async (isRetry = false) => {
-    return fetchJobsInternal(isRetry, 0);
-  }, [fetchJobsInternal]);
+    return fetchJobsInternal(isRetry, 0, intentOverrides);
+  }, [fetchJobsInternal, intentOverrides]);
 
-  // Initial fetch
+  // Fetch when intent overrides are ready or change
   useEffect(() => {
+    if (intentOverrides === null) return; // wait until computed
     fetchJobs();
-  }, [fetchJobs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intentOverrides]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
