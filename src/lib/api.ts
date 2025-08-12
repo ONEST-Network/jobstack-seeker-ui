@@ -339,15 +339,20 @@ class ApiClient {
   }
 
   // BAP Job Search API
-  async searchJobs() {
+  async searchJobs(intentOverrides?: Record<string, any>) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v1/search`;
     
-    const payload = {
+    const payload: { message: { intent: Record<string, any> } } = {
       message: {
         intent: {}
       }
     };
+
+    // Merge optional intent overrides from callers (e.g., org metadata filters)
+    if (intentOverrides && typeof intentOverrides === 'object') {
+      payload.message.intent = { ...intentOverrides };
+    }
 
     try {
       // Create an AbortController for timeout

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
 import OrgNotFound from './OrgNotFound';
 import Header from './header/Header';
+import ChatbotButton from './ChatbotButton';
 import { Loader2 } from 'lucide-react';
 
 interface OrgWrapperProps {
@@ -20,6 +21,8 @@ const OrgWrapper: React.FC<OrgWrapperProps> = ({ children }) => {
       <>
         <Header orgSlug={null} />
         {children}
+        {/* Default (no org) - don't show chatbot */}
+        <ChatbotButton show={false} />
       </>
     );
   }
@@ -46,10 +49,21 @@ const OrgWrapper: React.FC<OrgWrapperProps> = ({ children }) => {
 
   // If org details are available, render with org-specific header
   if (orgDetails?.data) {
+    // Parse metadata (might be JSON string)
+    let metadata: any = null;
+    const rawMeta = orgDetails.data.metadata ?? null;
+    if (typeof rawMeta === 'string') {
+      try { metadata = JSON.parse(rawMeta); } catch { metadata = null; }
+    } else if (rawMeta && typeof rawMeta === 'object') {
+      metadata = rawMeta;
+    }
+    const showChatbot = Boolean(metadata?.['chatbot-button']);
+
     return (
       <>
         <Header orgSlug={orgSlug} />
         {children}
+        <ChatbotButton show={showChatbot} />
       </>
     );
   }
