@@ -14,6 +14,7 @@ interface JobApplication {
   salary: string;
   appliedDate: string;
   status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'draft';
+
   media?: Array<{
     type: 'image' | 'video';
     url: string;
