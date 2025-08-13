@@ -459,8 +459,8 @@ export const useJobSearch = () => {
         provider.items.forEach(item => {
           const tags = item.tags;
           
-          // Skip draft jobs - don't show them in the job list
-          if (tags?.status === 'draft') {
+          // Only show jobs with status 'open'
+          if (tags?.status !== 'open') {
             return;
           }
           
