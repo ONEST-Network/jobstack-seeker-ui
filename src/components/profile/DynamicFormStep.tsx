@@ -19,6 +19,7 @@ import { getCurrentLocation, parseLocationString, formatLocationForDisplay } fro
 import { LocationInput } from '@/components/ui/location-input';
 import { useITIAutoFill } from '@/hooks/useITIAutoFill';
 import { ITIInstituteDropdown } from '@/components/ui/iti-institute-dropdown';
+import CertificateDisplay from '@/components/ui/certificate-display';
 
 interface DynamicFormStepProps {
   stepName: string;
@@ -1142,7 +1143,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               {value && (
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <p className="text-sm font-medium">Scanned Data:</p>
+                    <p className="text-sm font-medium">Scanned Credentials:</p>
                     {Array.isArray(value) && value.length > 1 && (
                       <Button
                         type="button"
@@ -1156,37 +1157,31 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                     )}
                   </div>
                   {Array.isArray(value) ? (
-                    // Display multiple scanned URLs
+                    // Display multiple scanned certificates
                     <div className="space-y-2">
                       {value.length > 0 ? (
                         value.map((scanData: string, index: number) => (
-                          <div key={index} className="p-3 bg-gray-50 rounded-lg border flex justify-between items-start">
-                            <div className="flex-1">
-                              <p className="text-xs text-muted-foreground break-all">{scanData}</p>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                const updatedArray = (value as string[]).filter((_, i) => i !== index);
-                                handleFieldChange(fieldName, updatedArray.length > 0 ? updatedArray : '');
-                              }}
-                              className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-                            >
-                              ×
-                            </Button>
-                          </div>
+                          <CertificateDisplay
+                            key={index}
+                            url={scanData}
+                            onRemove={() => {
+                              const updatedArray = (value as string[]).filter((_, i) => i !== index);
+                              handleFieldChange(fieldName, updatedArray.length > 0 ? updatedArray : '');
+                            }}
+                            showRemoveButton={true}
+                          />
                         ))
                       ) : (
                         <p className="text-xs text-muted-foreground">No QR codes scanned yet.</p>
                       )}
                     </div>
                   ) : (
-                    // Display single scanned URL (for backward compatibility)
-                    <div className="p-3 bg-gray-50 rounded-lg border">
-                      <p className="text-xs text-muted-foreground break-all">{value}</p>
-                    </div>
+                    // Display single scanned certificate (for backward compatibility)
+                    <CertificateDisplay
+                      url={value as string}
+                      onRemove={() => handleFieldChange(fieldName, '')}
+                      showRemoveButton={true}
+                    />
                   )}
                 </div>
               )}

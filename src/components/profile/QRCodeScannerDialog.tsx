@@ -36,10 +36,11 @@ const QRCodeScannerDialog: React.FC<QRCodeScannerDialogProps> = ({
 
     if (match) {
       const uuid = match[1];
-      const vcUrl = `https://verify.jobs.onest.dhiway.net/jobs/${uuid}.json`
-      // Do whatever you want with uuid here:
-      onScanComplete(vcUrl);
-      setLastScannedData(vcUrl);
+      // Create clean URL without .json extension for display
+      const cleanUrl = `https://verify.jobs.onest.dhiway.net/jobs/${uuid}`;
+      // Store the clean URL for display
+      onScanComplete(cleanUrl);
+      setLastScannedData(cleanUrl);
       setScanSuccess(true);
       
       // Stop scanning after successful scan

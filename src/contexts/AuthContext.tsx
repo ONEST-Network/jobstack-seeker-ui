@@ -1358,9 +1358,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addCandidate = (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>) => {
     if (user) {
       // Validate that the candidate has required data before adding
+      // Relaxed: location is no longer required so profiles without location still show up in UI
       const hasRequiredData = candidate.name?.trim() && 
                              candidate.interestedRole?.trim() && 
-                             (candidate.currentLocation?.trim() || candidate.whoIAm?.location?.trim()) &&
                              (candidate.phone?.trim() || candidate.whoIAm?.phone?.trim());
 
       if (!hasRequiredData) {
@@ -1463,9 +1463,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const cleanupIncompleteProfiles = () => {
     if (user) {
       const completeProfiles = user.managedCandidates.filter(candidate => {
+        // Relaxed: do not require location for completeness so profiles without location are retained
         const hasRequiredData = candidate.name?.trim() && 
                                candidate.interestedRole?.trim() && 
-                               (candidate.currentLocation?.trim() || candidate.whoIAm?.location?.trim()) &&
                                (candidate.phone?.trim() || candidate.whoIAm?.phone?.trim());
         return hasRequiredData;
       });
