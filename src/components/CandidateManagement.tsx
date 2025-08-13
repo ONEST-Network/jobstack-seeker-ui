@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Table, Users, Filter, Search, Download, Map } from 'lucide-react';
+import { Table, Users, Search, Download, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -58,16 +58,7 @@ const CandidateManagement = () => {
                 </TabsList>
               </Tabs>
 
-              {/* Filters Toggle */}
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 opacity-50 cursor-not-allowed"
-                disabled={true}
-              >
-                <Filter className="h-4 w-4" />
-                Filters
-              </Button>
+              {/* Filters Toggle removed */}
 
               {/* Export */}
               <Button variant="outline" className="flex items-center gap-2">

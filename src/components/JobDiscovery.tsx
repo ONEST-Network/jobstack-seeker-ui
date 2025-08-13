@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Map, List, Filter, Search, X, Loader2 } from 'lucide-react';
+import { Map, List, Search, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,7 +7,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useIsMobile } from '@/hooks/use-mobile';
 import JobMapView from './JobMapView';
 import JobListView from './JobListView';
-import JobFilters from './JobFilters';
 import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
 import { useJobSearch } from '@/hooks/useJobSearch';
 
@@ -33,7 +32,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
     }
   };
 
-  const FiltersContent = () => <JobFilters />;
+  
 
   return (
     <div className="bg-background">
@@ -76,16 +75,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
               </TabsList>
             </Tabs>
 
-            {/* Filters Toggle */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1 h-touch px-3 flex-shrink-0 opacity-50 cursor-not-allowed"
-              disabled={true}
-            >
-              <Filter className="h-4 w-4" />
-              <span className="text-sm">Filters</span>
-            </Button>
+            {/* Filters Toggle removed */}
           </div>
           
           {/* Loading status message */}
