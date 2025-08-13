@@ -1159,6 +1159,35 @@ class ApiClient {
     return response.json();
   }
 
+  // Outbound Call API
+  async initiateOutboundCall(phoneNumber: string): Promise<OutboundCallResponse> {
+    const outboundCallUrl = import.meta.env.VITE_OUTBOUND_CALL_URL;
+    const apiKey = import.meta.env.VITE_OUTBOUND_API_KEY;
+    
+    if (!outboundCallUrl || !apiKey) {
+      throw new Error('Outbound call API configuration missing');
+    }
+
+    const url = `${outboundCallUrl}/api/v1/agent/profile/outbound`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+      body: JSON.stringify({ phoneNumber }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  }
+
   // Organization management APIs
   async getOrganizationList(): Promise<OrganizationListResponse> {
     return this.request('/auth/organization/list/', {
@@ -1694,6 +1723,12 @@ export type OrganizationListResponse = Organization[];
 export interface SetActiveOrgResponse {
   success: boolean;
   message?: string;
+}
+
+export interface OutboundCallResponse {
+  statusCode: number;
+  message: string;
+  data?: any;
 }
 
 export interface ActiveMemberResponse {
