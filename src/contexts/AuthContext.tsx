@@ -283,6 +283,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const transformedUser: User = {
             id: backendUser.id,
             email: backendUser.email,
+            phone: backendUser.phoneNumber, // Add phone number from session
             name: backendUser.name,
             role: 'individual', // Default to individual, will be updated based on profile data
             isVerified: backendUser.emailVerified,
@@ -1014,6 +1015,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const transformedUser: User = {
           id: backendUser.id,
           email: backendUser.email,
+          phone: backendUser.phoneNumber, // Add phone number from session
           name: backendUser.name,
           role: 'individual', // Default to individual, will be updated based on profile data
           isVerified: backendUser.emailVerified,

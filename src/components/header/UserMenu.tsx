@@ -80,6 +80,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
 
   // Always show user name from session, fallback to email if no name
   const displayName = user.name || user.email || user.phone || 'User';
+  
+  // Debug logging to verify user data
+  console.log('UserMenu - User object:', user);
+  console.log('UserMenu - Email:', user.email);
+  console.log('UserMenu - Phone:', user.phone);
 
   return (
     <>

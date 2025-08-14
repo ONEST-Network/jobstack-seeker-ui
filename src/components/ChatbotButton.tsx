@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Bot, Phone, X, MessageCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
 
 interface ChatbotButtonProps {
@@ -17,6 +18,7 @@ const ChatbotButton: React.FC<ChatbotButtonProps> = ({ show }) => {
   const [showPhoneInput, setShowPhoneInput] = useState(false);
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Close chat when clicking outside
   useEffect(() => {
@@ -74,8 +76,71 @@ const ChatbotButton: React.FC<ChatbotButtonProps> = ({ show }) => {
     setIsExpanded(!isExpanded);
   };
 
+  const getUserPhoneNumber = (): string | null => {
+    // Get phone number from user session (from /auth/get-session API)
+    // This comes from user.phone which is mapped from backendUser.phoneNumber
+    const userPhone = user?.phone;
+    return userPhone || null;
+  };
+
   const handleCallAI = () => {
-    setShowPhoneInput(true);
+    const userPhone = getUserPhoneNumber();
+    
+    if (userPhone) {
+      // User has a phone number, proceed with call
+      handleCallWithPhone(userPhone);
+    } else {
+      // No phone number found, show input field
+      setShowPhoneInput(true);
+    }
+  };
+
+  const handleCallWithPhone = async (phoneToUse: string) => {
+    const validatedPhone = validatePhoneNumber(phoneToUse);
+    
+    if (validatedPhone.length !== 12 || !validatedPhone.startsWith('91')) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "The phone number in your profile is not valid. Please update it or enter manually.",
+        variant: "destructive",
+      });
+      setShowPhoneInput(true);
+      return;
+    }
+
+    setIsCalling(true);
+    
+    try {
+      const data = await apiClient.initiateOutboundCall(validatedPhone);
+
+      if (data.success === true) {
+        toast({
+          title: "Agent is Calling you, please pick up!!",
+          description: "Your call is being connected...",
+          duration: 5000,
+        });
+        
+        // Close the chat after successful call
+        setTimeout(() => {
+          setIsOpen(false);
+          setIsExpanded(false);
+          setShowPhoneInput(false);
+          setPhoneNumber('');
+          setIsCalling(false);
+        }, 2000);
+      } else {
+        throw new Error(data.message || 'Failed to initiate call');
+      }
+    } catch (error) {
+      console.error('Outbound call error:', error);
+      toast({
+        title: "Call Failed",
+        description: error instanceof Error ? error.message : "Failed to initiate call. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCalling(false);
+    }
   };
 
   const validatePhoneNumber = (phone: string): string => {
@@ -207,19 +272,51 @@ const ChatbotButton: React.FC<ChatbotButtonProps> = ({ show }) => {
               
               {/* Call AI Button */}
               {!showPhoneInput && (
-                <Button
-                  onClick={handleCallAI}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  disabled={isCalling}
-                >
-                  <Phone className="h-4 w-4 mr-2" />
-                  {isCalling ? 'Connecting...' : 'Call AI Agent'}
-                </Button>
+                <div className="space-y-3">
+                  {getUserPhoneNumber() ? (
+                    <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                      <p className="text-sm text-green-800">
+                        <strong>📱 Using your session phone:</strong> {getUserPhoneNumber()}
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">
+                        Click the button below to call using this number from your session
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                      <p className="text-sm text-yellow-800">
+                        <strong>⚠️ No phone number found in session</strong>
+                      </p>
+                      <p className="text-xs text-yellow-600 mt-1">
+                        Please enter your phone number to make a call
+                      </p>
+                    </div>
+                  )}
+                  
+                  <Button
+                    onClick={handleCallAI}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    disabled={isCalling}
+                  >
+                    <Phone className="h-4 w-4 mr-2" />
+                    {isCalling ? 'Connecting...' : getUserPhoneNumber() ? 'Call AI Agent (Session Number)' : 'Call AI Agent'}
+                  </Button>
+                </div>
               )}
 
               {/* Phone Input */}
               {showPhoneInput && (
                 <div className="space-y-3">
+                  {getUserPhoneNumber() && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-3">
+                      <p className="text-sm text-blue-800">
+                        <strong>Session Phone:</strong> {getUserPhoneNumber()}
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        You can use this number from your session or enter a different one below
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Enter your phone number
@@ -238,35 +335,57 @@ const ChatbotButton: React.FC<ChatbotButtonProps> = ({ show }) => {
                     </p>
                   </div>
                   
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={handlePhoneSubmit}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      disabled={isCalling || !phoneNumber.trim()}
-                    >
-                      {isCalling ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Calling...
-                        </>
-                      ) : (
-                        <>
-                          <Phone className="h-4 w-4 mr-2" />
-                          Call Now
-                        </>
-                      )}
-                    </Button>
+                  <div className="grid grid-cols-1 gap-2">
+                    {getUserPhoneNumber() && (
+                      <Button
+                        onClick={() => handleCallWithPhone(getUserPhoneNumber()!)}
+                        className="w-full bg-blue-600 hover:bg-blue-700"
+                        disabled={isCalling}
+                      >
+                        {isCalling ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Calling...
+                          </>
+                        ) : (
+                          <>
+                            <Phone className="h-4 w-4 mr-2" />
+                            Use Session Number
+                          </>
+                        )}
+                      </Button>
+                    )}
                     
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setShowPhoneInput(false);
-                        setPhoneNumber('');
-                      }}
-                      disabled={isCalling}
-                    >
-                      Cancel
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button
+                        onClick={handlePhoneSubmit}
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        disabled={isCalling || !phoneNumber.trim()}
+                      >
+                        {isCalling ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Calling...
+                          </>
+                        ) : (
+                          <>
+                            <Phone className="h-4 w-4 mr-2" />
+                            Call Now
+                          </>
+                        )}
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowPhoneInput(false);
+                          setPhoneNumber('');
+                        }}
+                        disabled={isCalling}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
