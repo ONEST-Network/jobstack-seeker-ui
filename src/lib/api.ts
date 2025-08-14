@@ -1576,12 +1576,21 @@ export interface SessionResponse {
     token: string;
     ipAddress?: string;
     userAgent?: string;
+    activeOrganizationId?: string;
+    createdAt?: string;
+    updatedAt?: string;
   } | null;
   user: {
     id: string;
-    email: string;
+    email: string | null;
     name?: string;
     emailVerified: boolean;
+    phoneNumber?: string;
+    phoneNumberVerified?: boolean;
+    role?: string;
+    banned?: boolean;
+    banReason?: string;
+    banExpires?: string | null;
     image?: string;
     createdAt: string;
     updatedAt: string;
