@@ -122,7 +122,7 @@ const ChatbotButton: React.FC<ChatbotButtonProps> = ({ show }) => {
     try {
       const data = await apiClient.initiateOutboundCall(validatedPhone);
 
-      if (data.statusCode === 200) {
+      if (data.success === true) {
         toast({
           title: "Agent is Calling you, please pick up!!",
           description: "Your call is being connected...",

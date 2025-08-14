@@ -1726,9 +1726,15 @@ export interface SetActiveOrgResponse {
 }
 
 export interface OutboundCallResponse {
-  statusCode: number;
-  message: string;
-  data?: any;
+  success: boolean;
+  message?: string;
+  data?: {
+    callId: string;
+    roomName: string;
+    participantId: string;
+    status: string;
+    trunkId: string;
+  };
 }
 
 export interface ActiveMemberResponse {
