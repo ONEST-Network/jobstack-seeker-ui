@@ -899,7 +899,7 @@ class ApiClient {
       return { trustScore: 0, matchScore: 0 };
     }
 
-    const url = `${TRUST_SCORE_URL}/trust-score`;
+    const url = `${TRUST_SCORE_URL}/trust-score-qr`;
     
     const payload = {
       job: jobData,
@@ -950,7 +950,7 @@ class ApiClient {
       }
 
       return {
-        trustScore: data.trustScore || 0,
+        trustScore: data.totalScore || 0,
         matchScore: data.matchScore || 0
       };
     } catch (error) {

@@ -665,7 +665,9 @@ const SharedJob: React.FC = () => {
             <div className="flex gap-4">
               <div className="bg-blue-50 rounded-lg p-4 flex-1 text-center">
                 <div className="text-sm text-blue-600">Trust Score</div>
-                <div className="text-xl font-bold text-blue-700">NA</div>
+                <div className="text-xl font-bold text-blue-700">
+                  {shouldShowRealScores ? `${displayTrustScore}/10` : 'NA'}
+                </div>
                 {!shouldShowRealScores && (
                   <div className="text-xs text-blue-500 mt-1">Login to see</div>
                 )}

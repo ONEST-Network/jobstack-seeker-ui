@@ -93,9 +93,9 @@ class DigiLockerAPI {
    * @returns Transformed profile data
    */
   transformCredentialData(credentialSubject: DigiLockerCredentialSubject) {
-    // Convert gender M/F to male/female
-    const gender = credentialSubject.gender === 'M' ? 'male' : 
-                   credentialSubject.gender === 'F' ? 'female' : 'other';
+    // Convert gender M/F to Male/Female to match schema expectations
+    const gender = credentialSubject.gender === 'M' ? 'Male' : 
+                   credentialSubject.gender === 'F' ? 'Female' : 'Other';
 
     // Convert date format from DD-MM-YYYY to YYYY-MM-DD
     const formatDate = (dateStr: string) => {

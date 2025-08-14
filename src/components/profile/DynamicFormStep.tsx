@@ -107,10 +107,16 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const stepData = (profile[stepName as keyof typeof profile] as Record<string, unknown>) || {};
 
   const setStepData = (newData: Record<string, unknown>) => {
-    setProfile(prev => ({
-      ...prev,
-      [stepName]: { ...stepData, ...newData }
-    }));
+    console.log('setStepData called with:', { stepName, currentStepData: stepData, newData });
+    setProfile(prev => {
+      const currentStepData = (prev[stepName as keyof typeof prev] as Record<string, unknown>) || {};
+      const updatedStepData = { ...currentStepData, ...newData };
+      console.log('setStepData updating:', { currentStepData, updatedStepData });
+      return {
+        ...prev,
+        [stepName]: updatedStepData
+      };
+    });
   };
 
   // For fields that should be accessed from global profile state (like age, name)
@@ -142,7 +148,9 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
 
   const handleFieldChange = (fieldName: string, value: unknown) => {
-    // Update step data
+    console.log(`Field change: ${fieldName} =`, value);
+    
+    // Update step data - merge with existing data instead of overwriting
     setStepData({ [fieldName]: value });
 
     // Also update global profile state for fields that should be accessible globally
@@ -217,8 +225,11 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     }
 
     if (data?.gender) {
-      mappedData.gender = data.gender as string;
+      // Ensure gender is properly capitalized to match schema expectations
+      const genderValue = data.gender as string;
+      mappedData.gender = genderValue.charAt(0).toUpperCase() + genderValue.slice(1).toLowerCase();
       verificationFlags.isGenderVerified = true;
+      console.log('DigiLocker gender mapping:', { original: genderValue, mapped: mappedData.gender });
     }
 
     if (data?.hometown) {
@@ -232,6 +243,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     }
 
     // Update step data
+    console.log('Setting step data with mapped data:', mappedData);
     setStepData(mappedData);
 
     // Update global profile state with verification flags
@@ -242,8 +254,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         ...verificationFlags
       };
 
-
-
+      console.log('Updated profile:', updatedProfile);
       return updatedProfile;
     });
 
