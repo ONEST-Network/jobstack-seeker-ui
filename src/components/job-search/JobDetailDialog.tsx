@@ -427,7 +427,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
                   <div className="bg-blue-50 rounded-md px-3 py-2 flex-1">
                     <div className="text-xs text-blue-600">Trust</div>
                     <div className="font-bold text-blue-700">
-                      {shouldShowRealScores ? `${displayTrustScore}/10` : 'NA'}
+                      {shouldShowRealScores ? `${displayTrustScore}/10` : '0/10'}
                     </div>
                     {!shouldShowRealScores && (
                       <div className="text-xs text-blue-500">Login to see</div>
