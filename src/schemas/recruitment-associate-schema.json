@@ -40,11 +40,21 @@
           "ui:placeholder": "Enter phone number",
           "ui:disabled": false,
           "ui:verified": false
+        },
+        "age": {
+          "type": "integer",
+          "title": "Age",
+          "description": "Your age",
+          "minimum": 18,
+          "maximum": 65,
+          "ui:widget": "number",
+          "ui:placeholder": "Enter your age",
+          "ui:disabled": false
         }
       },
       "required": ["name", "location", "phone"],
       "ui": {
-        "order": ["name", "location", "phone"],
+        "order": ["name", "location", "phone", "age"],
         "description": "Enter your basic details or import from DigiLocker for quick setup",
         "showDigiLocker": true,
         "digiLockerConfig": {
@@ -60,16 +70,6 @@
       "title": "What I Have",
       "description": "Your qualifications, skills, and experience",
       "properties": {
-        "age": {
-          "type": "integer",
-          "title": "Age",
-          "description": "Your age",
-          "minimum": 18,
-          "maximum": 65,
-          "ui:widget": "number",
-          "ui:placeholder": "Enter your age",
-          "ui:disabled": false
-        },
         "highestEducationalQualification": {
           "type": "array",
           "title": "Highest Educational Qualification",
@@ -150,7 +150,6 @@
       },
       "ui": {
         "order": [
-          "age",
           "highestEducationalQualification",
           "hrKnowledge",
           "hrWorkExperience",
