@@ -206,7 +206,7 @@ const CandidateMapView: React.FC<CandidateMapViewProps> = ({ searchQuery }) => {
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1">
                       <Star className="h-3 w-3 text-yellow-500" />
-                      <span>Trust: NA</span>
+                      <span>Trust: 0/10</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Star className="h-3 w-3 text-green-500" />

@@ -146,7 +146,7 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
                           style={{ width: `0%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium">NA</span>
+                      <span className="text-sm font-medium">0/10</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">

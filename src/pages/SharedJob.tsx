@@ -511,23 +511,21 @@ const SharedJob: React.FC = () => {
     }
 
     try {
-      // Get the selected candidate/profile ID (same as regular application flow)
-      const selectedCandidate = getSelectedCandidate();
-      const profileId = selectedCandidate?.id || 'default';
-
-      const response = await apiClient.saveJobDraft({
-        providerId,
-        jobId,
-        userId: user.id,
-        profileId, // Use profile ID as the primary identifier for the application
-        userData: applicationData,
-        profileData: applicationData.profileData
-      });
-
-      toast({
-        title: "Draft Saved!",
-        description: "Your job application draft has been successfully saved.",
-      });
+      // Use the saveDraft function from useJobApplication hook
+      const result = await saveDraft(jobId, providerId, applicationData);
+      
+      if (result.success) {
+        toast({
+          title: "Draft Saved!",
+          description: "Your job application draft has been successfully saved.",
+        });
+      } else {
+        toast({
+          title: "Draft Save Failed",
+          description: result.error || "Failed to save draft. Please try again.",
+          variant: "destructive"
+        });
+      }
 
       // Don't close the dialog when saving draft, let user continue editing
 
@@ -666,7 +664,7 @@ const SharedJob: React.FC = () => {
               <div className="bg-blue-50 rounded-lg p-4 flex-1 text-center">
                 <div className="text-sm text-blue-600">Trust Score</div>
                 <div className="text-xl font-bold text-blue-700">
-                  {shouldShowRealScores ? `${displayTrustScore}/10` : 'NA'}
+                  {shouldShowRealScores ? `${displayTrustScore}/10` : '0/10'}
                 </div>
                 {!shouldShowRealScores && (
                   <div className="text-xs text-blue-500 mt-1">Login to see</div>

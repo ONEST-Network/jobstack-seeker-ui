@@ -18,7 +18,7 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ scores }) => {
       <CardContent className="p-6">
         <div className="grid grid-cols-2 gap-6 text-center">
           <div className="bg-blue-50 rounded-lg p-4">
-            <div className="text-3xl font-bold text-blue-600 mb-1">NA</div>
+            <div className="text-3xl font-bold text-blue-600 mb-1">0/10</div>
             <div className="text-sm font-medium text-blue-700">Trust Score</div>
             <div className="text-xs text-blue-600 mt-1">Based on verified documents</div>
           </div>
