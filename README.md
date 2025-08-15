@@ -16,6 +16,7 @@ A comprehensive job search and application platform built with React, TypeScript
 - **Voice Profile Creation**: Voice-guided profile setup
 - **Score Assessment**: Trust and match score calculations
 - **Document Verification**: QR code scanning for certificates and credentials
+- **AI Chatbot**: Interactive chatbot with AI agent calling capabilities
 
 ### For Employers
 
@@ -107,6 +108,10 @@ VITE_AGENT_TOKEN=your-agent-api-token-here
 # File Upload (Optional)
 VITE_UPLOAD_BUCKET=your-s3-bucket-name
 VITE_UPLOAD_REGION=your-s3-region
+
+# Chatbot Outbound Calls (Optional)
+VITE_OUTBOUND_CALL_URL=https://your-outbound-call-api.com
+VITE_OUTBOUND_API_KEY=your_outbound_api_key_here
 ```
 
 4. **Start the development server**
@@ -141,6 +146,21 @@ For media uploads (images, videos, documents):
 VITE_UPLOAD_BUCKET=your-s3-bucket-name
 VITE_UPLOAD_REGION=your-s3-region
 ```
+
+### Chatbot Configuration
+
+For AI agent outbound calls:
+
+```bash
+VITE_OUTBOUND_CALL_URL=https://your-outbound-call-api.com
+VITE_OUTBOUND_API_KEY=your_outbound_api_key_here
+```
+
+The chatbot provides:
+- **Vertical Chat Interface**: Opens upward from the chat button
+- **AI Agent Calls**: Direct phone calls to AI agents
+- **Phone Validation**: Automatic Indian phone number formatting
+- **Smooth Animations**: Engaging user experience with CSS animations
 
 ## 📱 Usage
 

@@ -900,7 +900,7 @@ class ApiClient {
       return { trustScore: 0, matchScore: 0 };
     }
 
-    const url = `${TRUST_SCORE_URL}/trust-score`;
+    const url = `${TRUST_SCORE_URL}/trust-score-qr`;
     
     const payload = {
       job: jobData,
@@ -951,7 +951,7 @@ class ApiClient {
       }
 
       return {
-        trustScore: data.trustScore || 0,
+        trustScore: data.totalScore || 0,
         matchScore: data.matchScore || 0
       };
     } catch (error) {
@@ -1158,6 +1158,35 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  // Outbound Call API
+  async initiateOutboundCall(phoneNumber: string): Promise<OutboundCallResponse> {
+    const outboundCallUrl = import.meta.env.VITE_OUTBOUND_CALL_URL;
+    const apiKey = import.meta.env.VITE_OUTBOUND_API_KEY;
+    
+    if (!outboundCallUrl || !apiKey) {
+      throw new Error('Outbound call API configuration missing');
+    }
+
+    const url = `${outboundCallUrl}/api/v1/agent/profile/outbound`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+      body: JSON.stringify({ phoneNumber }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
   }
 
   // Organization management APIs
@@ -1548,12 +1577,21 @@ export interface SessionResponse {
     token: string;
     ipAddress?: string;
     userAgent?: string;
+    activeOrganizationId?: string;
+    createdAt?: string;
+    updatedAt?: string;
   } | null;
   user: {
     id: string;
-    email: string;
+    email: string | null;
     name?: string;
     emailVerified: boolean;
+    phoneNumber?: string;
+    phoneNumberVerified?: boolean;
+    role?: string;
+    banned?: boolean;
+    banReason?: string;
+    banExpires?: string | null;
     image?: string;
     createdAt: string;
     updatedAt: string;
@@ -1695,6 +1733,18 @@ export type OrganizationListResponse = Organization[];
 export interface SetActiveOrgResponse {
   success: boolean;
   message?: string;
+}
+
+export interface OutboundCallResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    callId: string;
+    roomName: string;
+    participantId: string;
+    status: string;
+    trunkId: string;
+  };
 }
 
 export interface ActiveMemberResponse {
