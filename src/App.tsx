@@ -85,7 +85,6 @@ const PasswordResetRoute = () => {
     </>
   );
 };
-
 // Main app content wrapped with auth context
 const AppContent = () => (
   <TooltipProvider>
