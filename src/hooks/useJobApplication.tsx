@@ -40,7 +40,8 @@ export const useJobApplication = () => {
     jobId: string,
     providerId: string,
     applicationData: JobApplicationData,
-    transactionId?: string
+    transactionId?: string,
+    jobDetails?: any // Job details from BAP search API response
   ) => {
     if (!user?.id) {
       toast({
@@ -63,6 +64,7 @@ export const useJobApplication = () => {
         jobId,
         userId: user.id,
         profileId, // Use profile ID as the primary identifier for the application
+        jobDetails, // Pass job details from BAP search API response
         userData: applicationData,
         profileData: applicationData.profileData,
         transactionId // Pass the transaction ID if provided (for draft conversion)
@@ -114,7 +116,8 @@ export const useJobApplication = () => {
   const saveDraft = async (
     jobId: string,
     providerId: string,
-    applicationData: JobApplicationData
+    applicationData: JobApplicationData,
+    jobDetails?: any // Job details from BAP search API response
   ) => {
     if (!user?.id) {
       toast({
@@ -136,74 +139,111 @@ export const useJobApplication = () => {
         providerId,
         jobId,
         userId: user.id,
-        profileId, // Use profile ID as the primary identifier for the application
-        userData: applicationData,
-        profileData: applicationData.profileData
+        profileId, // Use profile ID as the primary identifier
+        jobDetails, // Pass job details from BAP search API response
+        userData: {
+          name: applicationData.name,
+          age: applicationData.age,
+          gender: applicationData.gender,
+          skills: applicationData.skills,
+          languages: applicationData.languages,
+          expectedSalary: applicationData.expectedSalary,
+          totalExperience: applicationData.totalExperience,
+          phone: applicationData.phone,
+          email: applicationData.email,
+          location: applicationData.location,
+        },
+        profileData: applicationData.profileData,
       });
 
-      // Check if the response indicates the user has already saved a draft
-      if (response?.message && typeof response.message === "string" && 
-          (response.message.toLowerCase().includes("already drafted") || 
-           response.message.toLowerCase().includes("already saved") || 
-           response.message.toLowerCase().includes("draft exists") ||
-           response.message.toLowerCase().includes("already in draft"))) {
+      if (response) {
         toast({
-          title: "Draft Already Exists",
-          description: "You have already saved a draft for this job with this profile.",
-          variant: "default",
+          title: "Draft Saved!",
+          description: "Your job application draft has been successfully saved.",
         });
         return { success: true, data: response };
-      }
-
-      // Check if the response has a status field indicating it's a draft
-      if (response?.status === "DRAFT" && response?.message) {
-        toast({
-          title: "Draft Already Exists",
-          description: "You have already saved a draft for this job with this profile.",
-          variant: "default",
-        });
-        return { success: true, data: response };
-      }
-
-      toast({
-        title: "Draft Saved!",
-        description: "Your job application draft has been successfully saved.",
-      });
-
-      return { success: true, data: response };
-    } catch (error) {
-      console.error('Job draft save error:', error);
-      
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
-      
-      // Show appropriate toast based on server error message
-      if (typeof errorMessage === "string" && 
-          (errorMessage.toLowerCase().includes("already drafted") ||
-           errorMessage.toLowerCase().includes("already saved") || 
-           errorMessage.toLowerCase().includes("draft exists") ||
-           errorMessage.toLowerCase().includes("already in draft"))) {
-        toast({
-          title: "Draft Already Exists",
-          description: "You have already saved a draft for this job with this profile.",
-          variant: "default",
-        });
       } else {
-        toast({
-          title: "Draft Save Failed",
-          description: errorMessage,
-          variant: "destructive",
-        });
+        throw new Error("Failed to save draft");
       }
-
+    } catch (error) {
+      console.error("Error saving draft:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save draft";
+      toast({
+        title: "Draft Save Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
       return { success: false, error: errorMessage };
     } finally {
       setSavingDraft(false);
     }
   };
 
+  const updateDraft = async (
+    jobId: string,
+    providerId: string,
+    applicationData: JobApplicationData,
+    jobDetails?: any // Job details from BAP search API response
+  ) => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to update a draft.",
+        variant: "destructive",
+      });
+      return { success: false, error: "User not authenticated" };
+    }
+
+    try {
+      // Get the selected candidate/profile ID
+      const selectedCandidate = getSelectedCandidate();
+      const profileId = selectedCandidate?.id || 'default';
+
+      const response = await apiClient.updateJobDraft(jobId, {
+        providerId,
+        userId: user.id,
+        profileId, // Use profile ID as the primary identifier
+        jobDetails, // Pass job details from BAP search API response
+        userData: {
+          name: applicationData.name,
+          age: applicationData.age,
+          gender: applicationData.gender,
+          skills: applicationData.skills,
+          languages: applicationData.languages,
+          expectedSalary: applicationData.expectedSalary,
+          totalExperience: applicationData.totalExperience,
+          phone: applicationData.phone,
+          email: applicationData.email,
+          location: applicationData.location,
+        },
+        profileData: applicationData.profileData,
+      });
+
+      if (response) {
+        toast({
+          title: "Draft Updated!",
+          description: "Your job application draft has been successfully updated.",
+        });
+        return { success: true, data: response };
+      } else {
+        throw new Error("Failed to update draft");
+      }
+    } catch (error) {
+      console.error("Error updating draft:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to update draft";
+      toast({
+        title: "Draft Update Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return { success: false, error: errorMessage };
+    }
+  };
+
   return {
     applyToJob,
     saveDraft,
+    updateDraft,
     applying,
     savingDraft
   };

@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ApplicationCard from './ApplicationCard';
+import DraftSyncButton from './DraftSyncButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface JobApplication {
@@ -41,7 +42,7 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
 
   return (
     <Tabs defaultValue="active" className="w-full">
-      <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2 h-12' : 'grid-cols-2 h-touch'}`}>
+      <TabsList className={`grid w-full ${isMobile ? 'grid-cols-3 h-12' : 'grid-cols-3 h-touch'}`}>
         <TabsTrigger 
           value="active" 
           className={`${isMobile ? 'text-sm font-medium' : 'text-sm font-medium'}`}
@@ -54,12 +55,12 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
         >
           Completed ({completedApplications.length})
         </TabsTrigger>
-        {/* <TabsTrigger 
+        <TabsTrigger 
           value="draft" 
           className={`${isMobile ? 'text-sm font-medium' : 'text-sm font-medium'}`}
         >
           Draft ({draftApplications.length})
-        </TabsTrigger> */}
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="active" className={`${isMobile ? 'space-y-3 mt-4' : 'space-y-4'}`}>
@@ -98,7 +99,7 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
         )}
       </TabsContent>
 
-      {/* <TabsContent value="draft" className={`${isMobile ? 'space-y-3 mt-4' : 'space-y-4'}`}>
+      <TabsContent value="draft" className={`${isMobile ? 'space-y-3 mt-4' : 'space-y-4'}`}>
         {draftApplications.length === 0 ? (
           <Card>
             <CardContent className={`${isMobile ? 'p-6' : 'p-8'} text-center`}>
@@ -106,17 +107,27 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
             </CardContent>
           </Card>
         ) : (
-          draftApplications.map(application => (
-            <ApplicationCard 
-              key={application.id} 
-              application={application} 
-              isCompleted={false}
-              isDraft={true}
-              onApplicationSubmitted={onApplicationSubmitted}
-            />
-          ))
+          <>
+            {/* Sync Profile Button for drafts */}
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-sm text-muted-foreground">
+                Keep your drafts up-to-date with your latest profile changes
+              </p>
+              <DraftSyncButton />
+            </div>
+            
+            {draftApplications.map(application => (
+              <ApplicationCard 
+                key={application.id} 
+                application={application} 
+                isCompleted={false}
+                isDraft={true}
+                onApplicationSubmitted={onApplicationSubmitted}
+              />
+            ))}
+          </>
         )}
-      </TabsContent> */}
+      </TabsContent>
     </Tabs>
   );
 };

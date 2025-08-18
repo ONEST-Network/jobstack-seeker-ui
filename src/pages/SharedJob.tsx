@@ -512,7 +512,8 @@ const SharedJob: React.FC = () => {
 
     try {
       // Use the saveDraft function from useJobApplication hook
-      const result = await saveDraft(jobId, providerId, applicationData);
+      // Pass the job details from the BAP search API response
+      const result = await saveDraft(jobId, providerId, applicationData, jobData);
       
       if (result.success) {
         toast({
