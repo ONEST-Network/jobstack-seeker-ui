@@ -20,11 +20,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Search, Loader2, ChevronLeft, ChevronRight, Edit } from 'lucide-react';
+import { Search, Loader2, ChevronLeft, ChevronRight, Edit, Trash2, CheckSquare, Square } from 'lucide-react';
 import { apiClient, ProfilesResponse } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDraftProfileSync } from '@/hooks/useDraftProfileSync';
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 
 interface Profile {
   id: string;
@@ -107,7 +108,10 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
   const [totalProfiles, setTotalProfiles] = useState(0);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
-  const { user } = useAuth();
+  const [selectedProfiles, setSelectedProfiles] = useState<Set<string>>(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { user, deleteProfile } = useAuth();
   const { updateAllDraftsWithProfile } = useDraftProfileSync();
 
   const limit = 20;
@@ -178,6 +182,25 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
       fetchProfiles(currentPage, searchQuery);
     }
   }, [isOpen, currentPage, fetchProfiles]);
+
+  // Keyboard shortcuts for selection mode
+  useEffect(() => {
+    if (!isOpen || !isSelectionMode) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+        e.preventDefault();
+        handleSelectAllProfiles();
+      }
+      if (e.key === 'Escape') {
+        setIsSelectionMode(false);
+        setSelectedProfiles(new Set());
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isSelectionMode]);
 
   // Debounced search effect
   useEffect(() => {
@@ -321,6 +344,66 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
     fetchProfiles(currentPage, searchQuery);
   };
 
+  const handleDeleteProfile = async (profileId: string) => {
+    if (window.confirm('Are you sure you want to delete this profile? This action cannot be undone.')) {
+      try {
+        await deleteProfile(profileId);
+        // Refresh the profiles list after deletion
+        fetchProfiles(currentPage, searchQuery);
+      } catch (error) {
+        console.error('Error deleting profile:', error);
+        alert('Failed to delete profile. Please try again.');
+      }
+    }
+  };
+
+  const handleProfileCheckboxToggle = (profileId: string) => {
+    setSelectedProfiles(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(profileId)) {
+        newSet.delete(profileId);
+      } else {
+        newSet.add(profileId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAllProfiles = () => {
+    if (selectedProfiles.size === profiles.length) {
+      setSelectedProfiles(new Set());
+    } else {
+      setSelectedProfiles(new Set(profiles.map(p => p.id)));
+    }
+  };
+
+  const handleBulkDeleteProfiles = async () => {
+    if (selectedProfiles.size === 0) return;
+    
+    try {
+      // Delete each selected profile
+      for (const profileId of selectedProfiles) {
+        await deleteProfile(profileId);
+      }
+      
+      // Clear selection and refresh
+      setSelectedProfiles(new Set());
+      setIsSelectionMode(false);
+      setShowDeleteConfirm(false);
+      fetchProfiles(currentPage, searchQuery);
+    } catch (error) {
+      console.error('Error deleting profiles:', error);
+      alert('Failed to delete some profiles. Please try again.');
+    }
+  };
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    if (!isSelectionMode) {
+      setSelectedProfiles(new Set());
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -329,14 +412,57 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
         <DialogContent className="w-full max-w-7xl h-[90vh] max-h-[90vh] flex flex-col p-0 [&>button]:hidden">
           <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
             <DialogTitle className="text-2xl font-bold">View All Profiles</DialogTitle>
-            <Button variant="outline" onClick={onClose}>
-              Close
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleSelectionMode}
+                className="h-9 px-3"
+              >
+                {isSelectionMode ? 'Cancel Selection' : 'Select Multiple'}
+              </Button>
+              {isSelectionMode && selectedProfiles.size > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDeleteProfiles}
+                  className="h-9 px-3"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete ({selectedProfiles.size})
+                </Button>
+              )}
+              <Button variant="outline" onClick={onClose}>
+                Close
+              </Button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-hidden flex flex-col">
             {/* Search Bar */}
             <div className="p-6 border-b flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
+                {isSelectionMode && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSelectAllProfiles}
+                      className="h-8 px-3"
+                    >
+                      {selectedProfiles.size === profiles.length ? (
+                        <CheckSquare className="h-4 w-4 mr-1" />
+                      ) : (
+                        <Square className="h-4 w-4 mr-1" />
+                      )}
+                      {selectedProfiles.size === profiles.length ? 'Deselect All' : 'Select All'}
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      {selectedProfiles.size} profile(s) selected
+                    </span>
+                  </div>
+                )}
+              </div>
               <form onSubmit={handleSearch} className="flex gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -365,6 +491,22 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      {isSelectionMode && (
+                        <TableHead className="w-12">
+                          <div 
+                            className={`w-4 h-4 rounded border-2 flex items-center justify-center cursor-pointer mx-auto ${
+                              selectedProfiles.size === profiles.length
+                                ? 'bg-blue-500 border-blue-500 text-white'
+                                : 'border-gray-300'
+                            }`}
+                            onClick={handleSelectAllProfiles}
+                          >
+                            {selectedProfiles.size === profiles.length && (
+                              <CheckSquare className="h-3 w-3" />
+                            )}
+                          </div>
+                        </TableHead>
+                      )}
                       <TableHead>Name</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Gender</TableHead>
@@ -380,13 +522,36 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
                   <TableBody>
                     {profiles.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={10} className="text-center py-8">
+                        <TableCell colSpan={isSelectionMode ? 11 : 10} className="text-center py-8">
                           No profiles found
                         </TableCell>
                       </TableRow>
                     ) : (
                       profiles.map((profile) => (
-                        <TableRow key={profile.id}>
+                        <TableRow 
+                          key={profile.id}
+                          className={`${
+                            isSelectionMode && selectedProfiles.has(profile.id)
+                              ? 'bg-blue-50 border-blue-200'
+                              : ''
+                          }`}
+                        >
+                          {isSelectionMode && (
+                            <TableCell className="w-12">
+                              <div 
+                                className={`w-4 h-4 rounded border-2 flex items-center justify-center cursor-pointer mx-auto ${
+                                  selectedProfiles.has(profile.id)
+                                    ? 'bg-blue-500 border-blue-500 text-white'
+                                    : 'border-gray-300'
+                                }`}
+                                onClick={() => handleProfileCheckboxToggle(profile.id)}
+                              >
+                                {selectedProfiles.has(profile.id) && (
+                                  <CheckSquare className="h-3 w-3" />
+                                )}
+                              </div>
+                            </TableCell>
+                          )}
                           <TableCell className="font-medium">
                             {getDisplayValue(profile.metadata.name)}
                           </TableCell>
@@ -421,14 +586,24 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
                             {formatDate(profile.createdAt)}
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditProfile(profile)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditProfile(profile)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteProfile(profile.id)}
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
@@ -437,6 +612,26 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
                 </Table>
               )}
             </div>
+
+            {/* Selection Summary */}
+            {isSelectionMode && selectedProfiles.size > 0 && (
+              <div className="p-4 border-t bg-blue-50 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-blue-700">
+                    <strong>{selectedProfiles.size}</strong> profile(s) selected
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="h-8 px-3"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete Selected
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Pagination */}
             {totalPages > 1 && (
@@ -518,6 +713,18 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
           initialProfile={transformProfileForEdit(editingProfile)}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleBulkDeleteProfiles}
+        title="Delete Profiles"
+        description={`Are you sure you want to delete ${selectedProfiles.size} profile(s)? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
     </>
   );
 };

@@ -311,6 +311,14 @@ class ApiClient {
     });
   }
 
+  // Delete profile method
+  async deleteProfile(profileId: string): Promise<{ success: boolean; message: string }> {
+    return this.request('/profile', {
+      method: 'DELETE',
+      body: JSON.stringify({ profileId }),
+    });
+  }
+
   // Job-related methods (for future use)
   async createJobPost(organizationId: string, jobData: any) {
     return this.request(`/jobs/${organizationId}`, {
