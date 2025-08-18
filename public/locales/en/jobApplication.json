@@ -1,0 +1,331 @@
+{
+  "jobApplication": {
+    "title": "Job Application",
+    "subtitle": "Apply for this position",
+    "steps": {
+      "profileSelection": "Profile Selection",
+      "basicInfo": "Basic Information",
+      "applicationQuestions": "Application Questions",
+      "consent": "Consent & Agreement",
+      "summary": "Application Summary"
+    },
+    "stepTitles": {
+      "profileSelection": "Select Profile",
+      "basicInfo": "Basic Information",
+      "applicationQuestions": "Application Questions",
+      "consent": "Consent & Agreement",
+      "summary": "Application Summary"
+    },
+    "stepDescriptions": {
+      "profileSelection": "Choose a profile to use for this application",
+      "basicInfo": "Enter your basic contact information",
+      "applicationQuestions": "Answer job-specific questions",
+      "consent": "Review and agree to terms",
+      "summary": "Review your application before submitting"
+    },
+    "profileSelection": {
+      "title": "Select Profile",
+      "subtitle": "Choose a profile to use for this application",
+      "existingProfiles": "Existing Profiles",
+      "createNewProfile": "Create New Profile",
+      "selectProfile": "Select Profile",
+      "profileName": "Profile Name",
+      "profileRole": "Profile Role",
+      "profileLocation": "Profile Location",
+      "profileExperience": "Profile Experience",
+      "profileSkills": "Profile Skills",
+      "profileVerification": "Profile Verification",
+      "profileCompletion": "Profile Completion",
+      "noProfiles": "No profiles found",
+      "createProfileFirst": "Please create a profile first",
+      "profileActions": {
+        "select": "Select",
+        "edit": "Edit",
+        "duplicate": "Duplicate",
+        "delete": "Delete",
+        "setDefault": "Set as Default"
+      },
+      "profileMessages": {
+        "profileSelected": "Profile selected successfully",
+        "profileNotFound": "Profile not found",
+        "profileAccessDenied": "Access denied to this profile",
+        "profileIncomplete": "Profile is incomplete",
+        "verificationRequired": "Profile verification required"
+      }
+    },
+    "basicInfo": {
+      "title": "Basic Information",
+      "subtitle": "Enter your basic contact information",
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "location": "Location",
+      "address": "Address",
+      "city": "City",
+      "state": "State",
+      "country": "Country",
+      "pincode": "Pincode",
+      "dateOfBirth": "Date of Birth",
+      "age": "Age",
+      "gender": "Gender",
+      "validation": {
+        "nameRequired": "Full name is required",
+        "emailRequired": "Email address is required",
+        "phoneRequired": "Phone number is required",
+        "locationRequired": "Location is required",
+        "invalidEmail": "Please enter a valid email address",
+        "invalidPhone": "Please enter a valid phone number",
+        "invalidDate": "Please enter a valid date",
+        "invalidAge": "Please enter a valid age",
+        "nameTooShort": "Name must be at least 2 characters",
+        "nameTooLong": "Name must not exceed 50 characters",
+        "phoneTooShort": "Phone number must be at least 10 digits",
+        "phoneTooLong": "Phone number must not exceed 15 digits"
+      },
+      "placeholders": {
+        "enterName": "Enter your full name",
+        "enterEmail": "your@email.com",
+        "enterPhone": "+91 9876543210",
+        "enterLocation": "Enter your location",
+        "enterAddress": "Enter your full address",
+        "enterCity": "Enter city name",
+        "enterState": "Enter state name",
+        "enterPincode": "Enter pincode",
+        "enterDateOfBirth": "DD/MM/YYYY",
+        "enterAge": "Enter your age"
+      },
+      "genderOptions": {
+        "male": "Male",
+        "female": "Female",
+        "other": "Other",
+        "preferNotToSay": "Prefer not to say"
+      }
+    },
+    "applicationQuestions": {
+      "title": "Application Questions",
+      "subtitle": "Answer job-specific questions",
+      "experience": "Work Experience",
+      "whyJoin": "Why do you want to join this company?",
+      "previousWork": "Describe your previous work experience",
+      "taskVideo": "Task Video",
+      "voiceInput": "Voice Input",
+      "startRecording": "Start Recording",
+      "stopRecording": "Stop Recording",
+      "recording": "Recording...",
+      "recorded": "Recorded",
+      "playRecording": "Play Recording",
+      "deleteRecording": "Delete Recording",
+      "reRecord": "Re-record",
+      "validation": {
+        "experienceRequired": "Please describe your work experience",
+        "whyJoinRequired": "Please explain why you want to join",
+        "previousWorkRequired": "Please describe your previous work",
+        "recordingRequired": "Please record your response"
+      },
+      "placeholders": {
+        "enterExperience": "Describe your work experience...",
+        "enterWhyJoin": "Explain why you want to join this company...",
+        "enterPreviousWork": "Describe your previous work experience...",
+        "recordingInstructions": "Click start to record your response"
+      },
+      "voiceInputInstructions": "Click the microphone to record your response",
+      "voiceInputSuccess": "Voice input recorded successfully",
+      "voiceInputFailed": "Failed to record voice input",
+      "voiceInputProcessing": "Processing voice input...",
+      "voiceInputProcessed": "Voice input processed successfully"
+    },
+    "consent": {
+      "title": "Consent & Agreement",
+      "subtitle": "Review and agree to terms",
+      "termsAndConditions": "I agree to the Terms & Conditions",
+      "privacyPolicy": "I agree to the Privacy Policy",
+      "dataSharing": "I consent to sharing my data with potential employers",
+      "communication": "I agree to receive communications about my application",
+      "backgroundCheck": "I consent to background verification if required",
+      "documentVerification": "I consent to document verification",
+      "skillAssessment": "I agree to participate in skill assessments",
+      "interviewConsent": "I agree to participate in interviews",
+      "validation": {
+        "termsRequired": "You must agree to the Terms & Conditions",
+        "privacyRequired": "You must agree to the Privacy Policy",
+        "dataSharingRequired": "You must consent to data sharing",
+        "communicationRequired": "You must agree to communications"
+      },
+      "consentMessages": {
+        "allConsentsGiven": "All required consents have been given",
+        "consentsRequired": "Please provide all required consents",
+        "consentUpdated": "Consent preferences updated"
+      }
+    },
+    "summary": {
+      "title": "Application Summary",
+      "subtitle": "Review your application before submitting",
+      "personalInfo": "Personal Information",
+      "profileInfo": "Profile Information",
+      "applicationAnswers": "Application Answers",
+      "consents": "Consents Given",
+      "reviewApplication": "Review Application",
+      "submitApplication": "Submit Application",
+      "saveDraft": "Save as Draft",
+      "editApplication": "Edit Application",
+      "validation": {
+        "applicationIncomplete": "Application is incomplete",
+        "requiredFieldsMissing": "Required fields are missing",
+        "consentsMissing": "Required consents are missing",
+        "profileIncomplete": "Selected profile is incomplete"
+      },
+      "summaryMessages": {
+        "applicationReady": "Application is ready to submit",
+        "applicationIncomplete": "Please complete all required fields",
+        "reviewRequired": "Please review your application"
+      }
+    },
+    "actions": {
+      "next": "Next",
+      "previous": "Previous",
+      "submit": "Submit Application",
+      "submitting": "Submitting...",
+      "saveDraft": "Save as Draft",
+      "savingDraft": "Saving Draft...",
+      "cancel": "Cancel",
+      "close": "Close",
+      "edit": "Edit",
+      "delete": "Delete",
+      "duplicate": "Duplicate",
+      "preview": "Preview",
+      "backToEdit": "Back to Edit"
+    },
+    "messages": {
+      "applicationSubmitted": "Application submitted successfully",
+      "applicationSubmitFailed": "Failed to submit application",
+      "draftSaved": "Draft saved successfully",
+      "draftSaveFailed": "Failed to save draft",
+      "applicationUpdated": "Application updated successfully",
+      "applicationUpdateFailed": "Failed to update application",
+      "applicationDeleted": "Application deleted successfully",
+      "applicationDeleteFailed": "Failed to delete application",
+      "applicationDuplicated": "Application duplicated successfully",
+      "applicationDuplicateFailed": "Failed to duplicate application",
+      "validationFailed": "Please complete all required fields",
+      "stepCompleted": "Step completed successfully",
+      "stepValidationFailed": "Please complete this step before proceeding",
+      "profileRequired": "Please select a profile",
+      "consentRequired": "Please provide all required consents",
+      "applicationIncomplete": "Application is incomplete",
+      "submissionSuccess": "Your application has been submitted successfully",
+      "submissionFailed": "Failed to submit application. Please try again.",
+      "draftSavedSuccess": "Draft saved successfully. You can continue later.",
+      "draftSaveFailed": "Failed to save draft. Please try again."
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidPhone": "Please enter a valid phone number",
+      "invalidNumber": "Please enter a valid number",
+      "invalidDate": "Please enter a valid date",
+      "fieldRequired": "{{field}} is required",
+      "fieldInvalid": "{{field}} is invalid",
+      "minLength": "Minimum {{min}} characters required",
+      "maxLength": "Maximum {{max}} characters allowed",
+      "minValue": "Minimum value is {{min}}",
+      "maxValue": "Maximum value is {{max}}"
+    },
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "underReview": "Under Review",
+      "shortlisted": "Shortlisted",
+      "interview": "Interview",
+      "hired": "Hired",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    },
+    "applicationTypes": {
+      "new": "New Application",
+      "update": "Update Application",
+      "duplicate": "Duplicate Application",
+      "draft": "Draft Application"
+    },
+    "applicationModes": {
+      "profileBased": "Profile Based",
+      "manualEntry": "Manual Entry",
+      "hybrid": "Hybrid"
+    },
+    "profileMatching": {
+      "exactMatch": "Exact Match",
+      "goodMatch": "Good Match",
+      "partialMatch": "Partial Match",
+      "noMatch": "No Match"
+    },
+    "verificationStatus": {
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "pending": "Pending",
+      "failed": "Failed"
+    },
+    "applicationPriority": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "applicationSource": {
+      "direct": "Direct Application",
+      "referral": "Referral",
+      "jobBoard": "Job Board",
+      "socialMedia": "Social Media",
+      "companyWebsite": "Company Website"
+    },
+    "applicationChannels": {
+      "web": "Web",
+      "mobile": "Mobile",
+      "api": "API",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "applicationTiming": {
+      "immediate": "Immediate",
+      "scheduled": "Scheduled",
+      "delayed": "Delayed"
+    },
+    "applicationConfirmation": {
+      "title": "Application Confirmation",
+      "subtitle": "Your application has been submitted successfully",
+      "applicationId": "Application ID",
+      "submissionDate": "Submission Date",
+      "nextSteps": "Next Steps",
+      "estimatedResponse": "Estimated Response Time",
+      "contactInfo": "Contact Information",
+      "applicationStatus": "Application Status",
+      "trackingUrl": "Tracking URL",
+      "confirmationMessage": "Thank you for your application. We will review it and get back to you soon.",
+      "confirmationActions": {
+        "viewApplication": "View Application",
+        "trackApplication": "Track Application",
+        "applyToMoreJobs": "Apply to More Jobs",
+        "updateProfile": "Update Profile",
+        "downloadReceipt": "Download Receipt"
+      }
+    },
+    "applicationTracking": {
+      "title": "Application Tracking",
+      "subtitle": "Track the status of your application",
+      "applicationId": "Application ID",
+      "jobTitle": "Job Title",
+      "companyName": "Company Name",
+      "applicationDate": "Application Date",
+      "lastUpdated": "Last Updated",
+      "currentStatus": "Current Status",
+      "statusHistory": "Status History",
+      "timeline": "Timeline",
+      "nextMilestone": "Next Milestone",
+      "estimatedCompletion": "Estimated Completion",
+      "trackingActions": {
+        "refreshStatus": "Refresh Status",
+        "viewDetails": "View Details",
+        "contactRecruiter": "Contact Recruiter",
+        "withdrawApplication": "Withdraw Application",
+        "updateApplication": "Update Application"
+      }
+    }
+  }
+}

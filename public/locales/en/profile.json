@@ -2,6 +2,36 @@
   "profile": {
     "title": "Profile",
     "subtitle": "Complete your profile to get better job matches",
+    "steps": {
+      "whoIAm": "Who I Am",
+      "whatIHave": "What I Have", 
+      "whatIWant": "What I Want",
+      "basicInfo": "Basic Information",
+      "experience": "Work Experience",
+      "education": "Education",
+      "skills": "Skills & Certifications",
+      "preferences": "Job Preferences",
+      "verification": "Verification",
+      "summary": "Summary",
+      "digiLocker": "DigiLocker Import",
+      "location": "Location",
+      "roleSelection": "Role Selection"
+    },
+    "stepDescriptions": {
+      "whoIAm": "Basic personal information",
+      "whatIHave": "Qualifications, skills, and experience",
+      "whatIWant": "Salary expectations and preferences",
+      "basicInfo": "Your basic personal details",
+      "experience": "Your work history and experience",
+      "education": "Your educational background",
+      "skills": "Your skills and certifications",
+      "preferences": "Your job preferences and expectations",
+      "verification": "Verify your identity and documents",
+      "summary": "Review and complete your profile",
+      "digiLocker": "Import verified documents from DigiLocker",
+      "location": "Your current and desired locations",
+      "roleSelection": "Choose your preferred job role and industry"
+    },
     "personalInfo": {
       "title": "Personal Information",
       "name": "Full Name",
@@ -17,7 +47,18 @@
       "zipCode": "Zip Code",
       "hometown": "Hometown",
       "currentLocation": "Current Location",
-      "desiredLocation": "Desired Location"
+      "desiredLocation": "Desired Location",
+      "fatherName": "Father's Name",
+      "motherName": "Mother's Name",
+      "aadharNumber": "Aadhaar Number",
+      "age": "Age",
+      "phoneVerified": "Phone Verified",
+      "locationVerified": "Location Verified",
+      "nameVerified": "Name Verified",
+      "ageVerified": "Age Verified",
+      "aadharVerified": "Aadhaar Verified",
+      "genderVerified": "Gender Verified",
+      "hometownVerified": "Hometown Verified"
     },
     "experience": {
       "title": "Work Experience",
@@ -32,7 +73,21 @@
       "responsibilities": "Responsibilities",
       "achievements": "Achievements",
       "skills": "Skills Used",
-      "noExperience": "No work experience added yet"
+      "noExperience": "No work experience added yet",
+      "hasWorkExperience": "Do you have work experience?",
+      "previousCompany": "Previous Company",
+      "previousLocation": "Previous Location",
+      "experienceMonths": "Months of Experience",
+      "totalYearsOfExperience": "Total Years of Experience",
+      "workType": "Work Type",
+      "duration": "Duration",
+      "workTypeOptions": {
+        "fullTime": "Full Time",
+        "partTime": "Part Time",
+        "contract": "Contract",
+        "internship": "Internship",
+        "freelance": "Freelance"
+      }
     },
     "education": {
       "title": "Education",
@@ -46,7 +101,19 @@
       "current": "Current",
       "grade": "Grade",
       "description": "Description",
-      "noEducation": "No education added yet"
+      "noEducation": "No education added yet",
+      "itiInstitute": "ITI Institute",
+      "itiSpecialization": "ITI Specialization",
+      "trainingDuration": "Training Duration (months)",
+      "basicLiteracy": "Basic Literacy",
+      "highestQualification": "Highest Qualification",
+      "literacyOptions": {
+        "below8th": "Below 8th",
+        "8thPass": "8th Pass",
+        "10thPass": "10th Pass",
+        "12thPass": "12th Pass",
+        "graduate": "Graduate"
+      }
     },
     "skills": {
       "title": "Skills",
@@ -62,11 +129,23 @@
       "expiryDate": "Expiry Date",
       "credentialId": "Credential ID",
       "noSkills": "No skills added yet",
-      "noCertifications": "No certifications added yet"
+      "noCertifications": "No certifications added yet",
+      "skillLevel": "Skill Level",
+      "skillLevels": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced",
+        "expert": "Expert"
+      },
+      "machinesOperated": "Machines Operated",
+      "skillProofVideo": "Skill Proof Video",
+      "qualityProofImage": "Quality Proof Image",
+      "languageSpoken": "Languages Spoken"
     },
     "preferences": {
       "title": "Job Preferences",
       "desiredRole": "Desired Role",
+      "desiredIndustry": "Desired Industry",
       "desiredLocation": "Desired Location",
       "salaryExpectation": "Salary Expectation",
       "jobType": "Preferred Job Type",
@@ -78,7 +157,24 @@
       "partTime": "Part Time",
       "contract": "Contract",
       "internship": "Internship",
-      "freelance": "Freelance"
+      "freelance": "Freelance",
+      "salaryFrequency": "Salary Frequency",
+      "monthlySalary": "Monthly Salary (INR)",
+      "monthlyInHandPreferred": "Monthly In-Hand Preferred (INR)",
+      "monthlyOTExpectation": "Monthly OT Expectation (INR)",
+      "monthlyPFESIC": "Monthly PF & ESIC",
+      "advanceMonthsAvailable": "Advance Months Available",
+      "advanceFrequency": "Advance Frequency",
+      "workHoursPerDay": "Work Hours Per Day",
+      "overtimeAvailable": "Overtime Available",
+      "overtimePayMultiplier": "Overtime Pay Multiplier",
+      "housingFacility": "Housing Facility",
+      "foodFacility": "Food Facility",
+      "gradeUpgradation": "Grade Upgradation",
+      "preferredModeOfWork": "Preferred Mode of Work",
+      "readyToMigrate": "Ready to Migrate",
+      "stayPreferences": "Stay Preferences",
+      "maxCostPerSharingBed": "Max Cost Per Sharing Bed (INR)"
     },
     "verification": {
       "title": "Verification",
@@ -89,7 +185,10 @@
       "notVerified": "Not Verified",
       "verifyNow": "Verify Now",
       "verificationPending": "Verification Pending",
-      "verificationFailed": "Verification Failed"
+      "verificationFailed": "Verification Failed",
+      "verificationMessage": "✓ Verified from DigiLocker",
+      "verificationRequired": "Verification Required",
+      "verificationInProgress": "Verification in Progress"
     },
     "actions": {
       "save": "Save Profile",
@@ -100,16 +199,14 @@
       "duplicate": "Duplicate Profile",
       "setDefault": "Set as Default",
       "complete": "Complete Profile",
-      "update": "Update Profile"
-    },
-    "steps": {
-      "basicInfo": "Basic Information",
-      "experience": "Work Experience",
-      "education": "Education",
-      "skills": "Skills & Certifications",
-      "preferences": "Job Preferences",
-      "verification": "Verification",
-      "summary": "Summary"
+      "update": "Update Profile",
+      "next": "Next",
+      "previous": "Previous",
+      "skip": "Skip",
+      "continue": "Continue",
+      "back": "Back",
+      "finish": "Finish",
+      "startOver": "Start Over"
     },
     "messages": {
       "profileSaved": "Profile saved successfully",
@@ -119,7 +216,153 @@
       "profileSetDefault": "Profile set as default",
       "profileCompleted": "Profile completed successfully",
       "verificationRequired": "Please complete verification to continue",
-      "profileIncomplete": "Please complete your profile to continue"
+      "profileIncomplete": "Please complete your profile to continue",
+      "stepCompleted": "Step completed successfully",
+      "profileIncomplete": "Please complete all required fields",
+      "verificationInProgress": "Verification is in progress",
+      "importSuccess": "Data imported successfully from DigiLocker",
+      "importFailed": "Failed to import data from DigiLocker",
+      "locationDetected": "Location detected automatically",
+      "locationDetectionFailed": "Failed to detect location automatically"
+    },
+    "digiLocker": {
+      "title": "Quick Import from DigiLocker",
+      "description": "Import verified documents to auto-fill your profile information",
+      "buttonText": "Import from DigiLocker",
+      "footerText": "This will import your AADHAAR, name, date of birth and other verified details",
+      "importing": "Importing from DigiLocker...",
+      "importSuccess": "Successfully imported data from DigiLocker",
+      "importFailed": "Failed to import from DigiLocker",
+      "notConfigured": "DigiLocker is not configured",
+      "popupBlocked": "Popup blocked. Please allow popups and try again",
+      "manualCode": "Enter code manually",
+      "copyUrl": "Copy URL",
+      "openPopup": "Open DigiLocker",
+      "detectedCode": "Code detected automatically",
+      "confirmCode": "Confirm detected code"
+    },
+    "voiceProfile": {
+      "title": "Voice Profile Creation",
+      "subtitle": "Create your profile using voice commands",
+      "startVoice": "Start Voice Session",
+      "stopVoice": "Stop Voice Session",
+      "listening": "Listening...",
+      "speaking": "Speaking...",
+      "voiceInstructions": "Speak clearly and answer the questions",
+      "voiceSuccess": "Voice profile created successfully",
+      "voiceFailed": "Failed to create voice profile",
+      "retryVoice": "Retry Voice Input"
+    },
+    "qrScanner": {
+      "title": "QR Code Scanner",
+      "subtitle": "Scan QR codes to import certificates and documents",
+      "startScan": "Start Scanning",
+      "stopScan": "Stop Scanning",
+      "scanning": "Scanning...",
+      "scanSuccess": "QR code scanned successfully",
+      "scanFailed": "Failed to scan QR code",
+      "uploadFile": "Upload QR Code Image",
+      "scanAnother": "Scan Another Code",
+      "manualEntry": "Enter manually instead"
+    },
+    "location": {
+      "title": "Location Information",
+      "currentLocation": "Current Location",
+      "desiredLocation": "Desired Location",
+      "detectLocation": "Detect My Location",
+      "detecting": "Detecting location...",
+      "locationDetected": "Location detected successfully",
+      "locationDetectionFailed": "Failed to detect location",
+      "enterManually": "Enter location manually",
+      "locationPlaceholder": "Enter your location (e.g., Bangalore, Karnataka)",
+      "address": "Full Address",
+      "city": "City",
+      "state": "State",
+      "country": "Country",
+      "pincode": "Pincode"
+    },
+    "roleSelection": {
+      "title": "Role Selection",
+      "subtitle": "Choose your preferred job role and industry",
+      "selectRole": "Select Role",
+      "selectIndustry": "Select Industry",
+      "priorityRoles": "Priority Roles",
+      "industryRoles": "Industry Roles",
+      "searchRoles": "Search roles...",
+      "noRolesFound": "No roles found",
+      "roleDescription": "Select the role that best matches your skills and experience",
+      "industryDescription": "Choose the industry you want to work in",
+      "voiceStart": "Start Voice Selection",
+      "voiceStop": "Stop Voice Selection"
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidPhone": "Please enter a valid phone number",
+      "invalidDate": "Please enter a valid date",
+      "invalidAge": "Please enter a valid age",
+      "invalidAadhar": "Please enter a valid Aadhaar number",
+      "invalidPincode": "Please enter a valid pincode",
+      "phoneTooShort": "Phone number must be at least 10 digits",
+      "phoneTooLong": "Phone number must not exceed 15 digits",
+      "nameTooShort": "Name must be at least 2 characters",
+      "nameTooLong": "Name must not exceed 50 characters",
+      "ageTooLow": "Age must be at least 16 years",
+      "ageTooHigh": "Age must not exceed 100 years"
+    },
+    "placeholders": {
+      "enterName": "Enter your full name",
+      "enterEmail": "your@email.com",
+      "enterPhone": "+91 9876543210",
+      "enterDateOfBirth": "DD/MM/YYYY",
+      "enterAge": "Enter your age",
+      "enterAadhar": "XXXX-XXXX-XXXX",
+      "enterLocation": "Enter your location",
+      "enterAddress": "Enter your full address",
+      "enterCity": "Enter city name",
+      "enterState": "Enter state name",
+      "enterPincode": "Enter pincode",
+      "enterCompany": "Enter company name",
+      "enterPosition": "Enter position/title",
+      "enterInstitution": "Enter institution name",
+      "enterDegree": "Enter degree/certificate name",
+      "enterSkill": "Enter skill name",
+      "enterCertification": "Enter certification name",
+      "enterSalary": "Enter expected salary",
+      "enterWorkHours": "Enter work hours per day",
+      "enterExperience": "Enter years of experience"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "preferNotToSay": "Prefer not to say"
+    },
+    "salaryFrequency": {
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "advanceFrequency": {
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "halfYearly": "Half Yearly"
+    },
+    "overtimePay": {
+      "1x": "1x (Regular)",
+      "1.5x": "1.5x (Time and a half)",
+      "2x": "2x (Double time)"
+    },
+    "workMode": {
+      "onsite": "On-site",
+      "remote": "Remote",
+      "hybrid": "Hybrid"
+    },
+    "jobType": {
+      "fullTime": "Full Time",
+      "partTime": "Part Time",
+      "contract": "Contract",
+      "internship": "Internship",
+      "freelance": "Freelance"
     }
   }
 }
