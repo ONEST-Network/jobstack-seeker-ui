@@ -2,6 +2,7 @@
 import React from 'react';
 import { useAuth, CandidateProfile } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useDraftProfileSync } from '@/hooks/useDraftProfileSync';
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
 import { apiClient, ProfilesResponse } from '@/lib/api';
 
@@ -26,6 +27,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
 }) => {
   const { user, addCandidate, updateCandidate, getSelectedCandidate, refreshProfileData } = useAuth();
   const { toast } = useToast();
+  const { updateAllDraftsWithProfile } = useDraftProfileSync();
 
   const existingCandidate = candidateId 
     ? user?.managedCandidates.find(c => c.id === candidateId)
@@ -40,8 +42,6 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
                            (profileData.phone?.toString()?.trim() || whoIAm?.phone?.toString()?.trim());
 
     if (!hasRequiredData) {
-      console.log('Incomplete profile data, not creating profile:', profileData);
-      onClose();
       return;
     }
 
@@ -90,6 +90,16 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       const candidateToUpdate = candidateId || existingCandidate?.id;
       if (candidateToUpdate) {
         updateCandidate(candidateToUpdate, candidateData);
+        
+        // Update all drafts with the new profile data
+        try {
+          updateAllDraftsWithProfile(profileData).catch(error => {
+            // Silently handle draft sync errors - not critical for profile save
+          });
+        } catch (error) {
+          // Silently handle draft sync errors - not critical for profile save
+        }
+        
         toast({
           title: "Profile Updated",
           description: "Candidate profile has been updated successfully."
@@ -165,7 +175,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
             setCurrentProfileId(mostRecentProfile.id);
           }
         } catch (error) {
-          console.log('Error getting profile ID:', error);
+          // Silently handle profile ID errors
         }
       } else {
         // For edit mode with a specific candidate, use the candidateId as the profileId

@@ -278,8 +278,39 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {Object.entries(data).map(([key, value]) => {
+              // Skip empty values and known non-display keys
               if (value === undefined || value === null || value === '' || key === 'gps' || key === 'tag') return null;
+              // If this is a structured location object (not a simple string), skip it to avoid duplicate Location Data display
+              if (typeof value === 'object' && !Array.isArray(value) && /location/i.test(key)) return null;
               if (Array.isArray(value) && value.length === 0) return null;
+
+              // Prepare a display string for nested objects (avoid [object Object])
+              let display: string | null = null;
+
+              if (typeof value === 'object' && !Array.isArray(value)) {
+                // Special-case location objects with common fields
+                if (value && (value.address || value.city || value.state || value.country)) {
+                  const parts: string[] = [];
+                  if (value.address) parts.push(value.address);
+                  if (value.city) parts.push(String(value.city));
+                  if (value.state) parts.push(String(value.state));
+                  if (value.country) parts.push(String(value.country));
+                  display = parts.join(', ');
+                } else {
+                  // Fallback: flatten inner object to key: value pairs
+                  const inner = Object.entries(value)
+                    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+                    .map(([k, v]) => `${formatKey(k)}: ${Array.isArray(v) ? v.join(', ') : String(v)}`)
+                    .join(' • ');
+                  display = inner || null;
+                }
+              } else if (Array.isArray(value)) {
+                display = value.join(', ');
+              } else {
+                display = String(value);
+              }
+
+              if (!display) return null;
 
               return (
                 <div key={key} className="p-3 rounded-lg bg-gray-50">
@@ -287,7 +318,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
                     {formatKey(key)}
                   </div>
                   <div className="text-base font-semibold break-words">
-                    {Array.isArray(value) ? value.join(', ') : String(value)}
+                    {display}
                   </div>
                 </div>
               );
@@ -370,16 +401,16 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
             >
               {applying ? 'Submitting...' : 'Submit Application'}
             </Button>
-            {/* {onSaveDraft && (
+            {onSaveDraft && (
               <Button 
                 onClick={handleSaveDraft} 
                 variant="secondary"
                 className="h-12 px-6 text-base font-medium"
                 disabled={applying || savingDraft || !canSubmit()}
               >
-                {savingDraft ? 'Saving...' : 'Save as Draft'}
+                {savingDraft ? 'Saving...' : 'Save Draft'}
               </Button>
-            )} */}
+            )}
             <Button 
               variant="outline" 
               onClick={onClose} 

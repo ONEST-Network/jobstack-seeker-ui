@@ -168,10 +168,11 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
         job.title || '',
         job.company || '',
         job.location || '',
+        job.salary || '',
         job.industry || '',
         job.description || '',
-        job.skills?.join(' ') || '',
-        job.requirements?.join(' ') || ''
+        job.jobDetails?.skills?.join(' ') || '',
+        job.tags?.jobNeeds?.hrWorkExperienceOther || ''
       ].map(field => field.toLowerCase());
 
       // Check if all search terms are found in any of the searchable fields
@@ -299,7 +300,8 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
         return;
       }
 
-      const result = await applyToJob(ids.jobId, ids.providerId, applicationData);
+      // Pass the job details from the BAP search API response
+      const result = await applyToJob(ids.jobId, ids.providerId, applicationData, undefined, selectedJob);
       
       if (result.success) {
         showMapToast('success', 'Application Submitted!', 'Your job application has been successfully submitted.');
@@ -332,7 +334,8 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
         return;
       }
 
-      const result = await saveDraft(ids.jobId, ids.providerId, applicationData);
+      // Pass the job details from the BAP search API response
+      const result = await saveDraft(ids.jobId, ids.providerId, applicationData, selectedJob);
       
       if (result.success) {
         showMapToast('success', 'Draft Saved!', 'Your job application draft has been successfully saved.');

@@ -23,6 +23,7 @@ import {
 import { Search, Loader2, ChevronLeft, ChevronRight, Edit } from 'lucide-react';
 import { apiClient, ProfilesResponse } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDraftProfileSync } from '@/hooks/useDraftProfileSync';
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
 
 interface Profile {
@@ -107,6 +108,7 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const { user } = useAuth();
+  const { updateAllDraftsWithProfile } = useDraftProfileSync();
 
   const limit = 20;
 
