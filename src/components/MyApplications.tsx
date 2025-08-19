@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ApplicationTabs from './my-applications/ApplicationTabs';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { User } from 'lucide-react'; // Added User icon import
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/lib/api';
 
 interface JobApplication {
   id: string;
@@ -25,10 +27,6 @@ interface JobApplication {
   }>;
   profileId?: string; // Add profile ID to track which profile was used
 }
-
-import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/lib/api';
-import { useEffect, useState, useRef } from 'react';
 
 // Status API response interface
 interface StatusResponse {
