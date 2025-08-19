@@ -278,6 +278,8 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {Object.entries(data).map(([key, value]) => {
+              // Skip verification status fields
+              if (key === 'isAgeVerified' || key === 'isNameVerified' || key === 'isPhoneVerified' || key === 'isLocationVerified' || key === 'isGenderVerified' || key === 'isAadharVerified' || key === 'isHometownVerified') return null;
               // Skip empty values and known non-display keys
               if (value === undefined || value === null || value === '' || key === 'gps' || key === 'tag') return null;
               // If this is a structured location object (not a simple string), skip it to avoid duplicate Location Data display
