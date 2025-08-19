@@ -584,27 +584,12 @@
           "ui:currency": "₹",
           "ui:disabled": false
         },
-        "itiAssessmentScore": {
-          "type": "number",
-          "title": "Trade Assessment Score",
-          "description": "Assessment for Trade",
-          "minimum": 0,
-          "ui:widget": "number",
-          "ui:placeholder": "Enter Trade assessment score",
-          "ui:disabled": false
-        },
-        "intentAssessmentScore": {
-          "type": "number",
-          "title": "Intent Assessment Score",
-          "description": "Assessment for ITI",
-          "minimum": 0,
-          "ui:widget": "number",
-          "ui:placeholder": "Enter intent assessment score",
+     
           "ui": {
-            "order": ["highestQualification", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "totalYearsOfExperience", "languageSpoken", "currentMonthlySalary", "itiAssessmentScore", "intentAssessmentScore", "taskVideo", "qrCodeScan"],
+            "order": ["highestQualification", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "totalYearsOfExperience", "languageSpoken", "currentMonthlySalary", "taskVideo", "qrCodeScan"],
             "description": "Assessment for ITI"
           }
-        },
+        ,
         "taskVideo": {
           "type": "string",
           "title": "Task Upload",
@@ -634,8 +619,6 @@
           "totalYearsOfExperience",
           "languageSpoken",
           "currentMonthlySalary",
-          "itiAssessmentScore",
-          "intentAssessmentScore",
           "taskVideo",
           "qrCodeScan"
         ],
