@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,6 +26,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDraftProfileSync } from '@/hooks/useDraftProfileSync';
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
+
+const { useState, useEffect, useCallback } = React;
 
 interface Profile {
   id: string;
