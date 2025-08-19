@@ -56,7 +56,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
       return 'Machine Operator';
     }
     if (lowerJobTitle.includes('iti') || lowerJobTitle.includes('industrial training') || lowerJobTitle.includes('technical') || lowerJobTitle.includes('vocational')) {
-      return 'ITI Student';
+      return 'ITI (Other)';
     }
     
     // Then check for more general patterns
