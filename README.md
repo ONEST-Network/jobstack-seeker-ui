@@ -76,8 +76,18 @@ src/
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+ and pnpm
 - Git
+
+### Package Manager
+
+This project uses **pnpm** as the package manager. Please ensure you have pnpm installed:
+
+```bash
+npm install -g pnpm
+```
+
+**Important**: This project is configured to use pnpm exclusively. Using npm or yarn may cause dependency conflicts and deployment issues.
 
 ### Installation
 
@@ -89,7 +99,7 @@ cd creds-job-bridge
 
 2. **Install dependencies**
 ```bash
-npm install
+pnpm install
 ```
 
 3. **Environment Configuration**
@@ -98,6 +108,33 @@ Create a `.env` file in the root directory:
 
 ```bash
 # API Configuration
+```
+
+## 🔧 Troubleshooting
+
+### Package Manager Issues
+
+If you encounter dependency conflicts or deployment issues:
+
+1. **Clean and reinstall**:
+```bash
+pnpm run clean
+```
+
+2. **Ensure pnpm consistency**:
+```bash
+pnpm run ensure-pnpm
+```
+
+3. **Check for conflicting lock files**:
+   - Ensure only `pnpm-lock.yaml` exists
+   - Remove `package-lock.json` and `yarn.lock` if present
+
+### Common Issues
+
+- **"pnpm-lock.yaml is not up to date"**: Run `pnpm install` to sync dependencies
+- **Build failures in Amplify**: Ensure you're using pnpm in your build settings
+- **Dependency conflicts**: Use `pnpm run clean` to reset the environment
 VITE_BAP_URL=https://your-bap-api-url.com
 VITE_BPP_URL=https://your-bpp-api-url.com
 
