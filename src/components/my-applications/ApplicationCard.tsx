@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Send, Edit } from 'lucide-react';
@@ -8,7 +8,6 @@ import ApplicationStatusBadge from './ApplicationStatusBadge';
 import ApplicationDetailDialog from './ApplicationDetailDialog';
 import ApplicationViewModal from './ApplicationViewModal';
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
-import { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useJobApplication } from '@/hooks/useJobApplication';
 import { useToast } from '@/hooks/use-toast';
