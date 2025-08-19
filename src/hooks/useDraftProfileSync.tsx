@@ -1,9 +1,7 @@
-import * as React from 'react';
+import { useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api';
-
-const { useCallback } = React;
 
 export interface DraftApplication {
   jobId: string;

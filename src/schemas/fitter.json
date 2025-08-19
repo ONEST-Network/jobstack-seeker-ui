@@ -584,27 +584,11 @@
             "ui:currency": "₹",
             "ui:disabled": false
           },
-          "fitterAssessmentScore": {
-            "type": "number",
-            "title": "Trade Assessment Score",
-            "description": "Assessment for trade",
-            "minimum": 0,
-            "ui:widget": "number",
-            "ui:placeholder": "Enter trade assessment score",
-            "ui:disabled": false
-          },
-          "intentAssessmentScore": {
-            "type": "number",
-            "title": "Intent Assessment Score",
-            "description": "Assessment for fitter",
-            "minimum": 0,
-            "ui:widget": "number",
-            "ui:placeholder": "Enter intent assessment score",
             "ui": {
-              "order": ["highestQualification", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "totalYearsOfExperience", "languageSpoken", "currentMonthlySalary", "fitterAssessmentScore", "intentAssessmentScore", "taskVideo", "qrCodeScan"],
+              "order": ["highestQualification", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "totalYearsOfExperience", "languageSpoken", "currentMonthlySalary", "taskVideo", "qrCodeScan"],
               "description": "Assessment for fitter"
             }
-          },
+          ,
           "taskVideo": {
             "type": "string",
             "title": "Task Upload",
@@ -634,8 +618,6 @@
             "totalYearsOfExperience",
             "languageSpoken",
             "currentMonthlySalary",
-            "fitterAssessmentScore",
-            "intentAssessmentScore",
             "taskVideo",
             "qrCodeScan"
           ],
