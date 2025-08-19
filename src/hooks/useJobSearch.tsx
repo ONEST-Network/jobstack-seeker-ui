@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import * as React from 'react';
 import { apiClient, cleanContaminatedProfile } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams } from 'react-router-dom';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
+
+const { useState, useEffect, useCallback, useRef } = React;
 
 export interface JobItem {
   id: string;
