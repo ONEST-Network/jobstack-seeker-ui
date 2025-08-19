@@ -46,7 +46,7 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
     'Fitter',
     'Mechanic',
     'Machine Operator',
-    'ITI Student'
+    'ITI (Other)'
   ];
 
   const getFilteredRoles = () => {
