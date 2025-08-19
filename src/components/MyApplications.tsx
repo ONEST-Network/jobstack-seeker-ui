@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef , useCallback} from 'react';
 import ApplicationTabs from './my-applications/ApplicationTabs';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
