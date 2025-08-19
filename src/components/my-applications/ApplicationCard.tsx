@@ -22,6 +22,7 @@ interface JobApplication {
   salary: string;
   appliedDate: string;
   status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'draft';
+
   raw?: any;
   media?: Array<{
     type: 'image' | 'video';
@@ -57,7 +58,11 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   
   const cardStyle = isCompleted 
     ? `hover:shadow-md transition-shadow ${
-        application.status === 'shortlisted' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+        application.status === 'shortlisted' 
+          ? 'border-green-200 bg-green-50' 
+          : application.status === 'deleted'
+          ? 'border-gray-300 bg-gray-50 opacity-75'
+          : 'border-red-200 bg-red-50'
       }`
     : isDraft
     ? 'hover:shadow-md transition-shadow border-orange-200 bg-orange-50'
