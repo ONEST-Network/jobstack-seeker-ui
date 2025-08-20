@@ -23,7 +23,7 @@ import {
 import { Search, Loader2, ChevronLeft, ChevronRight, Edit, Trash2, CheckSquare, Square } from 'lucide-react';
 import { apiClient, ProfilesResponse } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { useDraftProfileSync } from '@/hooks/useDraftProfileSync';
+
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
 
@@ -112,7 +112,7 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { user, deleteProfile } = useAuth();
-  const { updateAllDraftsWithProfile } = useDraftProfileSync();
+
 
   const limit = 20;
 
