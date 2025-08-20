@@ -400,7 +400,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
           } catch (profileError) {
-            // No profile found or error fetching profile - user can create one later
           }
 
           // Always fetch profiles for individual users to ensure we have the latest data
@@ -419,6 +418,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             } catch (profilesError) {
               // Error fetching profiles
+        
               if (transformedUser.profile) {
                 const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
                 transformedUser.managedCandidates = [defaultCandidate];
@@ -1120,7 +1120,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
         } catch (profileError) {
+
           // No profile found or error fetching profile - user can create one later
+
         }
 
         // Always fetch profiles for individual users to ensure we have the latest data
