@@ -38,14 +38,13 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   preSelectedRole
 }) => {
   const { updateProfile, user, getSelectedCandidate, refreshProfileData } = useAuth();
+  const { profile, setProfile, clearAllValidations } = useProfileForm();
   const { toast } = useToast();
-
-  const { profile, setProfile } = useProfileForm();
-  
-  const [step, setStep] = useState(0); // Start with role selection
-  const [showVoiceDialog, setShowVoiceDialog] = useState(false);
-  const [previousRole, setPreviousRole] = useState<string>('');
+  const [step, setStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [showVoiceDialog, setShowVoiceDialog] = useState(false);
+  const [voiceField, setVoiceField] = useState<string>('');
+  const [previousRole, setPreviousRole] = useState<string>('');
 
   // Initialize profile with existing data when editing
   useEffect(() => {
@@ -138,54 +137,22 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           assessmentScores: [],
           documentVerificationStatus: [],
           
-          // Unified schema data - start empty
-          whoIAm: {
-            name: '',
-            location: '',
-            phone: '',
-            dateOfBirth: '',
-            age: undefined,
-            gender: undefined,
-            hometown: '',
-            aadharNumber: '',
-            currentLocation: '',
-            desiredLocation: '',
-            isNameVerified: false,
-            isAgeVerified: false,
-            isPhoneVerified: false,
-            isLocationVerified: false,
-          },
-          whatIHave: {
-            age: undefined,
-            basicLiteracy: undefined,
-            skillProofVideo: '',
-            qualityProofImage: '',
-            hasWorkExperience: undefined,
-            previousCompany: '',
-            previousLocation: '',
-            experienceMonths: undefined,
-            machinesOperated: [],
-            isAgeVerified: false,
-          },
-          whatIWant: {
-            salaryFrequency: undefined,
-            advanceMonthsAvailable: undefined,
-            advanceFrequency: undefined,
-            monthlySalary: undefined,
-            pfDeduction: undefined,
-            esicDeduction: undefined,
-            inHandSalary: undefined,
-            housingFacility: undefined,
-            foodFacility: undefined,
-            workHoursPerDay: undefined,
-            overtimeAvailable: undefined,
-            overtimePayMultiplier: undefined,
-            gradeUpgradation: undefined,
-            factoryTrustScore: undefined,
-          },
+          // Unified schema support - start empty
+          whoIAm: {},
+          whatIHave: {},
+          whatIWant: {},
+          
+          // Apply initial profile if provided - ensure proper merging
+          ...(initialProfile || {})
         };
         
         setProfile(freshProfile);
+      }
+      
+      // If we have a pre-selected role and we're not in update mode, skip role selection
+      const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
+      if (shouldSkipRoleSelection) {
+        setStep(1); // Start at step 1 (first form step) instead of step 0 (role selection)
       }
     } else {
       // Reset state when dialog closes
@@ -194,7 +161,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       setShowVoiceDialog(false);
       setIsSaving(false);
     }
-  }, [isOpen, initialProfile, setProfile, preSelectedRole]);
+  }, [isOpen, initialProfile, preSelectedRole, isUpdate, mode, setProfile]);
 
 
 
@@ -463,6 +430,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       if (unifiedStepIndex >= 0 && unifiedStepIndex < steps.length) {
         const currentStep = steps[unifiedStepIndex];
         // When role selection is skipped, step 1 should show as "2 of 4", step 2 as "3 of 4", step 3 as "4 of 4"
+        // This maintains the visual consistency that there are 4 total steps
         const displayStep = shouldSkipRoleSelection ? step + 1 : step + 1;
         const totalSteps = getTotalSteps();
         const title = `${profileType} - ${currentStep.title} (${displayStep} of ${totalSteps})`;
@@ -474,6 +442,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       const legacyStepIndex = step - 1;
       if (legacyStepIndex >= 0 && legacyStepIndex < stepTitles.length) {
         // When role selection is skipped, step 1 should show as "2 of 4", step 2 as "3 of 4", step 3 as "4 of 4"
+        // This maintains the visual consistency that there are 4 total steps
         const displayStep = shouldSkipRoleSelection ? step + 1 : step + 1;
         const totalSteps = getTotalSteps();
         const title = `${profileType} - ${stepTitles[legacyStepIndex]} (${displayStep} of ${totalSteps})`;
@@ -565,6 +534,9 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   };
 
   const handleNext = () => {
+    // Clear validation state when moving to next step
+    clearAllValidations();
+    
     // If we have a pre-selected role and we're not in update mode, skip role selection
     const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
     
@@ -580,12 +552,13 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
     // If we have a pre-selected role and we're not in update mode, skip role selection
     const shouldSkipRoleSelection = preSelectedRole && !isUpdate && mode === 'candidate';
     
+    // If role selection is skipped and we're on step 1, there's no previous step
     if (step === 1 && shouldSkipRoleSelection) {
-      // Go back to step 0 (role selection) when role selection is skipped
-      setStep(0);
-    } else {
-      setStep(Math.max(0, step - 1));
+      return; // Don't navigate, stay on current step
     }
+    
+    // Normal navigation
+    setStep(Math.max(0, step - 1));
   };
 
   return (
@@ -604,7 +577,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
             <Button
               variant="outline"
               onClick={handlePrevious}
-              disabled={step === 0}
+              disabled={step === 0 || (step === 1 && preSelectedRole && !isUpdate && mode === 'candidate')}
             >
               Previous
             </Button>
