@@ -2,6 +2,7 @@
 import React from 'react';
 import { useAuth, CandidateProfile } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
 import { apiClient, ProfilesResponse } from '@/lib/api';
 
@@ -27,6 +28,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
   const { user, addCandidate, updateCandidate, getSelectedCandidate, refreshProfileData } = useAuth();
   const { toast } = useToast();
 
+
   const existingCandidate = candidateId 
     ? user?.managedCandidates.find(c => c.id === candidateId)
     : mode === 'edit' ? getSelectedCandidate() : null;
@@ -40,8 +42,6 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
                            (profileData.phone?.toString()?.trim() || whoIAm?.phone?.toString()?.trim());
 
     if (!hasRequiredData) {
-      console.log('Incomplete profile data, not creating profile:', profileData);
-      onClose();
       return;
     }
 
@@ -90,6 +90,9 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       const candidateToUpdate = candidateId || existingCandidate?.id;
       if (candidateToUpdate) {
         updateCandidate(candidateToUpdate, candidateData);
+        
+        // Auto sync disabled - users can manually sync drafts using the sync button
+        
         toast({
           title: "Profile Updated",
           description: "Candidate profile has been updated successfully."
@@ -165,7 +168,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
             setCurrentProfileId(mostRecentProfile.id);
           }
         } catch (error) {
-          console.log('Error getting profile ID:', error);
+          // Silently handle profile ID errors
         }
       } else {
         // For edit mode with a specific candidate, use the candidateId as the profileId

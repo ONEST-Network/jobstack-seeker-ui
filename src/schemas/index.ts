@@ -92,7 +92,7 @@ export const getUnifiedSchema = (role?: string): any => {
   if (role === 'Field Sales Person') {
     return fieldSalesPersonSchema;
   }
-  if (role === 'ITI Student') {
+      if (role === 'ITI (Other)') {
     return genericITISchema;
   }
   // For roles without specific schemas, fall back to Industrial Tailor

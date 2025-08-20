@@ -1,0 +1,52 @@
+{
+  "organizations": {
+    "title": "Organizations",
+    "subtitle": "Manage your organization profiles and settings",
+    "addOrganization": "Add Organization",
+    "searchOrganizations": "Search organizations...",
+    "organizationTypes": {
+      "company": "Company",
+      "ngo": "NGO",
+      "government": "Government",
+      "educational": "Educational",
+      "startup": "Startup",
+      "enterprise": "Enterprise",
+      "partnership": "Partnership",
+      "proprietorship": "Proprietorship"
+    },
+    "organizationStatus": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "verified": "Verified",
+      "suspended": "Suspended"
+    },
+    "organizationFields": {
+      "name": "Organization Name",
+      "type": "Organization Type",
+      "industry": "Industry",
+      "size": "Organization Size",
+      "location": "Location",
+      "website": "Website",
+      "description": "Description",
+      "logo": "Logo",
+      "contactPerson": "Contact Person",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "organizationActions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "verify": "Verify",
+      "activate": "Activate",
+      "deactivate": "Deactivate"
+    },
+    "organizationMessages": {
+      "created": "Organization created successfully",
+      "updated": "Organization updated successfully",
+      "deleted": "Organization deleted successfully",
+      "verified": "Organization verified successfully"
+    }
+  }
+}

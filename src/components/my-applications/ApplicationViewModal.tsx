@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect , useCallback} from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -117,8 +117,6 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
       'workHoursPerDay': 'Work Hours Per Day',
       'currentLocation': 'Current Location',
       'desiredLocation': 'Desired Location',
-      'isAgeVerified': 'Age Verified',
-      'isNameVerified': 'Name Verified',
       'machinesOperated': 'Machines Operated'
     };
     
@@ -131,6 +129,8 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Object.entries(obj).map(([key, value]) => {
+          // Skip verification status fields
+          if (key === 'isAgeVerified' || key === 'isNameVerified' || key === 'isPhoneVerified' || key === 'isLocationVerified' || key === 'isGenderVerified' || key === 'isAadharVerified' || key === 'isHometownVerified') return null;
           if (value === undefined || value === null || value === '' || key === 'gps' || key === 'tag') return null;
 
           // Skip empty arrays

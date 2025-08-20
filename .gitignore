@@ -7,11 +7,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
 *.local
 v10
+
+# Package manager files (keep only pnpm)
+package-lock.json
+yarn.lock
+.npmrc
+.pnpmrc
 
 # Editor directories and files
 .vscode/*

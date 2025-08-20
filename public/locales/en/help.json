@@ -1,0 +1,102 @@
+{
+  "help": {
+    "title": "Help & Support",
+    "subtitle": "Get help and find answers to your questions",
+    "helpCenter": "Help Center",
+    "faq": "Frequently Asked Questions",
+    "contactSupport": "Contact Support",
+    "userGuide": "User Guide",
+    "videoTutorials": "Video Tutorials",
+    "knowledgeBase": "Knowledge Base",
+    "community": "Community",
+    "feedback": "Feedback",
+    "helpCategories": {
+      "gettingStarted": "Getting Started",
+      "profileManagement": "Profile Management",
+      "jobSearch": "Job Search",
+      "jobApplications": "Job Applications",
+      "employerFeatures": "Employer Features",
+      "accountSettings": "Account Settings",
+      "technicalSupport": "Technical Support",
+      "billingSupport": "Billing Support"
+    },
+    "helpTopics": {
+      "accountCreation": "Account Creation",
+      "profileSetup": "Profile Setup",
+      "jobSearching": "Job Searching",
+      "applyingJobs": "Applying for Jobs",
+      "postingJobs": "Posting Jobs",
+      "managingApplications": "Managing Applications",
+      "verification": "Verification Process",
+      "payments": "Payments & Billing"
+    },
+    "helpActions": {
+      "searchHelp": "Search Help",
+      "browseTopics": "Browse Topics",
+      "viewArticle": "View Article",
+      "bookmarkArticle": "Bookmark Article",
+      "shareArticle": "Share Article",
+      "rateArticle": "Rate Article",
+      "reportIssue": "Report Issue",
+      "suggestImprovement": "Suggest Improvement"
+    },
+    "supportChannels": {
+      "title": "Support Channels",
+      "email": "Email Support",
+      "chat": "Live Chat",
+      "phone": "Phone Support",
+      "ticket": "Support Ticket",
+      "community": "Community Forum",
+      "socialMedia": "Social Media",
+      "helpDesk": "Help Desk"
+    },
+    "supportPriority": {
+      "low": "Low Priority",
+      "normal": "Normal Priority",
+      "high": "High Priority",
+      "urgent": "Urgent Priority",
+      "critical": "Critical Priority"
+    },
+    "supportStatus": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "waiting": "Waiting for Response",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "escalated": "Escalated"
+    },
+    "supportActions": {
+      "createTicket": "Create Ticket",
+      "updateTicket": "Update Ticket",
+      "closeTicket": "Close Ticket",
+      "escalateTicket": "Escalate Ticket",
+      "addComment": "Add Comment",
+      "attachFile": "Attach File",
+      "assignTicket": "Assign Ticket"
+    },
+    "feedbackTypes": {
+      "bugReport": "Bug Report",
+      "featureRequest": "Feature Request",
+      "improvement": "Improvement Suggestion",
+      "complaint": "Complaint",
+      "compliment": "Compliment",
+      "general": "General Feedback"
+    },
+    "feedbackActions": {
+      "submitFeedback": "Submit Feedback",
+      "editFeedback": "Edit Feedback",
+      "deleteFeedback": "Delete Feedback",
+      "voteFeedback": "Vote",
+      "commentFeedback": "Comment",
+      "shareFeedback": "Share"
+    },
+    "helpMessages": {
+      "articleViewed": "Article viewed successfully",
+      "articleBookmarked": "Article bookmarked successfully",
+      "articleShared": "Article shared successfully",
+      "feedbackSubmitted": "Feedback submitted successfully",
+      "ticketCreated": "Support ticket created successfully",
+      "ticketUpdated": "Support ticket updated successfully"
+    }
+  }
+}

@@ -10,7 +10,7 @@ import CandidateProfileDialog from './CandidateProfileDialog';
 import { useToast } from '@/hooks/use-toast';
 
 const CandidateManagement: React.FC = () => {
-  const { user, selectCandidate, deleteCandidate, getSelectedCandidate } = useAuth();
+  const { user, selectCandidate, deleteProfile, getSelectedCandidate } = useAuth();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -44,7 +44,7 @@ const CandidateManagement: React.FC = () => {
     });
   };
 
-  const handleDeleteCandidate = (candidateId: string) => {
+  const handleDeleteCandidate = async (candidateId: string) => {
     if (candidateId === 'default-candidate') {
       toast({
         title: "Cannot Delete",
@@ -54,11 +54,20 @@ const CandidateManagement: React.FC = () => {
       return;
     }
     
-    deleteCandidate(candidateId);
-    toast({
-      title: "Profile Deleted",
-      description: "The candidate profile has been deleted."
-    });
+    try {
+      await deleteProfile(candidateId);
+      toast({
+        title: "Profile Deleted",
+        description: "The candidate profile has been deleted."
+      });
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete the profile. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleEditCandidate = (candidateId: string) => {

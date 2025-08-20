@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+
 import { ProfileFormProvider, useProfileForm } from './ProfileFormProvider';
 import VoiceProfileDialog from './VoiceProfileDialog';
 import RoleSelectionStep from './steps/RoleSelectionStep';
@@ -38,6 +39,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
 }) => {
   const { updateProfile, user, getSelectedCandidate, refreshProfileData } = useAuth();
   const { toast } = useToast();
+
   const { profile, setProfile } = useProfileForm();
   
   const [step, setStep] = useState(0); // Start with role selection
@@ -291,7 +293,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           // Generate unique contact tag: "personal" for first profile, "personal1", "personal2", etc. for subsequent profiles
           contactTag = profileCount === 0 ? "personal" : `personal${profileCount}`;
         } catch (error) {
-          console.log('Error fetching existing profiles, using default tags:', error);
+          // Use default tags if fetching fails
           locationTag = "home";
           contactTag = "personal";
         }
@@ -361,8 +363,10 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       try {
         await refreshProfileData();
       } catch (error) {
-        console.log('Error refreshing profile data after save:', error);
+        // Silently handle profile refresh errors
       }
+
+      // Auto sync disabled - users can manually sync drafts using the sync button
 
       toast({
         title: isUpdate ? "Profile Updated Successfully" : "Profile Created Successfully",

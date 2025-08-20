@@ -236,6 +236,7 @@ interface AuthContextType {
   }) => Promise<{ token: string; user: any }>;
   logout: () => void;
   updateProfile: (profile: UserProfile | OrganizationProfile) => void;
+  deleteProfile: (profileId: string) => Promise<void>;
   refreshProfileData: () => Promise<void>;
   refreshSession: () => Promise<void>;
   addEmployer: (employer: Omit<EmployerProfile, 'id' | 'createdAt'>) => void;
@@ -1425,6 +1426,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const deleteProfile = async (profileId: string) => {
+    if (!user) return;
+    
+    try {
+      // Call the API to delete the profile
+      await apiClient.deleteProfile(profileId);
+      
+      // Remove the profile from managed candidates
+      const updatedCandidates = user.managedCandidates.filter(cand => cand.id !== profileId);
+      const updatedUser = {
+        ...user,
+        managedCandidates: updatedCandidates,
+        selectedCandidateId: user.selectedCandidateId === profileId 
+          ? (updatedCandidates.length > 0 ? updatedCandidates[0].id : undefined)
+          : user.selectedCandidateId
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      throw error;
+    }
+  };
+
   const deleteCandidate = (candidateId: string) => {
     if (user) {
       // Prevent deletion of default candidate
@@ -1565,6 +1591,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       verifyOTP,
       logout,
       updateProfile,
+      deleteProfile,
       refreshProfileData,
       refreshSession,
       addEmployer,

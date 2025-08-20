@@ -68,10 +68,11 @@ const JobListView: React.FC<JobListViewProps> = ({
       job.title || '',
       job.company || '',
       job.location || '',
+      job.salary || '',
       job.industry || '',
       job.description || '',
-      job.skills?.join(' ') || '',
-      job.requirements?.join(' ') || ''
+      job.jobDetails?.skills?.join(' ') || '',
+      job.tags?.jobNeeds?.hrWorkExperienceOther || ''
     ].map(field => field.toLowerCase());
 
     // Check if all search terms are found in any of the searchable fields
@@ -175,7 +176,8 @@ const JobListView: React.FC<JobListViewProps> = ({
       return;
     }
 
-    const result = await applyToJob(ids.jobId, ids.providerId, applicationData);
+    // Pass the job details from the BAP search API response
+    const result = await applyToJob(ids.jobId, ids.providerId, applicationData, undefined, selectedJob);
     
     if (result.success) {
       // Close the application dialog on success
@@ -193,7 +195,8 @@ const JobListView: React.FC<JobListViewProps> = ({
       return;
     }
 
-    const result = await saveDraft(ids.jobId, ids.providerId, applicationData);
+    // Pass the job details from the BAP search API response
+    const result = await saveDraft(ids.jobId, ids.providerId, applicationData, selectedJob);
     
     // Don't close the dialog when saving draft, let user continue editing
     // The success/error message is handled by the saveDraft function

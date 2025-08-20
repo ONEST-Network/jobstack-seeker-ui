@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState, useRef , useCallback} from 'react';
 import ApplicationTabs from './my-applications/ApplicationTabs';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { User } from 'lucide-react'; // Added User icon import
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/lib/api';
 
 interface JobApplication {
   id: string;
@@ -25,9 +27,6 @@ interface JobApplication {
   }>;
   profileId?: string; // Add profile ID to track which profile was used
 }
-
-import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useState, useRef, useCallback } from 'react';
 
 // Status API response interface
 interface StatusResponse {
@@ -277,65 +276,86 @@ const MyApplications = () => {
     if (!user?.id) return;
     
     try {
-      const profileIdForApi = selectedCandidate?.id || user.id;
-      const url = `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${profileIdForApi}&status=DRAFT`;
+      // Prefer the `userId` from the profile GET API as requested
+      let profileUserId: string | undefined = undefined;
+      try {
+        const profileResp = await apiClient.getProfile();
+        const profileDataAny = (profileResp as any)?.data;
+        // Prefer explicit userId if provided by profile API, then other common fields, then fallbacks
+        profileUserId = profileDataAny?.userId || profileDataAny?.user_id || profileDataAny?.user?.id || profileDataAny?.id || selectedCandidate?.id || user.id;
+      } catch (err) {
+        // Fallback to selected candidate id or auth user id
+        profileUserId = selectedCandidate?.id || user.id;
+      }
+
+      const url = `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications/drafts?user_id=${profileUserId}`;
       const response = await fetch(url);
       const data = await response.json();
+
+      // Support different response shapes: try common fields used elsewhere
+      const draftApplicationsData = data?.applications || data?.message?.applications || data?.results || data || [];
       
-      const draftApplicationsData = data?.applications || [];
-      
-      const processedDraftApplications = draftApplicationsData.map((app: any) => {
+  const processedDraftApplications = draftApplicationsData.map((app: any) => {
+        // Extract job details from the new structure where job info is in person metadata
+        const fulfillment = app?.metadata?.order?.fulfillments?.[0];
+        const personMetadata = fulfillment?.customer?.person?.metadata;
+        const jobDetails = personMetadata?.jobDetails || {};
+        
+        // Extract from the new jobDetails structure first, then fallback to old structure
         const item = app?.metadata?.message?.order?.items?.[0] || {};
         const provider = app?.metadata?.message?.order?.provider || {};
         const locationObj = (provider.locations && provider.locations[0]) || {};
         const tag = item?.tag || {};
         const basicInfo = tag?.basicInfo || {};
-        const jobDetails = tag?.jobDetails || {};
         const profileId = extractProfileId(app);
 
-        // Extract salary from various possible locations
+        // Extract salary from the new jobDetails structure first
         let salary = 'N/A';
         
-        // Check for salary range first (maxMonthlyInHand and minMonthlyInHand)
-        const maxSalary = jobDetails?.maxMonthlyInHand || tag?.jobDetails?.maxMonthlyInHand || item?.tag?.jobDetails?.maxMonthlyInHand;
-        const minSalary = jobDetails?.minMonthlyInHand || tag?.jobDetails?.minMonthlyInHand || item?.tag?.jobDetails?.minMonthlyInHand;
+        // Check for salary in the new jobDetails structure
+        const monthlyInHand = jobDetails?.monthlyInHand;
+        const maxMonthlyInHand = jobDetails?.maxMonthlyInHand;
+        const minMonthlyInHand = jobDetails?.minMonthlyInHand;
         
-        if (maxSalary && minSalary) {
+        if (maxMonthlyInHand && minMonthlyInHand) {
           // Both min and max available - show as range
-          const minValue = typeof minSalary === 'string' ? parseFloat(minSalary) : minSalary;
-          const maxValue = typeof maxSalary === 'string' ? parseFloat(maxSalary) : maxSalary;
+          const minValue = typeof minMonthlyInHand === 'string' ? parseFloat(minMonthlyInHand) : minMonthlyInHand;
+          const maxValue = typeof maxMonthlyInHand === 'string' ? parseFloat(maxMonthlyInHand) : maxMonthlyInHand;
           
           if (!isNaN(minValue) && !isNaN(maxValue)) {
             salary = `₹${minValue.toLocaleString()} - ₹${maxValue.toLocaleString()}`;
           }
-        } else if (maxSalary) {
+        } else if (maxMonthlyInHand) {
           // Only max available
-          const maxValue = typeof maxSalary === 'string' ? parseFloat(maxSalary) : maxSalary;
+          const maxValue = typeof maxMonthlyInHand === 'string' ? parseFloat(maxMonthlyInHand) : maxMonthlyInHand;
           if (!isNaN(maxValue)) {
             salary = `Up to ₹${maxValue.toLocaleString()}`;
           }
-        } else if (minSalary) {
+        } else if (minMonthlyInHand) {
           // Only min available
-          const minValue = typeof minSalary === 'string' ? parseFloat(minSalary) : minSalary;
+          const minValue = typeof minMonthlyInHand === 'string' ? parseFloat(minMonthlyInHand) : minMonthlyInHand;
           if (!isNaN(minValue)) {
             salary = `From ₹${minValue.toLocaleString()}`;
+          }
+        } else if (monthlyInHand && monthlyInHand !== 'Not specified' && monthlyInHand !== 'N/A') {
+          // Single monthly in hand salary
+          const numValue = typeof monthlyInHand === 'string' ? parseFloat(monthlyInHand) : monthlyInHand;
+          if (!isNaN(numValue)) {
+            salary = `₹${numValue.toLocaleString()}`;
           }
         } else {
           // Fallback to existing single salary extraction logic
           const salaryValue = 
             jobDetails?.salaryCTC ||
-            jobDetails?.monthlyInHand ||
             jobDetails?.monthlySalary ||
             tag?.jobDetails?.monthlyInHand ||
             tag?.jobDetails?.salaryCTC ||
             item?.tag?.jobDetails?.monthlyInHand ||
             item?.tag?.jobDetails?.salaryCTC ||
             item?.tag?.basicInfo?.salaryCTC ||
-            item?.tag?.basicInfo?.monthlyInHand ||
-            item?.tag?.jobDetails?.salaryCTC ||
-            item?.tag?.jobDetails?.monthlyInHand;
+            item?.tag?.basicInfo?.monthlyInHand;
           
-          if (salaryValue && salaryValue !== 'N/A' && salaryValue !== 'undefined') {
+          if (salaryValue && salaryValue !== 'N/A' && salaryValue !== 'undefined' && salaryValue !== 'Not specified') {
             // Handle both string and number values
             const numValue = typeof salaryValue === 'string' ? parseFloat(salaryValue) : salaryValue;
             if (!isNaN(numValue)) {
@@ -344,12 +364,46 @@ const MyApplications = () => {
           }
         }
 
+        // Extract job title from the new jobDetails structure first
+        const titleCandidates = [
+          jobDetails?.jobTitle, // New structure
+          jobDetails?.title,    // New structure
+          item?.descriptor?.name,
+          item?.descriptor?.title,
+          item?.title,
+          item?.name,
+          app?.jobTitle,
+          app?.job_title,
+          app?.title
+        ];
+
+        const invalidValues = new Set(['Unknown', 'Unknow', 'N/A', 'undefined', '', 'Not specified']);
+        const jobTitle = titleCandidates.find(t => t && !invalidValues.has(String(t))) || 'Untitled Job';
+
+        // Extract company name from the new jobDetails structure first
+        const companyCandidates = [
+          jobDetails?.jobProviderName, // New structure
+          basicInfo?.jobProviderName,
+          provider?.descriptor?.name,
+          provider?.descriptor?.title
+        ];
+        const companyName = companyCandidates.find(c => c && !invalidValues.has(String(c))) || 'Unknown Company';
+
+        // Extract location from the new jobDetails structure first
+        const locationCandidates = [
+          jobDetails?.location, // New structure - e.g., "Kannur, Kerala"
+          jobDetails?.jobProviderLocation?.city && jobDetails?.jobProviderLocation?.state ? 
+            `${jobDetails.jobProviderLocation.city}, ${jobDetails.jobProviderLocation.state}` : null,
+          `${locationObj.city ?? ''}${locationObj.state ? ', ' + locationObj.state : ''}`.trim()
+        ];
+        const location = locationCandidates.find(l => l && l.trim() !== '') || 'Location not specified';
+
         return {
           id: app.order_id ?? app.transaction_id ?? app.job_id,
           jobId: item.id ?? app.job_id,
-          jobTitle: item?.descriptor?.name ?? 'Unknown',
-          company: basicInfo?.jobProviderName ?? provider?.descriptor?.name ?? 'Unknown',
-          location: `${locationObj.city ?? ''}${locationObj.state ? ', ' + locationObj.state : ''}`.trim(),
+          jobTitle: String(jobTitle),
+          company: companyName,
+          location: location,
           salary: salary,
           appliedDate: app?.metadata?.context?.timestamp ?? new Date().toISOString(),
           status: 'draft' as JobApplication['status'],
