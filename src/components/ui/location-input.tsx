@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,10 @@ interface LocationInputProps {
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  // New props for external validation state management
+  externalValidation?: { isValid: boolean; errors: string[] };
+  onValidationChange?: (validation: { isValid: boolean; errors: string[] }) => void;
+  onValidationSuccess?: () => void; // Callback when validation becomes valid
 }
 
 export const LocationInput: React.FC<LocationInputProps> = ({
@@ -25,25 +29,61 @@ export const LocationInput: React.FC<LocationInputProps> = ({
   label = "Location",
   required = false,
   disabled = false,
-  className = ""
+  className = "",
+  externalValidation,
+  onValidationChange,
+  onValidationSuccess
 }) => {
   const [isDetecting, setIsDetecting] = useState(false);
-  const [validation, setValidation] = useState<{ isValid: boolean; errors: string[] }>({ isValid: true, errors: [] });
+  const [internalValidation, setInternalValidation] = useState<{ isValid: boolean; errors: string[] }>({ isValid: true, errors: [] });
   const { toast } = useToast();
+
+  // Use external validation if provided, otherwise use internal validation
+  const validation = externalValidation !== undefined ? externalValidation : internalValidation;
+
+  // Update internal validation when external validation changes
+  useEffect(() => {
+    if (externalValidation !== undefined) {
+      setInternalValidation(externalValidation);
+    }
+  }, [externalValidation]);
+
+  // Validate initial value when component mounts
+  useEffect(() => {
+    if (value && value.trim()) {
+      validateLocation(value);
+    }
+  }, []); // Only run once on mount
 
   const validateLocation = (locationString: string) => {
     if (!locationString.trim()) {
-      setValidation({ isValid: !required, errors: required ? ['Location is required'] : [] });
+      const newValidation = { isValid: !required, errors: required ? ['Location is required'] : [] };
+      
+      if (onValidationChange) {
+        onValidationChange(newValidation);
+      } else {
+        setInternalValidation(newValidation);
+      }
       return;
     }
 
     const locationData = parseLocationString(locationString);
     const validationResult = validateLocationForAPI(locationData);
-    setValidation(validationResult);
+    
+    if (onValidationChange) {
+      onValidationChange(validationResult);
+    } else {
+      setInternalValidation(validationResult);
+    }
 
-    // If valid, also update the location data for API use
-    if (validationResult.isValid && onLocationDataChange) {
-      onLocationDataChange(locationData);
+    // If valid, also update the location data for API use and call success callback
+    if (validationResult.isValid) {
+      if (onLocationDataChange) {
+        onLocationDataChange(locationData);
+      }
+      if (onValidationSuccess) {
+        onValidationSuccess();
+      }
     }
   };
 
