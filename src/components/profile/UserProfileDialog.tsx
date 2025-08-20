@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useDraftProfileSync } from '@/hooks/useDraftProfileSync';
+
 import { ProfileFormProvider, useProfileForm } from './ProfileFormProvider';
 import VoiceProfileDialog from './VoiceProfileDialog';
 import RoleSelectionStep from './steps/RoleSelectionStep';
@@ -39,7 +39,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
 }) => {
   const { updateProfile, user, getSelectedCandidate, refreshProfileData } = useAuth();
   const { toast } = useToast();
-  const { updateAllDraftsWithProfile } = useDraftProfileSync();
+
   const { profile, setProfile } = useProfileForm();
   
   const [step, setStep] = useState(0); // Start with role selection
@@ -366,15 +366,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
         // Silently handle profile refresh errors
       }
 
-      // Update all drafts with the new profile data if this is an update
-      if (isUpdate) {
-        try {
-          const draftUpdateResult = await updateAllDraftsWithProfile(flattenedProfile);
-          // Silently handle draft sync - not critical for profile save
-        } catch (error) {
-          // Silently handle draft update errors
-        }
-      }
+      // Auto sync disabled - users can manually sync drafts using the sync button
 
       toast({
         title: isUpdate ? "Profile Updated Successfully" : "Profile Created Successfully",

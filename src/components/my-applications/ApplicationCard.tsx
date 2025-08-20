@@ -391,101 +391,25 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
   };
 
   const handleProfileUpdate = async (updatedProfile: Record<string, unknown>) => {
-    if (!application.raw) {
-      toast({
-        title: "Error",
-        description: "Unable to update draft. Draft data not found.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setUpdatingDraft(true);
 
     try {
-      // Extract data from the draft application
-      const draftData = application.raw;
-      const person = draftData?.metadata?.message?.order?.fulfillments?.[0]?.customer?.person;
+      // Simply close the profile dialog and show success message
+      // The profile has already been updated in the main profile system
+      toast({
+        title: "Profile Updated!",
+        description: "Your profile has been updated successfully. Use the 'Sync Drafts' button to update your draft applications.",
+      });
       
-      if (!person) {
-        toast({
-          title: "Error",
-          description: "Unable to update draft. Application data not found.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Get provider and job IDs from the draft
-      const providerId = draftData?.metadata?.message?.order?.provider?.id;
-      const jobId = draftData?.metadata?.message?.order?.items?.[0]?.id;
-
-      if (!providerId || !jobId) {
-        toast({
-          title: "Error",
-          description: "Unable to update draft. Job details not found.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Extract job details from the draft for the update API
-      const jobDetails = person.metadata?.jobDetails || {};
-
-      // Get the current profile data
-      const currentProfile = extractProfileFromDraft(draftData);
+      // Close the profile dialog
+      setEditProfileOpen(false);
       
-      // Merge the updated profile with the current profile
-      const mergedProfile = {
-        ...currentProfile,
-        ...updatedProfile
-      };
-
-      // Prepare the updated application data
-      const applicationData = {
-        name: mergedProfile.name || person.name || '',
-        age: mergedProfile.age?.toString() || person.age?.toString() || '',
-        gender: mergedProfile.gender || person.gender || '',
-        skills: person.skills || [],
-        languages: person.languages || [],
-        expectedSalary: person.tags?.find((tag: any) => tag.descriptor?.code === 'expected-salary')?.value || '1200000',
-        totalExperience: person.tags?.find((tag: any) => tag.descriptor?.code === 'total-experience')?.value || '5',
-        phone: mergedProfile.phone || draftData?.metadata?.message?.order?.fulfillments?.[0]?.customer?.contact?.phone || '',
-        email: mergedProfile.email || draftData?.metadata?.message?.order?.fulfillments?.[0]?.customer?.contact?.email || '',
-        location: {
-          lat: draftData?.metadata?.message?.order?.fulfillments?.[0]?.customer?.location?.gps?.lat || 12.9716,
-          lng: draftData?.metadata?.message?.order?.fulfillments?.[0]?.customer?.location?.gps?.lng || 77.5946,
-          address: mergedProfile.currentLocation || draftData?.metadata?.message?.order?.fulfillments?.[0]?.customer?.location?.address || 'Bangalore',
-          city: draftData?.metadata?.message?.order?.fulfillments?.[0]?.customer?.location?.city?.name || 'Bangalore',
-          state: draftData?.metadata?.message?.order?.fulfillments?.[0]?.customer?.location?.state?.name || 'Karnataka',
-          country: draftData?.metadata?.message?.order?.fulfillments?.[0]?.customer?.location?.country?.name || 'India'
-        },
-        profileData: {
-          ...mergedProfile,
-          profileId: mergedProfile.profileId || person.metadata?.profileId || 'default'
-        },
-        profileId: mergedProfile.profileId || person.metadata?.profileId || 'default'
-      };
-
-      // Update the draft with the new profile data
-      const result = await updateDraft(jobId, providerId, applicationData, jobDetails);
-
-      if (result.success) {
-        toast({
-          title: "Profile Updated!",
-          description: "Your profile has been updated and the draft has been refreshed.",
-        });
-        
-        // Close the profile dialog
-        setEditProfileOpen(false);
-        
-        // Call the callback to refresh the applications list
-        if (onApplicationSubmitted) {
-          onApplicationSubmitted();
-        }
+      // Call the callback to refresh the applications list
+      if (onApplicationSubmitted) {
+        onApplicationSubmitted();
       }
     } catch (error) {
-      console.error('Error updating draft:', error);
+      console.error('Error updating profile:', error);
       toast({
         title: "Update Failed",
         description: "Failed to update profile. Please try again.",

@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAuth, CandidateProfile } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useDraftProfileSync } from '@/hooks/useDraftProfileSync';
+
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
 import { apiClient, ProfilesResponse } from '@/lib/api';
 
@@ -27,7 +27,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
 }) => {
   const { user, addCandidate, updateCandidate, getSelectedCandidate, refreshProfileData } = useAuth();
   const { toast } = useToast();
-  const { updateAllDraftsWithProfile } = useDraftProfileSync();
+
 
   const existingCandidate = candidateId 
     ? user?.managedCandidates.find(c => c.id === candidateId)
@@ -91,14 +91,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       if (candidateToUpdate) {
         updateCandidate(candidateToUpdate, candidateData);
         
-        // Update all drafts with the new profile data
-        try {
-          updateAllDraftsWithProfile(profileData).catch(error => {
-            // Silently handle draft sync errors - not critical for profile save
-          });
-        } catch (error) {
-          // Silently handle draft sync errors - not critical for profile save
-        }
+        // Auto sync disabled - users can manually sync drafts using the sync button
         
         toast({
           title: "Profile Updated",
