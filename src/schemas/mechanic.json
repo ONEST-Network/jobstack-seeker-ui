@@ -20,39 +20,6 @@
           "ui:verified": false,
           "ui:verificationMessage": "✓ Verified from DigiLocker"
         },
-        "fatherName": {
-          "type": "string",
-          "title": "Father's Name",
-          "description": "Enter your father's name",
-          "required": true,
-          "ui:widget": "text",
-          "ui:placeholder": "Enter your father's name",
-          "ui:disabled": false,
-          "ui:verified": false,
-          "ui:verificationMessage": "✓ Verified from DigiLocker"
-        },
-        "motherName": {
-          "type": "string",
-          "title": "Mother's Name",
-          "description": "Enter your mother's name",
-          "required": true,
-          "ui:widget": "text",
-          "ui:placeholder": "Enter your mother's name",
-          "ui:disabled": false,
-          "ui:verified": false,
-          "ui:verificationMessage": "✓ Verified from DigiLocker"
-        },
-        "dateOfBirth": {
-          "type": "string",
-          "title": "Date of Birth",
-          "description": "Enter your date of birth",
-          "required": true,
-          "ui:widget": "date",
-          "ui:placeholder": "Enter your date of birth",
-          "ui:disabled": false,
-          "ui:verified": false,
-          "ui:verificationMessage": "✓ Verified from DigiLocker"
-        },
         "gender": {
           "type": "string",
           "title": "Gender",
@@ -100,7 +67,7 @@
       },
       "required": ["name", "location", "phone"],
       "ui": {
-        "order": ["name", "fatherName", "motherName", "dateOfBirth", "gender", "location", "phone", "age"],
+        "order": ["name", "gender", "location", "phone", "age"],
         "description": "Enter your basic details or import from DigiLocker for quick setup",
         "showDigiLocker": true,
         "digiLockerConfig": {
@@ -503,15 +470,6 @@
           "ui:placeholder": "Enter your training duration in years",
           "ui:disabled": false
         },
-        "totalYearsOfExperience": {
-          "type": "number",
-          "title": "Total Years of Experience",
-          "description": "Enter your total years of experience",
-          "required": true,
-          "ui:widget": "number",
-          "ui:placeholder": "Enter your total years of experience",
-          "ui:disabled": false
-        },
         "languageSpoken": {
           "type": "array",
           "title": "Language Spoken",
@@ -573,19 +531,8 @@
             "Urdu (اردو)"
           ]
         },
-        "currentMonthlySalary": {
-          "type": "number",
-          "title": "Current Monthly Salary (INR)",
-          "description": "Enter your current monthly salary in INR",
-          "required": true,
-          "ui:widget": "number",
-          "ui:placeholder": "Enter your current monthly salary in INR",
-          "ui:currency": "₹",
-          "ui:disabled": false
-        },
-        
           "ui": {
-            "order": ["age", "highestQualification", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "totalYearsOfExperience", "languageSpoken", "currentMonthlySalary", "taskVideo", "qrCodeScan"],
+            "order": ["age", "highestQualification", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "languageSpoken", "taskVideo", "qrCodeScan"],
             "description": "Assessment for ITI"
           }
         ,
@@ -615,9 +562,7 @@
           "rollNumber",
           "itiInstitute",
           "trainingDuration",
-          "totalYearsOfExperience",
           "languageSpoken",
-          "currentMonthlySalary",
           "taskVideo",
           "qrCodeScan"
         ],
