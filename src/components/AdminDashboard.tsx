@@ -73,7 +73,7 @@ const AdminDashboard = () => {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
       
       // Fetch users by role (total members of the organization)
-      const usersByRoleRes = await fetch(`${API_BASE_URL}/admin/users/by-role?type=both&limit=20&page=1&role=seeker`, {
+      const usersByRoleRes = await fetch(`${API_BASE_URL}/admin/users/by-role?type=both&page=1&role=seeker`, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ const AdminDashboard = () => {
       };
       
       // Fetch users by status
-      const usersByStatusRes = await fetch(`${API_BASE_URL}/admin/users/by-status?type=both&limit=20&page=1`, {
+      const usersByStatusRes = await fetch(`${API_BASE_URL}/admin/users/by-status?type=both&page=1`, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ const AdminDashboard = () => {
       };
       
       // Fetch users with job applications
-      const usersWithJobAppsRes = await fetch(`${API_BASE_URL}/admin/users/with-job-applications?type=both&limit=20&page=1`, {
+      const usersWithJobAppsRes = await fetch(`${API_BASE_URL}/admin/users/with-job-applications?type=both&page=1`, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ const AdminDashboard = () => {
       };
 
       // Fetch users with profiles
-      const usersWithProfilesRes = await fetch(`${API_BASE_URL}/admin/users/with-profile?type=both&limit=20&page=1`, {
+      const usersWithProfilesRes = await fetch(`${API_BASE_URL}/admin/users/with-profile?type=both&page=1`, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
