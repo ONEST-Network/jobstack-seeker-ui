@@ -31,6 +31,7 @@ interface AdminApiResponse {
   message: string;
   data: {
     totalCount: string;
+    totalProfiles?: number; // New field for profiles count
     users: string[];
   };
 }
@@ -73,7 +74,7 @@ const AdminDashboard = () => {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
       
       // Fetch users by role (total members of the organization)
-      const usersByRoleRes = await fetch(`${API_BASE_URL}/admin/users/by-role?type=both&limit=20&page=1&role=seeker`, {
+      const usersByRoleRes = await fetch(`${API_BASE_URL}/admin/users/by-role?type=both&page=1&role=seeker`, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
@@ -86,7 +87,7 @@ const AdminDashboard = () => {
       };
       
       // Fetch users by status
-      const usersByStatusRes = await fetch(`${API_BASE_URL}/admin/users/by-status?type=both&limit=20&page=1`, {
+      const usersByStatusRes = await fetch(`${API_BASE_URL}/admin/users/by-status?type=both&page=1`, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
@@ -99,7 +100,7 @@ const AdminDashboard = () => {
       };
       
       // Fetch users with job applications
-      const usersWithJobAppsRes = await fetch(`${API_BASE_URL}/admin/users/with-job-applications?type=both&limit=20&page=1`, {
+      const usersWithJobAppsRes = await fetch(`${API_BASE_URL}/admin/users/with-job-applications?type=both&page=1`, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
@@ -112,7 +113,7 @@ const AdminDashboard = () => {
       };
 
       // Fetch users with profiles
-      const usersWithProfilesRes = await fetch(`${API_BASE_URL}/admin/users/with-profile?type=both&limit=20&page=1`, {
+      const usersWithProfilesRes = await fetch(`${API_BASE_URL}/admin/users/with-profile?type=both&page=1`, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
@@ -121,7 +122,7 @@ const AdminDashboard = () => {
       const usersWithProfilesData: AdminApiResponse = usersWithProfilesRes.ok ? await usersWithProfilesRes.json() : { 
         statusCode: 200, 
         message: "No data", 
-        data: { totalCount: "0", users: [] } 
+        data: { totalCount: "0", totalProfiles: 0, users: [] } 
       };
 
       // Store the detailed user data (these are now just user IDs from the API)
@@ -130,11 +131,12 @@ const AdminDashboard = () => {
       setUsersWithApplications(usersWithJobAppsData.data?.users || []);
       setUsersWithProfiles(usersWithProfilesData.data?.users || []);
 
-      // Calculate stats from API responses using totalCount
+      // Calculate stats from API responses using totalCount and totalProfiles
       const totalStudents = parseInt(usersByRoleData.data?.totalCount || '0', 10);
       const studentsPlaced = parseInt(usersByStatusData.data?.totalCount || '0', 10);
       const studentsApplied = parseInt(usersWithJobAppsData.data?.totalCount || '0', 10);
-      const studentsWithProfiles = parseInt(usersWithProfilesData.data?.totalCount || '0', 10);
+      // Use totalProfiles if available, otherwise fall back to totalCount for backward compatibility
+      const studentsWithProfiles = usersWithProfilesData.data?.totalProfiles || parseInt(usersWithProfilesData.data?.totalCount || '0', 10);
       
       // For now, we'll set this to 0 since the API doesn't provide this data yet
       // This can be updated when additional APIs are available
