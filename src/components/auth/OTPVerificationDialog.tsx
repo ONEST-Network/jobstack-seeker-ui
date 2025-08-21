@@ -51,8 +51,9 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
         name,
         otp,
         rememberMe: true,
-        ...(method === 'email' && email ? { email } : {}),
-        ...(method === 'phone' && phoneNumber ? { phoneNumber } : {}),
+        // Include both email and phoneNumber if they are provided, regardless of the primary method
+        ...(email ? { email } : {}),
+        ...(phoneNumber ? { phoneNumber } : {}),
         ...(orgSlug && orgSlug !== '0' ? {
           joinOrg: {
             join: true,
