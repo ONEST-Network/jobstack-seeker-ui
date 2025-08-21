@@ -27,7 +27,7 @@ interface DynamicFormStepProps {
 }
 
 const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => {
-  const { profile, setProfile } = useProfileForm();
+  const { profile, setProfile, fieldValidations, setFieldValidation } = useProfileForm();
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -594,6 +594,9 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
         // Special handling for location fields
         if (hasLocationButton) {
+          const fieldKey = `${stepName}.${fieldName}`;
+          const currentValidation = fieldValidations[fieldKey];
+          
           return (
             <div key={fieldName} className="space-y-2">
               <LocationInput
@@ -614,6 +617,14 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 required={isRequired}
                 disabled={disabled || isVerified}
                 className={isVerified ? 'border-green-500' : ''}
+                externalValidation={currentValidation}
+                onValidationChange={(validation) => setFieldValidation(fieldKey, validation)}
+                onValidationSuccess={() => {
+                  // Clear validation state when field becomes valid
+                  if (currentValidation && !currentValidation.isValid) {
+                    setFieldValidation(fieldKey, { isValid: true, errors: [] });
+                  }
+                }}
               />
               
               {/* Verification indicators */}

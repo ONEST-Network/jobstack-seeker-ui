@@ -29,6 +29,12 @@ interface ProfileFormContextType {
   setNewExperience: React.Dispatch<React.SetStateAction<Partial<Experience>>>;
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  // New validation state management
+  fieldValidations: Record<string, { isValid: boolean; errors: string[] }>;
+  setFieldValidation: (fieldName: string, validation: { isValid: boolean; errors: string[] }) => void;
+  clearFieldValidation: (fieldName: string) => void;
+  clearAllValidations: () => void;
+  clearStepValidations: (stepName: string) => void;
 }
 
 const ProfileFormContext = createContext<ProfileFormContextType | undefined>(undefined);
@@ -99,6 +105,40 @@ export const ProfileFormProvider: React.FC<ProfileFormProviderProps> = ({
   });
   const [searchQuery, setSearchQuery] = useState('');
 
+  // New validation state management
+  const [fieldValidations, setFieldValidations] = useState<Record<string, { isValid: boolean; errors: string[] }>>({});
+
+  const setFieldValidation = (fieldName: string, validation: { isValid: boolean; errors: string[] }) => {
+    setFieldValidations(prev => ({
+      ...prev,
+      [fieldName]: validation
+    }));
+  };
+
+  const clearFieldValidation = (fieldName: string) => {
+    setFieldValidations(prev => {
+      const newValidations = { ...prev };
+      delete newValidations[fieldName];
+      return newValidations;
+    });
+  };
+
+  const clearAllValidations = () => {
+    setFieldValidations({});
+  };
+
+  const clearStepValidations = (stepName: string) => {
+    setFieldValidations(prev => {
+      const newValidations = { ...prev };
+      Object.keys(newValidations).forEach(key => {
+        if (key.startsWith(`${stepName}.`)) {
+          delete newValidations[key];
+        }
+      });
+      return newValidations;
+    });
+  };
+
   // Use the ITI auto-fill hook
   useITIAutoFill({ profile, setProfile });
 
@@ -109,7 +149,12 @@ export const ProfileFormProvider: React.FC<ProfileFormProviderProps> = ({
       newExperience,
       setNewExperience,
       searchQuery,
-      setSearchQuery
+      setSearchQuery,
+      fieldValidations,
+      setFieldValidation,
+      clearFieldValidation,
+      clearAllValidations,
+      clearStepValidations
     }}>
       {children}
     </ProfileFormContext.Provider>
