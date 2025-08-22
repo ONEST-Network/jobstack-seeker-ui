@@ -192,49 +192,44 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           description: "Please log in to save your profile.",
           variant: "destructive"
         });
+        setIsSaving(false);
         return;
       }
 
-      // Validate required fields
-      if (!profile.interestedRole) {
-        toast({
-          title: "Missing Required Field",
-          description: "Please select a job role before saving your profile.",
-          variant: "destructive"
-        });
-        return;
+      // Comprehensive validation - check all required fields and show specific errors
+      const validationErrors: string[] = [];
+      
+      // Check job role
+      if (!profile.interestedRole?.trim()) {
+        validationErrors.push("Job role is required");
       }
-
-      // Check for name in both legacy and unified schema structures
+      
+      // Check name in both legacy and unified schema structures
       const name = profile.name || profile.whoIAm?.name;
       if (!name?.trim()) {
-        toast({
-          title: "Missing Required Field",
-          description: "Please enter your name before saving your profile.",
-          variant: "destructive"
-        });
-        return;
+        validationErrors.push("Full name is required");
       }
-
-      // Check for location in both legacy and unified schema structures
-      const location = profile.currentLocation || profile.whoIAm?.location;
-      if (!location?.trim()) {
-        toast({
-          title: "Missing Required Field",
-          description: "Please enter your location before saving your profile.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Check for phone number in both legacy and unified schema structures
+      
+      // Check phone number in both legacy and unified schema structures
       const phone = profile.phone || profile.whoIAm?.phone;
       if (!phone?.trim()) {
+        validationErrors.push("Phone number is required");
+      }
+      
+      // Check location in both legacy and unified schema structures
+      const location = profile.currentLocation || profile.whoIAm?.location;
+      if (!location?.trim()) {
+        validationErrors.push("Location is required");
+      }
+      
+      // If there are validation errors, show them and stop
+      if (validationErrors.length > 0) {
         toast({
-          title: "Missing Required Field",
-          description: "Please enter your phone number before saving your profile.",
+          title: "Missing Required Fields",
+          description: `Please complete the following fields: ${validationErrors.join(', ')}`,
           variant: "destructive"
         });
+        setIsSaving(false);
         return;
       }
 
@@ -487,50 +482,8 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       return hasRole;
     }
     
-    // For steps 1+, check if we have a unified schema for the selected role
-    const unifiedSchema = getUnifiedSchema(profile.interestedRole);
-    
-    if (unifiedSchema && profile.interestedRole) {
-      const steps = unifiedSchema.ui?.steps || [];
-      const unifiedStepIndex = step - 1; // Offset by 1 since step 0 is role selection
-      
-      if (unifiedStepIndex >= 0 && unifiedStepIndex < steps.length) {
-        const currentStep = steps[unifiedStepIndex];
-        const stepData = (profile[currentStep.id as keyof typeof profile] as Record<string, unknown>) || {};
-        
-        // Check required fields for the current step
-        const stepSchema = unifiedSchema.properties?.[currentStep.id];
-        if (stepSchema?.required) {
-          const canProceedResult = stepSchema.required.every((field: string) => {
-            const value = stepData[field];
-            // Check for non-empty string values (not just truthy)
-            const hasValue = value !== undefined && value !== null && 
-                           (typeof value === 'string' ? value.trim() !== '' : value !== '');
-            return hasValue;
-          });
-          return canProceedResult;
-        }
-        return true; // If no required fields, can always proceed
-      }
-    } else {
-      // Legacy validation (offset by 1)
-      switch (step) {
-        case 1: {// Basic Personal Information - require name, location, and phone
-          const hasName = (profile.name?.trim() !== '') || (profile.whoIAm?.name?.trim() !== '');
-          const hasLocation = (profile.currentLocation?.trim() !== '') || (profile.whoIAm?.location?.trim() !== '');
-          const hasPhone = (profile.phone?.trim() !== '') || (profile.whoIAm?.phone?.trim() !== '');
-          return hasName && hasLocation && hasPhone;
-        }
-        case 2: // Education, Skills, and Work Experience - optional
-          return true;
-        case 3: // Job Preferences - optional
-          return true;
-        default:
-          return false;
-      }
-    }
-    
-    return false;
+    // For all other steps, always allow navigation - validation will happen on save
+    return true;
   };
 
   const handleNext = () => {
