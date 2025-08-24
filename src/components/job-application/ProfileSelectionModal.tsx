@@ -593,19 +593,12 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
               <Plus className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'} mr-2`} />
               Add New Profile
             </Button>
-            {tempSelectedCandidate ? (
+            {tempSelectedCandidate && (
               <Button 
                 onClick={handleContinueWithSelectedProfile}
                 className={`${isMobile ? 'w-full h-12 text-base' : 'flex-1'}`}
               >
                 Continue with Selected Profile
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleAddNewProfile}
-                className={`${isMobile ? 'w-full h-12 text-base' : 'flex-1'}`}
-              >
-                Create Profile & Continue
               </Button>
             )}
           </>

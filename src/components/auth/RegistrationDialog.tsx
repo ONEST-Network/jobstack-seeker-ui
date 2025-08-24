@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   
+  const phoneInputRef = useRef<HTMLInputElement>(null);
   const { requestOTP, isLoading } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
@@ -103,9 +104,30 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   }, [preFilledEmail, preFilledPhone]);
 
   const handlePhoneChange = (value: string) => {
+    const currentCursorPosition = phoneInputRef.current?.selectionStart || 0;
+    
     setPhone(value);
     const formatted = formatPhoneNumber(value);
     setFormattedPhone(formatted);
+    
+    // Handle cursor position after formatting
+    requestAnimationFrame(() => {
+      if (phoneInputRef.current) {
+        let newCursorPosition = currentCursorPosition;
+        
+        // If the formatted value has +91 prefix and the original input didn't start with it
+        if (formatted.startsWith('+91') && !value.startsWith('+91')) {
+          // Position cursor after the +91 prefix
+          newCursorPosition = Math.max(currentCursorPosition + 3, 3);
+        }
+        
+        // Ensure cursor is within the input bounds
+        const maxPosition = formatted.length;
+        newCursorPosition = Math.min(newCursorPosition, maxPosition);
+        
+        phoneInputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+      }
+    });
   };
 
   const handleTermsChange = (checked: boolean | "indeterminate") => {
@@ -256,9 +278,10 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input
+                    ref={phoneInputRef}
                     id="phone"
                     type="tel"
-                    value={phone}
+                    value={formattedPhone || phone}
                     onChange={(e) => handlePhoneChange(e.target.value)}
                     placeholder="+91 98765 43210"
                   />

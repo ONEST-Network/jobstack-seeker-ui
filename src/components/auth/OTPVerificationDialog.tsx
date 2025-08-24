@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -30,7 +30,9 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
   name
 }) => {
   const [otp, setOtp] = useState('');
-  const { verifyOTP, isLoading } = useAuth();
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+  const { verifyOTP, requestOTP, isLoading } = useAuth();
   const { toast } = useToast();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { data: orgDetails } = useOrgDetails(orgSlug || null);
@@ -85,10 +87,59 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
     }
   };
 
-  // Reset OTP when dialog opens/closes
-  React.useEffect(() => {
+  const handleResendOTP = async () => {
+    try {
+      setIsResending(true);
+      
+      // Prepare the request payload
+      const requestPayload = {
+        name,
+        ...(email ? { email } : {}),
+        ...(phoneNumber ? { phoneNumber } : {})
+      };
+
+      await requestOTP(requestPayload);
+
+      // Start countdown timer (30 seconds)
+      setResendCountdown(30);
+      
+      toast({
+        title: "OTP Sent",
+        description: `A new verification code has been sent to ${contactMethod}`,
+      });
+    } catch (error: unknown) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to resend OTP. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  // Countdown timer effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCountdown > 0) {
+      timer = setTimeout(() => {
+        setResendCountdown(resendCountdown - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [resendCountdown]);
+
+  // Reset state when dialog opens/closes
+  useEffect(() => {
     if (!isOpen) {
       setOtp('');
+      setResendCountdown(0);
+      setIsResending(false);
+    } else {
+      // Start initial countdown when dialog opens
+      setResendCountdown(30);
     }
   }, [isOpen]);
 
@@ -137,9 +188,19 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
               {isLoading ? 'Verifying...' : 'Verify OTP'}
             </Button>
 
-            {/* <Button variant="ghost" className="w-full">
-              Resend Code
-            </Button> */}
+            <Button 
+              variant="ghost" 
+              className="w-full"
+              onClick={handleResendOTP}
+              disabled={resendCountdown > 0 || isResending}
+            >
+              {isResending 
+                ? 'Sending...' 
+                : resendCountdown > 0 
+                  ? `Resend Code in ${resendCountdown}s`
+                  : 'Resend Code'
+              }
+            </Button>
           </div>
         </div>
       </DialogContent>

@@ -92,8 +92,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   };
 
   const handleContactInputChange = (value: string) => {
-    // Preserve cursor position
-    const cursorPosition = inputRef.current?.selectionStart || 0;
+    const currentCursorPosition = inputRef.current?.selectionStart || 0;
     
     setContactInput(value);
     
@@ -101,16 +100,28 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     if (contactType === 'phone' || value.replace(/\D/g, '').length >= 10) {
       const formatted = formatPhoneNumber(value);
       setFormattedPhoneNumber(formatted);
+      
+      // Handle cursor position after formatting
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          let newCursorPosition = currentCursorPosition;
+          
+          // If the formatted value has +91 prefix and the original input didn't start with it
+          if (formatted.startsWith('+91') && !value.startsWith('+91')) {
+            // Position cursor after the +91 prefix
+            newCursorPosition = Math.max(currentCursorPosition + 3, 3);
+          }
+          
+          // Ensure cursor is within the input bounds
+          const maxPosition = formatted.length;
+          newCursorPosition = Math.min(newCursorPosition, maxPosition);
+          
+          inputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+        }
+      });
     } else {
       setFormattedPhoneNumber('');
     }
-    
-    // Restore cursor position after state update
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-      }
-    }, 0);
   };
 
   const validateInput = () => {

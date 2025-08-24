@@ -3,8 +3,10 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Search, Briefcase, SearchX } from 'lucide-react';
 import { JOB_ROLES_BY_INDUSTRY } from '@/constants/jobRoles';
+import { getSectorForRole } from '@/constants/sectors';
 import { useProfileForm } from '../ProfileFormProvider';
-import PriorityRolesSection from '../role-selection/PriorityRolesSection';
+import SectorRolesSection from '../role-selection/SectorRolesSection';
+import { jobSectorsConfig } from '@/schemas';
 
 interface RoleSelectionStepProps {
   onVoiceStart?: () => void;
@@ -22,12 +24,20 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
     setSearchQuery
   } = useProfileForm();
 
-  // Priority roles to show at top
-  const priorityRoles = ['Industrial Tailor', 'Warehouse Loader & Picker',/* 'Field Sales Executive',*/ 'In Store Promoter', 'Recruitment Associate', 'Electrician', 'Fitter', 'Mechanic', 'Machine Operator', 'Data Entry Operator', 'Tele Salesperson', 'Field Sales Person', 'ITI (Other)'];
+  // Get all available roles from sectors for searching
+  const getAllRoles = () => {
+    const allRoles: string[] = [];
+    Object.values(jobSectorsConfig.sectors).forEach(sector => {
+      allRoles.push(...sector.roles);
+    });
+    return allRoles;
+  };
+
+  const allRoles = getAllRoles();
   
-  const getFilteredPriorityRoles = () => {
-    if (!searchQuery) return priorityRoles;
-    return priorityRoles.filter(role => role.toLowerCase().includes(searchQuery.toLowerCase()));
+  const getFilteredRoles = () => {
+    if (!searchQuery) return allRoles;
+    return allRoles.filter(role => role.toLowerCase().includes(searchQuery.toLowerCase()));
   };
 
   const handleRoleSelection = (role: string) => {
@@ -36,24 +46,18 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
       return;
     }
     
-    // Find industry for the selected role
-    let roleIndustry = 'Other';
-    for (const [industry, roles] of Object.entries(JOB_ROLES_BY_INDUSTRY)) {
-      if (roles.includes(role)) {
-        roleIndustry = industry;
-        break;
-      }
-    }
+    // Get sector for the selected role (this will be shown as "Industry")
+    const roleSector = getSectorForRole(role);
     
     setProfile({
       ...profile,
       interestedRole: role,
-      interestedIndustry: roleIndustry
+      interestedIndustry: roleSector
     });
   };
 
-  const filteredPriorityRoles = getFilteredPriorityRoles();
-  const hasSearchResults = filteredPriorityRoles.length > 0;
+  const filteredRoles = getFilteredRoles();
+  const hasSearchResults = filteredRoles.length > 0;
 
   return (
     <div className="flex flex-col h-full max-h-[60vh]">
@@ -85,29 +89,23 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
                   We couldn't find any job roles matching "{searchQuery}"
                 </p>
                 <div className="text-xs text-muted-foreground space-y-1">
-                  <p>Try searching for:</p>
+                  <p>Try searching for roles from these sectors:</p>
                   <ul className="list-disc list-inside space-y-1">
-                    <li>Industrial Tailor</li>
-                    <li>Warehouse Loader & Picker</li>
-                    <li>In Store Promoter</li>
-                    <li>Recruitment Associate</li>
-                    <li>Electrician, Fitter, Mechanic</li>
-                    <li>Machine Operator</li>
-                    <li>Data Entry Operator</li>
-                    <li>Tele Salesperson</li>
-                    <li>Field Sales Person</li>
-                    <li>ITI (Other)</li>
+                    <li><strong>Garment Manufacturing:</strong> Industrial Tailor, Warehouse Loader & Picker</li>
+                    <li><strong>Customer Facing:</strong> Field Sales Person, Tele Salesperson, In Store Promoter, Recruitment Associate</li>
+                    <li><strong>ITeS:</strong> Data Entry Operator</li>
+                    <li><strong>ITI/Polytechnic:</strong> Electrician, Fitter, Mechanic, Machine Operator, ITI (Other)</li>
                   </ul>
                 </div>
               </div>
             )}
 
-            {/* Priority Roles - Always visible at top (when there are results) */}
+            {/* Sector-based Roles - Always visible at top (when there are results) */}
             {hasSearchResults && (
-              <PriorityRolesSection 
-                roles={filteredPriorityRoles} 
+              <SectorRolesSection 
                 selectedRole={profile.interestedRole} 
                 onRoleSelect={handleRoleSelection}
+                searchQuery={searchQuery}
                 isUpdate={isUpdate}
               />
             )}

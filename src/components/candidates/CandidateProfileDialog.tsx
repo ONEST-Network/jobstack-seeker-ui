@@ -35,13 +35,35 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
 
   const handleProfileComplete = (profileData: Record<string, unknown>) => {
     // Validate that we have the minimum required data before creating a profile
-    const whoIAm = profileData.whoIAm as Record<string, unknown> | undefined;
-    const hasRequiredData = profileData.name?.toString()?.trim() && 
-                           profileData.interestedRole?.toString()?.trim() && 
-                           (profileData.currentLocation?.toString()?.trim() || whoIAm?.location?.toString()?.trim()) &&
-                           (profileData.phone?.toString()?.trim() || whoIAm?.phone?.toString()?.trim());
-
-    if (!hasRequiredData) {
+    // The profileData is already flattened by UserProfileDialog, so check flat fields
+    
+    // Check each required field and collect validation errors
+    const validationErrors: string[] = [];
+    
+    // Check flat fields (already extracted from nested structure by UserProfileDialog)
+    if (!profileData.name?.toString()?.trim()) {
+      validationErrors.push("Full name");
+    }
+    
+    if (!profileData.interestedRole?.toString()?.trim()) {
+      validationErrors.push("Job role");
+    }
+    
+    if (!profileData.phone?.toString()?.trim()) {
+      validationErrors.push("Phone number");
+    }
+    
+    if (!profileData.currentLocation?.toString()?.trim()) {
+      validationErrors.push("Location");
+    }
+    
+    // If there are validation errors, show them and stop
+    if (validationErrors.length > 0) {
+      toast({
+        title: "Missing Required Fields",
+        description: `Please complete the following fields: ${validationErrors.join(', ')}`,
+        variant: "destructive"
+      });
       return;
     }
 
