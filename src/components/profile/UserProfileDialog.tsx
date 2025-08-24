@@ -196,46 +196,49 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
         return;
       }
 
-      // Skip validation if onComplete is provided (handled by parent component)
-      if (onComplete) {
-        // No validation needed - parent will handle it
-      } else {
-        // Comprehensive validation - check all required fields and show specific errors
-        const validationErrors: string[] = [];
-        
-        // Check job role
-        if (!profile.interestedRole?.trim()) {
-          validationErrors.push("Job role is required");
-        }
-        
-        // Check name in both legacy and unified schema structures
-        const name = profile.name || profile.whoIAm?.name;
-        if (!name?.trim()) {
-          validationErrors.push("Full name is required");
-        }
-        
-        // Check phone number in both legacy and unified schema structures
-        const phone = profile.phone || profile.whoIAm?.phone;
-        if (!phone?.trim()) {
-          validationErrors.push("Phone number is required");
-        }
-        
-        // Check location in both legacy and unified schema structures
-        const location = profile.currentLocation || profile.whoIAm?.location;
-        if (!location?.trim()) {
-          validationErrors.push("Location is required");
-        }
-        
-        // If there are validation errors, show them and stop
-        if (validationErrors.length > 0) {
-          toast({
-            title: "Missing Required Fields",
-            description: `Please complete the following fields: ${validationErrors.join(', ')}`,
-            variant: "destructive"
-          });
-          setIsSaving(false);
-          return;
-        }
+      // Always perform validation regardless of onComplete prop
+      // Comprehensive validation - check all required fields and show specific errors
+      const missingFields: string[] = [];
+      
+      // Check job role
+      if (!profile.interestedRole?.trim()) {
+        missingFields.push("Job Role");
+      }
+      
+      // Check name in both legacy and unified schema structures
+      const name = profile.name || profile.whoIAm?.name;
+      if (!name?.trim()) {
+        missingFields.push("Full Name");
+      }
+      
+      // Check phone number in both legacy and unified schema structures
+      const phone = profile.phone || profile.whoIAm?.phone;
+      if (!phone?.trim()) {
+        missingFields.push("Phone Number");
+      }
+      
+      // Check location in both legacy and unified schema structures
+      const location = profile.currentLocation || profile.whoIAm?.location;
+      if (!location?.trim()) {
+        missingFields.push("Current Location");
+      }
+      
+      // If there are missing fields, show a user-friendly message and stop
+      if (missingFields.length > 0) {
+        const fieldList = missingFields.length === 1 
+          ? missingFields[0]
+          : missingFields.length === 2
+          ? `${missingFields[0]} and ${missingFields[1]}`
+          : `${missingFields.slice(0, -1).join(', ')}, and ${missingFields[missingFields.length - 1]}`;
+          
+        toast({
+          title: "Please Complete Required Fields",
+          description: `The following ${missingFields.length === 1 ? 'field is' : 'fields are'} required to save your profile: ${fieldList}`,
+          variant: "destructive",
+          duration: 6000 // Show for 6 seconds to give user time to read
+        });
+        setIsSaving(false);
+        return;
       }
 
       // Calculate derived fields
