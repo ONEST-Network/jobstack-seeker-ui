@@ -35,12 +35,12 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
 
   const handleProfileComplete = (profileData: Record<string, unknown>) => {
     // Validate that we have the minimum required data before creating a profile
-    // Location is now optional - only require name, role, and phone
-    const whoIAm = profileData.whoIAm as Record<string, unknown> | undefined;
+    // The profileData is already flattened by UserProfileDialog, so check flat fields
     
     // Check each required field and collect validation errors
     const validationErrors: string[] = [];
     
+    // Check flat fields (already extracted from nested structure by UserProfileDialog)
     if (!profileData.name?.toString()?.trim()) {
       validationErrors.push("Full name");
     }
@@ -49,12 +49,11 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       validationErrors.push("Job role");
     }
     
-    if (!profileData.phone?.toString()?.trim() && !whoIAm?.phone?.toString()?.trim()) {
+    if (!profileData.phone?.toString()?.trim()) {
       validationErrors.push("Phone number");
     }
     
-    // Check location in both legacy and unified schema structures
-    if (!profileData.currentLocation?.toString()?.trim() && !whoIAm?.location?.toString()?.trim()) {
+    if (!profileData.currentLocation?.toString()?.trim()) {
       validationErrors.push("Location");
     }
     
