@@ -137,11 +137,29 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
         scrollWheelZoom={true}
         zoomControl={true}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
-        />
+        {/* Conditional Tile Layer */}
+        {(() => {
+          const useGoogleMaps = import.meta.env.VITE_USE_GOOGLE_MAPS === 'true';
+          const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+          if (useGoogleMaps && googleApiKey) {
+            return (
+              <TileLayer
+                attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                url={`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${googleApiKey}`}
+                maxZoom={20}
+              />
+            );
+          } else {
+            return (
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={19}
+              />
+            );
+          }
+        })()}
         
         <MapUpdater center={mapCenter} zoom={zoom} />
         

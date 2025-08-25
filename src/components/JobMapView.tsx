@@ -84,19 +84,9 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
   // Geocoding function to convert location name to coordinates
   const geocodeLocation = async (locationName: string): Promise<LatLng | null> => {
     try {
-      // Use OpenStreetMap Nominatim API for geocoding
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName + ', India')}&limit=1`
-      );
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        return {
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon)
-        };
-      }
-      return null;
+      // Use the map service abstraction
+      const { mapService } = await import('@/services/mapService');
+      return await mapService.geocodeLocation(locationName);
     } catch (error) {
       console.error('Geocoding error:', error);
       return null;
