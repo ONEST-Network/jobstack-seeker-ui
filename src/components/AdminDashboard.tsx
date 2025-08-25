@@ -391,7 +391,7 @@ const AdminDashboard = () => {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Students with Profiles</CardTitle>
+                <CardTitle className="text-xs sm:text-sm font-medium">Total Numeber of Profiles</CardTitle>
                 <UserPlus className="h-4 w-4 text-blue-500" />
               </CardHeader>
               <CardContent className="pt-2">
@@ -399,7 +399,7 @@ const AdminDashboard = () => {
                   {isLoading ? '...' : stats.studentsWithProfiles.toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Students who have created profiles
+                  Profiles Created by all Students
                 </p>
               </CardContent>
             </Card>
