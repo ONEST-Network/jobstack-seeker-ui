@@ -61,7 +61,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
 
   const { user } = useAuth();
   const { jobs, loading, error, findProviderAndJobIds, fetchScoresForJobs, scoresLoading } = useJobSearch();
-  const { applyToJob, saveDraft, applying, savingDraft } = useJobApplication();
+  const { applyToJob, applying } = useJobApplication();
 
   // Custom toast function for map container
   const showMapToast = (type: 'success' | 'error' | 'info', title: string, description?: string, duration = 4000) => {
@@ -322,33 +322,33 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
     }
   };
 
-  const handleSaveDraft = async (applicationData: JobApplicationData) => {
-    if (!selectedJob) return;
+  // const handleSaveDraft = async (applicationData: JobApplicationData) => {
+  //   if (!selectedJob) return;
 
-    try {
-      // Find provider and job IDs from the original API response
-      const ids = findProviderAndJobIds(selectedJob.id);
-      if (!ids) {
-        console.error('Could not find provider and job IDs for job:', selectedJob.id);
-        showMapToast('error', 'Draft Save Failed', 'Failed to save job application draft. Please try again.');
-        return;
-      }
+  //   try {
+  //     // Find provider and job IDs from the original API response
+  //     const ids = findProviderAndJobIds(selectedJob.id);
+  //     if (!ids) {
+  //       console.error('Could not find provider and job IDs for job:', selectedJob.id);
+  //       showMapToast('error', 'Draft Save Failed', 'Failed to save job application draft. Please try again.');
+  //       return;
+  //     }
 
-      // Pass the job details from the BAP search API response
-      const result = await saveDraft(ids.jobId, ids.providerId, applicationData, selectedJob);
+  //     // Pass the job details from the BAP search API response
+  //     const result = await saveDraft(ids.jobId, ids.providerId, applicationData, selectedJob);
       
-      if (result.success) {
-        showMapToast('success', 'Draft Saved!', 'Your job application draft has been successfully saved.');
-        // Don't close the dialog when saving draft, let user continue editing
-      } else {
-        const errorMessage = result.error || 'Failed to save draft';
-        showMapToast('error', 'Draft Save Failed', errorMessage);
-      }
-    } catch (error) {
-      console.error('Job draft save error:', error);
-      showMapToast('error', 'Draft Save Failed', 'Failed to save job application draft. Please try again.');
-    }
-  };
+  //     if (result.success) {
+  //       showMapToast('success', 'Draft Saved!', 'Your job application draft has been successfully saved.');
+  //       // Don't close the dialog when saving draft, let user continue editing
+  //     } else {
+  //       const errorMessage = result.error || 'Failed to save draft';
+  //       showMapToast('error', 'Draft Save Failed', errorMessage);
+  //     }
+  //   } catch (error) {
+  //     console.error('Job draft save error:', error);
+  //       showMapToast('error', 'Draft Save Failed', 'Failed to save job application draft. Please try again.');
+  //   }
+  // };
 
   // Find My Location handler
   const handleFindMyLocation = () => {
@@ -524,9 +524,9 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
             isOpen={true}
             onClose={() => setSelectedJob(null)}
             onSubmit={handleJobApplicationSubmit}
-            onSaveDraft={handleSaveDraft}
+            // onSaveDraft={handleSaveDraft} // Disabled save draft functionality
             applying={applying}
-            savingDraft={savingDraft}
+            // savingDraft={savingDraft} // Disabled save draft functionality
           />
         </div>
       )}
