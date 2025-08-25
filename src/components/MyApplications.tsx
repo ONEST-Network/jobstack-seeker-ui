@@ -64,7 +64,7 @@ const MyApplications = () => {
   const { user, getSelectedCandidate } = useAuth();
   const selectedCandidate = getSelectedCandidate();
   const [applications, setApplications] = useState<JobApplication[]>([]);
-  const [draftApplications, setDraftApplications] = useState<JobApplication[]>([]);
+  // const [draftApplications, setDraftApplications] = useState<JobApplication[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statusLoading, setStatusLoading] = useState<boolean>(false);
   const isMobile = useIsMobile();
@@ -271,7 +271,8 @@ const MyApplications = () => {
     return 'default';
   };
 
-  // Function to fetch draft applications
+  // Function to fetch draft applications - DISABLED
+  /*
   const fetchDraftApplications = async () => {
     if (!user?.id) return;
     
@@ -295,7 +296,7 @@ const MyApplications = () => {
       // Support different response shapes: try common fields used elsewhere
       const draftApplicationsData = data?.applications || data?.message?.applications || data?.results || data || [];
       
-  const processedDraftApplications = draftApplicationsData.map((app: any) => {
+      const processedDraftApplications = draftApplicationsData.map((app: any) => {
         // Extract job details from the new structure where job info is in person metadata
         const fulfillment = app?.metadata?.order?.fulfillments?.[0];
         const personMetadata = fulfillment?.customer?.person?.metadata;
@@ -369,44 +370,58 @@ const MyApplications = () => {
           jobDetails?.jobTitle, // New structure
           jobDetails?.title,    // New structure
           item?.descriptor?.name,
-          item?.descriptor?.title,
-          item?.title,
-          item?.name,
-          app?.jobTitle,
-          app?.job_title,
-          app?.title
+          tag?.jobDetails?.jobTitle,
+          tag?.jobDetails?.title,
+          basicInfo?.jobTitle,
+          basicInfo?.title,
+          item?.tag?.jobDetails?.jobTitle,
+          item?.tag?.jobDetails?.title,
+          item?.tag?.basicInfo?.jobTitle,
+          item?.tag?.basicInfo?.title,
         ];
 
-        const invalidValues = new Set(['Unknown', 'Unknow', 'N/A', 'undefined', '', 'Not specified']);
-        const jobTitle = titleCandidates.find(t => t && !invalidValues.has(String(t))) || 'Untitled Job';
+        const jobTitle = titleCandidates.find(title => title && title !== 'N/A' && title !== 'undefined') || 'N/A';
 
         // Extract company name from the new jobDetails structure first
         const companyCandidates = [
-          jobDetails?.jobProviderName, // New structure
+          jobDetails?.companyName, // New structure
+          jobDetails?.company,      // New structure
           basicInfo?.jobProviderName,
+          basicInfo?.companyName,
+          basicInfo?.company,
+          item?.tag?.basicInfo?.jobProviderName,
+          item?.tag?.basicInfo?.companyName,
+          item?.tag?.basicInfo?.company,
           provider?.descriptor?.name,
-          provider?.descriptor?.title
         ];
-        const companyName = companyCandidates.find(c => c && !invalidValues.has(String(c))) || 'Unknown Company';
+
+        const company = companyCandidates.find(company => company && company !== 'N/A' && company !== 'undefined') || 'N/A';
 
         // Extract location from the new jobDetails structure first
         const locationCandidates = [
-          jobDetails?.location, // New structure - e.g., "Kannur, Kerala"
-          jobDetails?.jobProviderLocation?.city && jobDetails?.jobProviderLocation?.state ? 
-            `${jobDetails.jobProviderLocation.city}, ${jobDetails.jobProviderLocation.state}` : null,
-          `${locationObj.city ?? ''}${locationObj.state ? ', ' + locationObj.state : ''}`.trim()
+          jobDetails?.location, // New structure
+          locationObj?.address,
+          locationObj?.city,
+          locationObj?.state,
+          basicInfo?.jobProviderLocation?.address,
+          basicInfo?.jobProviderLocation?.city,
+          basicInfo?.jobProviderLocation?.state,
+          item?.tag?.basicInfo?.jobProviderLocation?.address,
+          item?.tag?.basicInfo?.jobProviderLocation?.city,
+          item?.tag?.basicInfo?.jobProviderLocation?.state,
         ];
-        const location = locationCandidates.find(l => l && l.trim() !== '') || 'Location not specified';
+
+        const location = locationCandidates.find(loc => loc && loc !== 'N/A' && loc !== 'undefined') || 'N/A';
 
         return {
-          id: app.order_id ?? app.transaction_id ?? app.job_id,
-          jobId: item.id ?? app.job_id,
-          jobTitle: String(jobTitle),
-          company: companyName,
-          location: location,
-          salary: salary,
-          appliedDate: app?.metadata?.context?.timestamp ?? new Date().toISOString(),
-          status: 'draft' as JobApplication['status'],
+          id: app.id || app.metadata?.order?.id || `draft-${Date.now()}`,
+          jobId: app.metadata?.order?.items?.[0]?.id || 'N/A',
+          jobTitle,
+          company,
+          location,
+          salary,
+          appliedDate: app.createdAt || app.metadata?.order?.createdAt || new Date().toISOString(),
+          status: 'draft' as const,
           raw: app,
           media: [],
           profileId,
@@ -419,6 +434,7 @@ const MyApplications = () => {
       setDraftApplications([]);
     }
   };
+  */
 
   // Function to fetch all applications with their statuses
   const fetchApplicationsWithStatus = useCallback(async () => {
@@ -627,7 +643,7 @@ const MyApplications = () => {
     // Clear cache when user or selected candidate changes
     statusCache.current.clear();
     fetchApplicationsWithStatus();
-    fetchDraftApplications();
+    // fetchDraftApplications(); // Commented out as per edit hint
   }, [user, selectedCandidate]); // Re-fetch when selected candidate changes
 
 
@@ -637,7 +653,7 @@ const MyApplications = () => {
       // Refresh applications when the window regains focus (user navigates back)
       if (user?.id) {
         fetchApplicationsWithStatus();
-        fetchDraftApplications();
+        // fetchDraftApplications(); // Commented out as per edit hint
       }
     };
 
@@ -651,7 +667,7 @@ const MyApplications = () => {
       // Small delay to ensure any pending applications are processed
       const timer = setTimeout(() => {
         fetchApplicationsWithStatus();
-        fetchDraftApplications();
+        // fetchDraftApplications(); // Commented out as per edit hint
       }, 1000);
       
       return () => clearTimeout(timer);
@@ -688,7 +704,7 @@ const MyApplications = () => {
             <div className="text-center py-4">
               <p className="text-muted-foreground text-sm">Updating application statuses...</p>
             </div>
-          ) : applications.length === 0 && draftApplications.length === 0 ? (
+          ) : applications.length === 0 ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <User className="h-8 w-8 text-muted-foreground" />
@@ -706,7 +722,7 @@ const MyApplications = () => {
               <Button 
                 onClick={() => {
                   fetchApplicationsWithStatus();
-                  fetchDraftApplications();
+                  // fetchDraftApplications(); // Commented out as per edit hint
                 }}
                 disabled={isLoading}
                 variant="outline"
@@ -720,10 +736,10 @@ const MyApplications = () => {
             <ApplicationTabs 
               activeApplications={activeApplications}
               completedApplications={completedApplications}
-              draftApplications={draftApplications}
+              draftApplications={[]} // Removed draftApplications prop
               onApplicationSubmitted={() => {
                 fetchApplicationsWithStatus();
-                fetchDraftApplications();
+                // fetchDraftApplications(); // Commented out as per edit hint
               }}
             />
           )}
