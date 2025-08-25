@@ -205,11 +205,23 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
       zoomControl: false
     }).setView([mapCenter.lat, mapCenter.lng], zoom);
 
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }).addTo(map);
+    // Add conditional tile layer based on environment
+    const useGoogleMaps = import.meta.env.VITE_USE_GOOGLE_MAPS === 'true';
+    const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+    if (useGoogleMaps && googleApiKey) {
+      // Google Maps tile layer
+      L.tileLayer(`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${googleApiKey}`, {
+        attribution: '&copy; <a href="https://www.google.com/maps">Google Maps</a>',
+        maxZoom: 20,
+      }).addTo(map);
+    } else {
+      // OpenStreetMap tile layer (existing)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(map);
+    }
 
     // Create marker cluster group
     const clusterGroup = L.markerClusterGroup({
@@ -234,7 +246,7 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [mapCenter.lat, mapCenter.lng, zoom]);
 
   // Update map center and zoom
   useEffect(() => {
