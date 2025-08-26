@@ -15,6 +15,7 @@ interface JobApplication {
   location: string;
   salary: string;
   appliedDate: string;
+
   status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'draft';
 
   raw?: any;
@@ -644,6 +645,7 @@ const MyApplications = () => {
     statusCache.current.clear();
     fetchApplicationsWithStatus();
     // fetchDraftApplications(); // Commented out as per edit hint
+
   }, [user, selectedCandidate]); // Re-fetch when selected candidate changes
 
 

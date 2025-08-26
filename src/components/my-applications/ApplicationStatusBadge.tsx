@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
+
 import { CheckCircle, XCircle, Eye, Clock, FileText } from 'lucide-react';
 
 interface ApplicationStatusBadgeProps {
@@ -41,8 +42,10 @@ const ApplicationStatusBadge: React.FC<ApplicationStatusBadgeProps> = ({ status 
         return <CheckCircle className="h-4 w-4" />;
       case 'interview':
         return <Eye className="h-4 w-4" />;
+
       case 'draft':
         return <FileText className="h-4 w-4" />;
+
       default:
         return <Clock className="h-4 w-4" />;
     }
@@ -62,6 +65,7 @@ const ApplicationStatusBadge: React.FC<ApplicationStatusBadgeProps> = ({ status 
         return 'Hired';
       case 'rejected':
         return 'Rejected';
+
       case 'draft':
         return 'Draft';
       default:
