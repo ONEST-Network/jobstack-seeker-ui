@@ -11,6 +11,7 @@ import teleSalespersonSchema from './tele-salesperson.json';
 import fieldSalesPersonSchema from './field-sales-person.json';
 import genericITISchema from './GenericITI.json';
 import jobRolesConfig from './job-roles-config.json';
+import jobSectorsConfig from './job-sectors-config.json';
 
 export interface ProfileStepSchema {
   $schema: string;
@@ -176,4 +177,6 @@ export const getFieldUI = (stepName: string, fieldName: string, role?: string) =
   return Object.fromEntries(
     Object.entries(fieldConfig).filter(([key]) => key.startsWith('ui:'))
   );
-}; 
+};
+
+export { jobSectorsConfig }; 

@@ -403,6 +403,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
             >
               {applying ? 'Submitting...' : 'Submit Application'}
             </Button>
+            {/* Save Draft button disabled
             {onSaveDraft && (
               <Button 
                 onClick={handleSaveDraft} 
@@ -413,6 +414,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
                 {savingDraft ? 'Saving...' : 'Save Draft'}
               </Button>
             )}
+            */}
             <Button 
               variant="outline" 
               onClick={onClose} 

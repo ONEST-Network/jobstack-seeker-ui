@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ApplicationCard from './ApplicationCard';
-import DraftSyncButton from './DraftSyncButton';
+// import DraftSyncButton from './DraftSyncButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface JobApplication {
@@ -43,7 +43,7 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
 
   return (
     <Tabs defaultValue="active" className="w-full">
-      <TabsList className={`grid w-full ${isMobile ? 'grid-cols-3 h-12' : 'grid-cols-3 h-touch'}`}>
+      <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2 h-12' : 'grid-cols-2 h-touch'}`}>
         <TabsTrigger 
           value="active" 
           className={`${isMobile ? 'text-sm font-medium' : 'text-sm font-medium'}`}
@@ -56,12 +56,14 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
         >
           Completed ({completedApplications.length})
         </TabsTrigger>
+        {/* Draft tab disabled
         <TabsTrigger 
           value="draft" 
           className={`${isMobile ? 'text-sm font-medium' : 'text-sm font-medium'}`}
         >
           Draft ({draftApplications.length})
         </TabsTrigger>
+        */}
       </TabsList>
 
       <TabsContent value="active" className={`${isMobile ? 'space-y-3 mt-4' : 'space-y-4'}`}>
@@ -100,6 +102,7 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
         )}
       </TabsContent>
 
+      {/* Draft tab content completely disabled
       <TabsContent value="draft" className={`${isMobile ? 'space-y-3 mt-4' : 'space-y-4'}`}>
         {draftApplications.length === 0 ? (
           <Card>
@@ -109,12 +112,10 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
           </Card>
         ) : (
           <>
-            {/* Sync Profile Button for drafts */}
             <div className="flex justify-between items-center mb-4">
               <p className="text-sm text-muted-foreground">
                 Keep your drafts up-to-date with your latest profile changes
               </p>
-              <DraftSyncButton />
             </div>
             
             {draftApplications.map(application => (
@@ -129,6 +130,7 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
           </>
         )}
       </TabsContent>
+      */}
     </Tabs>
   );
 };

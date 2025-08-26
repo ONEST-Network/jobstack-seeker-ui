@@ -96,7 +96,7 @@ const SharedJob: React.FC = () => {
   const navigate = useNavigate();
   const { user, getSelectedCandidate } = useAuth();
   const { toast } = useToast();
-  const { applyToJob, saveDraft, applying, savingDraft } = useJobApplication();
+  const { applyToJob, applying } = useJobApplication();
   
   const [jobData, setJobData] = useState<SharedJobData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -500,45 +500,45 @@ const SharedJob: React.FC = () => {
     }
   };
 
-  const handleSaveDraft = async (applicationData: any) => {
-    if (!user?.id || !providerId || !jobId) {
-      toast({
-        title: "Error",
-        description: "Please log in to save a draft.",
-        variant: "destructive"
-      });
-      return;
-    }
+  // const handleSaveDraft = async (applicationData: any) => {
+  //   if (!user?.id || !providerId || !jobId) {
+  //     toast({
+  //       title: "Error",
+  //       description: "Please log in to save a draft.",
+  //       variant: "destructive"
+  //     });
+  //     return;
+  //   }
 
-    try {
-      // Use the saveDraft function from useJobApplication hook
-      // Pass the job details from the BAP search API response
-      const result = await saveDraft(jobId, providerId, applicationData, jobData);
+  //   try {
+  //     // Use the saveDraft function from useJobApplication hook
+  //     // Pass the job details from the BAP search API response
+  //     const result = await saveDraft(jobId, providerId, applicationData, jobData);
       
-      if (result.success) {
-        toast({
-          title: "Draft Saved!",
-          description: "Your job application draft has been successfully saved.",
-        });
-      } else {
-        toast({
-          title: "Draft Save Failed",
-          description: result.error || "Failed to save draft. Please try again.",
-          variant: "destructive"
-        });
-      }
+  //     if (result.success) {
+  //       toast({
+  //         title: "Draft Saved!",
+  //         description: "Your job application draft has been successfully saved.",
+  //       });
+  //     } else {
+  //       toast({
+  //         title: "Draft Save Failed",
+  //         description: result.error || "Failed to save draft. Please try again.",
+  //         variant: "destructive"
+  //       });
+  //     }
 
-      // Don't close the dialog when saving draft, let user continue editing
+  //     // Don't close the dialog when saving draft, let user continue editing
 
-    } catch (error: any) {
-      console.error('Job draft save error:', error);
-      toast({
-        title: "Draft Save Failed",
-        description: error.message || "Failed to save draft. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
+  //   } catch (error: any) {
+  //     console.error('Job draft save error:', error);
+  //     toast({
+  //       title: "Draft Save Failed",
+  //       description: error.message || "Failed to save draft. Please try again.",
+  //       variant: "destructive"
+  //     });
+  //   }
+  // };
 
   if (loading) {
     return (
@@ -699,9 +699,9 @@ const SharedJob: React.FC = () => {
           isOpen={showApplicationDialog}
           onClose={() => setShowApplicationDialog(false)}
           onSubmit={handleApplicationSubmit}
-          onSaveDraft={handleSaveDraft}
+          // onSaveDraft={handleSaveDraft} // Disabled save draft functionality
           applying={applying}
-          savingDraft={savingDraft}
+          // savingDraft={savingDraft} // Disabled save draft functionality
         />
       )}
 

@@ -55,7 +55,7 @@ const JobListView: React.FC<JobListViewProps> = ({
     fetchScoresForJobs,
     isAutoRetrying
   } = useJobSearch();
-  const { applyToJob, saveDraft, applying, savingDraft } = useJobApplication();
+  const { applyToJob, applying } = useJobApplication();
 
   // Filter jobs based on search query with improved exact word matching
   const filteredJobs = (jobs || []).filter(job => {
@@ -185,22 +185,22 @@ const JobListView: React.FC<JobListViewProps> = ({
     }
   };
 
-  const handleSaveDraft = async (applicationData: JobApplicationData) => {
-    if (!selectedJob) return;
+  // const handleSaveDraft = async (applicationData: JobApplicationData) => {
+  //   if (!selectedJob) return;
 
-    // Find provider and job IDs from the original API response
-    const ids = findProviderAndJobIds(selectedJob.id);
-    if (!ids) {
-      console.error('Could not find provider and job IDs for job:', selectedJob.id);
-      return;
-    }
+  //   // Find provider and job IDs from the original API response
+  //   const ids = findProviderAndJobIds(selectedJob.id);
+  //   if (!ids) {
+  //     console.error('Could not find provider and job IDs for job:', selectedJob.id);
+  //     return;
+  //   }
 
-    // Pass the job details from the BAP search API response
-    const result = await saveDraft(ids.jobId, ids.providerId, applicationData, selectedJob);
+  //   // Pass the job details from the BAP search API response
+  //   const result = await saveDraft(ids.jobId, ids.providerId, applicationData, selectedJob);
     
-    // Don't close the dialog when saving draft, let user continue editing
-    // The success/error message is handled by the saveDraft function
-  };
+  //   // Don't close the dialog when saving draft, let user continue editing
+  //   // The success/error message is handled by the saveDraft function
+  // };
 
   const handleRetry = () => {
     refetch(); // Force refresh
@@ -451,9 +451,8 @@ const JobListView: React.FC<JobListViewProps> = ({
           isOpen={!!selectedJob} 
           onClose={() => setSelectedJob(null)}
           onSubmit={handleJobApplicationSubmit}
-          onSaveDraft={handleSaveDraft}
+          // onSaveDraft prop removed to disable save draft functionality
           applying={applying}
-          savingDraft={savingDraft}
         />
       )}
 

@@ -96,42 +96,22 @@ export const parseLocationString = (locationString: string): LocationData => {
  */
 export const reverseGeocode = async (lat: number, lng: number): Promise<LocationData> => {
   try {
-    // Use OpenStreetMap Nominatim API for reverse geocoding
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`
-    );
+    // Import the map service dynamically to avoid circular dependencies
+    const { mapService } = await import('@/services/mapService');
+    const result = await mapService.reverseGeocode(lat, lng);
     
-    if (!response.ok) {
-      throw new Error('Reverse geocoding failed');
+    if (result) {
+      return {
+        address: result.address || '',
+        city: result.city || '',
+        state: result.state || '',
+        country: result.country || 'India',
+        lat,
+        lng
+      };
     }
     
-    const data = await response.json();
-    
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    
-    const address = data.display_name || '';
-    const addressParts = data.address || {};
-    
-    // Extract city and state from address components
-    const city = addressParts.city || 
-                 addressParts.town || 
-                 addressParts.village || 
-                 addressParts.county || 
-                 addressParts.state_district || 
-                 '';
-    
-    const state = addressParts.state || '';
-    
-    return {
-      address,
-      city,
-      state,
-      country: addressParts.country || 'India',
-      lat,
-      lng
-    };
+    throw new Error('Unable to get location information');
   } catch (error) {
     console.error('Reverse geocoding error:', error);
     
@@ -150,33 +130,10 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<Location
 /**
  * Get current location with full address
  */
-export const getCurrentLocation = (): Promise<LocationData> => {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocation is not supported by this browser'));
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const locationData = await reverseGeocode(latitude, longitude);
-          resolve(locationData);
-        } catch (error) {
-          reject(error);
-        }
-      },
-      (error) => {
-        reject(error);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000 // 5 minutes
-      }
-    );
-  });
+export const getCurrentLocation = async (): Promise<LocationData> => {
+  // Import the map service dynamically to avoid circular dependencies
+  const { mapService } = await import('@/services/mapService');
+  return await mapService.getCurrentLocation();
 };
 
 /**
