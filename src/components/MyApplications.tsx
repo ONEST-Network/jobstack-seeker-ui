@@ -17,6 +17,7 @@ interface JobApplication {
   appliedDate: string;
 
   status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'draft';
+
   raw?: any;
   media?: Array<{
     type: 'image' | 'video';
@@ -647,6 +648,7 @@ const MyApplications = () => {
 
   }, [user, selectedCandidate]); // Re-fetch when selected candidate changes
 
+
   // Add a refresh mechanism when component mounts to catch new applications
   useEffect(() => {
     const handleFocus = () => {
@@ -675,7 +677,7 @@ const MyApplications = () => {
   }, [user?.id]);
 
   const activeApplications = applications.filter(app => !['rejected'].includes(app.status));
-  const completedApplications = applications.filter(app => ['rejected'].includes(app.status));
+  const completedApplications = applications.filter(app => ['rejected'].includes(app.status))
 
   return (
     <div className={`${isMobile ? 'space-y-4' : 'space-y-6'}`}>

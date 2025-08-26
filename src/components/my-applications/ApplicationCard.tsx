@@ -23,6 +23,7 @@ interface JobApplication {
   appliedDate: string;
 
   status: 'applied' | 'viewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'draft';
+
   raw?: any;
   media?: Array<{
     type: 'image' | 'video';
