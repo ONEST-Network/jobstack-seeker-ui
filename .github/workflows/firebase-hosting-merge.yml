@@ -15,15 +15,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  
+          node-version: '20'
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install
+      - name: Install Firebase CLI
+        run: pnpm add -g firebase-tools
       - name: Build project
         run: pnpm run build
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ONEST_JOBS_FIREBASE }}
-          channelId: live
-          projectId: onest-jobs-firebase
+      - name: Deploy to Firebase
+        run: firebase deploy --only hosting --project onest-jobs-firebase
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ONEST_JOBS_FIREBASE }}
