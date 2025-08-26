@@ -871,29 +871,31 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
           }
         };
 
-        // Filter options based on search query
-        const filteredOptions = fieldConfig.enum?.filter((option: string, index: number) => {
-          if (!searchQuery) return true;
-          const optionValue = fieldConfig.enumNames?.[index] || option;
+        // Filter options based on search query, keeping original indices
+        const filteredOptionsWithIndices = fieldConfig.enum?.map((option: string, originalIndex: number) => {
+          if (!searchQuery) return { option, originalIndex };
+          const optionValue = fieldConfig.enumNames?.[originalIndex] || option;
           const searchTerm = searchQuery.toLowerCase().trim();
           
           // Search in both the original option and the display name
           // Also split search terms to match any part
           const searchTerms = searchTerm.split(' ').filter(term => term.length > 0);
           
-          if (searchTerms.length === 0) return true;
+          if (searchTerms.length === 0) return { option, originalIndex };
           
           // First try exact match
           if (option.toLowerCase().includes(searchTerm) || optionValue.toLowerCase().includes(searchTerm)) {
-            return true;
+            return { option, originalIndex };
           }
           
           // Then try partial matches for each search term
-          return searchTerms.every(term => 
+          const matches = searchTerms.every(term => 
             option.toLowerCase().includes(term) || 
             optionValue.toLowerCase().includes(term)
           );
-        }) || [];
+          
+          return matches ? { option, originalIndex } : null;
+        }).filter(item => item !== null) || [];
 
 
 
@@ -948,16 +950,17 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                       />
                       {searchQuery && (
                         <div className="text-xs text-muted-foreground mt-1">
-                          {filteredOptions.length} of {fieldConfig.enum?.length || 0} options
+                          {filteredOptionsWithIndices.length} of {fieldConfig.enum?.length || 0} options
                         </div>
                       )}
                     </div>
                   )}
 
                   {/* Options List */}
-                  {filteredOptions.length > 0 ? (
-                    filteredOptions.map((option: string, index: number) => {
-                      const optionValue = fieldConfig.enumNames?.[index] || option;
+                  {filteredOptionsWithIndices.length > 0 ? (
+                    filteredOptionsWithIndices.map((item: { option: string, originalIndex: number }, index: number) => {
+                      const { option, originalIndex } = item;
+                      const optionValue = fieldConfig.enumNames?.[originalIndex] || option;
                       const isSelected = currentDropdownValues.includes(optionValue);
                       const isOtherOption = option.toLowerCase() === 'other';
 
