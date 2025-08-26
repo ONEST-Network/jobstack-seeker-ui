@@ -258,10 +258,10 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           const existingProfiles = profilesResponse?.data || [];
           const profileCount = existingProfiles.length;
           
-          // Generate unique location and contact tags with timestamp
+          // Generate unique location and contact tags with timestamp for all new profiles
           const timestamp = Date.now();
-          locationTag = profileCount === 0 ? "home" : `home${timestamp}`;
-          contactTag = profileCount === 0 ? "personal" : `personal${timestamp}`;
+          locationTag = `home${timestamp}`;
+          contactTag = `personal${timestamp}`;
         } catch (error) {
           // Use timestamp-based tags if fetching fails
           const timestamp = Date.now();
