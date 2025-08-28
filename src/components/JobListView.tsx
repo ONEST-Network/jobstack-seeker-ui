@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import JobApplicationDialog from './JobApplicationDialog';
 import JobDetailDialog from './job-search/JobDetailDialog';
 import JobCard from './job-search/JobCard';
 import JobCardSkeleton from '@/components/ui/job-card-skeleton';
 import { LoadingMessage, EmptyState } from '@/components/ui/loading-states';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshCw, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useJobSearch, JobItem, LoadingState } from '@/hooks/useJobSearch';
 import { useJobApplication, JobApplicationData } from '@/hooks/useJobApplication';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,9 +29,11 @@ const JobListView: React.FC<JobListViewProps> = ({
   const [detailJob, setDetailJob] = useState<JobItem | null>(null);
   const [jobsWithScores, setJobsWithScores] = useState<JobItem[]>([]);
   const [scoredJobIds, setScoredJobIds] = useState<Set<string>>(new Set());
+  const jobsListRef = useRef<HTMLDivElement>(null);
   const { user, getSelectedCandidate } = useAuth();
   const selectedCandidate = getSelectedCandidate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // Prevent unauthenticated users from opening the job detail dialog
   const handleViewDetails = (job: JobItem) => {
@@ -164,6 +168,66 @@ const JobListView: React.FC<JobListViewProps> = ({
       return;
     }
     setSelectedJob(job);
+  };
+
+  // Function to scroll to top of jobs list
+  const scrollToJobsList = () => {
+    if (jobsListRef.current) {
+      jobsListRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  };
+
+  // Enhanced page change function with scroll behavior
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    // Add a small delay to ensure the page content has rendered
+    setTimeout(() => {
+      scrollToJobsList();
+    }, 100);
+  };
+
+  // Smart pagination for mobile and desktop
+  const getVisiblePages = () => {
+    const maxVisible = isMobile ? 3 : 7; // Show fewer pages on mobile
+    const pages: (number | 'ellipsis')[] = [];
+    
+    if (totalPages <= maxVisible) {
+      // Show all pages if total is less than max visible
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    
+    const sidePages = Math.floor((maxVisible - 3) / 2); // Pages on each side of current (excluding first, last, current)
+    
+    // Always show first page
+    pages.push(1);
+    
+    if (currentPage > sidePages + 2) {
+      pages.push('ellipsis');
+    }
+    
+    // Show pages around current page
+    const start = Math.max(2, currentPage - sidePages);
+    const end = Math.min(totalPages - 1, currentPage + sidePages);
+    
+    for (let i = start; i <= end; i++) {
+      if (i !== 1 && i !== totalPages) {
+        pages.push(i);
+      }
+    }
+    
+    if (currentPage < totalPages - sidePages - 1) {
+      pages.push('ellipsis');
+    }
+    
+    // Always show last page if more than 1 page
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+    
+    return pages;
   };
 
   const handleJobApplicationSubmit = async (applicationData: JobApplicationData) => {
@@ -344,7 +408,7 @@ const JobListView: React.FC<JobListViewProps> = ({
         {/* Jobs List */}
         {!loading && !error && (
           <>
-            <div className="space-y-4">
+            <div ref={jobsListRef} className="space-y-4">
               {displayJobs.length > 0 ? (
                 displayJobs.map(job => (
                   <JobCard 
@@ -410,29 +474,36 @@ const JobListView: React.FC<JobListViewProps> = ({
             {totalPages > 1 && (
               <div className="flex justify-center pt-8">
                 <Pagination>
-                  <PaginationContent>
+                  <PaginationContent className="gap-1 sm:gap-2">
                     <PaginationItem>
                       <PaginationPrevious 
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} 
+                        onClick={() => handlePageChange(Math.max(1, currentPage - 1))} 
                         className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} 
                       />
                     </PaginationItem>
                     
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <PaginationItem key={page}>
-                        <PaginationLink 
-                          onClick={() => setCurrentPage(page)} 
-                          isActive={currentPage === page} 
-                          className="cursor-pointer"
-                        >
-                          {page}
-                        </PaginationLink>
+                    {getVisiblePages().map((page, index) => (
+                      <PaginationItem key={`${page}-${index}`}>
+                        {page === 'ellipsis' ? (
+                          <PaginationEllipsis />
+                        ) : (
+                          <PaginationLink 
+                            onClick={() => handlePageChange(page as number)} 
+                            isActive={currentPage === page} 
+                            className={cn(
+                              "cursor-pointer min-w-[2.25rem] h-9",
+                              isMobile && "min-w-[2rem] h-8 text-sm"
+                            )}
+                          >
+                            {page}
+                          </PaginationLink>
+                        )}
                       </PaginationItem>
                     ))}
                     
                     <PaginationItem>
                       <PaginationNext 
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} 
+                        onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))} 
                         className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} 
                       />
                     </PaginationItem>
