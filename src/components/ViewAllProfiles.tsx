@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,6 +14,7 @@ import {
   PaginationContent,
   PaginationItem,
 } from '@/components/ui/pagination';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Dialog,
   DialogContent,
@@ -112,6 +113,8 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { user, deleteProfile } = useAuth();
+  const isMobile = useIsMobile();
+  const profilesTableRef = useRef<HTMLDivElement>(null);
 
 
   const limit = 20;
@@ -223,6 +226,15 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+      // Scroll to top of profiles table
+      setTimeout(() => {
+        if (profilesTableRef.current) {
+          profilesTableRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
+      }, 100);
     }
   };
 
@@ -481,7 +493,7 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
             </div>
 
             {/* Table */}
-            <div className="flex-1 overflow-auto">
+            <div ref={profilesTableRef} className="flex-1 overflow-auto">
               {loading ? (
                 <div className="flex items-center justify-center h-full">
                   <Loader2 className="h-8 w-8 animate-spin" />
@@ -636,44 +648,49 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="p-6 border-t flex-shrink-0">
-                <div className="flex items-center justify-between">
+                <div className={`flex items-center justify-between ${isMobile ? 'flex-col gap-4' : ''}`}>
                   <div className="text-sm text-gray-600">
-                    Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, totalProfiles)} of {totalProfiles} profiles
+                    {isMobile ? (
+                      `${currentPage} of ${totalPages} pages`
+                    ) : (
+                      `Showing ${((currentPage - 1) * limit) + 1} to ${Math.min(currentPage * limit, totalProfiles)} of ${totalProfiles} profiles`
+                    )}
                   </div>
                   <Pagination>
-                    <PaginationContent>
+                    <PaginationContent className="gap-1 sm:gap-2">
                       <PaginationItem>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handlePageChange(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className="gap-1"
+                          className={`gap-1 touch-manipulation ${isMobile ? 'px-2' : ''}`}
                         >
                           <ChevronLeft className="h-4 w-4" />
-                          Previous
+                          {!isMobile && "Previous"}
                         </Button>
                       </PaginationItem>
                       
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      {Array.from({ length: Math.min(isMobile ? 3 : 5, totalPages) }, (_, i) => {
                         let pageNum;
-                        if (totalPages <= 5) {
+                        const maxVisible = isMobile ? 3 : 5;
+                        if (totalPages <= maxVisible) {
                           pageNum = i + 1;
-                        } else if (currentPage <= 3) {
+                        } else if (currentPage <= Math.floor(maxVisible / 2) + 1) {
                           pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
+                        } else if (currentPage >= totalPages - Math.floor(maxVisible / 2)) {
+                          pageNum = totalPages - maxVisible + 1 + i;
                         } else {
-                          pageNum = currentPage - 2 + i;
+                          pageNum = currentPage - Math.floor(maxVisible / 2) + i;
                         }
                         
                         return (
                           <PaginationItem key={pageNum}>
                             <Button
                               variant={currentPage === pageNum ? "outline" : "ghost"}
-                              size="sm"
+                              size={isMobile ? "sm" : "sm"}
                               onClick={() => handlePageChange(pageNum)}
-                              className="w-8 h-8 p-0"
+                              className={isMobile ? "w-8 h-8 p-0 text-sm touch-manipulation" : "w-8 h-8 p-0"}
                             >
                               {pageNum}
                             </Button>
@@ -687,9 +704,9 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
                           size="sm"
                           onClick={() => handlePageChange(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className="gap-1"
+                          className={`gap-1 touch-manipulation ${isMobile ? 'px-2' : ''}`}
                         >
-                          Next
+                          {!isMobile && "Next"}
                           <ChevronRight className="h-4 w-4" />
                         </Button>
                       </PaginationItem>
