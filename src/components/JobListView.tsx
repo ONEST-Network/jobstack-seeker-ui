@@ -24,11 +24,12 @@ const JobListView: React.FC<JobListViewProps> = ({
   searchQuery,
   onPromptLogin
 }) => {
-  const [currentPage, setCurrentPage] = useState(1);
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
   const [detailJob, setDetailJob] = useState<JobItem | null>(null);
   const [jobsWithScores, setJobsWithScores] = useState<JobItem[]>([]);
   const [scoredJobIds, setScoredJobIds] = useState<Set<string>>(new Set());
+  const [isPageChanging, setIsPageChanging] = useState(false);
+  const [pendingScrollPage, setPendingScrollPage] = useState<number | null>(null);
   const jobsListRef = useRef<HTMLDivElement>(null);
   const { user, getSelectedCandidate } = useAuth();
   const selectedCandidate = getSelectedCandidate();
@@ -57,6 +58,7 @@ const JobListView: React.FC<JobListViewProps> = ({
     lastFetchTime,
     scoresLoading,
     fetchScoresForJobs,
+    fetchJobsForPage,
     isAutoRetrying
   } = useJobSearch();
   const { applyToJob, applying } = useJobApplication();
@@ -85,20 +87,14 @@ const JobListView: React.FC<JobListViewProps> = ({
     );
   });
 
-  // Pagination logic
-  const jobsPerPage = 5;
-  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
-  const startIndex = (currentPage - 1) * jobsPerPage;
-  const paginatedJobs = filteredJobs.slice(startIndex, startIndex + jobsPerPage);
-
-  // Function to fetch trust and match scores for current page
-  const fetchScoresForCurrentPage = async () => {
-    if (!user || !user.profile || paginatedJobs.length === 0) {
+  // Function to fetch trust and match scores for current jobs
+  const fetchScoresForCurrentJobs = async () => {
+    if (!user || filteredJobs.length === 0) {
       return;
     }
 
-    // Check if we already have scores for all jobs on this page
-    const jobsNeedingScores = paginatedJobs.filter(job => !scoredJobIds.has(job.id));
+    // Check if we already have scores for all jobs
+    const jobsNeedingScores = filteredJobs.filter(job => !scoredJobIds.has(job.id));
     
     if (jobsNeedingScores.length === 0) {
       return;
@@ -132,10 +128,10 @@ const JobListView: React.FC<JobListViewProps> = ({
     }
   };
 
-  // Fetch scores for current page when it changes
+  // Fetch scores when jobs change
   useEffect(() => {
-    fetchScoresForCurrentPage();
-  }, [currentPage, paginatedJobs]);
+    fetchScoresForCurrentJobs();
+  }, [jobs]);
 
   // Reset scored jobs when selected candidate changes (to recalculate scores with new profile)
   useEffect(() => {
@@ -157,7 +153,7 @@ const JobListView: React.FC<JobListViewProps> = ({
   }, [jobs]);
 
   // Get jobs to display (use scored jobs if available, otherwise use original jobs)
-  const displayJobs = paginatedJobs.map(job => {
+  const displayJobs = filteredJobs.map(job => {
     const scoredJob = jobsWithScores.find(s => s.id === job.id);
     return scoredJob || job;
   });
@@ -180,14 +176,37 @@ const JobListView: React.FC<JobListViewProps> = ({
     }
   };
 
-  // Enhanced page change function with scroll behavior
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-    // Add a small delay to ensure the page content has rendered
-    setTimeout(() => {
-      scrollToJobsList();
-    }, 100);
+  // Enhanced page change function with API-based pagination + scroll behavior
+  const handlePageChange = async (newPage: number) => {
+    if (newPage === currentPage || isPageChanging) return;
+    
+    setIsPageChanging(true);
+    setPendingScrollPage(newPage);
+    
+    try {
+      await fetchJobsForPage(newPage, pagination.limit);
+    } catch (error) {
+      console.error('Failed to fetch page:', error);
+    } finally {
+      setIsPageChanging(false);
+    }
   };
+
+  // Handle auto-scroll after jobs are loaded and rendered
+  useEffect(() => {
+    if (pendingScrollPage !== null && !loading && !isPageChanging && jobs.length > 0) {
+      // Use requestAnimationFrame to ensure DOM has been updated
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          scrollToJobsList();
+          setPendingScrollPage(null);
+        }, 150); // Slightly longer delay to ensure scores are loading
+      });
+    }
+  }, [jobs, loading, isPageChanging, pendingScrollPage]);
+
+  const currentPage = pagination.page || 1;
+  const totalPages = pagination.totalPages || (pagination.limit ? Math.ceil((pagination.totalCount || 0) / pagination.limit) : 1) || 1;
 
   // Smart pagination for mobile and desktop
   const getVisiblePages = () => {
@@ -274,9 +293,10 @@ const JobListView: React.FC<JobListViewProps> = ({
     refetch(); // Force refresh
   };
 
-  // Reset to first page when search query changes
+  // When search query changes, refresh current page (server-side filtering is driven by intent, not searchQuery)
   useEffect(() => {
-    setCurrentPage(1);
+    // For now, client-side search only affects visible items in current page
+    // If server-side search is added, call fetchJobsForPage(1)
   }, [searchQuery]);
 
   // Helper function to format last fetch time
@@ -328,8 +348,8 @@ const JobListView: React.FC<JobListViewProps> = ({
           </div>
           {!loading && (
             <p className="text-sm text-muted-foreground">
-              {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''} found
-              {searchQuery && ` for "${searchQuery}"`}
+              {pagination.totalCount || 0} job{(pagination.totalCount || 0) !== 1 ? 's' : ''} found
+              {searchQuery && ` for \"${searchQuery}\"`}
             </p>
           )}
         </div>
@@ -365,8 +385,32 @@ const JobListView: React.FC<JobListViewProps> = ({
           </Alert>
         )}
         
-        {/* Loading State */}
-        {loading && (
+        {/* Page Change Loading State - Complete Overlay */}
+        {isPageChanging && (
+          <div className="space-y-4 min-h-[600px]">
+            <div className="text-center py-8">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <p className="text-lg font-medium text-foreground">
+                  Loading page {pendingScrollPage || currentPage}...
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Please wait while we fetch the jobs
+              </p>
+            </div>
+            
+            {/* Loading skeletons */}
+            <div className="space-y-4 px-4">
+              {Array.from({ length: 5 }, (_, i) => (
+                <JobCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Initial Loading State */}
+        {loading && !isPageChanging && (
           <div className="space-y-4">
             <LoadingMessage 
               loadingState={loadingState}
@@ -375,7 +419,7 @@ const JobListView: React.FC<JobListViewProps> = ({
               isAutoRetrying={isAutoRetrying}
             />
 
-            {/* Show existing jobs if available during refresh */}
+            {/* Show existing jobs if available during refresh (not page change) */}
             {!isInitialLoad && jobs.length > 0 && (
               <div className="mb-4">
                 <p className="text-sm text-muted-foreground mb-3">
@@ -394,7 +438,7 @@ const JobListView: React.FC<JobListViewProps> = ({
               </div>
             )}
 
-            {/* Loading skeletons */}
+            {/* Loading skeletons for initial load */}
             {isInitialLoad && (
               <div className="space-y-4">
                 {Array.from({ length: 3 }, (_, i) => (
@@ -405,8 +449,8 @@ const JobListView: React.FC<JobListViewProps> = ({
           </div>
         )}
 
-        {/* Jobs List */}
-        {!loading && !error && (
+        {/* Jobs List - Only show when not loading and not changing pages */}
+        {!loading && !isPageChanging && !error && (
           <>
             <div ref={jobsListRef} className="space-y-4">
               {displayJobs.length > 0 ? (
@@ -470,7 +514,7 @@ const JobListView: React.FC<JobListViewProps> = ({
               )}
             </div>
             
-            {/* Pagination */}
+            {/* Pagination - Only show when content is ready */}
             {totalPages > 1 && (
               <div className="flex justify-center pt-8">
                 <Pagination>
@@ -478,7 +522,9 @@ const JobListView: React.FC<JobListViewProps> = ({
                     <PaginationItem>
                       <PaginationPrevious 
                         onClick={() => handlePageChange(Math.max(1, currentPage - 1))} 
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} 
+                        className={cn(
+                          (currentPage === 1 || isPageChanging) ? "pointer-events-none opacity-50" : "cursor-pointer"
+                        )} 
                       />
                     </PaginationItem>
                     
@@ -489,10 +535,11 @@ const JobListView: React.FC<JobListViewProps> = ({
                         ) : (
                           <PaginationLink 
                             onClick={() => handlePageChange(page as number)} 
-                            isActive={currentPage === page} 
+                            isActive={currentPage === page || (isPageChanging && pendingScrollPage === page)} 
                             className={cn(
-                              "cursor-pointer min-w-[2.25rem] h-9",
-                              isMobile && "min-w-[2rem] h-8 text-sm"
+                              "min-w-[2.25rem] h-9",
+                              isMobile && "min-w-[2rem] h-8 text-sm",
+                              isPageChanging ? "pointer-events-none opacity-70" : "cursor-pointer"
                             )}
                           >
                             {page}
@@ -504,7 +551,9 @@ const JobListView: React.FC<JobListViewProps> = ({
                     <PaginationItem>
                       <PaginationNext 
                         onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))} 
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} 
+                        className={cn(
+                          (currentPage === totalPages || isPageChanging) ? "pointer-events-none opacity-50" : "cursor-pointer"
+                        )} 
                       />
                     </PaginationItem>
                   </PaginationContent>

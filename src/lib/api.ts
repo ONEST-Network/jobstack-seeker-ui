@@ -410,19 +410,56 @@ class ApiClient {
   }
 
   // BAP Job Search API
-  async searchJobs(intentOverrides?: Record<string, any>) {
+  async searchJobs(intentOverrides?: Record<string, any>, page: number = 1, limit: number = 5) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v1/search`;
     
-    const payload: { message: { intent: Record<string, any> } } = {
+    const payload: { message: { intent: Record<string, any>; pagination: { page: number; limit: number } } } = {
       message: {
-        intent: {}
+        intent: {
+          item: {
+            tags: [
+              {
+                descriptor: {
+                  code: "status",
+                  name: "Status"
+                },
+                list: [
+                  {
+                    descriptor: {
+                      code: "status",
+                      name: "Status"
+                    },
+                    value: "open"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        pagination: {
+          page,
+          limit
+        }
       }
     };
 
     // Merge optional intent overrides from callers (e.g., org metadata filters)
     if (intentOverrides && typeof intentOverrides === 'object') {
-      payload.message.intent = { ...intentOverrides };
+      // Merge the overrides while preserving the item tags structure
+      if (intentOverrides.item) {
+        // If intentOverrides has item, merge it with existing item structure
+        payload.message.intent.item = {
+          ...payload.message.intent.item,
+          ...intentOverrides.item,
+          tags: [
+            ...payload.message.intent.item.tags,
+            ...(intentOverrides.item.tags || [])
+          ]
+        };
+        delete intentOverrides.item;
+      }
+      payload.message.intent = { ...payload.message.intent, ...intentOverrides };
     }
 
     try {
