@@ -10,6 +10,9 @@ import dataEntryOperatorSchema from './data-entry-operator.json';
 import teleSalespersonSchema from './tele-salesperson.json';
 import fieldSalesPersonSchema from './field-sales-person.json';
 import genericITISchema from './GenericITI.json';
+import cncOperatorSchema from './cnc-operator.json';
+import welderSchema from './welder.json';
+import latheOperatorSchema from './lathe-operator.json';
 import jobRolesConfig from './job-roles-config.json';
 import jobSectorsConfig from './job-sectors-config.json';
 
@@ -93,8 +96,17 @@ export const getUnifiedSchema = (role?: string): any => {
   if (role === 'Field Sales Person') {
     return fieldSalesPersonSchema;
   }
-      if (role === 'ITI (Other)') {
+  if (role === 'ITI (Other)') {
     return genericITISchema;
+  }
+  if (role === 'CNC Operator') {
+    return cncOperatorSchema;
+  }
+  if (role === 'Welder') {
+    return welderSchema;
+  }
+  if (role === 'Lathe Operator') {
+    return latheOperatorSchema;
   }
   // For roles without specific schemas, fall back to Industrial Tailor
   if (role === 'Field Sales Executive') {
