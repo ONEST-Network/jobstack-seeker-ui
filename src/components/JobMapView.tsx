@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ZoomIn, ZoomOut, Navigation, Search, CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import SimpleLeafletMap from './map/SimpleLeafletMap';
 import JobApplicationDialog from './JobApplicationDialog';
 import JobDetailDialog from './job-search/JobDetailDialog';
 import { useJobSearch, JobItem } from '@/hooks/useJobSearch';
+import { useJobSearchForMap } from '@/hooks/useJobSearchForMap';
 import { useJobApplication, JobApplicationData } from '@/hooks/useJobApplication';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -49,7 +50,6 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
   const [selectedJobForDetails, setSelectedJobForDetails] = useState<JobItem | null>(null);
   const [mapSearchQuery, setMapSearchQuery] = useState('');
-  const [jobLocations, setJobLocations] = useState<JobLocation[]>([]);
   const [mapCenter, setMapCenter] = useState<LatLng>(DEFAULT_CENTER);
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const [locating, setLocating] = useState(false);
@@ -60,7 +60,21 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
   const [mapToasts, setMapToasts] = useState<MapToast[]>([]);
 
   const { user } = useAuth();
-  const { jobs, loading, error, findProviderAndJobIds, fetchScoresForJobs, scoresLoading } = useJobSearch();
+  // Use the dedicated hook for fetching all jobs for the map view
+  const { 
+    allJobs: jobs, 
+    loading, 
+    loadingState, 
+    error, 
+    totalJobsCount,
+    totalPages,
+    currentPagesFetched,
+    fetchProgress,
+    findProviderAndJobIds, 
+    fetchScoresForJobs, 
+    scoresLoading,
+    retryCount
+  } = useJobSearchForMap();
   const { applyToJob, applying } = useJobApplication();
 
   // Custom toast function for map container
@@ -140,20 +154,16 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
     showMapToast('info', 'Search Cleared', 'Reset to default view');
   };
 
-  // Extract job locations from the fetched jobs
-  useEffect(() => {
-    if (!jobs || jobs.length === 0) {
-      setJobLocations([]);
-      return;
-    }
+  // Optimized job filtering with memoization
+  const filteredJobs = useMemo(() => {
+    if (!jobs || jobs.length === 0) return [];
+    
+    if (!searchQuery.trim()) return jobs;
+    
+    const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
+    if (searchTerms.length === 0) return jobs;
 
-    // Filter jobs based on search query with improved exact word matching
-    const filteredJobs = jobs.filter(job => {
-      if (!searchQuery.trim()) return true;
-      
-      const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
-      if (searchTerms.length === 0) return true;
-
+    return jobs.filter(job => {
       const searchableFields = [
         job.title || '',
         job.company || '',
@@ -170,6 +180,11 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
         searchableFields.some(field => field.includes(term))
       );
     });
+  }, [jobs, searchQuery]);
+
+  // Optimized location processing with memoization
+  const jobLocations = useMemo(() => {
+    if (!filteredJobs || filteredJobs.length === 0) return [];
 
     // Group jobs by location
     const locationMap = new Map<string, {
@@ -206,7 +221,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
     });
 
     // Convert to JobLocation array
-    const locations: JobLocation[] = Array.from(locationMap.entries()).map(([locationKey, data], index) => {
+    return Array.from(locationMap.entries()).map(([locationKey, data], index) => {
       const jobCount = data.jobs.length;
       let density: 'high' | 'medium' | 'low' = 'low';
       
@@ -224,9 +239,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
         density
       };
     });
-
-    setJobLocations(locations);
-  }, [jobs, searchQuery]);
+  }, [filteredJobs]);
 
   // Filter locations based on map search query
   const filteredJobLocations = jobLocations.filter(location =>
@@ -235,11 +248,12 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
     location.state.toLowerCase().includes(mapSearchQuery.toLowerCase())
   );
 
-  const handleLocationClick = (location: JobLocation) => {
+  // Memoized event handlers for better performance
+  const handleLocationClick = useCallback((location: JobLocation) => {
     setSelectedLocation(location);
-  };
+  }, []);
 
-  const handleViewJobs = (location: JobLocation, specificJob?: JobItem) => {
+  const handleViewJobs = useCallback((location: JobLocation, specificJob?: JobItem) => {
     if (specificJob) {
       // Show job details for the specific job
       setSelectedJobForDetails(specificJob);
@@ -258,17 +272,17 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
         setSelectedJob(location.jobs[0]);
       }
     }
-  };
+  }, [user, fetchScoresForJobs]);
 
-  const handleJobApplication = (job: JobItem) => {
+  const handleJobApplication = useCallback((job: JobItem) => {
     if (!user) {
       onPromptLogin?.();
       return;
     }
     setSelectedJob(job);
-  };
+  }, [user, onPromptLogin]);
 
-  const handleApplyFromDetails = (job: JobItem) => {
+  const handleApplyFromDetails = useCallback((job: JobItem) => {
     if (!user) {
       onPromptLogin?.();
       return;
@@ -276,7 +290,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
     // Close the job details dialog and open application dialog
     setSelectedJobForDetails(null);
     setSelectedJob(job);
-  };
+  }, [user, onPromptLogin]);
 
   const handleJobApplicationSubmit = async (applicationData: JobApplicationData) => {
     if (!selectedJob) return;
@@ -416,13 +430,69 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
     </div>
   );
 
-  // Show loading state
+  // Show loading state with progress information
   if (loading) {
+    const progressPercentage = fetchProgress ? Math.round(fetchProgress * 100) : 0;
+    
     return (
       <div className="relative h-[calc(100vh-140px)] bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading jobs...</p>
+        <div className="text-center max-w-md mx-auto">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-3 border-blue-600 mx-auto mb-6"></div>
+          
+          {/* Enhanced loading messages based on loading state */}
+          {loadingState === 'initial' && (
+            <>
+              <p className="text-gray-700 font-medium mb-2">Initializing job search...</p>
+              <p className="text-gray-500 text-sm">Preparing to fetch job data</p>
+            </>
+          )}
+          
+          {loadingState === 'fetching' && totalPages > 0 && (
+            <>
+              <p className="text-gray-700 font-medium mb-2">
+                Loading all jobs for map view...
+              </p>
+              <p className="text-gray-600 text-sm mb-3">
+                Fetched {currentPagesFetched} of {totalPages} pages
+              </p>
+              
+              {/* Progress bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out" 
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              
+              <p className="text-gray-500 text-xs">
+                {totalJobsCount ? `${totalJobsCount} jobs found` : 'Counting jobs...'}
+                {progressPercentage > 0 && ` • ${progressPercentage}% complete`}
+              </p>
+              
+              {retryCount > 0 && (
+                <p className="text-amber-600 text-xs mt-2">
+                  Retrying... (Attempt {retryCount})
+                </p>
+              )}
+            </>
+          )}
+          
+          {loadingState === 'processing' && (
+            <>
+              <p className="text-gray-700 font-medium mb-2">Processing job locations...</p>
+              <p className="text-gray-500 text-sm">
+                Organizing {totalJobsCount} jobs by location
+              </p>
+            </>
+          )}
+          
+          {/* Fallback for any other loading state */}
+          {!loadingState && (
+            <>
+              <p className="text-gray-700 font-medium mb-2">Loading jobs...</p>
+              <p className="text-gray-500 text-sm">Please wait while we fetch job data</p>
+            </>
+          )}
         </div>
       </div>
     );
