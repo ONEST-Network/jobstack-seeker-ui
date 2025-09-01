@@ -83,8 +83,17 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     if (lowerJobTitle.includes('mechanic') || lowerJobTitle.includes('maintenance') || lowerJobTitle.includes('repair')) {
       return 'Mechanic';
     }
+    if (lowerJobTitle.includes('cnc operator') || lowerJobTitle.includes('cnc-operator') || lowerJobTitle.includes('cnc') && lowerJobTitle.includes('operator')) {
+      return 'CNC Operator';
+    }
+    if (lowerJobTitle.includes('lathe operator') || lowerJobTitle.includes('lathe-operator') || lowerJobTitle.includes('lathe') && lowerJobTitle.includes('operator')) {
+      return 'Lathe Operator';
+    }
     if (lowerJobTitle.includes('operator') || lowerJobTitle.includes('machine')) {
       return 'Machine Operator';
+    }
+    if (lowerJobTitle.includes('welder') || lowerJobTitle.includes('welding')) {
+      return 'Welder';
     }
     
     return 'Industrial Tailor';
