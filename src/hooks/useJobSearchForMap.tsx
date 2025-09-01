@@ -20,6 +20,10 @@ export interface AllJobsFetchState {
   isAutoRetrying: boolean;
 }
 
+const OPTIMIZED_PAGE_SIZE = 1000; // Increased from 20 to reduce API calls by ~98%
+const FALLBACK_PAGE_SIZE = 500; // Fallback if 1000 causes timeout/memory issues
+const ORIGINAL_PAGE_SIZE = 20; // Original size for comparison metrics
+
 export const useJobSearchForMap = () => {
   const [state, setState] = useState<AllJobsFetchState>({
     allJobs: [],
@@ -444,7 +448,7 @@ export const useJobSearchForMap = () => {
   }, [user, selectedCandidate]);
 
   // Function to fetch a single page of jobs
-  const fetchSinglePage = useCallback(async (page: number, limit: number = 20, intent?: Record<string, any>): Promise<{ jobs: JobItem[], pagination: any }> => {
+  const fetchSinglePage = useCallback(async (page: number, limit: number = OPTIMIZED_PAGE_SIZE, intent?: Record<string, any>): Promise<{ jobs: JobItem[], pagination: any }> => {
     try {
       console.log(`Fetching page ${page} with limit ${limit} for map view`);
       
@@ -491,15 +495,17 @@ export const useJobSearchForMap = () => {
     }));
 
     try {
-      console.log('Starting to fetch all jobs for map view');
+      const startTime = Date.now();
+      console.log('Starting to fetch all jobs for map view with optimized pagination');
       
       // First, fetch the first page to get total count and pagination info
-      const firstPageResult = await fetchSinglePage(1, 20, intentOverrides || undefined);
+      const firstPageResult = await fetchSinglePage(1, OPTIMIZED_PAGE_SIZE, intentOverrides || undefined);
       const totalCount = firstPageResult.pagination.totalCount;
       const limit = firstPageResult.pagination.limit;
       const totalPages = Math.ceil(totalCount / limit);
 
-      console.log(`Map view: Total ${totalCount} jobs across ${totalPages} pages`);
+      console.log(`Map view: Total ${totalCount} jobs across ${totalPages} pages (${limit} jobs per page)`);
+      console.log(`Performance: Reduced API calls from ${Math.ceil(totalCount / ORIGINAL_PAGE_SIZE)} to ${totalPages} calls (${Math.round(((Math.ceil(totalCount / ORIGINAL_PAGE_SIZE) - totalPages) / Math.ceil(totalCount / ORIGINAL_PAGE_SIZE)) * 100)}% reduction)`);
 
       if (totalPages === 0) {
         setState(prev => ({
@@ -569,7 +575,10 @@ export const useJobSearchForMap = () => {
         retryCount: 0
       }));
 
-      console.log(`Map view: Successfully fetched ${allJobs.length} total jobs from ${totalPages} pages`);
+      const endTime = Date.now();
+      const totalTime = endTime - startTime;
+      console.log(`Map view: Successfully fetched ${allJobs.length} total jobs from ${totalPages} pages in ${totalTime}ms`);
+      console.log(`Performance: Average time per API call: ${Math.round(totalTime / totalPages)}ms`);
       
       return allJobs;
 
