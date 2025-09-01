@@ -9,6 +9,7 @@ import JobMapView from './JobMapView';
 import JobListView from './JobListView';
 import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
 import { useJobSearch } from '@/hooks/useJobSearch';
+import { useJobSearchForMap } from '@/hooks/useJobSearchForMap';
 
 interface JobDiscoveryProps {
   onPromptLogin?: () => void;
@@ -21,8 +22,13 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const isMobile = useIsMobile();
 
-  // Get loading state from job search hook
-  const { loading, loadingState } = useJobSearch();
+  // Get loading states from both job search hooks
+  const { loading: listLoading, loadingState: listLoadingState } = useJobSearch();
+  const { loading: mapLoading, loadingState: mapLoadingState, fetchProgress, totalPages, currentPagesFetched } = useJobSearchForMap();
+  
+  // Determine which loading state to show based on active view
+  const loading = activeView === 'list' ? listLoading : mapLoading;
+  const loadingState = activeView === 'list' ? listLoadingState : mapLoadingState;
 
   const handlePromptLogin = () => {
     if (onPromptLogin) {
@@ -78,17 +84,45 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
             {/* Filters Toggle removed */}
           </div>
           
-          {/* Loading status message */}
+          {/* Enhanced loading status message */}
           {loading && (
             <div className="mt-3 pt-3 border-t border-border">
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin" />
                 <span>
-                  {loadingState === 'initial' && 'Loading jobs...'}
-                  {loadingState === 'loading' && 'Refreshing jobs...'}
-                  {loadingState === 'partial' && 'Taking longer than expected...'}
+                  {/* List view loading states */}
+                  {activeView === 'list' && loadingState === 'initial' && 'Loading jobs...'}
+                  {activeView === 'list' && loadingState === 'loading' && 'Refreshing jobs...'}
+                  {activeView === 'list' && loadingState === 'partial' && 'Taking longer than expected...'}
+                  
+                  {/* Map view loading states */}
+                  {activeView === 'map' && loadingState === 'initial' && 'Initializing map view...'}
+                  {activeView === 'map' && loadingState === 'fetching' && (
+                    totalPages > 0 
+                      ? `Loading all jobs for map: ${currentPagesFetched}/${totalPages} pages`
+                      : 'Fetching job data for map...'
+                  )}
+                  {activeView === 'map' && loadingState === 'processing' && 'Processing job locations...'}
+                  
+                  {/* Fallback */}
+                  {!loadingState && (activeView === 'list' ? 'Loading jobs...' : 'Loading map data...')}
                 </span>
               </div>
+              
+              {/* Map view progress bar */}
+              {activeView === 'map' && loadingState === 'fetching' && fetchProgress && totalPages > 0 && (
+                <div className="mt-2">
+                  <div className="w-full bg-gray-200 rounded-full h-1">
+                    <div 
+                      className="bg-blue-600 h-1 rounded-full transition-all duration-300 ease-out" 
+                      style={{ width: `${Math.round(fetchProgress * 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-center mt-1 text-xs text-muted-foreground">
+                    {Math.round(fetchProgress * 100)}% complete
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
