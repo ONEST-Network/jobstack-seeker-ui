@@ -85,11 +85,6 @@ export interface JobItem {
 }
 
 export interface JobSearchResponse {
-  pagination: {
-    limit: number;
-    offset: number;
-    total: number;
-  };
   results: Array<{
     context: {
       action: string;
@@ -151,6 +146,23 @@ export interface JobSearchResponse {
               [key: string]: any;
             };
           }>;
+          fulfillments?: Array<{
+            id: string;
+            stops: Array<{
+              location: {
+                address?: string;
+                city?: string;
+                country?: string;
+                gps?: {
+                  lat: number;
+                  lng: number;
+                };
+                state?: string;
+                tag?: string;
+              };
+              type: string;
+            }>;
+          }>;
           locations: Array<{
             address: string;
             city: string;
@@ -160,8 +172,14 @@ export interface JobSearchResponse {
               lat: number;
               lng: number;
             };
+            tag?: string;
           }>;
         }>;
+      };
+      pagination: {
+        limit: number;
+        page: number;
+        totalCount: number;
       };
     };
   }>;
@@ -174,9 +192,10 @@ export const useJobSearch = () => {
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
-    limit: 10,
-    offset: 0,
-    total: 0
+    limit: 5,
+    page: 1,
+    totalCount: 0,
+    totalPages: 0
   });
   const [retryCount, setRetryCount] = useState(0);
   const [originalResponse, setOriginalResponse] = useState<JobSearchResponse | null>(null);
@@ -733,7 +752,9 @@ export const useJobSearch = () => {
   const fetchJobsInternal = useCallback(async (
     isRetry = false,
     currentRetryCount = 0,
-    intent: Record<string, any> | null = intentOverrides
+    intent: Record<string, any> | null = intentOverrides,
+    page: number = pagination.page,
+    limit: number = pagination.limit
   ) => {
     // Safety check to prevent infinite loops
     if (currentRetryCount >= maxRetries) {
@@ -760,7 +781,7 @@ export const useJobSearch = () => {
         setLoadingState('partial');
       }, 2000);
 
-      const data = await apiClient.searchJobs(intent || undefined);
+      const data = await apiClient.searchJobs(intent || undefined, page, limit);
       
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
@@ -771,14 +792,22 @@ export const useJobSearch = () => {
       // Transform the data
       const transformedJobs = transformJobData(data);
       
+      // Extract pagination info from the first result's message.pagination
+      const paginationInfo = data?.results?.[0]?.message?.pagination || {
+        page: page,
+        limit: limit,
+        totalCount: 0
+      };
+      
       // Check if we got any jobs after transformation
       if (transformedJobs.length === 0) {
         // No jobs available - this is a valid state, not an error
         setJobs([]);
         setPagination({
-          limit: data?.pagination?.limit || 10,
-          offset: data?.pagination?.offset || 0,
-          total: 0
+          limit: paginationInfo.limit,
+          page: paginationInfo.page,
+          totalCount: paginationInfo.totalCount,
+          totalPages: Math.ceil(paginationInfo.totalCount / paginationInfo.limit)
         });
         setLastFetchTime(Date.now());
         setLoadingState('complete');
@@ -793,9 +822,10 @@ export const useJobSearch = () => {
       setJobs(transformedJobs);
 
       setPagination({
-        limit: data?.pagination?.limit || 10,
-        offset: data?.pagination?.offset || 0,
-        total: data?.pagination?.total || transformedJobs.length
+        limit: paginationInfo.limit,
+        page: paginationInfo.page,
+        totalCount: paginationInfo.totalCount,
+        totalPages: Math.ceil(paginationInfo.totalCount / paginationInfo.limit)
       });
 
       setLastFetchTime(Date.now());
@@ -835,7 +865,7 @@ export const useJobSearch = () => {
           const delay = Math.min(1000 * Math.pow(2, newRetryCount), 5000); // Exponential backoff with max 5s
           
            retryTimeoutRef.current = setTimeout(() => {
-            fetchJobsInternal(true, newRetryCount, intent);
+            fetchJobsInternal(true, newRetryCount, intent, page, limit);
           }, delay);
         } else {
           // Max retries reached, stop retrying
@@ -851,11 +881,11 @@ export const useJobSearch = () => {
         const delay = Math.min(1000 * Math.pow(2, 1), 5000); // Exponential backoff with max 5s
         
         retryTimeoutRef.current = setTimeout(() => {
-          fetchJobsInternal(true, 1, intent);
+          fetchJobsInternal(true, 1, intent, page, limit);
         }, delay);
       }
     }
-  }, [transformJobData, maxRetries, intentOverrides]);
+  }, [transformJobData, maxRetries, intentOverrides, pagination.page, pagination.limit]);
 
   // Public fetch function
   const fetchJobs = useCallback(async (isRetry = false) => {
@@ -902,6 +932,12 @@ export const useJobSearch = () => {
     fetchJobs();
   }, [fetchJobs]);
 
+  // Function to fetch jobs for a specific page
+  const fetchJobsForPage = useCallback(async (page: number, limit?: number) => {
+    const actualLimit = limit || pagination.limit;
+    return fetchJobsInternal(false, 0, intentOverrides, page, actualLimit);
+  }, [fetchJobsInternal, intentOverrides, pagination.limit]);
+
   return {
     jobs,
     loading: loadingState === 'loading' || loadingState === 'partial',
@@ -916,6 +952,7 @@ export const useJobSearch = () => {
     lastFetchTime,
     scoresLoading,
     fetchScoresForJobs,
+    fetchJobsForPage,
     isAutoRetrying
   };
 }; 
