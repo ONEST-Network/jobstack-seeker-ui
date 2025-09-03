@@ -62,6 +62,13 @@
             "description": "Import verified documents to auto-fill your profile information",
             "buttonText": "Import from DigiLocker",
             "footerText": "This will import your AADHAAR, name, date of birth and other verified details"
+          },
+          "showWallet": true,
+          "walletConfig": {
+            "title": "Import from Wallet",
+            "description": "Import verified credentials from your digital wallet",
+            "buttonText": "Import from Wallet",
+            "footerText": "This will import your verified credentials and auto-fill your profile"
           }
         }
       },
