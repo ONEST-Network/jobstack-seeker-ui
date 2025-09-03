@@ -74,7 +74,8 @@ const AdminDashboard = () => {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
       
       // Fetch users by role (total members of the organization)
-      const usersByRoleRes = await fetch(`${API_BASE_URL}/admin/users/by-role?type=both&page=1&role=seeker`, {
+      const usersByRoleUrl = `${API_BASE_URL}/admin/users/by-role?${orgSlug ? `organizationSlug=${orgSlug}&` : ''}type=both&limit=50000&page=1&role=seeker`;
+      const usersByRoleRes = await fetch(usersByRoleUrl, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
@@ -113,7 +114,8 @@ const AdminDashboard = () => {
       };
 
       // Fetch users with profiles
-      const usersWithProfilesRes = await fetch(`${API_BASE_URL}/admin/users/with-profile?type=both&page=1`, {
+      const usersWithProfilesUrl = `${API_BASE_URL}/admin/users/with-profile?${orgSlug ? `organizationSlug=${orgSlug}&` : ''}type=both&limit=50000&page=1`;
+      const usersWithProfilesRes = await fetch(usersWithProfilesUrl, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
@@ -159,7 +161,7 @@ const AdminDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, orgSlug]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -391,7 +393,7 @@ const AdminDashboard = () => {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Total Numeber of Profiles</CardTitle>
+                <CardTitle className="text-xs sm:text-sm font-medium">Total Number of Profiles</CardTitle>
                 <UserPlus className="h-4 w-4 text-blue-500" />
               </CardHeader>
               <CardContent className="pt-2">
