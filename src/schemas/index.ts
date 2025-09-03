@@ -43,6 +43,13 @@ export interface ProfileStepSchema {
       buttonText: string;
       footerText: string;
     };
+    showWallet?: boolean;
+    walletConfig?: {
+      title: string;
+      description: string;
+      buttonText: string;
+      footerText: string;
+    };
     autoCalculations?: Record<string, {
       formula: string;
       dependencies: string[];
