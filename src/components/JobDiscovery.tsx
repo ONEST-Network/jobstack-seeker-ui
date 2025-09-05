@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Map, List, Search, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,22 +21,6 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const isMobile = useIsMobile();
-
-  // Handle search functionality
-  const handleSearch = useCallback(() => {
-    // This will trigger the search in JobListView via props
-    // The actual API call will be handled by JobListView
-  }, []);
-
-  const handleClearSearch = useCallback(() => {
-    setSearchQuery('');
-  }, []);
-
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  }, [handleSearch]);
 
   // Get loading states from both job search hooks
   const { loading: listLoading, loadingState: listLoadingState } = useJobSearch();
@@ -64,45 +48,20 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
           <div className="flex items-center gap-3">
             {/* Search - Reduced width */}
             <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={loading ? "Loading jobs..." : "Search jobs by role..."}
+                placeholder={loading ? "Loading jobs..." : "Search jobs..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="pl-3 pr-20 h-touch text-base"
+                className="pl-10 h-touch text-base"
                 disabled={loading}
               />
-              <div className="absolute right-1 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                {/* Clear button */}
-                {searchQuery && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 hover:bg-gray-100"
-                    onClick={handleClearSearch}
-                    disabled={loading}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-                {/* Loading indicator or search button */}
-                {loading ? (
-                  <div className="p-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                  </div>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 hover:bg-gray-100"
-                    onClick={handleSearch}
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+              {/* Loading indicator in search bar */}
+              {loading && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              )}
             </div>
 
             {/* View Toggle */}

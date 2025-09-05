@@ -187,7 +187,7 @@ export interface JobSearchResponse {
 
 export type LoadingState = 'idle' | 'initial' | 'loading' | 'partial' | 'complete' | 'error';
 
-export const useJobSearch = (searchQuery?: string) => {
+export const useJobSearch = () => {
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -204,14 +204,6 @@ export const useJobSearch = (searchQuery?: string) => {
   const [scoresLoading, setScoresLoading] = useState(false);
   const [isAutoRetrying, setIsAutoRetrying] = useState(false);
   const [intentOverrides, setIntentOverrides] = useState<Record<string, any> | null>(null);
-  const [currentSearchQuery, setCurrentSearchQuery] = useState<string | undefined>(searchQuery);
-  
-  // Sync currentSearchQuery with searchQuery prop changes
-  useEffect(() => {
-    console.log(`📝 Search query prop changed: "${searchQuery}" -> updating currentSearchQuery`);
-    setCurrentSearchQuery(searchQuery);
-  }, [searchQuery]);
-  
   // Derive intent overrides from organization metadata (if any)
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { data: orgDetails, isLoading: orgLoading } = useOrgDetails(orgSlug || null);
@@ -287,15 +279,13 @@ export const useJobSearch = (searchQuery?: string) => {
     return null;
   }, [originalResponse]);
 
-  // Function to fetch trust and match scores for specific jobs (ONLY the jobs passed to it)
+  // Function to fetch trust and match scores for specific jobs
   const fetchScoresForJobs = useCallback(async (jobsToScore: JobItem[]) => {
     if (!user || jobsToScore.length === 0) {
       return jobsToScore;
     }
 
     setScoresLoading(true);
-    
-    console.log(`🔍 fetchScoresForJobs called for ${jobsToScore.length} jobs (this should match the number of visible jobs on current page)`);
     
     try {
       // Get seeker data from selected candidate or user's profile
@@ -438,12 +428,12 @@ export const useJobSearch = (searchQuery?: string) => {
         return jobsToScore;
       }
 
-      // Fetch trust scores and match scores for each job - THIS IS THE KEY PART
-      console.log(`🚀 Actually fetching scores for ${jobsToScore.length} jobs (these should be ONLY the visible jobs)`);
+      // Fetch trust scores and match scores for each job
+      console.log('Fetching scores for jobs:', jobsToScore.length, 'jobs');
       const jobsWithScores = await Promise.all(
         jobsToScore.map(async (job) => {
           try {
-            console.log(`📊 Fetching scores for job: ${job.id} - ${job.title}`);
+            console.log(`Fetching scores for job: ${job.id} - ${job.title}`);
             
             // Log the job data being sent
             console.log('Job data being sent to API:', JSON.stringify(job, null, 2));
@@ -454,7 +444,7 @@ export const useJobSearch = (searchQuery?: string) => {
               apiClient.getMatchScore(job, seekerData)
             ]);
             
-            console.log(`✅ Scores for job ${job.id}:`, { trustScore: trustResult.trustScore, matchScore: matchResult.matchScore });
+            console.log(`Scores for job ${job.id}:`, { trustScore: trustResult.trustScore, matchScore: matchResult.matchScore });
             
             return {
               ...job,
@@ -462,16 +452,15 @@ export const useJobSearch = (searchQuery?: string) => {
               matchScore: matchResult.matchScore
             };
           } catch (error) {
-            console.error(`❌ Failed to get scores for job ${job.id}:`, error);
+            console.error(`Failed to get scores for job ${job.id}:`, error);
             return job; // Return job without scores on error
           }
         })
       );
 
-      console.log(`✨ Successfully processed ${jobsWithScores.length} jobs with scores`);
       return jobsWithScores;
     } catch (error) {
-      console.error('❌ Failed to fetch scores:', error);
+      console.error('Failed to fetch scores:', error);
       return jobsToScore;
     } finally {
       setScoresLoading(false);
@@ -765,22 +754,13 @@ export const useJobSearch = (searchQuery?: string) => {
     currentRetryCount = 0,
     intent: Record<string, any> | null = intentOverrides,
     page: number = pagination.page,
-    limit: number = pagination.limit,
-    searchQuery: string | undefined = currentSearchQuery
+    limit: number = pagination.limit
   ) => {
     // Safety check to prevent infinite loops
     if (currentRetryCount >= maxRetries) {
       setError(`No jobs found currently. Please check later. (Retried ${maxRetries} times)`);
       setLoadingState('error');
       setIsAutoRetrying(false);
-      // CRITICAL FIX: Clear stale data when max retries reached initially
-      setJobs([]);
-      setPagination({
-        limit: limit,
-        page: page,
-        totalCount: 0,
-        totalPages: 0
-      });
       return;
     }
     if (abortControllerRef.current) {
@@ -801,16 +781,7 @@ export const useJobSearch = (searchQuery?: string) => {
         setLoadingState('partial');
       }, 2000);
 
-      // Use search API if search query is provided, otherwise use regular search
-      console.log(`🔍 fetchJobsInternal: Using search query: "${searchQuery}" (trimmed: "${searchQuery?.trim()}")`);
-      let data;
-      if (searchQuery && searchQuery.trim()) {
-        console.log(`➡️ Calling searchJobsWithQuery with: "${searchQuery}"`);
-        data = await apiClient.searchJobsWithQuery(searchQuery, intent || undefined, page, limit);
-      } else {
-        console.log(`➡️ Calling regular searchJobs (no search query)`);
-        data = await apiClient.searchJobs(intent || undefined, page, limit);
-      }
+      const data = await apiClient.searchJobs(intent || undefined, page, limit);
       
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
@@ -828,29 +799,15 @@ export const useJobSearch = (searchQuery?: string) => {
         totalCount: 0
       };
       
-      // Always use the requested page number instead of API response page
-      // The API might return page: 1 even when we request page: 2
-      const actualPage = page; // Use the page we requested
-      const actualLimit = limit || paginationInfo.limit;
-      const totalCount = paginationInfo.totalCount || 0;
-      const totalPages = Math.ceil(totalCount / actualLimit) || 1;
-      
-      console.log('Pagination Debug:', {
-        requestedPage: page,
-        requestedLimit: limit,
-        paginationFromAPI: paginationInfo,
-        calculatedValues: { actualPage, actualLimit, totalCount, totalPages }
-      });
-      
       // Check if we got any jobs after transformation
       if (transformedJobs.length === 0) {
         // No jobs available - this is a valid state, not an error
         setJobs([]);
         setPagination({
-          limit: actualLimit,
-          page: actualPage,
-          totalCount: totalCount,
-          totalPages: totalPages
+          limit: paginationInfo.limit,
+          page: paginationInfo.page,
+          totalCount: paginationInfo.totalCount,
+          totalPages: Math.ceil(paginationInfo.totalCount / paginationInfo.limit)
         });
         setLastFetchTime(Date.now());
         setLoadingState('complete');
@@ -865,10 +822,10 @@ export const useJobSearch = (searchQuery?: string) => {
       setJobs(transformedJobs);
 
       setPagination({
-        limit: actualLimit,
-        page: actualPage,
-        totalCount: totalCount,
-        totalPages: totalPages
+        limit: paginationInfo.limit,
+        page: paginationInfo.page,
+        totalCount: paginationInfo.totalCount,
+        totalPages: Math.ceil(paginationInfo.totalCount / paginationInfo.limit)
       });
 
       setLastFetchTime(Date.now());
@@ -888,31 +845,12 @@ export const useJobSearch = (searchQuery?: string) => {
         setError('Request cancelled');
         setLoadingState('error');
         setIsAutoRetrying(false);
-        // CRITICAL FIX: Clear stale data when request is cancelled
-        setJobs([]);
-        setPagination({
-          limit: limit,
-          page: page,
-          totalCount: 0,
-          totalPages: 0
-        });
         return;
       }
 
       const errorMessage = getErrorMessage(error);
-      console.log(`❌ API Error occurred, clearing stale data. Error: ${errorMessage}`);
       setError(errorMessage);
       setLoadingState('error');
-      
-      // CRITICAL FIX: Clear stale data when API fails
-      setJobs([]); // Clear jobs array
-      setPagination({
-        limit: limit,
-        page: page,
-        totalCount: 0, // Reset to 0 so UI shows "0 jobs found"
-        totalPages: 0
-      });
-      console.log(`📊 Pagination cleared due to error - totalCount set to 0`);
       
       // Handle auto-retry logic
       if (isRetry) {
@@ -927,21 +865,13 @@ export const useJobSearch = (searchQuery?: string) => {
           const delay = Math.min(1000 * Math.pow(2, newRetryCount), 5000); // Exponential backoff with max 5s
           
            retryTimeoutRef.current = setTimeout(() => {
-            fetchJobsInternal(true, newRetryCount, intent, page, limit, searchQuery);
+            fetchJobsInternal(true, newRetryCount, intent, page, limit);
           }, delay);
         } else {
           // Max retries reached, stop retrying
           setError(`No jobs found currently. Please check later. (Retried ${maxRetries} times)`);
           setLoadingState('error');
           setIsAutoRetrying(false);
-          // CRITICAL FIX: Also clear stale data when max retries reached
-          setJobs([]);
-          setPagination({
-            limit: limit,
-            page: page,
-            totalCount: 0,
-            totalPages: 0
-          });
         }
       } else {
         // This is a manual retry or initial fetch, start auto-retry sequence
@@ -951,26 +881,16 @@ export const useJobSearch = (searchQuery?: string) => {
         const delay = Math.min(1000 * Math.pow(2, 1), 5000); // Exponential backoff with max 5s
         
         retryTimeoutRef.current = setTimeout(() => {
-          fetchJobsInternal(true, 1, intent, page, limit, searchQuery);
+          fetchJobsInternal(true, 1, intent, page, limit);
         }, delay);
       }
     }
-  }, [transformJobData, maxRetries, intentOverrides]);
+  }, [transformJobData, maxRetries, intentOverrides, pagination.page, pagination.limit]);
 
   // Public fetch function
   const fetchJobs = useCallback(async (isRetry = false) => {
-    return fetchJobsInternal(isRetry, 0, intentOverrides, pagination.page, pagination.limit, currentSearchQuery);
-  }, [fetchJobsInternal, intentOverrides, pagination.page, pagination.limit, currentSearchQuery]);
-
-  // Function to update search query and trigger search
-  const updateSearchQuery = useCallback((query: string | undefined) => {
-    console.log(`🔄 updateSearchQuery called with: "${query}" (current: "${currentSearchQuery}")`);
-    setCurrentSearchQuery(query);
-    // Reset to first page when search query changes
-    setPagination(prev => ({ ...prev, page: 1 }));
-    // Immediately trigger fetch with the new query - use current limit from state
-    fetchJobsInternal(false, 0, intentOverrides, 1, 5, query); // Use default limit of 5
-  }, [fetchJobsInternal, intentOverrides, currentSearchQuery]);
+    return fetchJobsInternal(isRetry, 0, intentOverrides);
+  }, [fetchJobsInternal, intentOverrides]);
 
   // Fetch when intent overrides are ready or change
   useEffect(() => {
@@ -1013,11 +933,10 @@ export const useJobSearch = (searchQuery?: string) => {
   }, [fetchJobs]);
 
   // Function to fetch jobs for a specific page
-  const fetchJobsForPage = useCallback(async (page: number, limit?: number, searchQuery?: string) => {
+  const fetchJobsForPage = useCallback(async (page: number, limit?: number) => {
     const actualLimit = limit || pagination.limit;
-    const queryToUse = searchQuery !== undefined ? searchQuery : currentSearchQuery;
-    return fetchJobsInternal(false, 0, intentOverrides, page, actualLimit, queryToUse);
-  }, [fetchJobsInternal, intentOverrides, currentSearchQuery]);
+    return fetchJobsInternal(false, 0, intentOverrides, page, actualLimit);
+  }, [fetchJobsInternal, intentOverrides, pagination.limit]);
 
   return {
     jobs,
@@ -1034,8 +953,6 @@ export const useJobSearch = (searchQuery?: string) => {
     scoresLoading,
     fetchScoresForJobs,
     fetchJobsForPage,
-    isAutoRetrying,
-    updateSearchQuery,
-    currentSearchQuery
+    isAutoRetrying
   };
 }; 
