@@ -382,8 +382,12 @@ const JobListView: React.FC<JobListViewProps> = ({
           </div>
           {!loading && (
             <p className="text-sm text-muted-foreground">
-              {pagination.totalCount || 0} job{(pagination.totalCount || 0) !== 1 ? 's' : ''} found
-              {currentSearchQuery && ` for "${currentSearchQuery}"`}
+              {(() => {
+                // Determine actual job count - if jobs array is empty but pagination shows count, trust the jobs array
+                const actualJobCount = jobs.length === 0 ? 0 : (pagination.totalCount || jobs.length);
+                return `${actualJobCount} job${actualJobCount !== 1 ? 's' : ''} found`;
+              })()} 
+              {currentSearchQuery && currentSearchQuery.trim() && ` for "${currentSearchQuery.trim()}"`}
             </p>
           )}
         </div>

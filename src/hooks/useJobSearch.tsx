@@ -205,6 +205,13 @@ export const useJobSearch = (searchQuery?: string) => {
   const [isAutoRetrying, setIsAutoRetrying] = useState(false);
   const [intentOverrides, setIntentOverrides] = useState<Record<string, any> | null>(null);
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string | undefined>(searchQuery);
+  
+  // Sync currentSearchQuery with searchQuery prop changes
+  useEffect(() => {
+    console.log(`📝 Search query prop changed: "${searchQuery}" -> updating currentSearchQuery`);
+    setCurrentSearchQuery(searchQuery);
+  }, [searchQuery]);
+  
   // Derive intent overrides from organization metadata (if any)
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { data: orgDetails, isLoading: orgLoading } = useOrgDetails(orgSlug || null);
@@ -766,6 +773,14 @@ export const useJobSearch = (searchQuery?: string) => {
       setError(`No jobs found currently. Please check later. (Retried ${maxRetries} times)`);
       setLoadingState('error');
       setIsAutoRetrying(false);
+      // CRITICAL FIX: Clear stale data when max retries reached initially
+      setJobs([]);
+      setPagination({
+        limit: limit,
+        page: page,
+        totalCount: 0,
+        totalPages: 0
+      });
       return;
     }
     if (abortControllerRef.current) {
@@ -787,10 +802,13 @@ export const useJobSearch = (searchQuery?: string) => {
       }, 2000);
 
       // Use search API if search query is provided, otherwise use regular search
+      console.log(`🔍 fetchJobsInternal: Using search query: "${searchQuery}" (trimmed: "${searchQuery?.trim()}")`);
       let data;
       if (searchQuery && searchQuery.trim()) {
+        console.log(`➡️ Calling searchJobsWithQuery with: "${searchQuery}"`);
         data = await apiClient.searchJobsWithQuery(searchQuery, intent || undefined, page, limit);
       } else {
+        console.log(`➡️ Calling regular searchJobs (no search query)`);
         data = await apiClient.searchJobs(intent || undefined, page, limit);
       }
       
@@ -870,12 +888,31 @@ export const useJobSearch = (searchQuery?: string) => {
         setError('Request cancelled');
         setLoadingState('error');
         setIsAutoRetrying(false);
+        // CRITICAL FIX: Clear stale data when request is cancelled
+        setJobs([]);
+        setPagination({
+          limit: limit,
+          page: page,
+          totalCount: 0,
+          totalPages: 0
+        });
         return;
       }
 
       const errorMessage = getErrorMessage(error);
+      console.log(`❌ API Error occurred, clearing stale data. Error: ${errorMessage}`);
       setError(errorMessage);
       setLoadingState('error');
+      
+      // CRITICAL FIX: Clear stale data when API fails
+      setJobs([]); // Clear jobs array
+      setPagination({
+        limit: limit,
+        page: page,
+        totalCount: 0, // Reset to 0 so UI shows "0 jobs found"
+        totalPages: 0
+      });
+      console.log(`📊 Pagination cleared due to error - totalCount set to 0`);
       
       // Handle auto-retry logic
       if (isRetry) {
@@ -897,6 +934,14 @@ export const useJobSearch = (searchQuery?: string) => {
           setError(`No jobs found currently. Please check later. (Retried ${maxRetries} times)`);
           setLoadingState('error');
           setIsAutoRetrying(false);
+          // CRITICAL FIX: Also clear stale data when max retries reached
+          setJobs([]);
+          setPagination({
+            limit: limit,
+            page: page,
+            totalCount: 0,
+            totalPages: 0
+          });
         }
       } else {
         // This is a manual retry or initial fetch, start auto-retry sequence
@@ -919,12 +964,13 @@ export const useJobSearch = (searchQuery?: string) => {
 
   // Function to update search query and trigger search
   const updateSearchQuery = useCallback((query: string | undefined) => {
+    console.log(`🔄 updateSearchQuery called with: "${query}" (current: "${currentSearchQuery}")`);
     setCurrentSearchQuery(query);
     // Reset to first page when search query changes
     setPagination(prev => ({ ...prev, page: 1 }));
     // Immediately trigger fetch with the new query - use current limit from state
     fetchJobsInternal(false, 0, intentOverrides, 1, 5, query); // Use default limit of 5
-  }, [fetchJobsInternal, intentOverrides]);
+  }, [fetchJobsInternal, intentOverrides, currentSearchQuery]);
 
   // Fetch when intent overrides are ready or change
   useEffect(() => {
