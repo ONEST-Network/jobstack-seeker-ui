@@ -14,6 +14,7 @@ import { useJobSearch, JobItem, LoadingState } from '@/hooks/useJobSearch';
 import { useJobApplication, JobApplicationData } from '@/hooks/useJobApplication';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface JobListViewProps {
   searchQuery: string;
@@ -30,11 +31,16 @@ const JobListView: React.FC<JobListViewProps> = ({
   const [scoredJobIds, setScoredJobIds] = useState<Set<string>>(new Set());
   const [isPageChanging, setIsPageChanging] = useState(false);
   const [pendingScrollPage, setPendingScrollPage] = useState<number | null>(null);
+  const [isFetchingScores, setIsFetchingScores] = useState(false); // Prevent concurrent fetching
   const jobsListRef = useRef<HTMLDivElement>(null);
+  const isMountedRef = useRef(true); // Track if component is mounted
   const { user, getSelectedCandidate } = useAuth();
   const selectedCandidate = getSelectedCandidate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+
+  // Debounce search query to reduce API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
 
   // Prevent unauthenticated users from opening the job detail dialog
   const handleViewDetails = (job: JobItem) => {
@@ -59,49 +65,62 @@ const JobListView: React.FC<JobListViewProps> = ({
     scoresLoading,
     fetchScoresForJobs,
     fetchJobsForPage,
-    isAutoRetrying
-  } = useJobSearch();
+    isAutoRetrying,
+    updateSearchQuery,
+    currentSearchQuery
+  } = useJobSearch(debouncedSearchQuery);
   const { applyToJob, applying } = useJobApplication();
 
-  // Filter jobs based on search query with improved exact word matching
-  const filteredJobs = (jobs || []).filter(job => {
-    if (!searchQuery.trim()) return true;
-    
-    const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
-    if (searchTerms.length === 0) return true;
+  // Update search query when debounced search query changes
+  useEffect(() => {
+    if (updateSearchQuery) {
+      updateSearchQuery(debouncedSearchQuery);
+    }
+  }, [debouncedSearchQuery, updateSearchQuery]);
 
-    const searchableFields = [
-      job.title || '',
-      job.company || '',
-      job.location || '',
-      job.salary || '',
-      job.industry || '',
-      job.description || '',
-      job.jobDetails?.skills?.join(' ') || '',
-      job.tags?.jobNeeds?.hrWorkExperienceOther || ''
-    ].map(field => field.toLowerCase());
+  // Use jobs directly from API (no client-side filtering)
+  const displayJobs = jobs || [];
 
-    // Check if all search terms are found in any of the searchable fields
-    return searchTerms.every(term => 
-      searchableFields.some(field => field.includes(term))
-    );
-  });
+  // Cleanup effect to handle component unmounting
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-  // Function to fetch trust and match scores for current jobs
+  // Function to fetch trust and match scores for current jobs - FIXED VERSION
   const fetchScoresForCurrentJobs = async () => {
-    if (!user || filteredJobs.length === 0) {
+    // Prevent concurrent calls
+    if (isFetchingScores || !isMountedRef.current) {
+      console.log('🚫 Skipping score fetch - already in progress or component unmounted');
+      return;
+    }
+    
+    if (!user || displayJobs.length === 0) {
       return;
     }
 
-    // Check if we already have scores for all jobs
-    const jobsNeedingScores = filteredJobs.filter(job => !scoredJobIds.has(job.id));
+    // KEY FIX: Check if we already have scores for all jobs on this page
+    const jobsNeedingScores = displayJobs.filter(job => !scoredJobIds.has(job.id));
     
     if (jobsNeedingScores.length === 0) {
+      console.log('💡 All jobs on current page already have scores - skipping API calls');
       return;
     }
 
+    console.log(`🎯 KEY FIX: Only fetching scores for ${jobsNeedingScores.length} jobs that need scores (out of ${displayJobs.length} visible jobs)`);
+    
+    setIsFetchingScores(true); // Set flag to prevent concurrent calls
+    
     try {
+      // THIS IS THE KEY - we only pass jobs that don't have scores yet
       const jobsWithScores = await fetchScoresForJobs(jobsNeedingScores);
+      
+      // Only update state if component is still mounted
+      if (!isMountedRef.current) {
+        console.log('🚨 Component unmounted during score fetch, skipping state update');
+        return;
+      }
       
       // Update the jobs with scores
       setJobsWithScores(prev => {
@@ -125,20 +144,20 @@ const JobListView: React.FC<JobListViewProps> = ({
       });
     } catch (error) {
       console.error('Error fetching scores:', error);
+    } finally {
+      // Only clear flag if component is still mounted
+      if (isMountedRef.current) {
+        setIsFetchingScores(false);
+      }
     }
   };
-
-  // Fetch scores when jobs change
-  useEffect(() => {
-    fetchScoresForCurrentJobs();
-  }, [jobs]);
 
   // Reset scored jobs when selected candidate changes (to recalculate scores with new profile)
   useEffect(() => {
     if (selectedCandidate) {
       console.log('Selected candidate changed, resetting scored jobs to recalculate scores');
-      setScoredJobIds(new Set());
-      setJobsWithScores(jobs);
+      setScoredJobIds(new Set()); // Clear the scored jobs set - this will cause scores to be refetched
+      setJobsWithScores(jobs); // Reset to original jobs temporarily
       toast({
         title: 'Selected candidate changed. Trust and match scores will be recalculated.',
         description: `Your profile for ${selectedCandidate.name} has been updated.`,
@@ -146,14 +165,34 @@ const JobListView: React.FC<JobListViewProps> = ({
     }
   }, [selectedCandidate?.id]);
 
-  // Update jobsWithScores when jobs change
+  // CONSOLIDATED: Handle jobs change - reset cache and fetch scores (PREVENTS RACE CONDITION)
   useEffect(() => {
+    if (jobs.length === 0) {
+      console.log('🔍 No jobs to process, clearing state');
+      setJobsWithScores([]);
+      setScoredJobIds(new Set());
+      return;
+    }
+
+    console.log(`📄 Jobs changed - Page ${pagination.page} with ${jobs.length} jobs`);
+    
+    // Step 1: Update jobsWithScores with new jobs (without scores initially)
     setJobsWithScores(jobs);
-    setScoredJobIds(new Set()); // Reset scored jobs when jobs change
-  }, [jobs]);
+    
+    // Step 2: Reset scored jobs cache for new page (this is important for new pages)
+    setScoredJobIds(new Set());
+    
+    // Step 3: Fetch scores for the new jobs (but do it after state has been updated)
+    // Use setTimeout to ensure state updates have been applied
+    const timeoutId = setTimeout(() => {
+      fetchScoresForCurrentJobs();
+    }, 10); // Small delay to ensure state is updated
+    
+    return () => clearTimeout(timeoutId);
+  }, [jobs]); // Single useEffect for jobs changes
 
   // Get jobs to display (use scored jobs if available, otherwise use original jobs)
-  const displayJobs = filteredJobs.map(job => {
+  const finalDisplayJobs = displayJobs.map(job => {
     const scoredJob = jobsWithScores.find(s => s.id === job.id);
     return scoredJob || job;
   });
@@ -184,7 +223,7 @@ const JobListView: React.FC<JobListViewProps> = ({
     setPendingScrollPage(newPage);
     
     try {
-      await fetchJobsForPage(newPage, pagination.limit);
+      await fetchJobsForPage(newPage, pagination.limit, currentSearchQuery);
     } catch (error) {
       console.error('Failed to fetch page:', error);
     } finally {
@@ -293,11 +332,6 @@ const JobListView: React.FC<JobListViewProps> = ({
     refetch(); // Force refresh
   };
 
-  // When search query changes, refresh current page (server-side filtering is driven by intent, not searchQuery)
-  useEffect(() => {
-    // For now, client-side search only affects visible items in current page
-    // If server-side search is added, call fetchJobsForPage(1)
-  }, [searchQuery]);
 
   // Helper function to format last fetch time
   const formatLastFetchTime = () => {
@@ -348,8 +382,12 @@ const JobListView: React.FC<JobListViewProps> = ({
           </div>
           {!loading && (
             <p className="text-sm text-muted-foreground">
-              {pagination.totalCount || 0} job{(pagination.totalCount || 0) !== 1 ? 's' : ''} found
-              {searchQuery && ` for \"${searchQuery}\"`}
+              {(() => {
+                // Determine actual job count - if jobs array is empty but pagination shows count, trust the jobs array
+                const actualJobCount = jobs.length === 0 ? 0 : (pagination.totalCount || jobs.length);
+                return `${actualJobCount} job${actualJobCount !== 1 ? 's' : ''} found`;
+              })()} 
+              {currentSearchQuery && currentSearchQuery.trim() && ` for "${currentSearchQuery.trim()}"`}
             </p>
           )}
         </div>
@@ -426,7 +464,7 @@ const JobListView: React.FC<JobListViewProps> = ({
                   Showing cached results while refreshing...
                 </p>
                 <div className="space-y-4">
-                  {displayJobs.map(job => (
+                  {finalDisplayJobs.map(job => (
                     <JobCard 
                       key={job.id} 
                       job={job} 
@@ -453,8 +491,8 @@ const JobListView: React.FC<JobListViewProps> = ({
         {!loading && !isPageChanging && !error && (
           <>
             <div ref={jobsListRef} className="space-y-4">
-              {displayJobs.length > 0 ? (
-                displayJobs.map(job => (
+              {finalDisplayJobs.length > 0 ? (
+                finalDisplayJobs.map(job => (
                   <JobCard 
                     key={job.id} 
                     job={job} 
@@ -465,8 +503,8 @@ const JobListView: React.FC<JobListViewProps> = ({
               ) : (
                 <EmptyState
                   title={
-                    searchQuery 
-                      ? `No jobs found for "${searchQuery}"`
+                    currentSearchQuery 
+                      ? `No jobs found for "${currentSearchQuery}"`
                       : jobs.length === 0 
                         ? error 
                           ? retryCount >= 3
@@ -476,7 +514,7 @@ const JobListView: React.FC<JobListViewProps> = ({
                         : 'No matching jobs'
                   }
                   description={
-                    searchQuery 
+                    currentSearchQuery 
                       ? 'Try adjusting your search terms or browse all available jobs.'
                       : jobs.length === 0 
                         ? error
@@ -505,9 +543,9 @@ const JobListView: React.FC<JobListViewProps> = ({
                     jobs.length === 0 && error && retryCount < 3 ? {
                       label: 'Try again',
                       onClick: handleRetry
-                    } : searchQuery ? {
+                    } : currentSearchQuery ? {
                       label: 'Clear search',
-                      onClick: () => window.location.reload()
+                      onClick: () => updateSearchQuery && updateSearchQuery('')
                     } : undefined
                   }
                 />
