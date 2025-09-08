@@ -410,7 +410,7 @@ class ApiClient {
   }
 
   // BAP Job Search API
-  async searchJobs(intentOverrides?: Record<string, any>, page: number = 1, limit: number = 5) {
+  async searchJobs(intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v1/search`;
     
@@ -544,7 +544,7 @@ class ApiClient {
   }
 
   // BAP Job Search API with Query - Used for API-based search functionality
-  async searchJobsWithQuery(searchQuery: string, intentOverrides?: Record<string, any>, page: number = 1, limit: number = 5) {
+  async searchJobsWithQuery(searchQuery: string, intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v1/search`;
     
