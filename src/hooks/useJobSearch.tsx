@@ -192,7 +192,7 @@ export const useJobSearch = (searchQuery?: string) => {
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
-    limit: 5,
+    limit: 30,
     page: 1,
     totalCount: 0,
     totalPages: 0
@@ -969,7 +969,7 @@ export const useJobSearch = (searchQuery?: string) => {
     // Reset to first page when search query changes
     setPagination(prev => ({ ...prev, page: 1 }));
     // Immediately trigger fetch with the new query - use current limit from state
-    fetchJobsInternal(false, 0, intentOverrides, 1, 5, query); // Use default limit of 5
+    fetchJobsInternal(false, 0, intentOverrides, 1, 30, query); // Use default limit of 30
   }, [fetchJobsInternal, intentOverrides, currentSearchQuery]);
 
   // Fetch when intent overrides are ready or change
