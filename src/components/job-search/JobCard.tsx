@@ -343,11 +343,11 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
             <span className="font-medium text-sm sm:text-base text-foreground truncate">
               {job.tags?.basicInfo?.jobProviderName || job.company}
             </span>
-            {job.verified && (
+{/*             {job.verified && (
               <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs flex-shrink-0">
                 ✓
               </Badge>
-            )}
+            )} */}
           </div>
         </div>
 
