@@ -1,0 +1,22 @@
+{
+  "draftSync": {
+    "authRequiredTitle": "Authentication Required",
+    "authRequiredDesc": "Please log in to sync drafts.",
+    "noProfileTitle": "No Profile Selected",
+    "noProfileDesc": "Please select a profile to sync drafts with.",
+    "errorTitle": "Error",
+    "noProfileId": "Profile ID not found",
+    "noDraftsTitle": "No Drafts Found",
+    "noDraftsDesc": "You don't have any draft applications to sync.",
+    "noDraftId": "Draft {{jobId}}: No draft ID found",
+    "updateFailed": "Draft ID {{draftId}}: {{error}}",
+    "successTitle": "Drafts Synced Successfully",
+    "successDesc": "{{count}} draft application{{count > 1 ? 's' : ''}} updated with your latest profile information.",
+    "partialTitle": "Partial Success",
+    "partialDesc": "Updated {{updated}} drafts, but {{failed}} failed. Check console for details.",
+    "failedTitle": "Sync Failed",
+    "failedDesc": "Failed to sync drafts with your profile. Please try again.",
+    "syncing": "Syncing...",
+    "syncProfile": "Sync Profile"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "dashboard": {
+    "title": "Provider Dashboard",
+    "subtitle": "Manage employers, job postings, and candidate applications",
+    "actions": {
+      "title": "Actions",
+      "manageDrafts": "Manage Drafts",
+      "postJob": "Post New Job",
+      "manageEmployers": "Manage Employers"
+    }
+  }
+}

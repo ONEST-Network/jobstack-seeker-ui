@@ -1,0 +1,8 @@
+{
+  "jobMedia": {
+    "imageAlt": "{{title}} workplace image {{index}}",
+    "videoLabel": "Video",
+    "previewTitle": "Media Preview",
+    "videoNotSupported": "Your browser does not support the video tag."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "jobRoles": {
+    "popularCategoriesTitle": "Popular Job Categories",
+    "popularCategoriesDescription": "Explore opportunities across various sectors with thousands of openings",
+    "openings": "openings",
+    "viewAllCategories": "View All Categories",
+    "electrician": "Electrician",
+    "driver": "Driver",
+    "securityGuard": "Security Guard",
+    "welder": "Welder",
+    "tailor": "Tailor",
+    "carpenter": "Carpenter",
+    "machineOperator": "Machine Operator",
+    "salesRep": "Sales Rep",
+    "plumber": "Plumber",
+    "mason": "Mason",
+    "categories": {
+      "technical": "Technical",
+      "transport": "Transport",
+      "security": "Security",
+      "craft": "Craft",
+      "manufacturing": "Manufacturing",
+      "sales": "Sales",
+      "construction": "Construction"
+    }
+  }
+}

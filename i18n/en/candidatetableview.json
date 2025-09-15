@@ -1,0 +1,27 @@
+{
+  "candidateTable": {
+    "selectedCount": "{{count}} candidate(s) selected",
+    "bulkShortlist": "Shortlist Selected",
+    "bulkReject": "Reject Selected",
+    "name": "Name",
+    "appliedFor": "Applied For",
+    "location": "Location",
+    "experience": "Experience",
+    "status": "Status",
+    "trustScore": "Trust Score",
+    "matchScore": "Match Score",
+    "criteriaMet": "Criteria Met",
+    "appliedDate": "Applied Date",
+    "actions": "Actions",
+    "shortlistAction": "Shortlist Candidate",
+    "rejectAction": "Reject Application",
+    "statuses": {
+      "applied": "Applied",
+      "reviewed": "Reviewed",
+      "shortlisted": "Shortlisted",
+      "interview": "Interview",
+      "hired": "Hired",
+      "rejected": "Rejected"
+    }
+  }
+}

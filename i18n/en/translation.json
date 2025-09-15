@@ -1,0 +1,58 @@
+{
+  "email": {
+    "verification": {
+      "title": "Email Verification",
+      "loading": {
+        "title": "Verifying your email...",
+        "desc": "Please wait while we verify your email address."
+      },
+      "success": {
+        "title": "Email Verified Successfully!",
+        "desc": "Your email has been verified and you are now logged in.",
+        "redirect": "Redirecting to dashboard..."
+      },
+      "errors": {
+        "invalid_token": "The verification link is invalid or malformed.",
+        "expired_token": "The verification link has expired.",
+        "verification_failed": "Email verification failed. Please try again.",
+        "user_not_found": "User account not found.",
+        "already_verified": "This email has already been verified.",
+        "default": "An error occurred during email verification."
+      },
+      "resend": {
+        "prompt": "Would you like us to send you a new verification email?",
+        "sending": "Sending...",
+        "button": "Resend Verification Email",
+        "note": "Note: If you don't receive the email, please try logging in again."
+      },
+      "alreadyVerified": {
+        "desc": "Your email is already verified. You can now log in to your account.",
+        "button": "Go to Login"
+      },
+      "userNotFound": {
+        "desc": "No account found with this email address. Please check your email or create a new account.",
+        "button": "Go to Login"
+      },
+      "successToast": {
+        "title": "Email Verified Successfully",
+        "desc": "Your email has been verified and you are now logged in."
+      },
+      "errorToast": {
+        "title": "Email Verification Failed",
+        "desc": "Failed to verify your email. Please try again."
+      },
+      "alreadyVerifiedToast": {
+        "title": "Email Already Verified",
+        "desc": "Your email is already verified. Redirecting to dashboard..."
+      },
+      "noEmailToast": {
+        "title": "Error",
+        "desc": "No email address found. Please try logging in again or contact support."
+      },
+      "resendSuccessToast": {
+        "title": "Verification Email Sent",
+        "desc": "A new verification email has been sent to your inbox."
+      }
+    }
+  }
+}

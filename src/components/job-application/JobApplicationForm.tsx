@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
@@ -46,6 +47,8 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({
   setShowCandidateDialog,
   applying = false
 }) => {
+  const { t } = useTranslation("jobapplicationform");
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -79,7 +82,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({
                 className="flex-1 h-12 text-base font-medium"
                 disabled={applying}
               >
-                {applying ? 'Submitting...' : 'Submit Application'}
+                {applying ? t('jobApplicationForm.submitting') : t('jobApplicationForm.submit')}
               </Button>
               <Button 
                 variant="outline" 
@@ -87,7 +90,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({
                 className="h-12 px-8 text-base"
                 disabled={applying}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </div>

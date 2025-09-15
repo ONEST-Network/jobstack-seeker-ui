@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { BookOpen, Clock, Award, ChevronRight } from 'lucide-react';
 import { useAuth, Certificate, UserProfile } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface AssessmentDialogProps {
   isOpen: boolean;
@@ -22,40 +22,40 @@ const AssessmentDialog: React.FC<AssessmentDialogProps> = ({
 }) => {
   const { user, updateProfile } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation("assessmentdialog");
+
   const [currentAssessment, setCurrentAssessment] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [completed, setCompleted] = useState(false);
 
-  // Type guard to check if profile is UserProfile
-  const isUserProfile = (profile: any): profile is UserProfile => {
-    return profile && user?.role === 'individual';
-  };
+  const isUserProfile = (profile: any): profile is UserProfile =>
+    profile && user?.role === 'individual';
 
   const availableAssessments = [
     {
       id: 'technical-skills',
-      title: 'Technical Skills Assessment',
-      description: 'Evaluate your technical knowledge and problem-solving abilities',
-      duration: '15 minutes',
-      difficulty: 'Intermediate',
+      title: t('assessments.technical.title'),
+      description: t('assessments.technical.description'),
+      duration: t('assessments.technical.duration'),
+      difficulty: t('assessments.technical.difficulty'),
       matchPoints: 3,
       icon: '🔧'
     },
     {
       id: 'communication',
-      title: 'Communication Skills',
-      description: 'Test your verbal and written communication abilities',
-      duration: '10 minutes',
-      difficulty: 'Beginner',
+      title: t('assessments.communication.title'),
+      description: t('assessments.communication.description'),
+      duration: t('assessments.communication.duration'),
+      difficulty: t('assessments.communication.difficulty'),
       matchPoints: 2,
       icon: '💬'
     },
     {
       id: 'industry-knowledge',
-      title: 'Industry Knowledge',
-      description: 'Demonstrate your understanding of industry best practices',
-      duration: '20 minutes',
-      difficulty: 'Advanced',
+      title: t('assessments.industry.title'),
+      description: t('assessments.industry.description'),
+      duration: t('assessments.industry.duration'),
+      difficulty: t('assessments.industry.difficulty'),
       matchPoints: 4,
       icon: '🏭'
     }
@@ -65,8 +65,7 @@ const AssessmentDialog: React.FC<AssessmentDialogProps> = ({
     setCurrentAssessment(assessmentId);
     setProgress(0);
     setCompleted(false);
-    
-    // Simulate assessment progress
+
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
@@ -83,13 +82,12 @@ const AssessmentDialog: React.FC<AssessmentDialogProps> = ({
     const assessment = availableAssessments.find(a => a.id === assessmentId);
     if (!assessment || !user?.profile || !isUserProfile(user.profile)) return;
 
-    // Mock score (in real app, this would come from actual assessment)
     const score = Math.floor(Math.random() * 30) + 70; // 70-100
 
     const newCertificate: Certificate = {
       id: `assessment-${assessmentId}-${Date.now()}`,
-      name: `${assessment.title} Assessment`,
-      issuer: 'JobBridge Skills Verification',
+      name: `${assessment.title} ${t('assessments.common.assessment')}`,
+      issuer: t('assessments.common.issuer'),
       issueDate: new Date().toISOString(),
       isVerified: true,
       documentUrl: `assessment-result-${score}`
@@ -104,8 +102,8 @@ const AssessmentDialog: React.FC<AssessmentDialogProps> = ({
     setCompleted(true);
     
     toast({
-      title: "Assessment Completed!",
-      description: `You scored ${score}%. Your match score has been updated.`
+      title: t('assessments.completeToast.title'),
+      description: t('assessments.completeToast.description', { score })
     });
 
     setTimeout(() => {
@@ -113,17 +111,18 @@ const AssessmentDialog: React.FC<AssessmentDialogProps> = ({
     }, 2000);
   };
 
-  // Only allow assessments for individual users
   if (!user || user.role !== 'individual') {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Assessments Not Available</DialogTitle>
+            <DialogTitle>{t('assessments.notAvailable.title')}</DialogTitle>
           </DialogHeader>
           <div className="text-center p-4">
-            <p>Assessments are only available for individual job seekers.</p>
-            <Button onClick={onClose} className="mt-4">Close</Button>
+            <p>{t('assessments.notAvailable.message')}</p>
+            <Button onClick={onClose} className="mt-4">
+              {t('common.close')}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -147,23 +146,24 @@ const AssessmentDialog: React.FC<AssessmentDialogProps> = ({
             {completed ? (
               <div className="text-center space-y-4">
                 <Award className="h-12 w-12 mx-auto text-green-600" />
-                <h3 className="text-lg font-medium">Assessment Completed!</h3>
+                <h3 className="text-lg font-medium">{t('assessments.completed.title')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Your results have been verified and added to your profile.
+                  {t('assessments.completed.message')}
                 </p>
               </div>
             ) : (
               <>
                 <div className="text-center">
-                  <h3 className="font-medium mb-2">Assessment in Progress</h3>
+                  <h3 className="font-medium mb-2">{t('assessments.inProgress.title')}</h3>
                   <Progress value={progress} className="mb-2" />
-                  <p className="text-sm text-muted-foreground">{progress}% Complete</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('assessments.inProgress.progress', { progress })}
+                  </p>
                 </div>
                 
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <p className="text-sm">
-                    This is a simulated assessment for demo purposes. 
-                    In a real application, you would answer questions to demonstrate your skills.
+                    {t('assessments.inProgress.simulationNote')}
                   </p>
                 </div>
               </>
@@ -180,13 +180,13 @@ const AssessmentDialog: React.FC<AssessmentDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-600" />
-            Improve Match Score
+            {t('assessments.dialogTitle')}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div className="text-sm text-muted-foreground">
-            Take skill assessments to showcase your abilities and improve your match score with employers.
+            {t('assessments.intro')}
           </div>
 
           <div className="grid gap-4">
@@ -197,7 +197,7 @@ const AssessmentDialog: React.FC<AssessmentDialogProps> = ({
                     <span className="text-2xl">{assessment.icon}</span>
                     {assessment.title}
                     <Badge variant="secondary" className="ml-auto">
-                      +{assessment.matchPoints} pts
+                      +{assessment.matchPoints} {t('assessments.common.points')}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
@@ -220,7 +220,7 @@ const AssessmentDialog: React.FC<AssessmentDialogProps> = ({
                       onClick={() => startAssessment(assessment.id)}
                       className="flex items-center gap-1"
                     >
-                      Start
+                      {t('common.start')}
                       <ChevronRight className="h-3 w-3" />
                     </Button>
                   </div>
@@ -231,7 +231,7 @@ const AssessmentDialog: React.FC<AssessmentDialogProps> = ({
 
           <div className="flex justify-end">
             <Button variant="outline" onClick={onClose}>
-              Maybe Later
+              {t('common.maybeLater')}
             </Button>
           </div>
         </div>

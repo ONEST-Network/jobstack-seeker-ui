@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, X } from 'lucide-react';
 import { JobData } from '@/types/jobPost';
+import { useTranslation } from 'react-i18next';
 
 interface ApplicationQuestionsCardProps {
   jobData: JobData;
@@ -13,6 +13,8 @@ interface ApplicationQuestionsCardProps {
 }
 
 const ApplicationQuestionsCard: React.FC<ApplicationQuestionsCardProps> = ({ jobData, setJobData }) => {
+  const { t } = useTranslation('applicationquestionscard'); 
+
   const addField = (field: 'questions') => {
     setJobData(prev => ({
       ...prev,
@@ -37,17 +39,17 @@ const ApplicationQuestionsCard: React.FC<ApplicationQuestionsCardProps> = ({ job
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Application Questions</CardTitle>
+        <CardTitle className="text-lg">{t('title')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label>Custom Questions for Applicants</Label>
+          <Label>{t('customQuestionsLabel')}</Label>
           {jobData.questions.map((question, index) => (
             <div key={index} className="flex gap-2 mt-2">
               <Input
                 value={question}
                 onChange={(e) => updateField('questions', index, e.target.value)}
-                placeholder="Enter question for applicants"
+                placeholder={t('questionPlaceholder')}
               />
               {jobData.questions.length > 1 && (
                 <Button
@@ -67,7 +69,7 @@ const ApplicationQuestionsCard: React.FC<ApplicationQuestionsCardProps> = ({ job
             className="mt-2"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Question
+            {t('addQuestion')}
           </Button>
         </div>
       </CardContent>

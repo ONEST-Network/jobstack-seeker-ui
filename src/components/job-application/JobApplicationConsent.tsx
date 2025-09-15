@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -31,6 +31,7 @@ const JobApplicationConsent: React.FC<JobApplicationConsentProps> = ({
   showCandidateDialog,
   setShowCandidateDialog
 }) => {
+  const { t } = useTranslation("jobapplicationconsent");
   const { user, getSelectedCandidate } = useAuth();
   const selectedCandidate = getSelectedCandidate();
 
@@ -39,13 +40,13 @@ const JobApplicationConsent: React.FC<JobApplicationConsentProps> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Auto-fill Application Details</DialogTitle>
+            <DialogTitle>{t('jobApplicationConsent.title')}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             {user?.role === 'individual' && (
               <div className="space-y-2">
-                <Label>Apply with Profile:</Label>
+                <Label>{t('jobApplicationConsent.applyWithProfile')}</Label>
                 {user.managedCandidates.length > 0 ? (
                   <CandidateSelector onAddCandidate={() => setShowCandidateDialog(true)} />
                 ) : (
@@ -57,11 +58,11 @@ const JobApplicationConsent: React.FC<JobApplicationConsentProps> = ({
                         </div>
                         <div className="flex-1">
                           <div className="font-medium text-green-800">
-                            {formData.name || 'Your Profile'}
+                            {formData.name || t('jobApplicationConsent.defaultProfile')}
                           </div>
                           <div className="text-sm text-green-600 flex items-center gap-1">
                             <CheckCircle className="h-3 w-3" />
-                            Verified
+                            {t('jobApplicationConsent.verified')}
                           </div>
                         </div>
                       </div>
@@ -73,23 +74,23 @@ const JobApplicationConsent: React.FC<JobApplicationConsentProps> = ({
 
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold mb-2">Information to be auto-filled:</h3>
+                <h3 className="font-semibold mb-2">{t('jobApplicationConsent.autoFillInfoTitle')}</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="bg-green-100 text-green-800">✓</Badge>
-                    <span>Name: {formData.name}</span>
+                    <span>{t('jobApplicationConsent.name')}: {formData.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="bg-green-100 text-green-800">✓</Badge>
-                    <span>Email: {formData.email}</span>
+                    <span>{t('jobApplicationConsent.email')}: {formData.email}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="bg-green-100 text-green-800">✓</Badge>
-                    <span>Phone: {formData.phone}</span>
+                    <span>{t('jobApplicationConsent.phone')}: {formData.phone}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="bg-green-100 text-green-800">✓</Badge>
-                    <span>Documents: AADHAAR, PAN</span>
+                    <span>{t('jobApplicationConsent.documents')}</span>
                   </div>
                 </div>
               </CardContent>
@@ -98,25 +99,24 @@ const JobApplicationConsent: React.FC<JobApplicationConsentProps> = ({
             {selectedCandidate && (
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  <strong>Note:</strong> Since you are applying with another profile ({selectedCandidate.name}), 
-                  we will verify your identity with mobile OTP before submitting the application.
+                  <strong>{t('jobApplicationConsent.note')}</strong>{' '}
+                  {t('jobApplicationConsent.candidateVerification', { name: selectedCandidate.name })}
                 </p>
               </div>
             )}
 
             <div className="bg-blue-50 p-4 rounded-lg">
               <p className="text-sm text-blue-800">
-                By proceeding, you consent to auto-fill the application with your verified profile information. 
-                You can review and edit before submitting.
+                {t('jobApplicationConsent.consentMessage')}
               </p>
             </div>
 
             <div className="flex gap-2">
               <Button onClick={onAccept} className="flex-1 text-base py-6">
-                Accept & Continue
+                {t('jobApplicationConsent.acceptContinue')}
               </Button>
               <Button variant="outline" onClick={onClose} className="text-base py-6">
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </div>

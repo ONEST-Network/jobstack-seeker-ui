@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,67 +17,33 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 
 const JobFilters = () => {
+  const { t } = useTranslation("jobfilters");
   const [salaryRange, setSalaryRange] = useState([15000, 50000]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
 
-  const jobRoles = [
-    'Electrician', 'Plumber', 'Carpenter', 'Welder', 'Driver', 
-    'Security Guard', 'Tailor', 'Mason', 'Painter', 'Machine Operator',
-    'Factory Worker', 'Sales Representative', 'Cook', 'Cleaner'
-  ];
+  const jobRoles = t('filters.jobRoles', { returnObjects: true }) as string[];
+  const locations = t('filters.locations', { returnObjects: true }) as string[];
 
-  const locations = [
-    'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad',
-    'Kolkata', 'Pune', 'Ahmedabad', 'Surat', 'Jaipur',
-    'Lucknow', 'Kanpur', 'Nagpur', 'Indore'
-  ];
-
-  const workTypes = [
-    { id: 'full-time', label: 'Full-time' },
-    { id: 'part-time', label: 'Part-time' },
-    { id: 'contract', label: 'Contract' },
-    { id: 'internship', label: 'Internship' },
-    { id: 'trainee', label: 'Trainee' }
-  ];
-
-  const experienceLevels = [
-    { id: 'fresher', label: 'Fresher (0-1 years)' },
-    { id: 'junior', label: 'Junior (1-3 years)' },
-    { id: 'mid', label: 'Mid-level (3-5 years)' },
-    { id: 'senior', label: 'Senior (5+ years)' }
-  ];
-
-  const qualifications = [
-    { id: '10th', label: '10th Pass' },
-    { id: '12th', label: '12th Pass' },
-    { id: 'iti', label: 'ITI' },
-    { id: 'diploma', label: 'Diploma' },
-    { id: 'graduation', label: 'Graduation' }
-  ];
-
-  const benefits = [
-    { id: 'accommodation', label: 'Accommodation' },
-    { id: 'transportation', label: 'Transportation' },
-    { id: 'insurance', label: 'Health Insurance' },
-    { id: 'pf', label: 'Provident Fund' },
-    { id: 'food', label: 'Food Allowance' },
-    { id: 'bonus', label: 'Performance Bonus' }
-  ];
+  const workTypes = t('filters.workTypes', { returnObjects: true }) as { id: string; label: string }[];
+  const experienceLevels = t('filters.experienceLevels', { returnObjects: true }) as { id: string; label: string }[];
+  const qualifications = t('filters.qualifications', { returnObjects: true }) as { id: string; label: string }[];
+  const benefits = t('filters.benefits', { returnObjects: true }) as { id: string; label: string }[];
 
   const handleRoleToggle = (role: string) => {
-    setSelectedRoles(prev => 
-      prev.includes(role) 
+    setSelectedRoles(prev =>
+      prev.includes(role)
         ? prev.filter(r => r !== role)
         : [...prev, role]
     );
   };
 
   const handleLocationToggle = (location: string) => {
-    setSelectedLocations(prev => 
-      prev.includes(location) 
+    setSelectedLocations(prev =>
+      prev.includes(location)
         ? prev.filter(l => l !== location)
         : [...prev, location]
     );
@@ -93,18 +58,18 @@ const JobFilters = () => {
   return (
     <div className="p-6 bg-background border-r border-border h-full overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-foreground">Filters</h3>
+        <h3 className="text-lg font-semibold text-foreground">{t('filters.title')}</h3>
         <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-          Clear All
+          {t('filters.clearAll')}
         </Button>
       </div>
 
       <Accordion type="multiple" defaultValue={["location", "role", "salary"]} className="space-y-2">
         {/* Location Filter */}
         <AccordionItem value="location">
-          <AccordionTrigger className="text-sm font-medium">Location</AccordionTrigger>
+          <AccordionTrigger className="text-sm font-medium">{t('filters.location.title')}</AccordionTrigger>
           <AccordionContent className="space-y-3">
-            <Input placeholder="Search locations..." className="text-sm" />
+            <Input placeholder={t('filters.location.searchPlaceholder')} className="text-sm" />
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {locations.map((location) => (
                 <div key={location} className="flex items-center space-x-2">
@@ -124,9 +89,9 @@ const JobFilters = () => {
 
         {/* Job Role Filter */}
         <AccordionItem value="role">
-          <AccordionTrigger className="text-sm font-medium">Job Role</AccordionTrigger>
+          <AccordionTrigger className="text-sm font-medium">{t('filters.role.title')}</AccordionTrigger>
           <AccordionContent className="space-y-3">
-            <Input placeholder="Search roles..." className="text-sm" />
+            <Input placeholder={t('filters.role.searchPlaceholder')} className="text-sm" />
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {jobRoles.map((role) => (
                 <div key={role} className="flex items-center space-x-2">
@@ -146,7 +111,7 @@ const JobFilters = () => {
 
         {/* Salary Range Filter */}
         <AccordionItem value="salary">
-          <AccordionTrigger className="text-sm font-medium">Salary Range</AccordionTrigger>
+          <AccordionTrigger className="text-sm font-medium">{t('filters.salary.title')}</AccordionTrigger>
           <AccordionContent className="space-y-4">
             <div className="px-2">
               <Slider
@@ -167,7 +132,7 @@ const JobFilters = () => {
 
         {/* Work Type Filter */}
         <AccordionItem value="worktype">
-          <AccordionTrigger className="text-sm font-medium">Work Type</AccordionTrigger>
+          <AccordionTrigger className="text-sm font-medium">{t('filters.workType.title')}</AccordionTrigger>
           <AccordionContent className="space-y-2">
             {workTypes.map((type) => (
               <div key={type.id} className="flex items-center space-x-2">
@@ -182,7 +147,7 @@ const JobFilters = () => {
 
         {/* Experience Level Filter */}
         <AccordionItem value="experience">
-          <AccordionTrigger className="text-sm font-medium">Experience Level</AccordionTrigger>
+          <AccordionTrigger className="text-sm font-medium">{t('filters.experience.title')}</AccordionTrigger>
           <AccordionContent className="space-y-2">
             {experienceLevels.map((level) => (
               <div key={level.id} className="flex items-center space-x-2">
@@ -197,7 +162,7 @@ const JobFilters = () => {
 
         {/* Education Filter */}
         <AccordionItem value="education">
-          <AccordionTrigger className="text-sm font-medium">Education</AccordionTrigger>
+          <AccordionTrigger className="text-sm font-medium">{t('filters.education.title')}</AccordionTrigger>
           <AccordionContent className="space-y-2">
             {qualifications.map((qual) => (
               <div key={qual.id} className="flex items-center space-x-2">
@@ -212,7 +177,7 @@ const JobFilters = () => {
 
         {/* Benefits Filter */}
         <AccordionItem value="benefits">
-          <AccordionTrigger className="text-sm font-medium">Benefits</AccordionTrigger>
+          <AccordionTrigger className="text-sm font-medium">{t('filters.benefits.title')}</AccordionTrigger>
           <AccordionContent className="space-y-2">
             {benefits.map((benefit) => (
               <div key={benefit.id} className="flex items-center space-x-2">
@@ -227,17 +192,17 @@ const JobFilters = () => {
 
         {/* Date Posted Filter */}
         <AccordionItem value="date">
-          <AccordionTrigger className="text-sm font-medium">Date Posted</AccordionTrigger>
+          <AccordionTrigger className="text-sm font-medium">{t('filters.date.title')}</AccordionTrigger>
           <AccordionContent>
             <Select>
               <SelectTrigger className="text-sm">
-                <SelectValue placeholder="Select timeframe" />
+                <SelectValue placeholder={t('filters.date.placeholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="week">Last Week</SelectItem>
-                <SelectItem value="month">Last Month</SelectItem>
-                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="today">{t('filters.date.options.today')}</SelectItem>
+                <SelectItem value="week">{t('filters.date.options.week')}</SelectItem>
+                <SelectItem value="month">{t('filters.date.options.month')}</SelectItem>
+                <SelectItem value="all">{t('filters.date.options.all')}</SelectItem>
               </SelectContent>
             </Select>
           </AccordionContent>
@@ -246,7 +211,7 @@ const JobFilters = () => {
 
       <div className="mt-6 pt-6 border-t border-border">
         <Button className="w-full bg-primary hover:bg-primary/90">
-          Apply Filters
+          {t('filters.apply')}
         </Button>
       </div>
     </div>

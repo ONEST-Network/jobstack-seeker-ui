@@ -1,0 +1,51 @@
+{
+  "assessments": {
+    "dialogTitle": "Improve Match Score",
+    "intro": "Take skill assessments to showcase your abilities and improve your match score with employers.",
+    "technical": {
+      "title": "Technical Skills Assessment",
+      "description": "Evaluate your technical knowledge and problem-solving abilities",
+      "duration": "15 minutes",
+      "difficulty": "Intermediate"
+    },
+    "communication": {
+      "title": "Communication Skills",
+      "description": "Test your verbal and written communication abilities",
+      "duration": "10 minutes",
+      "difficulty": "Beginner"
+    },
+    "industry": {
+      "title": "Industry Knowledge",
+      "description": "Demonstrate your understanding of industry best practices",
+      "duration": "20 minutes",
+      "difficulty": "Advanced"
+    },
+    "inProgress": {
+      "title": "Assessment in Progress",
+      "progress": "{{progress}}% Complete",
+      "simulationNote": "This is a simulated assessment for demo purposes. In a real application, you would answer questions to demonstrate your skills."
+    },
+    "completed": {
+      "title": "Assessment Completed!",
+      "message": "Your results have been verified and added to your profile."
+    },
+    "completeToast": {
+      "title": "Assessment Completed!",
+      "description": "You scored {{score}}%. Your match score has been updated."
+    },
+    "notAvailable": {
+      "title": "Assessments Not Available",
+      "message": "Assessments are only available for individual job seekers."
+    },
+    "common": {
+      "assessment": "Assessment",
+      "issuer": "JobBridge Skills Verification",
+      "points": "pts"
+    }
+  },
+  "common": {
+    "start": "Start",
+    "maybeLater": "Maybe Later",
+    "close": "Close"
+  }
+}

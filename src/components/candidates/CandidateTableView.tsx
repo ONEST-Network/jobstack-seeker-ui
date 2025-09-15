@@ -14,6 +14,7 @@ import {
 import { UserCheck, X, Star, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import CandidateDetailDialog from './CandidateDetailDialog';
 import CriteriaLabels from './CriteriaLabels';
+import { useTranslation } from 'react-i18next';
 
 interface Candidate {
   id: string;
@@ -87,6 +88,7 @@ type SortField = 'trustScore' | 'matchScore' | null;
 type SortDirection = 'asc' | 'desc';
 
 const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) => {
+  const { t } = useTranslation("candidatetableview");
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [sortField, setSortField] = useState<SortField>(null);
@@ -106,7 +108,7 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
 
   const filteredCandidates = mockCandidates.filter(candidate => {
     if (!searchQuery.trim()) return true;
-    
+
     const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(term => term.length > 0);
     if (searchTerms.length === 0) return true;
 
@@ -120,23 +122,18 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
       ...(candidate.skills || [])
     ].map(field => field.toLowerCase());
 
-    // Check if all search terms are found in any of the searchable fields
-    return searchTerms.every(term => 
+    return searchTerms.every(term =>
       searchableFields.some(field => field.includes(term))
     );
   });
 
   const sortedCandidates = [...filteredCandidates].sort((a, b) => {
     if (!sortField) return 0;
-    
+
     const aValue = a[sortField];
     const bValue = b[sortField];
-    
-    if (sortDirection === 'asc') {
-      return aValue - bValue;
-    } else {
-      return bValue - aValue;
-    }
+
+    return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
   });
 
   const handleSort = (field: SortField) => {
@@ -152,29 +149,22 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
     if (sortField !== field) {
       return <ChevronsUpDown className="h-4 w-4" />;
     }
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="h-4 w-4" /> : 
-      <ChevronDown className="h-4 w-4" />;
+    return sortDirection === 'asc'
+      ? <ChevronUp className="h-4 w-4" />
+      : <ChevronDown className="h-4 w-4" />;
   };
 
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedCandidates(sortedCandidates.map(c => c.id));
-    } else {
-      setSelectedCandidates([]);
-    }
+    setSelectedCandidates(checked ? sortedCandidates.map(c => c.id) : []);
   };
 
   const handleSelectCandidate = (candidateId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedCandidates(prev => [...prev, candidateId]);
-    } else {
-      setSelectedCandidates(prev => prev.filter(id => id !== candidateId));
-    }
+    setSelectedCandidates(prev =>
+      checked ? [...prev, candidateId] : prev.filter(id => id !== candidateId)
+    );
   };
 
   const handleRowClick = (candidate: Candidate, event: React.MouseEvent) => {
-    // Don't open dialog if clicking on checkbox or action buttons
     const target = event.target as HTMLElement;
     if (target.closest('input[type="checkbox"]') || target.closest('button')) {
       return;
@@ -184,12 +174,10 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
 
   const handleShortlist = (candidateId: string) => {
     console.log('Shortlisting candidate:', candidateId);
-    // Add shortlist logic here
   };
 
   const handleReject = (candidateId: string) => {
     console.log('Rejecting candidate:', candidateId);
-    // Add reject logic here
   };
 
   return (
@@ -199,14 +187,14 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
         {selectedCandidates.length > 0 && (
           <div className="mb-4 p-4 bg-muted rounded-lg flex items-center justify-between">
             <span className="text-sm font-medium">
-              {selectedCandidates.length} candidate(s) selected
+              {t("candidateTable.selectedCount", { count: selectedCandidates.length })}
             </span>
             <div className="flex gap-2">
               <Button size="sm" variant="outline">
-                Shortlist Selected
+                {t("candidateTable.bulkShortlist")}
               </Button>
               <Button size="sm" variant="destructive">
-                Reject Selected
+                {t("candidateTable.bulkReject")}
               </Button>
             </div>
           </div>
@@ -223,37 +211,37 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
                     onCheckedChange={handleSelectAll}
                   />
                 </TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Applied For</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Experience</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead 
+                <TableHead>{t("candidateTable.name")}</TableHead>
+                <TableHead>{t("candidateTable.appliedFor")}</TableHead>
+                <TableHead>{t("candidateTable.location")}</TableHead>
+                <TableHead>{t("candidateTable.experience")}</TableHead>
+                <TableHead>{t("candidateTable.status")}</TableHead>
+                <TableHead
                   className="text-center cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => handleSort('trustScore')}
                 >
                   <div className="flex items-center justify-center gap-1">
-                    Trust Score
+                    {t("candidateTable.trustScore")}
                     {getSortIcon('trustScore')}
                   </div>
                 </TableHead>
-                <TableHead 
+                <TableHead
                   className="text-center cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => handleSort('matchScore')}
                 >
                   <div className="flex items-center justify-center gap-1">
-                    Match Score
+                    {t("candidateTable.matchScore")}
                     {getSortIcon('matchScore')}
                   </div>
                 </TableHead>
-                <TableHead>Criteria Met</TableHead>
-                <TableHead>Applied Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("candidateTable.criteriaMet")}</TableHead>
+                <TableHead>{t("candidateTable.appliedDate")}</TableHead>
+                <TableHead className="text-right">{t("candidateTable.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedCandidates.map((candidate) => (
-                <TableRow 
+                <TableRow
                   key={candidate.id}
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={(e) => handleRowClick(candidate, e)}
@@ -261,7 +249,7 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       checked={selectedCandidates.includes(candidate.id)}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         handleSelectCandidate(candidate.id, checked as boolean)
                       }
                     />
@@ -282,7 +270,7 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
                   <TableCell>{candidate.experience}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(candidate.status)}>
-                      {candidate.status}
+                      {t(`candidateTable.statuses.${candidate.status}`)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
@@ -307,8 +295,8 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
                     <div className="flex items-center justify-end gap-1">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="outline"
                             onClick={() => handleShortlist(candidate.id)}
                           >
@@ -316,14 +304,14 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Shortlist Candidate</p>
+                          <p>{t("candidateTable.shortlistAction")}</p>
                         </TooltipContent>
                       </Tooltip>
-                      
+
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="destructive"
                             onClick={() => handleReject(candidate.id)}
                           >
@@ -331,7 +319,7 @@ const CandidateTableView: React.FC<CandidateTableViewProps> = ({ searchQuery }) 
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Reject Application</p>
+                          <p>{t("candidateTable.rejectAction")}</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>

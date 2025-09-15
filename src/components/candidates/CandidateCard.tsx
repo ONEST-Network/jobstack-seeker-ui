@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Edit, Trash2, User, MapPin, Briefcase, Calendar } from 'lucide-react';
 import { CandidateProfile } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 interface CandidateCardProps {
   candidate: CandidateProfile;
@@ -24,16 +25,18 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
   onDelete,
   isDefault = false
 }) => {
+  const { t } = useTranslation('candidates');
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
   const getExperienceLevel = () => {
     const totalExperience = candidate.experience?.length || 0;
-    if (totalExperience === 0) return 'Fresher';
-    if (totalExperience <= 2) return 'Entry Level';
-    if (totalExperience <= 5) return 'Mid Level';
-    return 'Senior Level';
+    if (totalExperience === 0) return t('experience.fresher');
+    if (totalExperience <= 2) return t('experience.entry');
+    if (totalExperience <= 5) return t('experience.mid');
+    return t('experience.senior');
   };
 
   return (
@@ -55,8 +58,8 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {isSelected && <Badge variant="default" className="text-xs">Active</Badge>}
-            {isDefault && <Badge variant="secondary" className="text-xs">Default</Badge>}
+            {isSelected && <Badge variant="default" className="text-xs">{t('status.active')}</Badge>}
+            {isDefault && <Badge variant="secondary" className="text-xs">{t('status.default')}</Badge>}
           </div>
         </div>
       </CardHeader>
@@ -79,13 +82,13 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span>Created {new Date(candidate.createdAt).toLocaleDateString()}</span>
+            <span>{t('createdOn', { date: new Date(candidate.createdAt).toLocaleDateString() })}</span>
           </div>
         </div>
 
         {candidate.skills && candidate.skills.length > 0 && (
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-2">Skills</p>
+            <p className="text-xs font-medium text-muted-foreground mb-2">{t('skills.title')}</p>
             <div className="flex flex-wrap gap-1">
               {candidate.skills.slice(0, 3).map((skill, index) => (
                 <Badge key={index} variant="outline" className="text-xs">
@@ -94,7 +97,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
               ))}
               {candidate.skills.length > 3 && (
                 <Badge variant="outline" className="text-xs">
-                  +{candidate.skills.length - 3} more
+                  {t('skills.more', { count: candidate.skills.length - 3 })}
                 </Badge>
               )}
             </div>
@@ -108,7 +111,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
             onClick={onSelect}
             className="flex-1"
           >
-            {isSelected ? 'Selected' : 'Select'}
+            {isSelected ? t('actions.selected') : t('actions.select')}
           </Button>
           <Button variant="ghost" size="sm" onClick={onEdit}>
             <Edit className="h-4 w-4" />
@@ -125,3 +128,4 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
 };
 
 export default CandidateCard;
+

@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Shield } from 'lucide-react';
 import { Education } from '@/types/profile';
+import { useTranslation } from 'react-i18next';
 
 interface EducationListItemProps {
   education: Education;
@@ -14,15 +15,19 @@ const EducationListItem: React.FC<EducationListItemProps> = ({
   education,
   onRemove
 }) => {
+  const { t } = useTranslation('educationlistitem'); 
+
   return (
     <Card className="bg-gray-50">
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
-            <h4 className="font-medium">{education.degree} in {education.fieldOfStudy}</h4>
+            <h4 className="font-medium">
+              {education.degree} {education.fieldOfStudy && ` ${t('education.in')} ${education.fieldOfStudy}`}
+            </h4>
             <p className="text-sm text-muted-foreground">{education.institution}</p>
             <p className="text-xs text-muted-foreground">
-              {education.startYear} - {education.endYear || 'Present'}
+              {education.startYear} - {education.endYear || t('education.present')}
               {education.percentage && ` • ${education.percentage}%`}
             </p>
           </div>
@@ -30,7 +35,7 @@ const EducationListItem: React.FC<EducationListItemProps> = ({
             {education.isVerified && (
               <Badge variant="secondary" className="bg-green-100 text-green-800">
                 <Shield className="h-3 w-3 mr-1" />
-                Verified
+                {t('education.verified')}
               </Badge>
             )}
             <Button

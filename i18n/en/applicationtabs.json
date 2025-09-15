@@ -1,0 +1,11 @@
+{
+  "applications": {
+    "active": "Active",
+    "completed": "Completed",
+    "draft": "Draft",
+    "noActive": "No active applications found",
+    "noCompleted": "No completed applications found",
+    "noDraft": "No draft applications found",
+    "draftHint": "Keep your drafts up-to-date with your latest profile changes"
+  }
+}

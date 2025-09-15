@@ -1,0 +1,48 @@
+{
+  "postJob": {
+    "steps": {
+      "whoIAm": "Who I Am"
+    },
+    "common": {
+      "lastSaved": "Last saved:",
+      "saveDraft": "Save Draft"
+    },
+    "whoIAm": {
+      "title": "Company & Role Details",
+      "validation": {
+        "fillRequired": "Please fill all required fields"
+      },
+      "companyInfo": {
+        "title": "Company Information",
+        "companyName": "Company Name",
+        "companyNamePlaceholder": "e.g., ABC Garments Pvt Ltd",
+        "cin": "CIN Number",
+        "cinPlaceholder": "U12345AB2020PTC123456",
+        "gst": "GST Number",
+        "gstPlaceholder": "12ABCDE3456F7GH",
+        "factoryLocation": "Factory Location",
+        "factoryLocationPlaceholder": "City, State"
+      },
+      "roleInfo": {
+        "title": "Role Information",
+        "openRole": "Open Role",
+        "openRolePlaceholder": "e.g., Tailor, Machine Operator",
+        "numberOfOpenings": "Number of Openings",
+        "numberOfOpeningsPlaceholder": "e.g., 40"
+      },
+      "pocInfo": {
+        "title": "Point of Contact for this Opening",
+        "pocName": "PoC Name",
+        "pocNamePlaceholder": "Full Name",
+        "pocPhone": "PoC Phone Number",
+        "pocPhonePlaceholder": "+91 9876543210",
+        "pocEmail": "PoC Email ID",
+        "pocEmailPlaceholder": "contact@company.com"
+      },
+      "buttons": {
+        "backToRoleSelection": "Back to Role Selection",
+        "next": "Next: What I Have"
+      }
+    }
+  }
+}

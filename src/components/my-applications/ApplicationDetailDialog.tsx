@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
 interface ApplicationDetailDialogProps {
   application: any; // raw application object from API
@@ -14,7 +15,7 @@ interface ApplicationDetailDialogProps {
   onClose: () => void;
 }
 
-// Helper to convert camelCase / snake to Title Case
+// Helper to convert camelCase / snake_case to Title Case
 const formatKey = (key: string) =>
   key
     .replace(/_/g, ' ')
@@ -27,7 +28,14 @@ const renderKeyValueList = (obj: Record<string, any>) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {Object.entries(obj).map(([key, value]) => {
-        if (value === undefined || value === null || value === '' || key === 'gps' || key === 'tag') return null;
+        if (
+          value === undefined ||
+          value === null ||
+          value === '' ||
+          key === 'gps' ||
+          key === 'tag'
+        )
+          return null;
 
         if (isObject(value)) {
           // Flatten one level deep
@@ -45,7 +53,9 @@ const renderKeyValueList = (obj: Record<string, any>) => {
             <div className="text-sm font-medium text-muted-foreground">
               {formatKey(key)}
             </div>
-            <div className="text-base font-semibold break-words">{String(value)}</div>
+            <div className="text-base font-semibold break-words">
+              {String(value)}
+            </div>
           </div>
         );
       })}
@@ -58,6 +68,8 @@ const ApplicationDetailDialog: React.FC<ApplicationDetailDialogProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { t } = useTranslation("applicationdetaildialog");
+
   if (!application) return null;
 
   const item =
@@ -73,13 +85,17 @@ const ApplicationDetailDialog: React.FC<ApplicationDetailDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={(o) => (!o ? onClose() : undefined)}>
       <DialogContent className="max-h-[90vh] overflow-y-auto w-full max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="text-xl">Application Details</DialogTitle>
+          <DialogTitle className="text-xl">
+            {t('applicationDetails.title')}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Status */}
           <div>
-            <span className="text-sm font-medium mr-2">Status:</span>
+            <span className="text-sm font-medium mr-2">
+              {t('applicationDetails.status')}:
+            </span>
             <Badge variant="outline" className="capitalize">
               {status}
             </Badge>
@@ -89,7 +105,9 @@ const ApplicationDetailDialog: React.FC<ApplicationDetailDialogProps> = ({
           {Object.keys(basicInfo).length > 0 && (
             <Card>
               <CardContent className="p-6 space-y-4">
-                <h3 className="text-lg font-semibold">Basic Info</h3>
+                <h3 className="text-lg font-semibold">
+                  {t('applicationDetails.basicInfo')}
+                </h3>
                 {renderKeyValueList(basicInfo)}
               </CardContent>
             </Card>
@@ -99,7 +117,9 @@ const ApplicationDetailDialog: React.FC<ApplicationDetailDialogProps> = ({
           {Object.keys(jobDetails).length > 0 && (
             <Card>
               <CardContent className="p-6 space-y-4">
-                <h3 className="text-lg font-semibold">Job Details</h3>
+                <h3 className="text-lg font-semibold">
+                  {t('applicationDetails.jobDetails')}
+                </h3>
                 {renderKeyValueList(jobDetails)}
               </CardContent>
             </Card>
@@ -109,7 +129,9 @@ const ApplicationDetailDialog: React.FC<ApplicationDetailDialogProps> = ({
           {Object.keys(jobNeeds).length > 0 && (
             <Card>
               <CardContent className="p-6 space-y-4">
-                <h3 className="text-lg font-semibold">Job Needs</h3>
+                <h3 className="text-lg font-semibold">
+                  {t('applicationDetails.jobNeeds')}
+                </h3>
                 {renderKeyValueList(jobNeeds)}
               </CardContent>
             </Card>
@@ -119,7 +141,9 @@ const ApplicationDetailDialog: React.FC<ApplicationDetailDialogProps> = ({
           {Object.keys(jobProviderLocation).length > 0 && (
             <Card>
               <CardContent className="p-6 space-y-4">
-                <h3 className="text-lg font-semibold">Job Provider Location</h3>
+                <h3 className="text-lg font-semibold">
+                  {t('applicationDetails.providerLocation')}
+                </h3>
                 {renderKeyValueList(jobProviderLocation)}
               </CardContent>
             </Card>

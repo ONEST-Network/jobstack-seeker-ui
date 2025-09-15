@@ -1,0 +1,14 @@
+{
+  "providerDashboard": {
+    "currentEmployer": "Current Employer",
+    "tabs": {
+      "myJobs": "My Jobs",
+      "candidates": "Candidates",
+      "employers": "Employers"
+    },
+    "employerManagement": {
+      "title": "Employer Management",
+      "description": "Manage your employer profiles and switch between different companies"
+    }
+  }
+}

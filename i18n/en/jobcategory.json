@@ -1,0 +1,13 @@
+{
+  "jobCategory": {
+    "viewMore": "View More in {{category}} →",
+    "engineering": {
+      "title": "Engineering Jobs",
+      "subtitle": "Find the best roles in engineering"
+    },
+    "sales": {
+      "title": "Sales Jobs",
+      "subtitle": "Grow your career in sales"
+    }
+  }
+}

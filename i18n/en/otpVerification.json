@@ -1,0 +1,31 @@
+{
+  "dialog": {
+    "title": "Verify Your {{method}}",
+    "instruction": "We've sent a 6-digit verification code to {{contact}}"
+  },
+  "organization": {
+    "title": "Organization:",
+    "signingUp": "Signing up for {{org}}"
+  },
+  "buttons": {
+    "verify": "Verify OTP",
+    "verifying": "Verifying...",
+    "resend": "Resend Code",
+    "resendCountdown": "Resend Code in {{count}}s",
+    "sending": "Sending..."
+  },
+  "verification": {
+    "verificationSuccess": "OTP verified successfully!",
+    "verificationFailed": "Invalid OTP. Please try again.",
+    "incompleteOtp": "Please enter the complete 6-digit OTP."
+  },
+  "resend": {
+    "resentTitle": "OTP Sent",
+    "resentMessage": "A new verification code has been sent to {{contact}}",
+    "resendFailed": "Failed to resend OTP. Please try again."
+  },
+  "toast": {
+    "successTitle": "Success",
+    "errorTitle": "Error"
+  }
+}

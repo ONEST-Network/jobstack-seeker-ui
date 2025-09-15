@@ -1,31 +1,33 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
 const JobRolesCarousel = () => {
+  const { t } = useTranslation("jobrolescarousel");
+
   const jobRoles = [
-    { name: 'Electrician', count: 2847, icon: '⚡', category: 'Technical' },
-    { name: 'Driver', count: 5432, icon: '🚗', category: 'Transport' },
-    { name: 'Security Guard', count: 1923, icon: '🛡️', category: 'Security' },
-    { name: 'Welder', count: 876, icon: '🔥', category: 'Technical' },
-    { name: 'Tailor', count: 1234, icon: '✂️', category: 'Craft' },
-    { name: 'Carpenter', count: 1567, icon: '🔨', category: 'Technical' },
-    { name: 'Machine Operator', count: 3421, icon: '⚙️', category: 'Manufacturing' },
-    { name: 'Sales Rep', count: 4532, icon: '💼', category: 'Sales' },
-    { name: 'Plumber', count: 987, icon: '🔧', category: 'Technical' },
-    { name: 'Mason', count: 756, icon: '🧱', category: 'Construction' },
+    { name: t('jobRoles.electrician'), count: 2847, icon: '⚡', category: t('jobRoles.categories.technical') },
+    { name: t('jobRoles.driver'), count: 5432, icon: '🚗', category: t('jobRoles.categories.transport') },
+    { name: t('jobRoles.securityGuard'), count: 1923, icon: '🛡️', category: t('jobRoles.categories.security') },
+    { name: t('jobRoles.welder'), count: 876, icon: '🔥', category: t('jobRoles.categories.technical') },
+    { name: t('jobRoles.tailor'), count: 1234, icon: '✂️', category: t('jobRoles.categories.craft') },
+    { name: t('jobRoles.carpenter'), count: 1567, icon: '🔨', category: t('jobRoles.categories.technical') },
+    { name: t('jobRoles.machineOperator'), count: 3421, icon: '⚙️', category: t('jobRoles.categories.manufacturing') },
+    { name: t('jobRoles.salesRep'), count: 4532, icon: '💼', category: t('jobRoles.categories.sales') },
+    { name: t('jobRoles.plumber'), count: 987, icon: '🔧', category: t('jobRoles.categories.technical') },
+    { name: t('jobRoles.mason'), count: 756, icon: '🧱', category: t('jobRoles.categories.construction') },
   ];
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      Technical: 'bg-blue-100 text-blue-800',
-      Transport: 'bg-green-100 text-green-800',
-      Security: 'bg-red-100 text-red-800',
-      Craft: 'bg-purple-100 text-purple-800',
-      Manufacturing: 'bg-orange-100 text-orange-800',
-      Sales: 'bg-pink-100 text-pink-800',
-      Construction: 'bg-yellow-100 text-yellow-800',
+      [t('jobRoles.categories.technical')]: 'bg-blue-100 text-blue-800',
+      [t('jobRoles.categories.transport')]: 'bg-green-100 text-green-800',
+      [t('jobRoles.categories.security')]: 'bg-red-100 text-red-800',
+      [t('jobRoles.categories.craft')]: 'bg-purple-100 text-purple-800',
+      [t('jobRoles.categories.manufacturing')]: 'bg-orange-100 text-orange-800',
+      [t('jobRoles.categories.sales')]: 'bg-pink-100 text-pink-800',
+      [t('jobRoles.categories.construction')]: 'bg-yellow-100 text-yellow-800',
     };
     return colors[category] || 'bg-gray-100 text-gray-800';
   };
@@ -35,10 +37,10 @@ const JobRolesCarousel = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground mb-4">
-            Popular Job Categories
+            {t('jobRoles.popularCategoriesTitle')}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore opportunities across various sectors with thousands of openings
+            {t('jobRoles.popularCategoriesDescription')}
           </p>
         </div>
 
@@ -60,7 +62,7 @@ const JobRolesCarousel = () => {
                 <div className="text-2xl font-bold text-primary mb-1">
                   {role.count.toLocaleString()}
                 </div>
-                <div className="text-sm text-muted-foreground">openings</div>
+                <div className="text-sm text-muted-foreground">{t('jobRoles.openings')}</div>
               </CardContent>
             </Card>
           ))}
@@ -68,7 +70,7 @@ const JobRolesCarousel = () => {
 
         <div className="text-center mt-8">
           <button className="text-primary hover:text-primary/80 font-medium">
-            View All Categories →
+            {t('jobRoles.viewAllCategories')} →
           </button>
         </div>
       </div>

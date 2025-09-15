@@ -1,0 +1,16 @@
+{
+  "applications": {
+    "noApplications": "No applications received yet",
+    "experience": "experience",
+    "appliedOn": "Applied on",
+    "trust": "Trust",
+    "match": "Match",
+    "viewDetails": "View Details",
+    "status": {
+      "pending": "Pending",
+      "reviewed": "Reviewed",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    }
+  }
+}

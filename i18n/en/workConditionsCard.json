@@ -1,0 +1,74 @@
+{
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "select": "Select",
+    "available": "Available",
+    "notAvailable": "Not Available",
+    "addRequirement": "Add Requirement",
+    "addBenefit": "Add Benefit",
+    "enterRequirement": "Enter requirement",
+    "enterBenefit": "Enter benefit"
+  },
+
+  "requirementsBenefits": {
+    "title": "Requirements & Benefits",
+    "requirementsLabel": "Job Requirements",
+    "benefitsLabel": "Benefits & Perks"
+  },
+
+  "factoryEnvironment": {
+    "title": "Factory Environment",
+    "walkthroughLabel": "Factory Walkthrough Video",
+    "walkthroughDescription": "Show the factory floor, working conditions, and facilities",
+    "testimonialLabel": "Worker Testimonial Video",
+    "testimonialDescription": "Current employee sharing their experience",
+    "trustScore": "Factory Trust Score",
+    "trustScoreHint": "Auto-computed based on uploaded videos and reviews"
+  },
+
+  "salaryPayment": {
+    "title": "Salary & Payment Details",
+    "monthlySalary": "Monthly Salary (₹) *",
+    "salaryFrequency": "Salary Settlement Frequency *",
+    "pfDeduction": "PF Deduction (₹)",
+    "esicDeduction": "ESIC Deduction (₹)",
+    "inHandSalary": "In-Hand Salary (₹)",
+    "inHandSalaryHint": "Auto-calculated: Monthly Salary - PF - ESIC",
+    "advanceMonths": "Advance Options (Months)",
+    "advanceFrequency": "Advance Frequency",
+    "frequencyOptions": {
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "halfYearly": "Half-Yearly"
+    }
+  },
+
+  "workConditions": {
+    "title": "Work Conditions & Benefits",
+    "regularHours": "Regular Hours per Day *",
+    "overtime": "Overtime Available",
+    "overtimePay": "Overtime Pay Rate",
+    "overtimeRates": {
+      "1x": "1x (Regular Rate)",
+      "1_5x": "1.5x (Time and Half)",
+      "2x": "2x (Double Time)"
+    },
+    "housing": "Housing Facility",
+    "food": "Food Facility",
+    "housingType": "Housing Type",
+    "housingTypes": {
+      "dormitory": "Dormitory",
+      "shared": "Shared Room",
+      "individual": "Individual Room"
+    },
+    "foodType": "Food Type",
+    "foodTypes": {
+      "meals": "Meals Provided",
+      "canteen": "Subsidized Canteen",
+      "allowance": "Food Allowance"
+    },
+    "gradeUpgradation": "Grade Upgradation Possibility"
+  }
+}

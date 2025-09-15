@@ -1,0 +1,21 @@
+{
+  "applicationQuestions": {
+    "experience": {
+      "label": "Years of Experience in this field",
+      "placeholder": "Example: 2 years"
+    },
+    "whyJoin": {
+      "label": "Why do you want to join this company?",
+      "placeholder": "Tell us why you're interested in this role..."
+    },
+    "previousWork": {
+      "label": "Describe your previous work experience",
+      "placeholder": "Describe your previous work experience..."
+    },
+    "taskVideo": {
+      "label": "Task Video (Optional)",
+      "description": "Upload a video showing your work skills (optional)"
+    },
+    "recordingMessage": "Recording... Click stop when done"
+  }
+}

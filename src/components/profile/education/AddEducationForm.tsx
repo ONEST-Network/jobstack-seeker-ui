@@ -6,12 +6,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { QrCode, Plus } from 'lucide-react';
 import { Education } from '@/types/profile';
 import QRCodeScannerDialog from '../QRCodeScannerDialog';
+import { useTranslation } from 'react-i18next';
 
 interface AddEducationFormProps {
   onAdd: (education: Education) => void;
 }
 
 const AddEducationForm: React.FC<AddEducationFormProps> = ({ onAdd }) => {
+  const { t } = useTranslation('addeducationforms'); 
   const [showScanner, setShowScanner] = useState(false);
   const [newEducation, setNewEducation] = useState<Partial<Education>>({
     institution: '',
@@ -37,7 +39,7 @@ const AddEducationForm: React.FC<AddEducationFormProps> = ({ onAdd }) => {
         certificateUrl: newEducation.certificateUrl,
         qrCodeData: newEducation.qrCodeData
       };
-      
+
       onAdd(educationEntry);
       setNewEducation({
         institution: '',
@@ -62,70 +64,70 @@ const AddEducationForm: React.FC<AddEducationFormProps> = ({ onAdd }) => {
     <>
       <div className="space-y-4 p-4 border-2 border-dashed border-gray-200 rounded-lg">
         <div className="flex justify-between items-center">
-          <h4 className="font-medium">Add Education</h4>
+          <h4 className="font-medium">{t('education.addTitle')}</h4>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowScanner(true)}
           >
             <QrCode className="h-4 w-4 mr-1" />
-            Scan Certificate
+            {t('education.scanCertificate')}
           </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="institution">Institution *</Label>
+            <Label htmlFor="institution">{t('education.institution')} *</Label>
             <Input
               id="institution"
               value={newEducation.institution || ''}
               onChange={(e) => setNewEducation({ ...newEducation, institution: e.target.value })}
-              placeholder="School/College/University"
+              placeholder={t('education.institutionPlaceholder')}
             />
           </div>
 
           <div>
-            <Label htmlFor="degree">Class or Degree *</Label>
+            <Label htmlFor="degree">{t('education.degree')} *</Label>
             <Select
               value={newEducation.degree || ''}
               onValueChange={(value) => setNewEducation({ ...newEducation, degree: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select class or degree" />
+                <SelectValue placeholder={t('education.degreePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="below-10th">Below 10th</SelectItem>
-                <SelectItem value="10th">10th Standard</SelectItem>
-                <SelectItem value="12th">12th Standard</SelectItem>
-                <SelectItem value="diploma">Diploma</SelectItem>
-                <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
+                <SelectItem value="below-10th">{t('education.degreeOptions.below10th')}</SelectItem>
+                <SelectItem value="10th">{t('education.degreeOptions.10th')}</SelectItem>
+                <SelectItem value="12th">{t('education.degreeOptions.12th')}</SelectItem>
+                <SelectItem value="diploma">{t('education.degreeOptions.diploma')}</SelectItem>
+                <SelectItem value="bachelor">{t('education.degreeOptions.bachelor')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="fieldOfStudy">Field of Study</Label>
+            <Label htmlFor="fieldOfStudy">{t('education.fieldOfStudy')}</Label>
             <Input
               id="fieldOfStudy"
               value={newEducation.fieldOfStudy || ''}
               onChange={(e) => setNewEducation({ ...newEducation, fieldOfStudy: e.target.value })}
-              placeholder="e.g., Electrical Engineering"
+              placeholder={t('education.fieldOfStudyPlaceholder')}
             />
           </div>
 
           <div>
-            <Label htmlFor="percentage">Percentage/Grade</Label>
+            <Label htmlFor="percentage">{t('education.percentage')}</Label>
             <Input
               id="percentage"
               type="number"
               value={newEducation.percentage || ''}
               onChange={(e) => setNewEducation({ ...newEducation, percentage: parseInt(e.target.value) })}
-              placeholder="Enter percentage"
+              placeholder={t('education.percentagePlaceholder')}
             />
           </div>
 
           <div>
-            <Label htmlFor="startDate">Start Month & Year</Label>
+            <Label htmlFor="startDate">{t('education.startDate')}</Label>
             <Input
               id="startDate"
               type="month"
@@ -135,20 +137,20 @@ const AddEducationForm: React.FC<AddEducationFormProps> = ({ onAdd }) => {
           </div>
 
           <div>
-            <Label htmlFor="endDate">End Month & Year</Label>
+            <Label htmlFor="endDate">{t('education.endDate')}</Label>
             <Input
               id="endDate"
               type="month"
               value={newEducation.endDate || ''}
               onChange={(e) => setNewEducation({ ...newEducation, endDate: e.target.value })}
-              placeholder="Leave empty if ongoing"
+              placeholder={t('education.endDatePlaceholder')}
             />
           </div>
         </div>
 
         <Button onClick={handleAddEducation} className="w-full" size="sm">
           <Plus className="h-4 w-4 mr-1" />
-          Add Education
+          {t('education.addButton')}
         </Button>
       </div>
 

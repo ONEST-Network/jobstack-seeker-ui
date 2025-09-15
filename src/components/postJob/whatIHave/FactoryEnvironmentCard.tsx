@@ -1,12 +1,11 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Upload, Video } from 'lucide-react';
+import { Video } from 'lucide-react';
 import { JobData } from '@/types/jobPost';
 import { FileUploadField } from '@/components/ui/file-upload-field';
+import { useTranslation } from 'react-i18next';
 
 interface FactoryEnvironmentCardProps {
   jobData: JobData;
@@ -14,6 +13,8 @@ interface FactoryEnvironmentCardProps {
 }
 
 const FactoryEnvironmentCard: React.FC<FactoryEnvironmentCardProps> = ({ jobData, setJobData }) => {
+  const { t } = useTranslation('factoryEnvironment'); 
+
   const handleVideoUpload = (type: 'walkthrough' | 'testimonial', file: string | File | null) => {
     if (file && typeof file === 'string') {
       setJobData(prev => ({
@@ -29,15 +30,17 @@ const FactoryEnvironmentCard: React.FC<FactoryEnvironmentCardProps> = ({ jobData
       <CardHeader className="pb-3 sm:pb-6">
         <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
           <Video className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
-          Factory Environment
+          {t('factoryEnvironment.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label className="text-sm font-medium">Factory Walkthrough Video</Label>
+          <Label className="text-sm font-medium">
+            {t('factoryEnvironment.walkthroughLabel')}
+          </Label>
           <FileUploadField
             label=""
-            description="Show the factory floor, working conditions, and facilities"
+            description={t('factoryEnvironment.walkthroughDescription')}
             accept="video/*"
             fileType="video"
             value={jobData.factoryWalkthroughVideo}
@@ -48,10 +51,12 @@ const FactoryEnvironmentCard: React.FC<FactoryEnvironmentCardProps> = ({ jobData
         </div>
 
         <div>
-          <Label className="text-sm font-medium">Worker Testimonial Video</Label>
+          <Label className="text-sm font-medium">
+            {t('factoryEnvironment.testimonialLabel')}
+          </Label>
           <FileUploadField
             label=""
-            description="Current employee sharing their experience"
+            description={t('factoryEnvironment.testimonialDescription')}
             accept="video/*"
             fileType="video"
             value={jobData.workerTestimonialVideo}
@@ -62,20 +67,29 @@ const FactoryEnvironmentCard: React.FC<FactoryEnvironmentCardProps> = ({ jobData
         </div>
 
         <div>
-          <Label htmlFor="factoryTrustScore" className="text-sm font-medium">Factory Trust Score</Label>
+          <Label htmlFor="factoryTrustScore" className="text-sm font-medium">
+            {t('factoryEnvironment.trustScoreLabel')}
+          </Label>
           <Input
             id="factoryTrustScore"
             type="number"
             value={jobData.factoryTrustScore || ''}
-            onChange={(e) => setJobData(prev => ({ ...prev, factoryTrustScore: parseInt(e.target.value) || 0 }))}
-            placeholder="8.5"
+            onChange={(e) =>
+              setJobData(prev => ({
+                ...prev,
+                factoryTrustScore: parseFloat(e.target.value) || 0
+              }))
+            }
+            placeholder={t('factoryEnvironment.trustScorePlaceholder')}
             min="0"
             max="10"
             step="0.1"
             readOnly
             className="bg-gray-50 h-touch text-base"
           />
-          <p className="text-xs text-muted-foreground mt-1">Auto-computed based on uploaded videos and reviews</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {t('factoryEnvironment.trustScoreNote')}
+          </p>
         </div>
       </CardContent>
     </Card>

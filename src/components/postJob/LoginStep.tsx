@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
@@ -10,34 +10,36 @@ interface LoginStepProps {
 }
 
 const LoginStep: React.FC<LoginStepProps> = ({ isOpen, onClose, onLogin }) => {
+  const { t } = useTranslation('loginStep');
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Post a Job</DialogTitle>
+          <DialogTitle>{t('loginStep.title')}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div className="text-center">
             <p className="text-muted-foreground mb-4">
-              Please login or sign up to post a job
+              {t('loginStep.subtitle')}
             </p>
           </div>
 
           <div className="space-y-3">
             <Button className="w-full" onClick={onLogin}>
-              Login with Email
+              {t('loginStep.loginEmail')}
             </Button>
             <Button variant="outline" className="w-full" onClick={onLogin}>
-              Login with Phone
+              {t('loginStep.loginPhone')}
             </Button>
             <Button variant="outline" className="w-full" onClick={onLogin}>
-              Create New Account
+              {t('loginStep.createAccount')}
             </Button>
           </div>
 
           <div className="text-center text-sm text-muted-foreground">
-            By proceeding, you agree to our Terms & Conditions
+            {t('loginStep.agreement')}
           </div>
         </div>
       </DialogContent>

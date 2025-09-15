@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface JobApplicationHeaderProps {
@@ -7,10 +7,12 @@ interface JobApplicationHeaderProps {
 }
 
 const JobApplicationHeader: React.FC<JobApplicationHeaderProps> = ({ jobTitle }) => {
+  const { t } = useTranslation("jobapplicationheader");
+
   return (
     <DialogHeader className="flex-shrink-0 border-b pb-4">
       <DialogTitle className="text-xl">
-        Apply for {jobTitle}
+        {t('jobApplicationHeader.applyFor', { jobTitle })}
       </DialogTitle>
     </DialogHeader>
   );

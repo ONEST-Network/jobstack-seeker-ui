@@ -1,0 +1,18 @@
+{
+  "candidateManagement": {
+    "title": "Candidate Management",
+    "search": {
+      "placeholder": "Search candidates, skills, locations..."
+    },
+    "views": {
+      "cards": "Cards",
+      "table": "Table",
+      "map": "Map"
+    },
+    "export": "Export",
+    "filters": {
+      "title": "Filters",
+      "placeholder": "Filter options will be added here"
+    }
+  }
+}

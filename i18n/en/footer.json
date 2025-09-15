@@ -1,0 +1,45 @@
+{
+  "footer": {
+    "platform": {
+      "title": "Platform",
+      "findJobs": "Find Jobs",
+      "postJob": "Post a Job",
+      "issueCertificates": "Issue Certificates",
+      "publicDashboard": "Public Dashboard",
+      "mobileApp": "Mobile App"
+    },
+    "resources": {
+      "title": "Resources",
+      "helpCenter": "Help Center",
+      "careerGuides": "Career Guides",
+      "skillDevelopment": "Skill Development",
+      "interviewTips": "Interview Tips",
+      "resumeBuilder": "Resume Builder"
+    },
+    "company": {
+      "title": "Company",
+      "aboutUs": "About Us",
+      "career": "Career",
+      "press": "Press",
+      "partnerWithUs": "Partner with Us",
+      "investorRelations": "Investor Relations"
+    },
+    "legal": {
+      "title": "Legal",
+      "terms": "Terms & Conditions",
+      "privacy": "Privacy Policy",
+      "cookie": "Cookie Policy",
+      "dataProtection": "Data Protection",
+      "accessibility": "Accessibility"
+    },
+    "description": "Connecting talent with opportunities across India. Built for MSME and blue-collar workforce with AI-powered matching and local language support.",
+    "copyright": "© 2024 JobBridge. All rights reserved.",
+    "badges": {
+      "madeInIndia": "🇮🇳 Made in India",
+      "securePlatform": "🔒 Secure Platform",
+      "mobileFirst": "📱 Mobile First",
+      "languages": "🌐 15+ Languages"
+    },
+    "contact": "Contact"
+  }
+}

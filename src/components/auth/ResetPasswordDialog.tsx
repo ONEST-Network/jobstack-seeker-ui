@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Lock, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api';
+import { useTranslation } from 'react-i18next';
 
 interface ResetPasswordDialogProps {
   isOpen: boolean;
@@ -27,45 +28,45 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('auth'); // 👈 namespace = auth.json
 
-  // Validate token before rendering
-  const isValidToken = token && 
-                      token.trim() !== '' && 
-                      token.length > 10 && 
-                      !token.includes('undefined') && 
-                      !token.includes('null');
+  const isValidToken =
+    token &&
+    token.trim() !== '' &&
+    token.length > 10 &&
+    !token.includes('undefined') &&
+    !token.includes('null');
 
-  // Don't render if token is invalid
   if (!isValidToken) {
     return null;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newPassword || !confirmPassword) {
       toast({
-        title: "Error",
-        description: "Please enter both password fields.",
-        variant: "destructive"
+        title: t('errors.title'),
+        description: t('resetPassword.errors.emptyFields'),
+        variant: 'destructive'
       });
       return;
     }
 
     if (newPassword.length < 8) {
       toast({
-        title: "Error",
-        description: "Password must be at least 8 characters long.",
-        variant: "destructive"
+        title: t('errors.title'),
+        description: t('resetPassword.errors.minLength'),
+        variant: 'destructive'
       });
       return;
     }
 
     if (newPassword !== confirmPassword) {
       toast({
-        title: "Error",
-        description: "Passwords do not match.",
-        variant: "destructive"
+        title: t('errors.title'),
+        description: t('resetPassword.errors.passwordsMismatch'),
+        variant: 'destructive'
       });
       return;
     }
@@ -78,14 +79,14 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
       });
       setIsSuccess(true);
       toast({
-        title: "Password Reset Successful",
-        description: "Your password has been updated successfully."
+        title: t('resetPassword.successTitle'),
+        description: t('resetPassword.successMessage')
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to reset password. Please try again.",
-        variant: "destructive"
+        title: t('errors.title'),
+        description: error.message || t('resetPassword.errors.generic'),
+        variant: 'destructive'
       });
     } finally {
       setIsLoading(false);
@@ -107,8 +108,6 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
     onSuccess();
   };
 
-  // Remove getPasswordStrength and passwordStrength logic
-
   if (isSuccess) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -119,15 +118,15 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <DialogTitle className="text-2xl font-bold">Password Reset Successful</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">{t('resetPassword.successTitle')}</DialogTitle>
             <p className="text-muted-foreground text-sm">
-              Your password has been successfully updated. You can now sign in with your new password.
+              {t('resetPassword.successMessage')}
             </p>
           </DialogHeader>
 
           <div className="space-y-4">
             <Button onClick={handleLoginRedirect} className="w-full">
-              Continue to Sign In
+              {t('resetPassword.continueToSignIn')}
             </Button>
           </div>
         </DialogContent>
@@ -139,21 +138,21 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center pb-4">
-          <DialogTitle className="text-2xl font-bold">Set New Password</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">{t('resetPassword.title')}</DialogTitle>
           <p className="text-muted-foreground text-sm">
-            Enter your new password
+            {t('resetPassword.subtitle')}
           </p>
         </DialogHeader>
 
         <div className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="reset-password">New Password</Label>
+              <Label htmlFor="reset-password">{t('resetPassword.newPasswordLabel')}</Label>
               <div className="relative">
                 <Input
                   id="reset-password"
-                  type={showNewPassword ? "text" : "password"}
-                  placeholder="Enter new password"
+                  type={showNewPassword ? 'text' : 'password'}
+                  placeholder={t('resetPassword.newPasswordPlaceholder')}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="pr-10"
@@ -165,7 +164,7 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
                   size="sm"
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  aria-label={showNewPassword ? "Hide password" : "Show password"}
+                  aria-label={showNewPassword ? t('resetPassword.hidePassword') : t('resetPassword.showPassword')}
                 >
                   {showNewPassword ? (
                     <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -174,16 +173,15 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
                   )}
                 </Button>
               </div>
-              {/* Password strength UI removed */}
             </div>
 
             <div>
-              <Label htmlFor="reset-confirm-password">Confirm New Password</Label>
+              <Label htmlFor="reset-confirm-password">{t('resetPassword.confirmPasswordLabel')}</Label>
               <div className="relative">
                 <Input
                   id="reset-confirm-password"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm new password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder={t('resetPassword.confirmPasswordPlaceholder')}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pr-10"
@@ -195,7 +193,7 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
                   size="sm"
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  aria-label={showConfirmPassword ? t('resetPassword.hidePassword') : t('resetPassword.showPassword')}
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -204,11 +202,14 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
                   )}
                 </Button>
               </div>
-
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading || newPassword !== confirmPassword || newPassword.length < 8}>
-              {isLoading ? 'Resetting...' : 'Reset Password'}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading || newPassword !== confirmPassword || newPassword.length < 8}
+            >
+              {isLoading ? t('resetPassword.resetting') : t('resetPassword.resetPasswordBtn')}
             </Button>
           </form>
         </div>
@@ -217,4 +218,4 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
   );
 };
 
-export default ResetPasswordDialog; 
+export default ResetPasswordDialog;

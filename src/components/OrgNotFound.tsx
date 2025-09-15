@@ -4,12 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Home, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface OrgNotFoundProps {
   orgSlug: string;
 }
 
 const OrgNotFound: React.FC<OrgNotFoundProps> = ({ orgSlug }) => {
+  const { t } = useTranslation("orgnotfound");
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(3);
 
@@ -44,29 +46,29 @@ const OrgNotFound: React.FC<OrgNotFoundProps> = ({ orgSlug }) => {
             <AlertCircle className="w-6 h-6 text-red-600" />
           </div>
           <CardTitle className="text-xl font-semibold text-gray-900">
-            Organization Not Found
+            {t('orgNotFound.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              The organization <strong>"{orgSlug}"</strong> does not exist or is not available.
+              {t('orgNotFound.message', { org: orgSlug })}
             </AlertDescription>
           </Alert>
           
           <div className="text-center text-sm text-gray-600">
-            Redirecting you to home page in <span className="font-semibold text-primary">{countdown}</span> seconds...
+            {t('orgNotFound.redirect', { count: countdown })}
           </div>
 
           <div className="flex flex-col gap-2">
             <Button onClick={handleGoHome} className="w-full">
               <Home className="w-4 h-4 mr-2" />
-              Go to Home Page
+              {t('orgNotFound.goHome')}
             </Button>
             <Button variant="outline" onClick={handleGoBack} className="w-full">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Back
+              {t('orgNotFound.goBack')}
             </Button>
           </div>
         </CardContent>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -77,6 +78,7 @@ interface CandidateListViewProps {
 }
 
 const CandidateListView: React.FC<CandidateListViewProps> = ({ searchQuery }) => {
+  const { t } = useTranslation('candidateslist');
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
   const getStatusColor = (status: string) => {
@@ -107,29 +109,23 @@ const CandidateListView: React.FC<CandidateListViewProps> = ({ searchQuery }) =>
       ...(candidate.skills || [])
     ].map(field => field.toLowerCase());
 
-    // Check if all search terms are found in any of the searchable fields
     return searchTerms.every(term => 
       searchableFields.some(field => field.includes(term))
     );
   });
 
   const handleCardClick = (candidate: Candidate, event: React.MouseEvent) => {
-    // Don't open dialog if clicking on action buttons
     const target = event.target as HTMLElement;
-    if (target.closest('button')) {
-      return;
-    }
+    if (target.closest('button')) return;
     setSelectedCandidate(candidate);
   };
 
   const handleShortlist = (candidateId: string) => {
     console.log('Shortlisting candidate:', candidateId);
-    // Add shortlist logic here
   };
 
   const handleReject = (candidateId: string) => {
     console.log('Rejecting candidate:', candidateId);
-    // Add reject logic here
   };
 
   return (
@@ -154,7 +150,7 @@ const CandidateListView: React.FC<CandidateListViewProps> = ({ searchQuery }) =>
                     </div>
                   </div>
                   <Badge className={getStatusColor(candidate.status)}>
-                    {candidate.status}
+                    {t(`status.${candidate.status}`)}
                   </Badge>
                 </div>
               </CardHeader>
@@ -167,27 +163,33 @@ const CandidateListView: React.FC<CandidateListViewProps> = ({ searchQuery }) =>
                 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  Applied on {new Date(candidate.applicationDate).toLocaleDateString()}
+                  {t('labels.appliedOn')} {new Date(candidate.applicationDate).toLocaleDateString()}
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Award className="h-4 w-4" />
-                  {candidate.experience} experience
+                  {candidate.experience} {t('labels.experience')}
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm font-medium">Trust: {candidate.trustScore}%</span>
+                    <span className="text-sm font-medium">
+                      {t('labels.trustScore')}: {candidate.trustScore}%
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 text-green-500" />
-                    <span className="text-sm font-medium">Match: {candidate.matchScore}%</span>
+                    <span className="text-sm font-medium">
+                      {t('labels.matchScore')}: {candidate.matchScore}%
+                    </span>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Criteria Met:</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    {t('labels.criteriaMet')}:
+                  </p>
                   <CriteriaLabels criteria={candidate.criteriaFulfilled} maxVisible={2} />
                 </div>
 
@@ -199,7 +201,7 @@ const CandidateListView: React.FC<CandidateListViewProps> = ({ searchQuery }) =>
                   ))}
                   {candidate.skills.length > 2 && (
                     <Badge variant="secondary" className="text-xs">
-                      +{candidate.skills.length - 2} more
+                      +{candidate.skills.length - 2} {t('labels.more')}
                     </Badge>
                   )}
                 </div>
@@ -216,7 +218,7 @@ const CandidateListView: React.FC<CandidateListViewProps> = ({ searchQuery }) =>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Shortlist Candidate</p>
+                      <p>{t('actions.shortlist')}</p>
                     </TooltipContent>
                   </Tooltip>
                   
@@ -231,7 +233,7 @@ const CandidateListView: React.FC<CandidateListViewProps> = ({ searchQuery }) =>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Reject Application</p>
+                      <p>{t('actions.reject')}</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>

@@ -1,0 +1,10 @@
+{
+  "loginStep": {
+    "title": "Post a Job",
+    "subtitle": "Please login or sign up to post a job",
+    "loginEmail": "Login with Email",
+    "loginPhone": "Login with Phone",
+    "createAccount": "Create New Account",
+    "agreement": "By proceeding, you agree to our Terms & Conditions"
+  }
+}

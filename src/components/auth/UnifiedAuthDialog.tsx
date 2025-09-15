@@ -7,11 +7,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { User, Mail, Phone, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiClient, RequestOTPResponse } from '@/lib/api';
+import { apiClient } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'react-router-dom';
 import OTPVerificationDialog from './OTPVerificationDialog';
 import RegistrationDialog from './RegistrationDialog';
+import { useTranslation } from 'react-i18next';
 
 interface UnifiedAuthDialogProps {
   isOpen: boolean;
@@ -32,11 +33,12 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   const [showOTPDialog, setShowOTPDialog] = useState(false);
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
   const [formattedPhoneNumber, setFormattedPhoneNumber] = useState('');
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const { verifyOTP } = useAuth();
   const { toast } = useToast();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
+  const { t } = useTranslation('unifiedAuth.json');
 
   // Debounced contact type detection
   useEffect(() => {
@@ -44,7 +46,6 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
       setContactType('email');
       return;
     }
-
     const timer = setTimeout(() => {
       if (contactInput.includes('@')) {
         setContactType('email');
@@ -54,68 +55,35 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           setContactType('phone');
         }
       }
-    }, 300); // 300ms delay to prevent rapid changes
-
+    }, 300);
     return () => clearTimeout(timer);
   }, [contactInput]);
 
   // Format phone number with country code
   const formatPhoneNumber = (input: string): string => {
     const digits = input.replace(/\D/g, '');
-    
-    // If it already starts with +91, return as is
-    if (input.startsWith('+91')) {
-      return input;
-    }
-    
-    // If it's a 10-digit number, add +91
-    if (digits.length === 10) {
-      return `+91${digits}`;
-    }
-    
-    // If it's an 11-digit number starting with 91, add +
-    if (digits.length === 11 && digits.startsWith('91')) {
+    if (input.startsWith('+91')) return input;
+    if (digits.length === 10) return `+91${digits}`;
+    if ((digits.length === 11 || digits.length === 12) && digits.startsWith('91')) {
       return `+${digits}`;
     }
-    
-    // If it's a 12-digit number starting with 91, add +
-    if (digits.length === 12 && digits.startsWith('91')) {
-      return `+${digits}`;
-    }
-    
-    // For other cases, just add +91 if it's a 10-digit number
-    if (digits.length === 10) {
-      return `+91${digits}`;
-    }
-    
     return input;
   };
 
   const handleContactInputChange = (value: string) => {
     const currentCursorPosition = inputRef.current?.selectionStart || 0;
-    
     setContactInput(value);
-    
-    // Format phone number if it's a phone input
     if (contactType === 'phone' || value.replace(/\D/g, '').length >= 10) {
       const formatted = formatPhoneNumber(value);
       setFormattedPhoneNumber(formatted);
-      
-      // Handle cursor position after formatting
       requestAnimationFrame(() => {
         if (inputRef.current) {
           let newCursorPosition = currentCursorPosition;
-          
-          // If the formatted value has +91 prefix and the original input didn't start with it
           if (formatted.startsWith('+91') && !value.startsWith('+91')) {
-            // Position cursor after the +91 prefix
             newCursorPosition = Math.max(currentCursorPosition + 3, 3);
           }
-          
-          // Ensure cursor is within the input bounds
           const maxPosition = formatted.length;
           newCursorPosition = Math.min(newCursorPosition, maxPosition);
-          
           inputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
         }
       });
@@ -129,7 +97,6 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailRegex.test(contactInput);
     } else {
-      // Phone validation - should have at least 10 digits
       const phoneDigits = contactInput.replace(/\D/g, '');
       return phoneDigits.length >= 10;
     }
@@ -138,10 +105,10 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   const handleContinue = async () => {
     if (!validateInput()) {
       toast({
-        title: "Invalid Input",
+        title: t('errors.invalidInputTitle'),
         description: contactType === 'email' 
-          ? "Please enter a valid email address" 
-          : "Please enter a valid phone number",
+          ? t('errors.invalidEmail')
+          : t('errors.invalidPhone'),
         variant: "destructive"
       });
       return;
@@ -151,44 +118,36 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     setStep('checking');
 
     try {
-      // Prepare payload based on contact type
       const checkPayload = contactType === 'email' 
         ? { email: contactInput }
         : { phoneNumber: formattedPhoneNumber || formatPhoneNumber(contactInput) };
 
-      // First, check if user exists
       const checkResponse = await apiClient.checkUser(checkPayload);
-      
+
       if (checkResponse.userExists) {
-        // User exists - request OTP and show verification
         setUserExists(true);
         setStep('otp');
-        
-        // Request OTP for existing user
         const otpResponse = await apiClient.requestOTP(checkPayload);
-        
         if (otpResponse.ok) {
           setShowOTPDialog(true);
         } else {
           toast({
-            title: "Error",
-            description: "Failed to send OTP. Please try again.",
+            title: t('errors.errorTitle'),
+            description: t('errors.sendOtpFailed'),
             variant: "destructive"
           });
           setStep('initial');
         }
       } else {
-        // User doesn't exist - show registration
         setUserExists(false);
         setStep('register');
-        
-        // Show toast first
         toast({
-          title: "Account Not Found",
-          description: `No account found with ${contactType === 'email' ? 'email' : 'phone number'} ${contactInput}. Please create a new account.`,
+          title: t('errors.accountNotFoundTitle'),
+          description: t('errors.accountNotFoundDescription', {
+            type: contactType === 'email' ? t('form.emailLabel') : t('form.phoneLabel'),
+            value: contactInput
+          })
         });
-        
-        // Small delay before showing registration dialog to ensure toast is properly established
         setTimeout(() => {
           setShowRegisterDialog(true);
         }, 100);
@@ -196,8 +155,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     } catch (error) {
       console.error('Error checking user:', error);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: t('errors.errorTitle'),
+        description: t('errors.genericError'),
         variant: "destructive"
       });
       setStep('initial');
@@ -210,8 +169,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     setShowOTPDialog(false);
     onClose();
     toast({
-      title: "Success",
-      description: "Successfully signed in!",
+      title: t('messages.successTitle'),
+      description: t('messages.signedIn')
     });
   };
 
@@ -219,13 +178,12 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     setShowRegisterDialog(false);
     onClose();
     toast({
-      title: "Success",
-      description: "Account created successfully!",
+      title: t('messages.successTitle'),
+      description: t('messages.accountCreated')
     });
   };
 
   const handleClose = () => {
-    // Reset all state
     setStep('initial');
     setContactInput('');
     setContactType('email');
@@ -234,33 +192,14 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     setShowOTPDialog(false);
     setShowRegisterDialog(false);
     setFormattedPhoneNumber('');
-    
-    // Close the modal
     onClose();
   };
 
-  // Handle modal open/close changes
   useEffect(() => {
     if (!isOpen) {
-      // Reset state when modal is closed
-      setStep('initial');
-      setContactInput('');
-      setContactType('email');
-      setIsLoading(false);
-      setUserExists(false);
-      setShowOTPDialog(false);
-      setShowRegisterDialog(false);
-      setFormattedPhoneNumber('');
+      handleClose();
     } else {
-      // Reset state when modal is opened
-      setStep('initial');
-      setContactInput('');
-      setContactType('email');
-      setIsLoading(false);
-      setUserExists(false);
-      setShowOTPDialog(false);
-      setShowRegisterDialog(false);
-      setFormattedPhoneNumber('');
+      handleClose();
     }
   }, [isOpen]);
 
@@ -270,9 +209,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
 
   const getPlaceholder = () => {
     if (contactType === 'phone') {
-      return "Enter your phone number";
+      return t('form.phonePlaceholder');
     }
-    return "Enter your phone number or email";
+    return t('form.contactPlaceholder');
   };
 
   const getDisplayValue = () => {
@@ -288,15 +227,15 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-semibold">
-              Sign in or create account
+              {t('dialog.title')}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-6">
             {/* Contact Input */}
             <div className="space-y-2">
               <Label htmlFor="contact" className="text-sm font-medium">
-                Enter mobile number or email
+                {t('form.contactLabel')}
               </Label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
@@ -316,13 +255,12 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
               {contactInput && (
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
-                    {contactType === 'phone' ? 'Phone Number' : 'Email Address'}
+                    {contactType === 'phone' ? t('form.phoneLabel') : t('form.emailLabel')}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     {contactType === 'phone' 
-                      ? 'We\'ll send you an SMS with a verification code' 
-                      : 'We\'ll send you a verification code via email'
-                    }
+                      ? t('messages.phoneInfo') 
+                      : t('messages.emailInfo')}
                   </span>
                 </div>
               )}
@@ -337,11 +275,11 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Checking...
+                  {t('buttons.checking')}
                 </>
               ) : (
                 <>
-                  Continue
+                  {t('buttons.continue')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -353,10 +291,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
                 <div className="flex items-start gap-3">
                   <User className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="space-y-1">
-                    <p className="text-sm font-medium">How it works</p>
+                    <p className="text-sm font-medium">{t('info.title')}</p>
                     <p className="text-xs text-muted-foreground">
-                      Enter your email or phone number. If you have an account, we'll send you a verification code. 
-                      If not, we'll help you create a new account.
+                      {t('info.description')}
                     </p>
                   </div>
                 </div>
@@ -366,7 +303,6 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* OTP Verification Dialog */}
       {showOTPDialog && (
         <OTPVerificationDialog
           isOpen={showOTPDialog}
@@ -376,11 +312,10 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           method={contactType}
           phoneNumber={contactType === 'phone' ? formattedPhoneNumber || formatPhoneNumber(contactInput) : undefined}
           email={contactType === 'email' ? contactInput : undefined}
-          name={contactInput.split('@')[0]} // Use the part before @ for email, or full input for phone
+          name={contactInput.split('@')[0]}
         />
       )}
 
-      {/* Registration Dialog */}
       {showRegisterDialog && (
         <RegistrationDialog
           isOpen={showRegisterDialog}
@@ -394,4 +329,4 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   );
 };
 
-export default UnifiedAuthDialog; 
+export default UnifiedAuthDialog;

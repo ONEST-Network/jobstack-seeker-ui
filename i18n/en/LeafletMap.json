@@ -1,0 +1,14 @@
+{
+  "map": {
+    "jobsCount": "{{count}} job",
+    "jobsCount_plural": "{{count}} jobs",
+    "density": {
+      "high": "High density",
+      "medium": "Medium density",
+      "low": "Low density"
+    },
+    "moreRoles": "+{{count}} more roles",
+    "you": "You",
+    "yourLocation": "Your Location"
+  }
+}

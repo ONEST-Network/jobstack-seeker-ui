@@ -1,0 +1,20 @@
+{
+  "jobDetail": {
+    "verified": "Verified",
+    "openings": "{{count}} openings",
+    "totalSalary": "Total Salary",
+    "trust": "Trust",
+    "match": "Match",
+    "media": "Media & Photos",
+    "applyNow": "Apply Now",
+    "notSpecified": "Not specified"
+  },
+  "auth": {
+    "loginToSee": "Login to see"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "orgNotFound": {
+    "title": "Organization Not Found",
+    "message": "The organization \"{{org}}\" does not exist or is not available.",
+    "redirect": "Redirecting you to home page in {{count}} seconds...",
+    "goHome": "Go to Home Page",
+    "goBack": "Go Back"
+  }
+}

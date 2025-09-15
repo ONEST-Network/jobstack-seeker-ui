@@ -1,0 +1,45 @@
+{
+  "chatbot": {
+    "header": {
+      "title": "AI Assistant"
+    },
+    "messages": {
+      "welcome": "👋 Hello! I'm your AI assistant. How can I help you today?"
+    },
+    "phone": {
+      "sessionTitle": "📱 Using your session phone:",
+      "sessionDescription": "Click the button below to call using this number from your session",
+      "noSessionTitle": "⚠️ No phone number found in session",
+      "noSessionDescription": "Please enter your phone number to make a call",
+      "sessionLabel": "Session Phone:",
+      "sessionHelper": "You can use this number from your session or enter a different one below",
+      "inputLabel": "Enter your phone number",
+      "placeholder": "+91 98765 43210",
+      "helper": "We'll call you on this number"
+    },
+    "buttons": {
+      "callAgent": "Call AI Agent",
+      "callSession": "Call AI Agent (Session Number)",
+      "connecting": "Connecting...",
+      "callNow": "Call Now",
+      "cancel": "Cancel",
+      "useSession": "Use Session Number",
+      "calling": "Calling..."
+    },
+    "errors": {
+      "invalidPhoneTitle": "Invalid Phone Number",
+      "invalidPhoneDescription": "The phone number in your profile is not valid. Please update it or enter manually.",
+      "phoneInputInvalid": "Please enter a valid 10-digit Indian phone number"
+    },
+    "call": {
+      "successTitle": "Agent is Calling you, please pick up!!",
+      "successDescription": "Your call is being connected...",
+      "failedTitle": "Call Failed",
+      "failedDescription": "Failed to initiate call. Please try again."
+    },
+    "toggle": {
+      "aria": "Open AI Help",
+      "title": "Open AI Help"
+    }
+  }
+}
