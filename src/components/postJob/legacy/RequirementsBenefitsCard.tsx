@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, X } from 'lucide-react';
 import { JobData } from '@/types/jobPost';
+import { useTranslation } from 'react-i18next';
 
 interface RequirementsBenefitsCardProps {
   jobData: JobData;
@@ -13,6 +13,8 @@ interface RequirementsBenefitsCardProps {
 }
 
 const RequirementsBenefitsCard: React.FC<RequirementsBenefitsCardProps> = ({ jobData, setJobData }) => {
+  const { t } = useTranslation('requirementsBenefitsCard');
+
   const addField = (field: 'requirements' | 'benefits') => {
     setJobData(prev => ({
       ...prev,
@@ -30,24 +32,27 @@ const RequirementsBenefitsCard: React.FC<RequirementsBenefitsCardProps> = ({ job
   const updateField = (field: 'requirements' | 'benefits', index: number, value: string) => {
     setJobData(prev => ({
       ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
+      [field]: prev[field].map((item, i) => (i === index ? value : item))
     }));
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Requirements & Benefits</CardTitle>
+        <CardTitle className="text-lg">
+          {t('requirementsBenefits.title')}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Job Requirements */}
         <div>
-          <Label>Job Requirements</Label>
+          <Label>{t('requirementsBenefits.requirementsLabel')}</Label>
           {jobData.requirements.map((req, index) => (
             <div key={index} className="flex gap-2 mt-2">
               <Input
                 value={req}
                 onChange={(e) => updateField('requirements', index, e.target.value)}
-                placeholder="Enter requirement"
+                placeholder={t('requirementsBenefits.requirementPlaceholder')}
               />
               {jobData.requirements.length > 1 && (
                 <Button
@@ -67,18 +72,19 @@ const RequirementsBenefitsCard: React.FC<RequirementsBenefitsCardProps> = ({ job
             className="mt-2"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Requirement
+            {t('requirementsBenefits.addRequirement')}
           </Button>
         </div>
 
+        {/* Benefits */}
         <div>
-          <Label>Benefits & Perks</Label>
+          <Label>{t('requirementsBenefits.benefitsLabel')}</Label>
           {jobData.benefits.map((benefit, index) => (
             <div key={index} className="flex gap-2 mt-2">
               <Input
                 value={benefit}
                 onChange={(e) => updateField('benefits', index, e.target.value)}
-                placeholder="Enter benefit"
+                placeholder={t('requirementsBenefits.benefitPlaceholder')}
               />
               {jobData.benefits.length > 1 && (
                 <Button
@@ -98,7 +104,7 @@ const RequirementsBenefitsCard: React.FC<RequirementsBenefitsCardProps> = ({ job
             className="mt-2"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Benefit
+            {t('requirementsBenefits.addBenefit')}
           </Button>
         </div>
       </CardContent>

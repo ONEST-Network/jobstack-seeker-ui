@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Shield, Upload, CheckCircle } from 'lucide-react';
 import { useAuth, Certificate, UserProfile } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface DocumentImportDialogProps {
   isOpen: boolean;
@@ -21,6 +21,7 @@ const DocumentImportDialog: React.FC<DocumentImportDialogProps> = ({
 }) => {
   const { user, updateProfile } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation("documentimportdialog"); 
   const [importing, setImporting] = useState(false);
 
   // Type guard to check if profile is UserProfile
@@ -29,11 +30,11 @@ const DocumentImportDialog: React.FC<DocumentImportDialogProps> = ({
   };
 
   const availableDocuments = [
-    { name: 'AADHAAR Card', verified: true, trustPoints: 2 },
-    { name: 'PAN Card', verified: true, trustPoints: 1 },
-    { name: 'Driving License', verified: false, trustPoints: 1 },
-    { name: 'Voter ID', verified: false, trustPoints: 1 },
-    { name: 'Passport', verified: false, trustPoints: 2 }
+    { name: t('documents.aadhaar'), verified: true, trustPoints: 2 },
+    { name: t('documents.pan'), verified: true, trustPoints: 1 },
+    { name: t('documents.drivingLicense'), verified: false, trustPoints: 1 },
+    { name: t('documents.voterId'), verified: false, trustPoints: 1 },
+    { name: t('documents.passport'), verified: false, trustPoints: 2 }
   ];
 
   const handleDigiLockerImport = async () => {
@@ -47,15 +48,15 @@ const DocumentImportDialog: React.FC<DocumentImportDialogProps> = ({
     const newCertificates: Certificate[] = [
       {
         id: 'aadhaar-' + Date.now(),
-        name: 'AADHAAR Verification',
-        issuer: 'Government of India',
+        name: t('certificates.aadhaarVerification'),
+        issuer: t('certificates.government'),
         issueDate: new Date().toISOString(),
         isVerified: true
       },
       {
         id: 'pan-' + Date.now(),
-        name: 'PAN Card Verification',
-        issuer: 'Income Tax Department',
+        name: t('certificates.panVerification'),
+        issuer: t('certificates.incomeTax'),
         issueDate: new Date().toISOString(),
         isVerified: true
       }
@@ -72,16 +73,16 @@ const DocumentImportDialog: React.FC<DocumentImportDialogProps> = ({
 
     setImporting(false);
     toast({
-      title: "Documents Imported Successfully",
-      description: "Your trust score has been updated with verified documents."
+      title: t('toasts.importSuccess.title'),
+      description: t('toasts.importSuccess.description')
     });
     onImportComplete();
   };
 
   const handleManualUpload = () => {
     toast({
-      title: "Upload Feature",
-      description: "Manual upload will be available in the next version."
+      title: t('toasts.uploadFeature.title'),
+      description: t('toasts.uploadFeature.description')
     });
   };
 
@@ -91,11 +92,11 @@ const DocumentImportDialog: React.FC<DocumentImportDialogProps> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Document Import Not Available</DialogTitle>
+            <DialogTitle>{t('dialogs.notAvailable.title')}</DialogTitle>
           </DialogHeader>
           <div className="text-center p-4">
-            <p>Document import is only available for individual job seekers.</p>
-            <Button onClick={onClose} className="mt-4">Close</Button>
+            <p>{t('dialogs.notAvailable.message')}</p>
+            <Button onClick={onClose} className="mt-4">{t('common.close')}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -108,34 +109,34 @@ const DocumentImportDialog: React.FC<DocumentImportDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-green-600" />
-            Improve Trust Score
+            {t('dialogs.trustScore.title')}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div className="text-sm text-muted-foreground">
-            Import verified documents to increase your trust score and stand out to employers.
+            {t('dialogs.trustScore.description')}
           </div>
 
           <Card className="border-dashed">
             <CardContent className="p-4 text-center">
               <FileText className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-              <h3 className="font-medium mb-2">DigiLocker Import</h3>
+              <h3 className="font-medium mb-2">{t('dialogs.digilocker.title')}</h3>
               <p className="text-xs text-muted-foreground mb-3">
-                Instantly verify your government documents
+                {t('dialogs.digilocker.description')}
               </p>
               <Button 
                 onClick={handleDigiLockerImport}
                 disabled={importing}
                 className="w-full"
               >
-                {importing ? 'Importing...' : 'Import from DigiLocker'}
+                {importing ? t('dialogs.digilocker.importing') : t('dialogs.digilocker.button')}
               </Button>
             </CardContent>
           </Card>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Available Documents</h4>
+            <h4 className="text-sm font-medium">{t('dialogs.availableDocs.title')}</h4>
             {availableDocuments.map((doc, index) => (
               <div key={index} className="flex items-center justify-between p-2 border rounded">
                 <div className="flex items-center gap-2">
@@ -143,7 +144,7 @@ const DocumentImportDialog: React.FC<DocumentImportDialogProps> = ({
                   {doc.verified && <CheckCircle className="h-4 w-4 text-green-600" />}
                 </div>
                 <Badge variant="secondary" className="text-xs">
-                  +{doc.trustPoints} pts
+                  +{doc.trustPoints} {t('common.points')}
                 </Badge>
               </div>
             ))}
@@ -152,10 +153,10 @@ const DocumentImportDialog: React.FC<DocumentImportDialogProps> = ({
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleManualUpload} className="flex-1">
               <Upload className="h-4 w-4 mr-1" />
-              Upload
+              {t('common.upload')}
             </Button>
             <Button variant="outline" onClick={onClose}>
-              Later
+              {t('common.later')}
             </Button>
           </div>
         </div>

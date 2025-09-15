@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useAuth, EmployerProfile } from '@/contexts/AuthContext';
@@ -7,6 +7,7 @@ import EmployerCard from './EmployerCard';
 import EmployerProfileDialog from './EmployerProfileDialog';
 
 const EmployerManagement = () => {
+  const { t } = useTranslation("employermanagement");
   const { user, selectEmployer, deleteEmployer, getSelectedEmployer } = useAuth();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingEmployer, setEditingEmployer] = useState<EmployerProfile | null>(null);
@@ -21,13 +22,12 @@ const EmployerManagement = () => {
   };
 
   const handleDeleteEmployer = (employerId: string) => {
-    // Prevent deletion of default employer
     if (employerId === 'default-employer') {
-      alert('Cannot delete the default employer profile. This represents your organization.');
+      alert(t('employerManagement.cannotDeleteDefault'));
       return;
     }
-    
-    if (confirm('Are you sure you want to delete this employer profile?')) {
+
+    if (confirm(t('employerManagement.confirmDelete'))) {
       deleteEmployer(employerId);
     }
   };
@@ -39,7 +39,6 @@ const EmployerManagement = () => {
 
   if (!user) return null;
 
-  // Sort employers to show default employer first
   const sortedEmployers = [...user.managedEmployers].sort((a, b) => {
     if (a.id === 'default-employer') return -1;
     if (b.id === 'default-employer') return 1;
@@ -50,14 +49,12 @@ const EmployerManagement = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Employer Management</h2>
-          <p className="text-muted-foreground">
-            Manage employer profiles and switch between different companies
-          </p>
+          <h2 className="text-2xl font-bold">{t('employerManagement.title')}</h2>
+          <p className="text-muted-foreground">{t('employerManagement.subtitle')}</p>
         </div>
         <Button onClick={() => setShowAddDialog(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Employer
+          {t('employerManagement.addEmployer')}
         </Button>
       </div>
 

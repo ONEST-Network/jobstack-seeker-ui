@@ -4,6 +4,7 @@ import { GraduationCap } from 'lucide-react';
 import { Education } from '@/types/profile';
 import EducationListItem from './education/EducationListItem';
 import AddEducationForm from './education/AddEducationForm';
+import { useTranslation } from 'react-i18next';
 
 interface EducationQualificationCardProps {
   education: Education[];
@@ -14,6 +15,8 @@ const EducationQualificationCard: React.FC<EducationQualificationCardProps> = ({
   education,
   onChange
 }) => {
+  const { t } = useTranslation('educationqualificationcard');
+
   const handleAddEducation = (newEducation: Education) => {
     onChange([...education, newEducation]);
   };
@@ -27,7 +30,7 @@ const EducationQualificationCard: React.FC<EducationQualificationCardProps> = ({
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <GraduationCap className="h-4 w-4" />
-          Education Qualification
+          {t('title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

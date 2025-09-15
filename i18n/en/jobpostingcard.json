@@ -1,0 +1,28 @@
+{
+  "job": {
+    "postedOn": "Posted on",
+    "applicationsCount": "{{count}} application",
+    "applicationsCount_plural": "{{count}} applications",
+    "notAvailable": "N/A",
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "tabs": {
+      "applications": "Applications",
+      "details": "Job Details"
+    },
+    "fields": {
+      "type": "Job Type",
+      "salary": "Salary",
+      "location": "Location",
+      "status": "Status"
+    },
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "draft": "Draft"
+    }
+  }
+}

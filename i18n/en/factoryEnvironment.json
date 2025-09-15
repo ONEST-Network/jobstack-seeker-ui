@@ -1,0 +1,12 @@
+{
+  "factoryEnvironment": {
+    "title": "Factory Environment",
+    "walkthroughLabel": "Factory Walkthrough Video",
+    "walkthroughDescription": "Show the factory floor, working conditions, and facilities",
+    "testimonialLabel": "Worker Testimonial Video",
+    "testimonialDescription": "Current employee sharing their experience",
+    "trustScoreLabel": "Factory Trust Score",
+    "trustScorePlaceholder": "8.5",
+    "trustScoreNote": "Auto-computed based on uploaded videos and reviews"
+  }
+}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'react-router-dom';
 import OTPVerificationDialog from './OTPVerificationDialog';
+import { useTranslation } from 'react-i18next';
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -16,80 +16,61 @@ interface LoginDialogProps {
   defaultRole: 'individual' | 'organization';
 }
 
-const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRegister, defaultRole }) => {
+const LoginDialog: React.FC<LoginDialogProps> = ({
+  isOpen,
+  onClose,
+  onSwitchToRegister,
+  defaultRole
+}) => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [formattedPhone, setFormattedPhone] = useState('');
   const [step, setStep] = useState<'login' | 'otp-verification'>('login');
-  
+
   const { requestOTP, isLoading } = useAuth();
   const { toast } = useToast();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
+  const { t } = useTranslation('login');
 
-  // Format phone number with country code
   const formatPhoneNumber = (input: string): string => {
     const digits = input.replace(/\D/g, '');
-    
-    // If it already starts with +91, return as is
-    if (input.startsWith('+91')) {
-      return input;
-    }
-    
-    // If it's a 10-digit number, add +91
-    if (digits.length === 10) {
-      return `+91${digits}`;
-    }
-    
-    // If it's an 11-digit number starting with 91, add +
-    if (digits.length === 11 && digits.startsWith('91')) {
+    if (input.startsWith('+91')) return input;
+    if (digits.length === 10) return `+91${digits}`;
+    if ((digits.length === 11 || digits.length === 12) && digits.startsWith('91')) {
       return `+${digits}`;
     }
-    
-    // If it's a 12-digit number starting with 91, add +
-    if (digits.length === 12 && digits.startsWith('91')) {
-      return `+${digits}`;
-    }
-    
-    // For other cases, just add +91 if it's a 10-digit number
-    if (digits.length === 10) {
-      return `+91${digits}`;
-    }
-    
     return input;
   };
 
   const handlePhoneChange = (value: string) => {
     setPhone(value);
-    const formatted = formatPhoneNumber(value);
-    setFormattedPhone(formatted);
+    setFormattedPhone(formatPhoneNumber(value));
   };
 
   const handleLogin = async () => {
     if (!email && !phone) {
       toast({
-        title: "Error",
-        description: "Please enter either your email address or phone number.",
-        variant: "destructive"
+        title: t('errors.errorTitle'),
+        description: t('errors.emptyFields'),
+        variant: 'destructive'
       });
       return;
     }
 
-    // Validate email if provided
     if (email && !email.includes('@')) {
       toast({
-        title: "Error",
-        description: "Please enter a valid email address.",
-        variant: "destructive"
+        title: t('errors.errorTitle'),
+        description: t('errors.invalidEmail'),
+        variant: 'destructive'
       });
       return;
     }
 
-    // Validate phone if provided
     if (phone && phone.replace(/\D/g, '').length < 10) {
       toast({
-        title: "Error",
-        description: "Please enter a valid phone number.",
-        variant: "destructive"
+        title: t('errors.errorTitle'),
+        description: t('errors.invalidPhone'),
+        variant: 'destructive'
       });
       return;
     }
@@ -103,14 +84,16 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
       await requestOTP(otpData);
       setStep('otp-verification');
       toast({
-        title: "OTP Sent",
-        description: `A 6-digit OTP has been sent to your ${email ? 'email' : 'phone'}.`
+        title: t('messages.otpSentTitle'),
+        description: t('messages.otpSentDescription', {
+          method: email ? t('form.emailLabel') : t('form.phoneLabel')
+        })
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to send OTP. Please try again.",
-        variant: "destructive"
+        title: t('errors.errorTitle'),
+        description: error.message || t('errors.sendOtpFailed'),
+        variant: 'destructive'
       });
     }
   };
@@ -124,11 +107,10 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
   };
 
   const handleOTPVerificationSuccess = () => {
-    // Close the dialog and show success message
     handleClose();
     toast({
-      title: "Welcome back!",
-      description: "You have successfully logged in."
+      title: t('messages.welcomeBackTitle'),
+      description: t('messages.welcomeBackDescription')
     });
   };
 
@@ -141,34 +123,36 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
       <Dialog open={isOpen && step !== 'otp-verification'} onOpenChange={handleClose}>
         <DialogContent className="w-[95vw] max-w-md mx-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Sign In</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
+              {t('dialog.signIn')}
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
             <div>
-              <Label htmlFor="login-email">Email Address</Label>
+              <Label htmlFor="login-email">{t('form.emailLabel')}</Label>
               <Input
                 id="login-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
+                placeholder={t('form.emailPlaceholder')}
               />
             </div>
 
             <div>
-              <Label htmlFor="login-phone">Phone Number</Label>
+              <Label htmlFor="login-phone">{t('form.phoneLabel')}</Label>
               <Input
                 id="login-phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
-                placeholder="+91 9876543210"
+                placeholder={t('form.phonePlaceholder')}
               />
             </div>
 
             <p className="text-sm text-muted-foreground">
-              Please provide at least one contact method (email or phone)
+              {t('messages.provideOneMethod')}
             </p>
           </div>
 
@@ -178,11 +162,11 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
               disabled={isLoading || !canSubmit()}
               className="w-full"
             >
-              {isLoading ? 'Sending OTP...' : 'Send OTP'}
+              {isLoading ? t('buttons.sendingOtp') : t('buttons.sendOtp')}
             </Button>
 
             <div className="text-center text-sm">
-              Don't have an account?{' '}
+              {t('messages.noAccount')}{' '}
               <Button
                 variant="link"
                 className="p-0"
@@ -191,7 +175,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
                   onSwitchToRegister();
                 }}
               >
-                Create Account
+                {t('buttons.createAccount')}
               </Button>
             </div>
           </div>

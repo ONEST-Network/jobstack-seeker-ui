@@ -1,0 +1,51 @@
+{
+  "tabs": {
+    "profile": "Profile",
+    "application": "Application",
+    "documents": "Documents",
+    "actions": "Actions"
+  },
+  "status": {
+    "applied": "Applied",
+    "reviewed": "Reviewed",
+    "shortlisted": "Shortlisted",
+    "interview": "Interview",
+    "hired": "Hired",
+    "rejected": "Rejected"
+  },
+  "profile": {
+    "personalInfo": "Personal Information",
+    "experience": "{{exp}} experience",
+    "scores": "Scores & Metrics",
+    "trustScore": "Trust Score",
+    "matchScore": "Match Score",
+    "skills": "Skills"
+  },
+  "application": {
+    "title": "Application Details",
+    "appliedOn": "Applied on {{date}}",
+    "responses": {
+      "title": "Application Responses",
+      "q1": "Why are you interested in this position?",
+      "a1": "I have 3 years of experience in electrical work and am passionate about maintaining electrical systems.",
+      "q2": "Are you available to work night shifts?",
+      "a2": "Yes, I am flexible with my schedule and can work night shifts.",
+      "q3": "Do you have your own tools?",
+      "a3": "Yes, I have a complete set of electrical tools and safety equipment."
+    }
+  },
+  "documents": {
+    "title": "Uploaded Documents",
+    "view": "View",
+    "types": {
+      "resume": "Resume",
+      "certificate": "Certificate",
+      "experience": "Experience"
+    }
+  },
+  "actions": {
+    "title": "Quick Actions",
+    "shortlist": "Shortlist Candidate",
+    "reject": "Reject Application"
+  }
+}

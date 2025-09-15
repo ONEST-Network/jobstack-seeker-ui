@@ -1,10 +1,11 @@
-
 import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("footer");
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -12,43 +13,43 @@ const Footer = () => {
 
   const footerSections = [
     {
-      title: 'Platform',
+      title: t('footer.platform.title'),
       links: [
-        { name: 'Find Jobs', action: () => handleNavigation('/seeker') },
-        { name: 'Post a Job', action: () => handleNavigation('/provider') },
-        { name: 'Issue Certificates', action: () => {} },
-        { name: 'Public Dashboard', action: () => {} },
-        { name: 'Mobile App', action: () => {} }
+        { name: t('footer.platform.findJobs'), action: () => handleNavigation('/seeker') },
+        { name: t('footer.platform.postJob'), action: () => handleNavigation('/provider') },
+        { name: t('footer.platform.issueCertificates'), action: () => {} },
+        { name: t('footer.platform.publicDashboard'), action: () => {} },
+        { name: t('footer.platform.mobileApp'), action: () => {} }
       ]
     },
     {
-      title: 'Resources',
+      title: t('footer.resources.title'),
       links: [
-        { name: 'Help Center', action: () => {} },
-        { name: 'Career Guides', action: () => {} },
-        { name: 'Skill Development', action: () => {} },
-        { name: 'Interview Tips', action: () => {} },
-        { name: 'Resume Builder', action: () => {} }
+        { name: t('footer.resources.helpCenter'), action: () => {} },
+        { name: t('footer.resources.careerGuides'), action: () => {} },
+        { name: t('footer.resources.skillDevelopment'), action: () => {} },
+        { name: t('footer.resources.interviewTips'), action: () => {} },
+        { name: t('footer.resources.resumeBuilder'), action: () => {} }
       ]
     },
     {
-      title: 'Company',
+      title: t('footer.company.title'),
       links: [
-        { name: 'About Us', action: () => {} },
-        { name: 'Career', action: () => {} },
-        { name: 'Press', action: () => {} },
-        { name: 'Partner with Us', action: () => {} },
-        { name: 'Investor Relations', action: () => {} }
+        { name: t('footer.company.aboutUs'), action: () => {} },
+        { name: t('footer.company.career'), action: () => {} },
+        { name: t('footer.company.press'), action: () => {} },
+        { name: t('footer.company.partnerWithUs'), action: () => {} },
+        { name: t('footer.company.investorRelations'), action: () => {} }
       ]
     },
     {
-      title: 'Legal',
+      title: t('footer.legal.title'),
       links: [
-        { name: 'Terms & Conditions', action: () => {} },
-        { name: 'Privacy Policy', action: () => {} },
-        { name: 'Cookie Policy', action: () => {} },
-        { name: 'Data Protection', action: () => {} },
-        { name: 'Accessibility', action: () => {} }
+        { name: t('footer.legal.terms'), action: () => {} },
+        { name: t('footer.legal.privacy'), action: () => {} },
+        { name: t('footer.legal.cookie'), action: () => {} },
+        { name: t('footer.legal.dataProtection'), action: () => {} },
+        { name: t('footer.legal.accessibility'), action: () => {} }
       ]
     }
   ];
@@ -75,7 +76,7 @@ const Footer = () => {
               <span className="text-xl font-bold text-foreground">JobBridge</span>
             </div>
             <p className="text-muted-foreground text-sm mb-4">
-              Connecting talent with opportunities across India. Built for MSME and blue-collar workforce with AI-powered matching and local language support.
+              {t('footer.description')}
             </p>
             <div className="flex space-x-3">
               {socialLinks.map((social) => (
@@ -117,18 +118,19 @@ const Footer = () => {
         {/* Bottom Footer */}
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="text-sm text-muted-foreground">
-            © 2024 JobBridge. All rights reserved.
+            {t('footer.copyright')}
           </div>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-            <span>🇮🇳 Made in India</span>
-            <span>🔒 Secure Platform</span>
-            <span>📱 Mobile First</span>
-            <span>🌐 15+ Languages</span>
+            <span>{t('footer.badges.madeInIndia')}</span>
+            <span>{t('footer.badges.securePlatform')}</span>
+            <span>{t('footer.badges.mobileFirst')}</span>
+            <span>{t('footer.badges.languages')}</span>
           </div>
           
           <div className="text-sm text-muted-foreground">
-            Contact: <a href="mailto:support@jobbridge.in" className="text-primary hover:underline">
+            {t('footer.contact')}:{' '}
+            <a href="mailto:support@jobbridge.in" className="text-primary hover:underline">
               support@jobbridge.in
             </a>
           </div>

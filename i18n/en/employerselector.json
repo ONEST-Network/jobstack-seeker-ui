@@ -1,0 +1,7 @@
+{
+  "employerSelector": {
+    "selectEmployer": "Select Employer",
+    "switchEmployer": "Switch Employer",
+    "addNewEmployer": "Add New Employer"
+  }
+}

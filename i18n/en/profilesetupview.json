@@ -1,0 +1,8 @@
+{
+  "profileSetup": {
+    "welcome": "Welcome, {{email}}!",
+    "subtitle": "Let's set up your provider profile to start managing employers.",
+    "cardTitle": "Complete Your Provider Profile",
+    "createButton": "Create Provider Profile"
+  }
+}

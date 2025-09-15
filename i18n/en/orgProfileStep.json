@@ -1,0 +1,28 @@
+{
+  "orgProfileStep": {
+    "title": "Create Organization Profile",
+    "details": "Organization Details",
+    "orgName": "Organization Name *",
+    "gst": "GST Number",
+    "address": "Address *",
+    "contactPerson": "Contact Person *",
+    "email": "Email *",
+    "phone": "Phone Number *",
+    "website": "Website",
+    "description": "Organization Description",
+    "saveAndContinue": "Save & Continue to Job Posting",
+    "placeholders": {
+      "orgName": "Enter organization name",
+      "gst": "Enter GST number",
+      "address": "Enter complete address",
+      "contactPerson": "Contact person name",
+      "email": "organization@example.com",
+      "phone": "+91 9876543210",
+      "website": "https://yourcompany.com",
+      "description": "Brief description of your organization"
+    }
+  },
+  "common": {
+    "cancel": "Cancel"
+  }
+}

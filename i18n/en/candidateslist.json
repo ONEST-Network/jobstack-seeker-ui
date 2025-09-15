@@ -1,0 +1,22 @@
+{
+  "status": {
+    "applied": "Applied",
+    "reviewed": "Reviewed",
+    "shortlisted": "Shortlisted",
+    "interview": "Interview",
+    "hired": "Hired",
+    "rejected": "Rejected"
+  },
+  "labels": {
+    "appliedOn": "Applied on",
+    "experience": "experience",
+    "trustScore": "Trust",
+    "matchScore": "Match",
+    "criteriaMet": "Criteria Met",
+    "more": "more"
+  },
+  "actions": {
+    "shortlist": "Shortlist Candidate",
+    "reject": "Reject Application"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "jobApplicationForm": {
+    "submit": "Submit Application",
+    "submitting": "Submitting..."
+  },
+  "common": {
+    "cancel": "Cancel"
+  }
+}

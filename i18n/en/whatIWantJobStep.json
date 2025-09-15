@@ -1,0 +1,54 @@
+{
+  "title": "What I Want - Candidate Requirements (Step 3 of 3)",
+  "lastSaved": "Last saved:",
+  "alertFillFields": "Please fill all required fields",
+  "alertPublishFields": "Please fill all required fields to publish",
+  "basicReq": {
+    "title": "Basic Candidate Requirements",
+    "literacy": "Basic Literacy Level *",
+    "educationPlaceholder": "Select minimum education",
+    "education": {
+      "8th": "8th Pass - Can read and write",
+      "10th": "10th Pass",
+      "12th": "12th Pass",
+      "graduate": "Graduate"
+    },
+    "commitment": "Minimum Commitment Period (Months) *",
+    "commitmentHint": "How long should the candidate commit to work?"
+  },
+  "skillReq": {
+    "title": "Skill Requirements & Proof",
+    "skillProof": "Skill Proof Required",
+    "skillProofHint": "Candidate must demonstrate ability to handle electrical sewing machine",
+    "speedControl": "Machine Control - Speed & Straight Line Stitching",
+    "speedControlHint": "Candidate must demonstrate fast, straight-line stitching with speed control",
+    "cornerHandling": "Machine Control - Corner Handling",
+    "cornerHandlingHint": "Candidate must show ability to slow down at corners for consistent quality"
+  },
+  "intent": {
+    "title": "Intent & Commitment Verification",
+    "proofOfIntent": "Proof of Intent Required",
+    "proofOfIntentHint": "Candidate must demonstrate informed willingness to work in factory conditions",
+    "verifyTitle": "What we'll verify:",
+    "verifyPoints": {
+      "conditions": "Understanding of factory floor working conditions",
+      "commitment": "Willingness to commit for the specified duration",
+      "actions": "Actions taken throughout the application journey",
+      "interest": "Genuine interest in the role and industry"
+    }
+  },
+  "summary": {
+    "title": "Job Posting Summary",
+    "company": "Company:",
+    "role": "Role:",
+    "openings": "Openings:",
+    "location": "Location:",
+    "salary": "Salary:",
+    "education": "Min. Education:",
+    "commitment": "Commitment:",
+    "skillProof": "Skill Proof:"
+  },
+  "back": "Back: What I Have",
+  "saveDraft": "Save Draft",
+  "publish": "Publish Job"
+}

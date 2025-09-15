@@ -1,0 +1,42 @@
+{
+  "registration": {
+    "title": "Create Account",
+    "fullName": "Full Name *",
+    "fullNamePlaceholder": "Enter your full name",
+    "email": "Email Address",
+    "emailPlaceholder": "your@email.com",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+91 98765 43210",
+    "contactHint": "* Please provide at least one contact method (email or phone)",
+
+    "accountType": "Account Type",
+    "individual": "Individual",
+    "individualHint": "Job seeker",
+    "organization": "Organization",
+    "organizationHint": "Coming soon",
+
+    "terms": "I accept the <1>Terms and Conditions</1>",
+    "privacy": "I consent to <1>Data Privacy Policy</1>",
+
+    "sendOtp": "Send OTP",
+    "sendingOtp": "Sending OTP...",
+
+    "otpSentTitle": "OTP Sent",
+    "otpSentDescription": "A 6-digit OTP has been sent to your {{method}}.",
+
+    "registrationComplete": "Registration Complete",
+    "registrationCompleteDescription": "Your account has been created successfully!",
+
+    "profileCreated": "Profile Created",
+    "profileCreatedDescription": "Welcome! Your profile has been created successfully.",
+
+    "errors": {
+      "accept": "Please accept the terms and conditions and privacy policy.",
+      "name": "Please enter your name.",
+      "contact": "Please enter either your email address or phone number.",
+      "email": "Please enter a valid email address.",
+      "phone": "Please enter a valid phone number.",
+      "otp": "Failed to send OTP. Please try again."
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "candidateSelector": {
+    "selectProfile": "Select Profile",
+    "switchProfile": "Switch Profile",
+    "select": "Select",
+    "cancel": "Cancel",
+    "selectedCount": "{{count}} of {{total}} selected",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "noRole": "No role specified",
+    "active": "Active",
+    "addNew": "Add New Profile",
+    "deleteSelected": "Delete {{count}} Profile(s)",
+    "confirmDeleteTitle": "Delete Profiles",
+    "confirmDeleteDesc": "Are you sure you want to delete {{count}} profile(s)? This action cannot be undone.",
+    "confirmDelete": "Delete",
+    "errors": {
+      "deleteFailed": "Failed to delete some profiles. Please try again."
+    }
+  }
+}

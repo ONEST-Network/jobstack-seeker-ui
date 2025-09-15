@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import BasicJobInfoCard from './BasicJobInfoCard';
 import JobDescriptionCard from './JobDescriptionCard';
 import RequirementsBenefitsCard from './RequirementsBenefitsCard';
 import ApplicationQuestionsCard from './ApplicationQuestionsCard';
+import { useTranslation } from 'react-i18next';
 
 interface LegacyJobPostDialogProps {
   isOpen: boolean;
@@ -30,11 +30,13 @@ const LegacyJobPostDialog: React.FC<LegacyJobPostDialogProps> = ({
   onSubmit,
   onBack
 }) => {
+  const { t } = useTranslation('jobPostDialog'); 
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Post a New Job</DialogTitle>
+          <DialogTitle>{t('dialog.title')}</DialogTitle>
           {selectedJobRole && (
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="secondary">{selectedIndustry}</Badge>
@@ -43,7 +45,7 @@ const LegacyJobPostDialog: React.FC<LegacyJobPostDialogProps> = ({
             </div>
           )}
         </DialogHeader>
-        
+
         <div className="space-y-6">
           <BasicJobInfoCard jobData={jobData} setJobData={setJobData} />
           <JobDescriptionCard jobData={jobData} setJobData={setJobData} />
@@ -52,13 +54,13 @@ const LegacyJobPostDialog: React.FC<LegacyJobPostDialogProps> = ({
 
           <div className="flex gap-2">
             <Button onClick={onSubmit} className="flex-1">
-              Post Job
+              {t('dialog.postJob')}
             </Button>
             <Button variant="outline" onClick={onBack}>
-              Back to Role Selection
+              {t('dialog.back')}
             </Button>
             <Button variant="outline" onClick={onClose}>
-              Save Draft
+              {t('dialog.saveDraft')}
             </Button>
           </div>
         </div>

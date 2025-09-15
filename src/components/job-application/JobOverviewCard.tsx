@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import JobMediaCarousel from '@/components/JobMediaCarousel';
 
@@ -8,6 +8,13 @@ interface JobOverviewCardProps {
 }
 
 const JobOverviewCard: React.FC<JobOverviewCardProps> = ({ job }) => {
+  const { t } = useTranslation("joboverviewcard");
+
+  const salaryNotSpecified = [
+    t('jobOverview.salaryNotSpecified'),
+    t('jobOverview.notSpecified')
+  ];
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -28,10 +35,12 @@ const JobOverviewCard: React.FC<JobOverviewCardProps> = ({ job }) => {
                 <p className="text-xs text-muted-foreground">{job.location}</p>
               </div>
             </div>
-            {(job.salary && job.salary !== 'Salary not specified' && job.salary !== 'Not specified') && (
+            {(job.salary && !salaryNotSpecified.includes(job.salary)) && (
               <div className="bg-green-50 rounded-lg p-3 border border-green-200">
                 <div className="text-xl font-bold text-green-700">{job.salary}</div>
-                <div className="text-sm text-green-600">per month • {job.type}</div>
+                <div className="text-sm text-green-600">
+                  {t('jobOverview.perMonth')} • {job.type}
+                </div>
               </div>
             )}
           </div>
@@ -54,10 +63,10 @@ const JobOverviewCard: React.FC<JobOverviewCardProps> = ({ job }) => {
                 <p className="text-sm text-muted-foreground">{job.location}</p>
               </div>
             </div>
-            {(job.salary && job.salary !== 'Salary not specified' && job.salary !== 'Not specified') && (
+            {(job.salary && !salaryNotSpecified.includes(job.salary)) && (
               <div className="text-right flex-shrink-0">
                 <div className="text-2xl font-bold text-green-600 mb-1">{job.salary}</div>
-                <div className="text-sm text-muted-foreground">per month</div>
+                <div className="text-sm text-muted-foreground">{t('jobOverview.perMonth')}</div>
                 <div className="text-sm text-green-600 font-medium">{job.type}</div>
               </div>
             )}

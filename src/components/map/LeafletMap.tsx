@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { useTranslation } from 'react-i18next';
 
 // Fix for default markers in React-Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -39,21 +40,22 @@ interface LeafletMapProps {
 // Custom hook to update map center and zoom
 function MapUpdater({ center, zoom }: { center: LatLng; zoom: number }) {
   const map = useMap();
-  
   useEffect(() => {
     if (map) {
       map.setView([center.lat, center.lng], zoom, { animate: true });
     }
   }, [center.lat, center.lng, zoom, map]);
-  
   return null;
 }
 
 // Create custom icons for different job densities
 const createCustomIcon = (density: 'high' | 'medium' | 'low', jobCount: number) => {
-  const color = density === 'high' ? '#dc2626' : density === 'medium' ? '#ea580c' : '#16a34a';
+  const color =
+    density === 'high' ? '#dc2626' :
+    density === 'medium' ? '#ea580c' :
+    '#16a34a';
   const size = jobCount >= 10 ? 40 : jobCount >= 3 ? 32 : 24;
-  
+
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -80,7 +82,7 @@ const createCustomIcon = (density: 'high' | 'medium' | 'low', jobCount: number) 
 };
 
 // Create user location icon
-const createUserIcon = () => {
+const createUserIcon = (label: string) => {
   return L.divIcon({
     className: 'user-marker',
     html: `
@@ -106,7 +108,7 @@ const createUserIcon = () => {
           font-weight: bold;
           white-space: nowrap;
         ">
-          You
+          ${label}
         </div>
       </div>
     `,
@@ -118,12 +120,13 @@ const createUserIcon = () => {
 const LeafletMap: React.FC<LeafletMapProps> = ({
   jobLocations = [],
   onLocationClick,
-  selectedLocation,
   className = "w-full h-full",
-  mapCenter = { lat: 20.5937, lng: 78.9629 }, // Center of India
+  mapCenter = { lat: 20.5937, lng: 78.9629 }, // India center
   userLocation,
   zoom = 5
 }) => {
+  const { t } = useTranslation();
+
   // Memoize the map key to force re-render when needed
   const mapKey = useMemo(() => `${mapCenter.lat}-${mapCenter.lng}-${zoom}`, [mapCenter, zoom]);
 
@@ -153,7 +156,7 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
           } else {
             return (
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 maxZoom={19}
               />
@@ -178,13 +181,19 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
                 <h3 className="font-bold text-sm mb-1">{location.name}</h3>
                 <p className="text-xs text-gray-600 mb-2">{location.state}</p>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">{location.jobCount} job{location.jobCount !== 1 ? 's' : ''}</span>
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    location.density === 'high' ? 'bg-red-100 text-red-800' :
-                    location.density === 'medium' ? 'bg-orange-100 text-orange-800' :
-                    'bg-green-100 text-green-800'
-                  }`}>
-                    {location.density} density
+                  <span className="text-sm font-medium">
+                    {t('map.jobsCount', { count: location.jobCount })}
+                  </span>
+                  <span
+                    className={`text-xs px-2 py-1 rounded ${
+                      location.density === 'high'
+                        ? 'bg-red-100 text-red-800'
+                        : location.density === 'medium'
+                        ? 'bg-orange-100 text-orange-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}
+                  >
+                    {t(`map.density.${location.density}`)}
                   </span>
                 </div>
                 <div className="text-xs text-gray-600">
@@ -192,7 +201,9 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
                     <div key={index}>• {job.title}</div>
                   ))}
                   {location.jobs.length > 2 && (
-                    <div>• +{location.jobs.length - 2} more roles</div>
+                    <div>
+                      {t('map.moreRoles', { count: location.jobs.length - 2 })}
+                    </div>
                   )}
                 </div>
               </div>
@@ -204,11 +215,13 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
         {userLocation && (
           <Marker
             position={[userLocation.lat, userLocation.lng]}
-            icon={createUserIcon()}
+            icon={createUserIcon(t('map.you'))}
           >
             <Popup>
               <div className="p-2 text-center">
-                <div className="text-sm font-medium text-blue-600">Your Location</div>
+                <div className="text-sm font-medium text-blue-600">
+                  {t('map.yourLocation')}
+                </div>
               </div>
             </Popup>
           </Marker>
@@ -218,4 +231,4 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
   );
 };
 
-export default LeafletMap; 
+export default LeafletMap;

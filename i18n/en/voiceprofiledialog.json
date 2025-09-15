@@ -1,0 +1,40 @@
+{
+  "voice": {
+    "title": "Voice-Guided Profile Creation",
+    "errorTitle": "Voice Recognition Error",
+    "errorDesc": "Please try speaking again or use manual input.",
+    "notSupportedTitle": "Voice Not Supported",
+    "notSupportedDesc": "Your browser doesn't support voice recognition. Please use manual input.",
+    "useManual": "Use Manual Input",
+    "aiAssistant": "AI Assistant:",
+    "startHint": "Click 'Start Voice Session' to begin!",
+    "startSession": "Start Voice Session",
+    "stopSpeaking": "Stop Speaking",
+    "repeat": "Repeat",
+    "stopListening": "Stop Listening",
+    "speakNow": "Speak Now",
+    "previewTitle": "Profile So Far:",
+    "role": "Role",
+    "name": "Name",
+    "age": "Age",
+    "currentLocation": "Location",
+    "desiredLocation": "Preferred Location",
+    "experience": "Experience",
+    "prompts": {
+      "role": "Hello! I'm here to help you create your profile. What type of job or role are you looking for?",
+      "name": "Great! Now, what's your full name?",
+      "age": "How old are you?",
+      "currentLocation": "Where are you currently located? Please mention your city and state.",
+      "desiredLocation": "Where would you prefer to work? This can be the same as your current location or somewhere else.",
+      "experience": "Tell me about your work experience. What was your last job position and company?",
+      "review": "Perfect! Your profile is almost complete. Would you like to review it?"
+    },
+    "ageRetry": "I didn't catch your age. Please say your age as a number.",
+    "changePrompt": "What would you like to change?",
+    "notSpecified": "Not specified"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "complete": "Complete Profile"
+  }
+}

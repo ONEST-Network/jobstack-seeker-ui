@@ -1,0 +1,14 @@
+{
+  "map": {
+    "you": "You",
+    "yourLocation": "Your Location",
+    "jobs": "jobs",
+    "openInGoogleMaps": "Open in Google Maps",
+    "loading": "Loading jobs...",
+    "searchPlaceholder": "Search locations on map...",
+    "density": "Job Density",
+    "high": "High (10+ jobs)",
+    "medium": "Medium (3-9 jobs)",
+    "low": "Low (1-2 jobs)"
+  }
+}

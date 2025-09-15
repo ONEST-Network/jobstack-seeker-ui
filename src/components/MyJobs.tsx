@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import CandidateDetailDialog from './candidates/CandidateDetailDialog';
 import JobPostingCard from './my-jobs/JobPostingCard';
+import { useTranslation } from 'react-i18next';
 
 interface JobPosting {
   id: string;
@@ -36,16 +36,17 @@ interface JobPosting {
 }
 
 const MyJobs = () => {
+  const { t } = useTranslation("myjobs");
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   const [showCandidateDialog, setShowCandidateDialog] = useState(false);
 
   const myJobs: JobPosting[] = [{
     id: '1',
-    title: 'Senior Electrician',
-    location: 'Mumbai, Maharashtra',
+    title: t('myJobs.jobs.seniorElectrician.title'),
+    location: t('myJobs.jobs.seniorElectrician.location'),
     postedDate: '2024-01-15',
-    salary: '₹25,000 - ₹35,000',
-    jobType: 'Full-time',
+    salary: t('myJobs.jobs.seniorElectrician.salary'),
+    jobType: t('myJobs.jobs.seniorElectrician.jobType'),
     status: 'active',
     applicationsCount: 12,
     media: [
@@ -53,18 +54,18 @@ const MyJobs = () => {
         type: 'video',
         url: 'https://example.com/electrician-workplace.mp4',
         thumbnail: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=200&fit=crop',
-        alt: 'Electrician working at our facility',
+        alt: t('myJobs.jobs.seniorElectrician.media.alt1'),
         duration: '2:30'
       },
       {
         type: 'image',
         url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=200&fit=crop',
-        alt: 'Modern electrical workshop'
+        alt: t('myJobs.jobs.seniorElectrician.media.alt2')
       },
       {
         type: 'image',
         url: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400&h=200&fit=crop',
-        alt: 'Team working together'
+        alt: t('myJobs.jobs.seniorElectrician.media.alt3')
       }
     ],
     applications: [{
@@ -73,46 +74,46 @@ const MyJobs = () => {
       email: 'rajesh.kumar@email.com',
       phone: '+91 9876543210',
       location: 'Mumbai, Maharashtra',
-      appliedFor: 'Senior Electrician',
+      appliedFor: t('myJobs.jobs.seniorElectrician.title'),
       applicationDate: '2024-01-20',
       status: 'shortlisted',
       trustScore: 85,
       matchScore: 92,
       experience: '5 years',
-      skills: ['Electrical Wiring', 'Motor Repair', 'Safety Protocols', 'Industrial Equipment']
+      skills: [t('myJobs.skills.wiring'), t('myJobs.skills.motorRepair'), t('myJobs.skills.safetyProtocols'), t('myJobs.skills.industrialEquipment')]
     }, {
       id: '2',
       name: 'Amit Sharma',
       email: 'amit.sharma@email.com',
       phone: '+91 9876543211',
       location: 'Pune, Maharashtra',
-      appliedFor: 'Senior Electrician',
+      appliedFor: t('myJobs.jobs.seniorElectrician.title'),
       applicationDate: '2024-01-18',
       status: 'reviewed',
       trustScore: 78,
       matchScore: 88,
       experience: '4 years',
-      skills: ['Electrical Wiring', 'Troubleshooting', 'Circuit Design']
+      skills: [t('myJobs.skills.wiring'), t('myJobs.skills.troubleshooting'), t('myJobs.skills.circuitDesign')]
     }]
   }, {
     id: '2',
-    title: 'Security Guard',
-    location: 'Delhi, NCR',
+    title: t('myJobs.jobs.securityGuard.title'),
+    location: t('myJobs.jobs.securityGuard.location'),
     postedDate: '2024-01-10',
-    salary: '₹18,000 - ₹22,000',
-    jobType: 'Full-time',
+    salary: t('myJobs.jobs.securityGuard.salary'),
+    jobType: t('myJobs.jobs.securityGuard.jobType'),
     status: 'active',
     applicationsCount: 8,
     media: [
       {
         type: 'image',
         url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=200&fit=crop',
-        alt: 'Security checkpoint at our facility'
+        alt: t('myJobs.jobs.securityGuard.media.alt1')
       },
       {
         type: 'image',
         url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=200&fit=crop',
-        alt: 'Modern security monitoring setup'
+        alt: t('myJobs.jobs.securityGuard.media.alt2')
       }
     ],
     applications: [{
@@ -121,13 +122,13 @@ const MyJobs = () => {
       email: 'suresh.singh@email.com',
       phone: '+91 9876543212',
       location: 'Delhi, NCR',
-      appliedFor: 'Security Guard',
+      appliedFor: t('myJobs.jobs.securityGuard.title'),
       applicationDate: '2024-01-12',
       status: 'applied',
       trustScore: 90,
       matchScore: 85,
       experience: '3 years',
-      skills: ['Security Protocols', 'CCTV Monitoring', 'Emergency Response']
+      skills: [t('myJobs.skills.securityProtocols'), t('myJobs.skills.cctvMonitoring'), t('myJobs.skills.emergencyResponse')]
     }]
   }];
 
@@ -171,7 +172,7 @@ const MyJobs = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">My Posted Jobs</h2>
+        <h2 className="text-2xl font-bold">{t('myJobs.title')}</h2>
       </div>
 
       <div className="space-y-6">

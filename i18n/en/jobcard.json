@@ -1,0 +1,37 @@
+{
+  "jobCard": {
+    "shareUnavailableTitle": "Share Unavailable",
+    "shareUnavailableDesc": "This job cannot be shared at the moment.",
+    "shareCopiedTitle": "Link Copied!",
+    "shareCopiedDesc": "Job link has been copied to clipboard. You can now share it manually.",
+    "shareFailedTitle": "Share Failed",
+    "shareFailedDesc": "Failed to copy job link. Please try again.",
+    "shareText": "Check out this job opportunity: {{title}}",
+    "locationNotSpecified": "Location not specified",
+    "notSpecified": "Not specified",
+    "salaryUpTo": "Up to {{value}}",
+    "salaryFrom": "From {{value}}",
+    "roleName": "Role Name",
+    "openings": "Openings",
+    "roleDetails": "Role Details",
+    "location": "Location",
+    "workTimings": "Work Timings",
+    "salaryRange": "Monthly Salary Range",
+    "pfEsic": "Monthly PF & ESIC",
+    "overtime": "Monthly Avg. Overtime (OT)",
+    "stayProvided": "Stay Provided",
+    "minimumAge": "Minimum Age",
+    "jobDetails": "Job Details",
+    "showLess": "Show Less",
+    "viewMore": "View More ({{count}} more)",
+    "trustScore": "Trust Score",
+    "matchScore": "Match Score",
+    "loginToSee": "Login to see",
+    "applyNow": "Apply Now",
+    "shareJob": "Share Job"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No"
+  }
+}

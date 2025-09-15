@@ -1,0 +1,28 @@
+{
+  "employerDialog": {
+    "editTitle": "Edit Employer Profile",
+    "addTitle": "Add New Employer Profile",
+    "detailsSection": "Employer Details",
+    "companyName": "Company Name",
+    "companyNamePlaceholder": "Enter company name",
+    "gstNumber": "GST Number",
+    "gstPlaceholder": "Enter GST number",
+    "address": "Address",
+    "addressPlaceholder": "Enter complete address",
+    "contactPerson": "Contact Person",
+    "contactPersonPlaceholder": "Contact person name",
+    "email": "Email",
+    "emailPlaceholder": "company@example.com",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+91 9876543210",
+    "website": "Website",
+    "websitePlaceholder": "https://company.com",
+    "description": "Company Description",
+    "descriptionPlaceholder": "Brief description of the company",
+    "updateButton": "Update Employer",
+    "addButton": "Add Employer"
+  },
+  "common": {
+    "cancel": "Cancel"
+  }
+}

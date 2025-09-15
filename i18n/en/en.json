@@ -1,0 +1,29 @@
+{
+  "candidateManagement": {
+    "title": "Candidate Profiles",
+    "subtitle": "Manage your different job seeker profiles for various opportunities",
+    "addNewProfile": "Add New Profile",
+    "createProfile": "Create Profile",
+    "searchPlaceholder": "Search profiles by name, role, or nickname...",
+    "onlyAvailableForIndividuals": "Candidate management is only available for individual users.",
+    "stats": {
+      "totalProfiles": "Total Profiles",
+      "activeProfile": "Active Profile",
+      "withExperience": "With Experience",
+      "withTargetRole": "With Target Role"
+    },
+    "noProfilesFound": "No profiles found",
+    "noProfilesMatch": "No profiles match your search criteria.",
+    "createFirstProfile": "Create your first candidate profile to get started.",
+    "toast": {
+      "profileSelectedTitle": "Profile Selected",
+      "profileSelectedDescription": "Switched to the selected candidate profile.",
+      "cannotDeleteTitle": "Cannot Delete",
+      "cannotDeleteDescription": "The default profile cannot be deleted.",
+      "profileDeletedTitle": "Profile Deleted",
+      "profileDeletedDescription": "The candidate profile has been deleted.",
+      "deleteFailedTitle": "Delete Failed",
+      "deleteFailedDescription": "Failed to delete the profile. Please try again."
+    }
+  }
+}

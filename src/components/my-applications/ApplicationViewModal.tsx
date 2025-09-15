@@ -1,10 +1,10 @@
-import React, { useState, useEffect , useCallback} from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, User, Briefcase, Target, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 interface ApplicationViewModalProps {
   isOpen: boolean;
@@ -45,15 +45,12 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
   applicationId
 }) => {
   const { user, getSelectedCandidate } = useAuth();
+  const { t } = useTranslation("applicationviewmodal");
   const selectedCandidate = getSelectedCandidate();
   const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandedSections, setExpandedSections] = useState<{
-    whoIAm: boolean;
-    whatIHave: boolean;
-    whatIWant: boolean;
-  }>({
+  const [expandedSections, setExpandedSections] = useState({
     whoIAm: false,
     whatIHave: false,
     whatIWant: false
@@ -70,57 +67,33 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
     setError(null);
     
     try {
-      // Use profile ID (selected candidate ID) instead of user ID for fetching applications
       const profileIdForApi = selectedCandidate?.id || user?.id;
-      const response = await fetch(`${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${profileIdForApi}`);
+      const response = await fetch(
+        `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${profileIdForApi}`
+      );
       const data = await response.json();
       
       const applications = data?.applications || [];
       const application = applications.find((app: any) => {
-        // Match using the same logic as MyApplications component
         const appId = app.order_id ?? app.transaction_id ?? app.job_id;
-        return appId === applicationId || 
-               app.order_id === applicationId || 
-               app.transaction_id === applicationId;
+        return (
+          appId === applicationId ||
+          app.order_id === applicationId ||
+          app.transaction_id === applicationId
+        );
       });
       
       if (application) {
         setApplicationDetails(application);
       } else {
-        setError('Application details not found');
+        setError(t('applicationView.notFound'));
       }
     } catch (err) {
       console.error('Failed to fetch application details:', err);
-      setError('Failed to load application details');
+      setError(t('applicationView.loadError'));
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Helper to convert camelCase / snake to Title Case
-  const formatKey = (key: string) => {
-    const formatted = key
-      .replace(/_/g, ' ')
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, (str) => str.toUpperCase());
-    
-    // Custom field name mappings for better readability
-    const fieldMappings: Record<string, string> = {
-      'jukiMachineExperience': 'Juki Machine Experience',
-      'stitchingSpeed': 'Stitching Speed (SPM)',
-      'maxCostPerSharingBed': 'Max Cost Per Sharing Bed',
-      'monthlyInHandPreferred': 'Monthly In-Hand Preferred',
-      'monthlyOTExpectation': 'Monthly OT Expectation',
-      'monthlyPFESIC': 'Monthly PF/ESIC',
-      'readyToMigrate': 'Ready To Migrate',
-      'stayPreferences': 'Stay Preferences',
-      'workHoursPerDay': 'Work Hours Per Day',
-      'currentLocation': 'Current Location',
-      'desiredLocation': 'Desired Location',
-      'machinesOperated': 'Machines Operated'
-    };
-    
-    return fieldMappings[formatted] || formatted;
   };
 
   const isObject = (val: any) => val && typeof val === 'object' && !Array.isArray(val);
@@ -129,19 +102,23 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Object.entries(obj).map(([key, value]) => {
-          // Skip verification status fields
-          if (key === 'isAgeVerified' || key === 'isNameVerified' || key === 'isPhoneVerified' || key === 'isLocationVerified' || key === 'isGenderVerified' || key === 'isAadharVerified' || key === 'isHometownVerified') return null;
-          if (value === undefined || value === null || value === '' || key === 'gps' || key === 'tag') return null;
+          if (
+            key.startsWith('is') ||
+            value === undefined ||
+            value === null ||
+            value === '' ||
+            key === 'gps' ||
+            key === 'tag'
+          )
+            return null;
 
-          // Skip empty arrays
           if (Array.isArray(value) && value.length === 0) return null;
 
           if (isObject(value)) {
-            // Flatten one level deep
             return (
               <div key={key} className="col-span-full space-y-2">
                 <h4 className="font-medium text-sm text-muted-foreground mb-1">
-                  {formatKey(key)}
+                  {t(`applicationView.fields.${key}`, key)}
                 </h4>
                 {renderKeyValueList(value as Record<string, any>)}
               </div>
@@ -150,7 +127,7 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
           return (
             <div key={key} className="p-3 rounded-lg bg-gray-50">
               <div className="text-sm font-medium text-muted-foreground">
-                {formatKey(key)}
+                {t(`applicationView.fields.${key}`, key)}
               </div>
               <div className="text-base font-semibold break-words">
                 {Array.isArray(value) ? value.join(', ') : String(value)}
@@ -170,7 +147,7 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
   };
 
   const renderExpandableSection = (
-    title: string, 
+    titleKey: string, 
     data: Record<string, any> | undefined, 
     sectionKey: 'whoIAm' | 'whatIHave' | 'whatIWant',
     icon: React.ReactNode
@@ -188,7 +165,7 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
           >
             <div className="flex items-center gap-2">
               {icon}
-              <h3 className="text-lg font-semibold">{title}</h3>
+              <h3 className="text-lg font-semibold">{t(titleKey)}</h3>
             </div>
             {isExpanded ? (
               <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -211,13 +188,13 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(o) => (!o ? onClose() : undefined)}>
       <DialogContent className="max-h-[90vh] overflow-y-auto w-full max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="text-xl">Application Details</DialogTitle>
+          <DialogTitle className="text-xl">{t('applicationView.title')}</DialogTitle>
         </DialogHeader>
 
         {isLoading && (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin" />
-            <span className="ml-2">Loading application details...</span>
+            <span className="ml-2">{t('applicationView.loading')}</span>
           </div>
         )}
 
@@ -225,7 +202,7 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
           <div className="text-center py-8">
             <p className="text-destructive">{error}</p>
             <Button onClick={fetchApplicationDetails} className="mt-4">
-              Retry
+              {t('applicationView.retry')}
             </Button>
           </div>
         )}
@@ -238,11 +215,11 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <Target className="h-5 w-5" />
-                    <h3 className="text-lg font-semibold">Interested Role</h3>
+                    <h3 className="text-lg font-semibold">{t('applicationView.interestedRole')}</h3>
                   </div>
                   <div className="p-3 rounded-lg bg-gray-50">
                     <div className="text-sm font-medium text-muted-foreground">
-                      Role
+                      {t('applicationView.role')}
                     </div>
                     <div className="text-base font-semibold break-words">
                       {applicationDetails.metadata.message.order.fulfillments[0].customer.person.metadata.interestedRole}
@@ -254,21 +231,21 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
 
             {/* Expandable Sections */}
             {renderExpandableSection(
-              "Who I Am",
+              'applicationView.whoIAm',
               applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.metadata?.whoIAm,
               'whoIAm',
               <User className="h-5 w-5" />
             )}
 
             {renderExpandableSection(
-              "What I Have",
+              'applicationView.whatIHave',
               applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.metadata?.whatIHave,
               'whatIHave',
               <Briefcase className="h-5 w-5" />
             )}
 
             {renderExpandableSection(
-              "What I Want",
+              'applicationView.whatIWant',
               applicationDetails.metadata?.message?.order?.fulfillments?.[0]?.customer?.person?.metadata?.whatIWant,
               'whatIWant',
               <Target className="h-5 w-5" />
@@ -280,4 +257,4 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
   );
 };
 
-export default ApplicationViewModal; 
+export default ApplicationViewModal;

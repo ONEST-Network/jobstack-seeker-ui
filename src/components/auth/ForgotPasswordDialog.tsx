@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Mail, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePasswordReset } from '@/hooks/usePasswordReset';
+import { useTranslation } from 'react-i18next';
 
 interface ForgotPasswordDialogProps {
   isOpen: boolean;
@@ -24,24 +25,25 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
   const [sentToEmail, setSentToEmail] = useState('');
   const { toast } = useToast();
   const { sendPasswordResetEmail } = usePasswordReset();
+  const { t } = useTranslation('forgotPassword');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email) {
       toast({
-        title: "Error",
-        description: "Please enter your email address.",
-        variant: "destructive"
+        title: t('errors.errorTitle'),
+        description: t('errors.emptyEmail'),
+        variant: 'destructive'
       });
       return;
     }
 
     if (!email.includes('@')) {
       toast({
-        title: "Error",
-        description: "Please enter a valid email address.",
-        variant: "destructive"
+        title: t('errors.errorTitle'),
+        description: t('errors.invalidEmail'),
+        variant: 'destructive'
       });
       return;
     }
@@ -55,9 +57,9 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
       }
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to send reset email. Please try again.",
-        variant: "destructive"
+        title: t('errors.errorTitle'),
+        description: error.message || t('errors.sendFailed'),
+        variant: 'destructive'
       });
     } finally {
       setIsLoading(false);
@@ -73,20 +75,17 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
   };
 
   const handleBackToLogin = () => {
-    // Clear all state before closing
     setEmail('');
     setIsLoading(false);
     setEmailSent(false);
     setSentToEmail('');
     onClose();
-    // Call the callback to switch to login
     onBackToLogin();
   };
 
   const handleOpenEmail = () => {
-    // Detect email provider and open appropriate webmail
     const domain = sentToEmail.split('@')[1]?.toLowerCase();
-    let url = 'https://mail.google.com'; // Default to Gmail
+    let url = 'https://mail.google.com';
     
     if (domain?.includes('outlook') || domain?.includes('hotmail') || domain?.includes('live')) {
       url = 'https://outlook.live.com';
@@ -109,9 +108,11 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <DialogTitle className="text-2xl font-bold">Reset Link Sent</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">
+              {t('dialog.resetLinkSent')}
+            </DialogTitle>
             <p className="text-muted-foreground text-sm">
-              Check your email for password reset instructions
+              {t('dialog.checkEmail')}
             </p>
           </DialogHeader>
 
@@ -120,9 +121,11 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
               <div className="flex items-start gap-3">
                 <Mail className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Email sent to {sentToEmail}</p>
+                  <p className="text-sm font-medium">
+                    {t('messages.sentTo', { email: sentToEmail })}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    Click the link in your email to reset your password. The link will expire in 1 hour.
+                    {t('messages.linkExpiry')}
                   </p>
                 </div>
               </div>
@@ -131,13 +134,14 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
             <div className="space-y-3">
               <Button onClick={handleBackToLogin} className="w-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Login
+                {t('buttons.backToLogin')}
               </Button>
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <p className="text-xs text-yellow-800">
-                <strong>Can't find the email?</strong> Check your spam folder or contact support if you continue to have issues.
+                <strong>{t('messages.cantFindEmailTitle')}</strong>{' '}
+                {t('messages.cantFindEmail')}
               </p>
             </div>
           </div>
@@ -150,20 +154,22 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center pb-4">
-          <DialogTitle className="text-2xl font-bold">Reset Password</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            {t('dialog.resetPassword')}
+          </DialogTitle>
           <p className="text-muted-foreground text-sm">
-            Enter your email to receive a password reset link
+            {t('dialog.enterEmail')}
           </p>
         </DialogHeader>
 
         <div className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="forgot-email">Email Address</Label>
+              <Label htmlFor="forgot-email">{t('form.emailLabel')}</Label>
               <Input
                 id="forgot-email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder={t('form.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -171,7 +177,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Sending...' : 'Send Reset Link'}
+              {isLoading ? t('buttons.sending') : t('buttons.sendLink')}
             </Button>
 
             <div className="text-center">
@@ -182,7 +188,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
                 onClick={handleBackToLogin}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Login
+                {t('buttons.backToLogin')}
               </Button>
             </div>
           </form>
@@ -192,4 +198,4 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
   );
 };
 
-export default ForgotPasswordDialog; 
+export default ForgotPasswordDialog;

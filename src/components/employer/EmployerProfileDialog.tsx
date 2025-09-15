@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
   onClose, 
   employer 
 }) => {
+  const { t } = useTranslation("employerprofiledialog");
   const { addEmployer, updateEmployer } = useAuth();
   const [formData, setFormData] = useState({
     name: employer?.name || '',
@@ -49,98 +51,98 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {employer ? 'Edit Employer Profile' : 'Add New Employer Profile'}
+            {employer ? t('employerDialog.editTitle') : t('employerDialog.addTitle')}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Employer Details</CardTitle>
+              <CardTitle className="text-lg">{t('employerDialog.detailsSection')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="empName">Company Name *</Label>
+                  <Label htmlFor="empName">{t('employerDialog.companyName')} *</Label>
                   <Input
                     id="empName"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Enter company name"
+                    placeholder={t('employerDialog.companyNamePlaceholder')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="gst">GST Number</Label>
+                  <Label htmlFor="gst">{t('employerDialog.gstNumber')}</Label>
                   <Input
                     id="gst"
                     value={formData.gstNumber}
                     onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                    placeholder="Enter GST number"
+                    placeholder={t('employerDialog.gstPlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="address">Address *</Label>
+                <Label htmlFor="address">{t('employerDialog.address')} *</Label>
                 <Textarea
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
-                  placeholder="Enter complete address"
+                  placeholder={t('employerDialog.addressPlaceholder')}
                   rows={3}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="contactPerson">Contact Person *</Label>
+                  <Label htmlFor="contactPerson">{t('employerDialog.contactPerson')} *</Label>
                   <Input
                     id="contactPerson"
                     value={formData.contactPersonName}
                     onChange={(e) => handleInputChange('contactPersonName', e.target.value)}
-                    placeholder="Contact person name"
+                    placeholder={t('employerDialog.contactPersonPlaceholder')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="empEmail">Email *</Label>
+                  <Label htmlFor="empEmail">{t('employerDialog.email')} *</Label>
                   <Input
                     id="empEmail"
                     type="email"
                     value={formData.contactEmail}
                     onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                    placeholder="company@example.com"
+                    placeholder={t('employerDialog.emailPlaceholder')}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="empPhone">Phone Number *</Label>
+                  <Label htmlFor="empPhone">{t('employerDialog.phone')} *</Label>
                   <Input
                     id="empPhone"
                     value={formData.contactPhone}
                     onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                    placeholder="+91 9876543210"
+                    placeholder={t('employerDialog.phonePlaceholder')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="website">Website</Label>
+                  <Label htmlFor="website">{t('employerDialog.website')}</Label>
                   <Input
                     id="website"
                     value={formData.website}
                     onChange={(e) => handleInputChange('website', e.target.value)}
-                    placeholder="https://company.com"
+                    placeholder={t('employerDialog.websitePlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="empDescription">Company Description</Label>
+                <Label htmlFor="empDescription">{t('employerDialog.description')}</Label>
                 <Textarea
                   id="empDescription"
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Brief description of the company"
+                  placeholder={t('employerDialog.descriptionPlaceholder')}
                   rows={3}
                 />
               </div>
@@ -149,10 +151,10 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
 
           <div className="flex gap-2">
             <Button onClick={handleSubmit} className="flex-1">
-              {employer ? 'Update Employer' : 'Add Employer'}
+              {employer ? t('employerDialog.updateButton') : t('employerDialog.addButton')}
             </Button>
             <Button variant="outline" onClick={onClose}>
-              Cancel
+              {t('common.cancel')}
             </Button>
           </div>
         </div>

@@ -1,0 +1,10 @@
+{
+  "applicationDetails": {
+    "title": "Application Details",
+    "status": "Status",
+    "basicInfo": "Basic Info",
+    "jobDetails": "Job Details",
+    "jobNeeds": "Job Needs",
+    "providerLocation": "Job Provider Location"
+  }
+}

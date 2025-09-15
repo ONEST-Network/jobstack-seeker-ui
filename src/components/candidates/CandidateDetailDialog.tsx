@@ -18,6 +18,7 @@ import {
   Briefcase,
   FileText
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Candidate {
   id: string;
@@ -47,18 +48,21 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
   onClose
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
+  const { t } = useTranslation('candidateDetail');
 
   const mockApplicationResponses = [
-    { question: 'Why are you interested in this position?', answer: 'I have 3 years of experience in electrical work and am passionate about maintaining electrical systems.' },
-    { question: 'Are you available to work night shifts?', answer: 'Yes, I am flexible with my schedule and can work night shifts.' },
-    { question: 'Do you have your own tools?', answer: 'Yes, I have a complete set of electrical tools and safety equipment.' }
+    { question: t('application.responses.q1'), answer: t('application.responses.a1') },
+    { question: t('application.responses.q2'), answer: t('application.responses.a2') },
+    { question: t('application.responses.q3'), answer: t('application.responses.a3') }
   ];
 
   const mockDocuments = [
-    { name: 'Resume.pdf', type: 'Resume', verified: true },
-    { name: 'Electrical_Certificate.pdf', type: 'Certificate', verified: true },
-    { name: 'Experience_Letter.pdf', type: 'Experience', verified: false }
+    { name: 'Resume.pdf', type: t('documents.types.resume'), verified: true },
+    { name: 'Electrical_Certificate.pdf', type: t('documents.types.certificate'), verified: true },
+    { name: 'Experience_Letter.pdf', type: t('documents.types.experience'), verified: false }
   ];
+
+  const getStatusLabel = (status: string) => t(`status.${status}`);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -87,26 +91,27 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
               </div>
             </div>
             <Badge className={getStatusColor(candidate.status)}>
-              {candidate.status}
+              {getStatusLabel(candidate.status)}
             </Badge>
           </div>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="application">Application</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="actions">Actions</TabsTrigger>
+            <TabsTrigger value="profile">{t('tabs.profile')}</TabsTrigger>
+            <TabsTrigger value="application">{t('tabs.application')}</TabsTrigger>
+            <TabsTrigger value="documents">{t('tabs.documents')}</TabsTrigger>
+            <TabsTrigger value="actions">{t('tabs.actions')}</TabsTrigger>
           </TabsList>
 
+          {/* Profile */}
           <TabsContent value="profile" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <User className="h-5 w-5" />
-                    Personal Information
+                    {t('profile.personalInfo')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -124,7 +129,9 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
                   </div>
                   <div className="flex items-center gap-2">
                     <Award className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{candidate.experience} experience</span>
+                    <span className="text-sm">
+                      {t('profile.experience', { exp: candidate.experience })}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -133,24 +140,21 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Star className="h-5 w-5" />
-                    Scores & Metrics
+                    {t('profile.scores')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Trust Score</span>
+                    <span className="text-sm">{t('profile.trustScore')}</span>
                     <div className="flex items-center gap-2">
                       <div className="w-24 h-2 bg-gray-200 rounded-full">
-                        <div 
-                          className="h-2 bg-yellow-500 rounded-full" 
-                          style={{ width: `0%` }}
-                        />
+                        <div className="h-2 bg-yellow-500 rounded-full" style={{ width: `0%` }} />
                       </div>
                       <span className="text-sm font-medium">0/10</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Match Score</span>
+                    <span className="text-sm">{t('profile.matchScore')}</span>
                     <div className="flex items-center gap-2">
                       <div className="w-24 h-2 bg-gray-200 rounded-full">
                         <div 
@@ -169,7 +173,7 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Briefcase className="h-5 w-5" />
-                  Skills
+                  {t('profile.skills')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -184,19 +188,20 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
             </Card>
           </TabsContent>
 
+          {/* Application */}
           <TabsContent value="application" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Application Details</CardTitle>
+                <CardTitle>{t('application.title')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  Applied on {new Date(candidate.applicationDate).toLocaleDateString()}
+                  {t('application.appliedOn', { date: new Date(candidate.applicationDate).toLocaleDateString() })}
                 </div>
                 
                 <div className="space-y-4">
-                  <h4 className="font-medium">Application Responses</h4>
+                  <h4 className="font-medium">{t('application.responses.title')}</h4>
                   {mockApplicationResponses.map((response, index) => (
                     <div key={index} className="border rounded-lg p-4">
                       <p className="font-medium text-sm mb-2">{response.question}</p>
@@ -208,12 +213,13 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
             </Card>
           </TabsContent>
 
+          {/* Documents */}
           <TabsContent value="documents" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Uploaded Documents
+                  {t('documents.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -234,7 +240,7 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
                           <Clock className="h-5 w-5 text-yellow-500" />
                         )}
                         <Button variant="outline" size="sm">
-                          View
+                          {t('documents.view')}
                         </Button>
                       </div>
                     </div>
@@ -244,20 +250,21 @@ const CandidateDetailDialog: React.FC<CandidateDetailDialogProps> = ({
             </Card>
           </TabsContent>
 
+          {/* Actions */}
           <TabsContent value="actions" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle>{t('actions.title')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <Button className="w-full">
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Shortlist Candidate
+                    {t('actions.shortlist')}
                   </Button>
                   <Button variant="destructive" className="w-full">
                     <XCircle className="h-4 w-4 mr-2" />
-                    Reject Application
+                    {t('actions.reject')}
                   </Button>
                 </div>
               </CardContent>

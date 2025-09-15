@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Building2, MapPin } from 'lucide-react';
 import { JobData } from '@/types/jobPost';
+import { useTranslation } from 'react-i18next';
 
 interface WhoIAmJobStepProps {
   isOpen: boolean;
@@ -31,19 +31,18 @@ const WhoIAmJobStep: React.FC<WhoIAmJobStepProps> = ({
   onBack,
   onSaveDraft
 }) => {
+  const { t } = useTranslation('whoIAmJobStep');
+
   const handleNext = () => {
-    // Basic validation
     if (!jobData.companyName || !jobData.factoryLocation || !jobData.pocName || !jobData.pocPhone || !jobData.pocEmail) {
-      alert('Please fill all required fields');
+      alert(t('postJob.whoIAm.validation.fillRequired'));
       return;
     }
     onNext();
   };
 
   const handleSaveDraft = () => {
-    if (onSaveDraft) {
-      onSaveDraft();
-    }
+    if (onSaveDraft) onSaveDraft();
   };
 
   return (
@@ -51,10 +50,10 @@ const WhoIAmJobStep: React.FC<WhoIAmJobStepProps> = ({
       <DialogContent className="w-full max-w-2xl h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0 border-b pb-4">
           <DialogTitle className="flex items-center justify-between">
-            <span>Who I Am - Company & Role Details (Step 1 of 3)</span>
+            <span>{t('postJob.steps.whoIAm')} - {t('postJob.whoIAm.title')} (Step 1 of 3)</span>
             {jobData.lastSavedAt && (
               <span className="text-xs text-muted-foreground">
-                Last saved: {new Date(jobData.lastSavedAt).toLocaleTimeString()}
+                {t('postJob.common.lastSaved')} {new Date(jobData.lastSavedAt).toLocaleTimeString()}
               </span>
             )}
           </DialogTitle>
@@ -73,45 +72,45 @@ const WhoIAmJobStep: React.FC<WhoIAmJobStepProps> = ({
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <Building2 className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-semibold">Company Information</h3>
+                <h3 className="text-lg font-semibold">{t('postJob.whoIAm.companyInfo.title')}</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="companyName">Company Name *</Label>
+                  <Label htmlFor="companyName">{t('postJob.whoIAm.companyInfo.companyName')} *</Label>
                   <Input
                     id="companyName"
                     value={jobData.companyName}
                     onChange={(e) => setJobData(prev => ({ ...prev, companyName: e.target.value }))}
-                    placeholder="e.g., ABC Garments Pvt Ltd"
+                    placeholder={t('postJob.whoIAm.companyInfo.companyNamePlaceholder')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="cin">CIN Number</Label>
+                  <Label htmlFor="cin">{t('postJob.whoIAm.companyInfo.cin')}</Label>
                   <Input
                     id="cin"
                     value={jobData.cin}
                     onChange={(e) => setJobData(prev => ({ ...prev, cin: e.target.value }))}
-                    placeholder="U12345AB2020PTC123456"
+                    placeholder={t('postJob.whoIAm.companyInfo.cinPlaceholder')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="gst">GST Number</Label>
+                  <Label htmlFor="gst">{t('postJob.whoIAm.companyInfo.gst')}</Label>
                   <Input
                     id="gst"
                     value={jobData.gst}
                     onChange={(e) => setJobData(prev => ({ ...prev, gst: e.target.value }))}
-                    placeholder="12ABCDE3456F7GH"
+                    placeholder={t('postJob.whoIAm.companyInfo.gstPlaceholder')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="factoryLocation">Factory Location *</Label>
+                  <Label htmlFor="factoryLocation">{t('postJob.whoIAm.companyInfo.factoryLocation')} *</Label>
                   <div className="relative">
                     <Input
                       id="factoryLocation"
                       value={jobData.factoryLocation}
                       onChange={(e) => setJobData(prev => ({ ...prev, factoryLocation: e.target.value }))}
-                      placeholder="City, State"
+                      placeholder={t('postJob.whoIAm.companyInfo.factoryLocationPlaceholder')}
                     />
                     <MapPin className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
                   </div>
@@ -121,26 +120,26 @@ const WhoIAmJobStep: React.FC<WhoIAmJobStepProps> = ({
 
             {/* Role Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Role Information</h3>
+              <h3 className="text-lg font-semibold">{t('postJob.whoIAm.roleInfo.title')}</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="openRole">Open Role *</Label>
+                  <Label htmlFor="openRole">{t('postJob.whoIAm.roleInfo.openRole')} *</Label>
                   <Input
                     id="openRole"
                     value={jobData.openRole || selectedJobRole}
                     onChange={(e) => setJobData(prev => ({ ...prev, openRole: e.target.value }))}
-                    placeholder="e.g., Tailor, Machine Operator"
+                    placeholder={t('postJob.whoIAm.roleInfo.openRolePlaceholder')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="numberOfOpenings">Number of Openings *</Label>
+                  <Label htmlFor="numberOfOpenings">{t('postJob.whoIAm.roleInfo.numberOfOpenings')} *</Label>
                   <Input
                     id="numberOfOpenings"
                     type="number"
                     value={jobData.numberOfOpenings || ''}
                     onChange={(e) => setJobData(prev => ({ ...prev, numberOfOpenings: parseInt(e.target.value) || 0 }))}
-                    placeholder="e.g., 40"
+                    placeholder={t('postJob.whoIAm.roleInfo.numberOfOpeningsPlaceholder')}
                     min="1"
                   />
                 </div>
@@ -149,36 +148,36 @@ const WhoIAmJobStep: React.FC<WhoIAmJobStepProps> = ({
 
             {/* Point of Contact */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Point of Contact for this Opening</h3>
+              <h3 className="text-lg font-semibold">{t('postJob.whoIAm.pocInfo.title')}</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="pocName">PoC Name *</Label>
+                  <Label htmlFor="pocName">{t('postJob.whoIAm.pocInfo.pocName')} *</Label>
                   <Input
                     id="pocName"
                     value={jobData.pocName}
                     onChange={(e) => setJobData(prev => ({ ...prev, pocName: e.target.value }))}
-                    placeholder="Full Name"
+                    placeholder={t('postJob.whoIAm.pocInfo.pocNamePlaceholder')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="pocPhone">PoC Phone Number *</Label>
+                  <Label htmlFor="pocPhone">{t('postJob.whoIAm.pocInfo.pocPhone')} *</Label>
                   <Input
                     id="pocPhone"
                     type="tel"
                     value={jobData.pocPhone}
                     onChange={(e) => setJobData(prev => ({ ...prev, pocPhone: e.target.value }))}
-                    placeholder="+91 9876543210"
+                    placeholder={t('postJob.whoIAm.pocInfo.pocPhonePlaceholder')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="pocEmail">PoC Email ID *</Label>
+                  <Label htmlFor="pocEmail">{t('postJob.whoIAm.pocInfo.pocEmail')} *</Label>
                   <Input
                     id="pocEmail"
                     type="email"
                     value={jobData.pocEmail}
                     onChange={(e) => setJobData(prev => ({ ...prev, pocEmail: e.target.value }))}
-                    placeholder="contact@company.com"
+                    placeholder={t('postJob.whoIAm.pocInfo.pocEmailPlaceholder')}
                   />
                 </div>
               </div>
@@ -189,14 +188,14 @@ const WhoIAmJobStep: React.FC<WhoIAmJobStepProps> = ({
         <div className="flex-shrink-0 border-t pt-4">
           <div className="flex justify-between">
             <Button variant="outline" onClick={onBack}>
-              Back to Role Selection
+              {t('postJob.whoIAm.buttons.backToRoleSelection')}
             </Button>
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleSaveDraft}>
-                Save Draft
+                {t('postJob.common.saveDraft')}
               </Button>
               <Button onClick={handleNext}>
-                Next: What I Have
+                {t('postJob.whoIAm.buttons.next')}
               </Button>
             </div>
           </div>

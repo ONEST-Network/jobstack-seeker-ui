@@ -1,0 +1,28 @@
+{
+  "salaryPayment": {
+    "title": "Salary & Payment Details",
+    "monthlySalaryLabel": "Monthly Salary (₹) *",
+    "monthlySalaryPlaceholder": "15000",
+    "salaryFrequencyLabel": "Salary Settlement Frequency *",
+    "salaryFrequencyPlaceholder": "Select frequency",
+    "salaryFrequencyOptions": {
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "pfDeductionLabel": "PF Deduction (₹)",
+    "pfDeductionPlaceholder": "1800",
+    "esicDeductionLabel": "ESIC Deduction (₹)",
+    "esicDeductionPlaceholder": "135",
+    "inHandLabel": "In-Hand Salary (₹)",
+    "inHandNote": "Auto-calculated: Monthly Salary - PF - ESIC",
+    "advanceMonthsLabel": "Advance Options (Months)",
+    "advanceMonthsPlaceholder": "3",
+    "advanceFrequencyLabel": "Advance Frequency",
+    "advanceFrequencyPlaceholder": "Select frequency",
+    "advanceFrequencyOptions": {
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "halfYearly": "Half-Yearly"
+    }
+  }
+}
