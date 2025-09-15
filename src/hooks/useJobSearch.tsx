@@ -211,6 +211,8 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
     console.log(`📝 Search query prop changed: "${searchQuery}" -> updating currentSearchQuery`);
     setCurrentSearchQuery(searchQuery);
   }, [searchQuery]);
+
+  // Note: fetchJobsInternal is defined later in the file
   
   // Derive intent overrides from organization metadata (if any)
   const { orgSlug } = useParams<{ orgSlug?: string }>();
@@ -978,10 +980,23 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
     fetchJobsInternal(false, 0, intentOverrides, 1, 30, query); // Use default limit of 30
   }, [fetchJobsInternal, intentOverrides, currentSearchQuery]);
 
-  // Fetch when intent overrides are ready or change (only if autoFetch is enabled)
+  // Trigger search when currentSearchQuery changes (for centralized search management)
   useEffect(() => {
     if (intentOverrides === null) return; // wait until computed
-    if (options?.autoFetch !== false) { // Default to true if not specified
+    if (options?.autoFetch !== false) { // Only if autoFetch is enabled
+      console.log(`🔍 Triggering search for query: "${currentSearchQuery}"`);
+      // Reset to first page when search query changes and trigger fetch
+      setPagination(prev => ({ ...prev, page: 1 }));
+      fetchJobsInternal(false, 0, intentOverrides, 1, pagination.limit, currentSearchQuery);
+    }
+  }, [currentSearchQuery, intentOverrides, options?.autoFetch, fetchJobsInternal, pagination.limit]);
+
+  // Initial fetch when intent overrides are ready (only if autoFetch is enabled)
+  // Note: The currentSearchQuery effect above will handle search queries, this handles initial empty state
+  useEffect(() => {
+    if (intentOverrides === null) return; // wait until computed
+    if (options?.autoFetch !== false && currentSearchQuery === undefined) { // Only for undefined initial state
+      console.log(`🔍 Initial fetch with undefined search query`);
       fetchJobs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
