@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 interface JobMapViewProps {
   searchQuery: string;
   onPromptLogin?: () => void;
+  hookData?: any; // Pass hook data from parent to avoid duplicate calls
 }
 
 interface JobLocation {
@@ -45,7 +46,7 @@ interface MapToast {
 
 const DEFAULT_CENTER: LatLng = { lat: 20.5937, lng: 78.9629 }; // Center of India
 
-const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) => {
+const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hookData }) => {
   const [selectedLocation, setSelectedLocation] = useState<JobLocation | null>(null);
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
   const [selectedJobForDetails, setSelectedJobForDetails] = useState<JobItem | null>(null);
@@ -60,7 +61,8 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
   const [mapToasts, setMapToasts] = useState<MapToast[]>([]);
 
   const { user } = useAuth();
-  // Use the dedicated hook for fetching all jobs for the map view
+  // Use hookData if provided (from parent), otherwise call local hook (for standalone usage)
+  const localHookData = useJobSearchForMap({ autoFetch: !!hookData ? false : true });
   const { 
     allJobs: jobs, 
     loading, 
@@ -74,7 +76,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin }) =
     fetchScoresForJobs, 
     scoresLoading,
     retryCount
-  } = useJobSearchForMap();
+  } = hookData || localHookData;
   const { applyToJob, applying } = useJobApplication();
 
   // Custom toast function for map container
