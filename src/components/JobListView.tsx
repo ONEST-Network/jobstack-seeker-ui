@@ -19,11 +19,13 @@ import { useDebounce } from '@/hooks/useDebounce';
 interface JobListViewProps {
   searchQuery: string;
   onPromptLogin?: () => void;
+  hookData?: any; // Pass hook data from parent to avoid duplicate calls
 }
 
 const JobListView: React.FC<JobListViewProps> = ({
   searchQuery,
-  onPromptLogin
+  onPromptLogin,
+  hookData
 }) => {
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
   const [detailJob, setDetailJob] = useState<JobItem | null>(null);
@@ -51,6 +53,8 @@ const JobListView: React.FC<JobListViewProps> = ({
     setDetailJob(job);
   };
   
+  // Use hookData if provided (from parent), otherwise call local hook (for standalone usage)
+  const localHookData = useJobSearch(debouncedSearchQuery, { autoFetch: !!hookData ? false : true });
   const { 
     jobs, 
     loading, 
@@ -68,15 +72,15 @@ const JobListView: React.FC<JobListViewProps> = ({
     isAutoRetrying,
     updateSearchQuery,
     currentSearchQuery
-  } = useJobSearch(debouncedSearchQuery);
+  } = hookData || localHookData;
   const { applyToJob, applying } = useJobApplication();
 
-  // Update search query when debounced search query changes
+  // Update search query when debounced search query changes (only if using local hook)
   useEffect(() => {
-    if (updateSearchQuery) {
+    if (!hookData && updateSearchQuery) {
       updateSearchQuery(debouncedSearchQuery);
     }
-  }, [debouncedSearchQuery, updateSearchQuery]);
+  }, [debouncedSearchQuery, updateSearchQuery, hookData]);
 
   // Use jobs directly from API (no client-side filtering)
   const displayJobs = jobs || [];

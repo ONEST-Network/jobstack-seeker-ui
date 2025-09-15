@@ -24,7 +24,7 @@ const OPTIMIZED_PAGE_SIZE = 1000; // Increased from 20 to reduce API calls by ~9
 const FALLBACK_PAGE_SIZE = 500; // Fallback if 1000 causes timeout/memory issues
 const ORIGINAL_PAGE_SIZE = 20; // Original size for comparison metrics
 
-export const useJobSearchForMap = () => {
+export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
   const [state, setState] = useState<AllJobsFetchState>({
     allJobs: [],
     loading: false,
@@ -80,6 +80,12 @@ export const useJobSearchForMap = () => {
       }
 
       setIntentOverrides(overrides);
+      
+      // TODO: v2 API doesn't support intent overrides. Consider implementing organization
+      // filtering by modifying the search query to include provider/job names when available
+      if (Object.keys(overrides).length > 0) {
+        console.warn('Organization-specific filtering detected but v2 API does not support intent overrides. Consider adding provider/job names to search query instead.');
+      }
     } catch {
       setIntentOverrides({});
     }
@@ -455,10 +461,11 @@ export const useJobSearchForMap = () => {
       const data = await apiClient.searchJobs(intent || intentOverrides || undefined, page, limit);
       const transformedJobs = transformJobData(data);
       
-      const paginationInfo = data?.results?.[0]?.message?.pagination || {
+      // Extract pagination info from the top-level pagination object (v2 API)
+      const paginationInfo = data?.pagination || {
         page: page,
         limit: limit,
-        totalCount: 0
+        totalCount: "0"
       };
 
       return {
@@ -631,11 +638,13 @@ export const useJobSearchForMap = () => {
     return null;
   }, [state.allJobs]);
 
-  // Trigger fetch when intent overrides are ready
+  // Trigger fetch when intent overrides are ready (only if autoFetch is enabled)
   useEffect(() => {
     if (intentOverrides === null) return; // wait until computed
-    fetchAllJobsForMap();
-  }, [intentOverrides, fetchAllJobsForMap]);
+    if (options?.autoFetch !== false) { // Default to true if not specified
+      fetchAllJobsForMap();
+    }
+  }, [intentOverrides, fetchAllJobsForMap, options?.autoFetch]);
 
   // Cleanup on unmount
   useEffect(() => {

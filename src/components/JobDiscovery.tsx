@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Map, List, Search, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDebounce } from '@/hooks/useDebounce';
 import JobMapView from './JobMapView';
 import JobListView from './JobListView';
 import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
@@ -38,13 +39,23 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
     }
   }, [handleSearch]);
 
-  // Get loading states from both job search hooks
-  const { loading: listLoading, loadingState: listLoadingState } = useJobSearch();
-  const { loading: mapLoading, loadingState: mapLoadingState, fetchProgress, totalPages, currentPagesFetched } = useJobSearchForMap();
+  // Debounce search query to reduce API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+  
+  // Centralized hooks - these are the ONLY instances that should fetch data
+  const listHookData = useJobSearch(debouncedSearchQuery);
+  const mapHookData = useJobSearchForMap({ autoFetch: false }); // Only fetch when map is actually viewed
   
   // Determine which loading state to show based on active view
-  const loading = activeView === 'list' ? listLoading : mapLoading;
-  const loadingState = activeView === 'list' ? listLoadingState : mapLoadingState;
+  const loading = activeView === 'list' ? listHookData.loading : mapHookData.loading;
+  const loadingState = activeView === 'list' ? listHookData.loadingState : mapHookData.loadingState;
+
+  // Trigger map fetch when map view is first accessed
+  useEffect(() => {
+    if (activeView === 'map' && !mapHookData.loading && mapHookData.loadingState === 'idle') {
+      mapHookData.refetch();
+    }
+  }, [activeView, mapHookData]);
 
   const handlePromptLogin = () => {
     if (onPromptLogin) {
@@ -151,16 +162,16 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
               </div>
               
               {/* Map view progress bar */}
-              {activeView === 'map' && loadingState === 'fetching' && fetchProgress && totalPages > 0 && (
+              {activeView === 'map' && loadingState === 'fetching' && mapHookData.fetchProgress && mapHookData.totalPages > 0 && (
                 <div className="mt-2">
                   <div className="w-full bg-gray-200 rounded-full h-1">
                     <div 
                       className="bg-blue-600 h-1 rounded-full transition-all duration-300 ease-out" 
-                      style={{ width: `${Math.round(fetchProgress * 100)}%` }}
+                      style={{ width: `${Math.round(mapHookData.fetchProgress * 100)}%` }}
                     ></div>
                   </div>
                   <div className="flex justify-center mt-1 text-xs text-muted-foreground">
-                    {Math.round(fetchProgress * 100)}% complete
+                    {Math.round(mapHookData.fetchProgress * 100)}% complete
                   </div>
                 </div>
               )}
@@ -173,10 +184,18 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
       <div className="min-h-[60vh]">
         <Tabs value={activeView} className="h-full">
           <TabsContent value="list" className="mt-0 h-full">
-            <JobListView searchQuery={searchQuery} onPromptLogin={handlePromptLogin} />
+            <JobListView 
+              searchQuery={searchQuery} 
+              onPromptLogin={handlePromptLogin}
+              hookData={listHookData}
+            />
           </TabsContent>
           <TabsContent value="map" className="mt-0 h-full">
-            <JobMapView searchQuery={searchQuery} onPromptLogin={handlePromptLogin} />
+            <JobMapView 
+              searchQuery={searchQuery} 
+              onPromptLogin={handlePromptLogin}
+              hookData={mapHookData}
+            />
           </TabsContent>
         </Tabs>
       </div>

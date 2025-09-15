@@ -85,6 +85,11 @@ export interface JobItem {
 }
 
 export interface JobSearchResponse {
+  pagination: {
+    limit: number;
+    page: number;
+    totalCount: string; // Note: v2 API returns totalCount as string
+  };
   results: Array<{
     context: {
       action: string;
@@ -176,23 +181,18 @@ export interface JobSearchResponse {
           }>;
         }>;
       };
-      pagination: {
-        limit: number;
-        page: number;
-        totalCount: number;
-      };
     };
   }>;
 }
 
 export type LoadingState = 'idle' | 'initial' | 'loading' | 'partial' | 'complete' | 'error';
 
-export const useJobSearch = (searchQuery?: string) => {
+export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boolean }) => {
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
-    limit: 5,
+    limit: 30,
     page: 1,
     totalCount: 0,
     totalPages: 0
@@ -246,6 +246,12 @@ export const useJobSearch = (searchQuery?: string) => {
       }
 
       setIntentOverrides(overrides);
+      
+      // TODO: v2 API doesn't support intent overrides. Consider implementing organization
+      // filtering by modifying the search query to include provider/job names when available
+      if (Object.keys(overrides).length > 0) {
+        console.warn('Organization-specific filtering detected but v2 API does not support intent overrides. Consider adding provider/job names to search query instead.');
+      }
     } catch {
       setIntentOverrides({});
     }
@@ -821,18 +827,18 @@ export const useJobSearch = (searchQuery?: string) => {
       // Transform the data
       const transformedJobs = transformJobData(data);
       
-      // Extract pagination info from the first result's message.pagination
-      const paginationInfo = data?.results?.[0]?.message?.pagination || {
+      // Extract pagination info from the top-level pagination object (v2 API)
+      const paginationInfo = data?.pagination || {
         page: page,
         limit: limit,
-        totalCount: 0
+        totalCount: "0"
       };
       
       // Always use the requested page number instead of API response page
       // The API might return page: 1 even when we request page: 2
       const actualPage = page; // Use the page we requested
       const actualLimit = limit || paginationInfo.limit;
-      const totalCount = paginationInfo.totalCount || 0;
+      const totalCount = parseInt(paginationInfo.totalCount || "0", 10);
       const totalPages = Math.ceil(totalCount / actualLimit) || 1;
       
       console.log('Pagination Debug:', {
@@ -969,15 +975,17 @@ export const useJobSearch = (searchQuery?: string) => {
     // Reset to first page when search query changes
     setPagination(prev => ({ ...prev, page: 1 }));
     // Immediately trigger fetch with the new query - use current limit from state
-    fetchJobsInternal(false, 0, intentOverrides, 1, 5, query); // Use default limit of 5
+    fetchJobsInternal(false, 0, intentOverrides, 1, 30, query); // Use default limit of 30
   }, [fetchJobsInternal, intentOverrides, currentSearchQuery]);
 
-  // Fetch when intent overrides are ready or change
+  // Fetch when intent overrides are ready or change (only if autoFetch is enabled)
   useEffect(() => {
     if (intentOverrides === null) return; // wait until computed
-    fetchJobs();
+    if (options?.autoFetch !== false) { // Default to true if not specified
+      fetchJobs();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [intentOverrides]);
+  }, [intentOverrides, options?.autoFetch]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
