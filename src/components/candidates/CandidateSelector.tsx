@@ -1,12 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Plus, User, Edit, Trash2, CheckSquare } from 'lucide-react';
+import { ChevronDown, Plus, User, Edit, Trash2, CheckSquare, Square } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
-import { useTranslation } from 'react-i18next';
 
 interface CandidateSelectorProps {
   onAddCandidate: () => void;
@@ -20,8 +20,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedProfiles, setSelectedProfiles] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  const { t } = useTranslation("candidateselector");
 
   if (!user || user.role !== 'individual' || user.managedCandidates.length === 0) {
     return null;
@@ -61,15 +59,18 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
     if (selectedProfiles.size === 0) return;
     
     try {
+      // Delete each selected profile
       for (const profileId of selectedProfiles) {
         await deleteProfile(profileId);
       }
+      
+      // Clear selection and exit selection mode
       setSelectedProfiles(new Set());
       setIsSelectionMode(false);
       setShowDeleteConfirm(false);
     } catch (error) {
       console.error('Error deleting profiles:', error);
-      alert(t("candidateSelector.errors.deleteFailed"));
+      alert('Failed to delete some profiles. Please try again.');
     }
   };
 
@@ -80,6 +81,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
     }
   };
 
+  // Keyboard shortcuts for selection mode
   useEffect(() => {
     if (!isSelectionMode) return;
 
@@ -105,7 +107,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
           <Button variant="outline" className="gap-2 min-w-0 flex-1 sm:flex-none">
             <User className="h-4 w-4 flex-shrink-0" />
             <span className="font-medium truncate">
-              {selectedCandidate?.nickname || selectedCandidate?.name || t("candidateSelector.selectProfile")}
+              {selectedCandidate?.nickname || selectedCandidate?.name || 'Select Profile'}
             </span>
             <ChevronDown className="h-4 w-4 flex-shrink-0" />
           </Button>
@@ -120,14 +122,14 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
             {/* Header */}
             <div className="p-2 border-b">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-muted-foreground">{t("candidateSelector.switchProfile")}</div>
+                <div className="text-sm font-medium text-muted-foreground">Switch Profile</div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={toggleSelectionMode}
                   className="h-6 px-2 text-xs"
                 >
-                  {isSelectionMode ? t("candidateSelector.cancel") : t("candidateSelector.select")}
+                  {isSelectionMode ? 'Cancel' : 'Select'}
                 </Button>
               </div>
             </div>
@@ -137,7 +139,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
               <div className="p-2 border-b bg-muted/50">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">
-                    {t("candidateSelector.selectedCount", { count: selectedProfiles.size, total: user.managedCandidates.length })}
+                    {selectedProfiles.size} of {user.managedCandidates.length} selected
                   </span>
                   <Button
                     variant="ghost"
@@ -145,15 +147,13 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
                     onClick={handleSelectAllProfiles}
                     className="h-5 px-2 text-xs"
                   >
-                    {selectedProfiles.size === user.managedCandidates.length
-                      ? t("candidateSelector.deselectAll")
-                      : t("candidateSelector.selectAll")}
+                    {selectedProfiles.size === user.managedCandidates.length ? 'Deselect All' : 'Select All'}
                   </Button>
                 </div>
               </div>
             )}
             
-            {/* Profile List */}
+            {/* Scrollable Profile List */}
             <div className="overflow-y-auto flex-1 min-h-0" style={{ maxHeight: 'calc(40vh - 80px)' }}>
               <div className="p-2 space-y-1">
                 {user.managedCandidates.map((candidate) => (
@@ -196,17 +196,17 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
                           {candidate.nickname || candidate.name}
                         </span>
                         <span className="text-xs text-muted-foreground truncate">
-                          {candidate.interestedRole || t("candidateSelector.noRole")}
+                          {candidate.interestedRole || 'No role specified'}
                         </span>
                       </div>
                       {selectedCandidate?.id === candidate.id && !isSelectionMode && (
                         <Badge variant="secondary" className="text-xs ml-2 flex-shrink-0">
-                          {t("candidateSelector.active")}
+                          Active
                         </Badge>
                       )}
                     </DropdownMenuItem>
                     
-                    {/* Edit button */}
+                    {/* Edit button for each profile */}
                     {!isSelectionMode && (
                       <Button
                         variant="ghost"
@@ -225,7 +225,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
               </div>
             </div>
             
-            {/* Footer */}
+            {/* Fixed Footer */}
             <div className="border-t">
               {isSelectionMode && selectedProfiles.size > 0 ? (
                 <DropdownMenuItem 
@@ -233,7 +233,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
                   className="gap-2 p-2 cursor-pointer hover:bg-red-50 text-red-600 rounded-none"
                 >
                   <Trash2 className="h-4 w-4" />
-                  {t("candidateSelector.deleteSelected", { count: selectedProfiles.size })}
+                  Delete {selectedProfiles.size} Profile(s)
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem 
@@ -241,7 +241,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
                   className="gap-2 p-2 cursor-pointer hover:bg-muted rounded-none"
                 >
                   <Plus className="h-4 w-4" />
-                  {t("candidateSelector.addNew")}
+                  Add New Profile
                 </DropdownMenuItem>
               )}
             </div>
@@ -249,7 +249,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Profile Dialog */}
+      {/* Profile Dialog for editing */}
       {showProfileDialog && editingProfileId && (
         <CandidateProfileDialog
           isOpen={showProfileDialog}
@@ -261,15 +261,15 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
         />
       )}
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleBulkDeleteProfiles}
-        title={t("candidateSelector.confirmDeleteTitle")}
-        description={t("candidateSelector.confirmDeleteDesc", { count: selectedProfiles.size })}
-        confirmText={t("candidateSelector.confirmDelete")}
-        cancelText={t("candidateSelector.cancel")}
+        title="Delete Profiles"
+        description={`Are you sure you want to delete ${selectedProfiles.size} profile(s)? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
         variant="destructive"
       />
     </>

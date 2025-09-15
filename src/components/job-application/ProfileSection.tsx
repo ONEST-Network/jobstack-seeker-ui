@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { User, CheckCircle } from 'lucide-react';
@@ -17,16 +17,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   showCandidateDialog, 
   setShowCandidateDialog 
 }) => {
-  const { t } = useTranslation("profilesection");
   const { user } = useAuth();
 
   if (user?.role !== 'individual') return null;
 
   return (
     <div className="mb-6">
-      <Label className="mb-3 block text-base">
-        {t('profileSection.applyingWithProfile')}
-      </Label>
+      <Label className="mb-3 block text-base">Applying with Profile:</Label>
       {user.managedCandidates.length > 0 ? (
         <CandidateSelector onAddCandidate={() => setShowCandidateDialog(true)} />
       ) : (
@@ -38,11 +35,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </div>
               <div className="flex-1">
                 <div className="font-medium text-green-800 text-base">
-                  {formData.name || t('profileSection.yourProfile')}
+                  {formData.name || 'Your Profile'}
                 </div>
                 <div className="text-sm text-green-600 flex items-center gap-1">
                   <CheckCircle className="h-4 w-4" />
-                  {t('profileSection.verifiedProfile')}
+                  Verified Profile
                 </div>
               </div>
             </div>

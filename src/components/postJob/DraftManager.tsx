@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,6 @@ interface DraftManagerProps {
 const DraftManager: React.FC<DraftManagerProps> = ({ isOpen, onClose, onEditDraft }) => {
   const [drafts, setDrafts] = useState<DraftSummary[]>([]);
   const { toast } = useToast();
-  const { t } = useTranslation('draftManager');
 
   useEffect(() => {
     if (isOpen) {
@@ -31,12 +30,12 @@ const DraftManager: React.FC<DraftManagerProps> = ({ isOpen, onClose, onEditDraf
   };
 
   const handleDeleteDraft = (draftId: string) => {
-    if (window.confirm(t('drafts.confirmDelete'))) {
+    if (window.confirm('Are you sure you want to delete this draft?')) {
       deleteDraft(draftId);
       loadDrafts();
       toast({
-        title: t('drafts.toast.deletedTitle'),
-        description: t('drafts.toast.deletedDesc'),
+        title: "Draft deleted",
+        description: "The job draft has been successfully deleted.",
       });
     }
   };
@@ -73,14 +72,14 @@ const DraftManager: React.FC<DraftManagerProps> = ({ isOpen, onClose, onEditDraf
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('drafts.title')}</DialogTitle>
+          <DialogTitle>Job Drafts & Published Jobs</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           {drafts.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>{t('drafts.noDrafts')}</p>
+              <p>No drafts or published jobs found</p>
             </div>
           ) : (
             <div className="grid gap-4">
@@ -98,7 +97,7 @@ const DraftManager: React.FC<DraftManagerProps> = ({ isOpen, onClose, onEditDraf
                         </div>
                       </div>
                       <Badge className={getStatusColor(draft.status)}>
-                        {t(`drafts.status.${draft.status}`)}
+                        {draft.status}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -107,11 +106,11 @@ const DraftManager: React.FC<DraftManagerProps> = ({ isOpen, onClose, onEditDraf
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
-                          <span>{t('drafts.lastSaved')}: {formatDate(draft.lastSavedAt)}</span>
+                          <span>Last saved: {formatDate(draft.lastSavedAt)}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          <span>{t('drafts.createdAt')}: {formatDate(draft.createdAt)}</span>
+                          <span>Created: {formatDate(draft.createdAt)}</span>
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -121,7 +120,7 @@ const DraftManager: React.FC<DraftManagerProps> = ({ isOpen, onClose, onEditDraf
                           onClick={() => handleEditDraft(draft.id)}
                         >
                           <Edit className="h-4 w-4 mr-2" />
-                          {t('common.edit')}
+                          Edit
                         </Button>
                         <Button
                           variant="outline"
@@ -129,7 +128,7 @@ const DraftManager: React.FC<DraftManagerProps> = ({ isOpen, onClose, onEditDraf
                           onClick={() => handleDeleteDraft(draft.id)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          {t('common.delete')}
+                          Delete
                         </Button>
                       </div>
                     </div>

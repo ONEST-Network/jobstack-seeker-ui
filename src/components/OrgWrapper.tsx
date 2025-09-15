@@ -1,11 +1,10 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
 import OrgNotFound from './OrgNotFound';
 import Header from './header/Header';
 import ChatbotButton from './ChatbotButton';
 import { Loader2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 interface OrgWrapperProps {
   children: React.ReactNode;
@@ -13,8 +12,8 @@ interface OrgWrapperProps {
 
 const OrgWrapper: React.FC<OrgWrapperProps> = ({ children }) => {
   const { orgSlug } = useParams<{ orgSlug: string }>();
+  const navigate = useNavigate();
   const { data: orgDetails, isLoading, error } = useOrgDetails(orgSlug || null);
-  const { t } = useTranslation("orgwrapper");
 
   // If no orgSlug or orgSlug is '0', render with default header
   if (!orgSlug || orgSlug === '0') {
@@ -36,7 +35,7 @@ const OrgWrapper: React.FC<OrgWrapperProps> = ({ children }) => {
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-gray-600">{t('orgWrapper.loading')}</p>
+            <p className="text-gray-600">Loading organization details...</p>
           </div>
         </div>
       </>
@@ -54,11 +53,7 @@ const OrgWrapper: React.FC<OrgWrapperProps> = ({ children }) => {
     let metadata: any = null;
     const rawMeta = orgDetails.data.metadata ?? null;
     if (typeof rawMeta === 'string') {
-      try {
-        metadata = JSON.parse(rawMeta);
-      } catch {
-        metadata = null;
-      }
+      try { metadata = JSON.parse(rawMeta); } catch { metadata = null; }
     } else if (rawMeta && typeof rawMeta === 'object') {
       metadata = rawMeta;
     }

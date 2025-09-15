@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,104 +23,102 @@ const OrgProfileStep: React.FC<OrgProfileStepProps> = ({
   setOrgData,
   onSubmit
 }) => {
-  const { t } = useTranslation('orgProfileStep');
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-full max-w-2xl h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0 border-b pb-4">
-          <DialogTitle>{t('orgProfileStep.title')}</DialogTitle>
+          <DialogTitle>Create Organization Profile</DialogTitle>
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto py-4">
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">{t('orgProfileStep.details')}</CardTitle>
+                <CardTitle className="text-lg">Organization Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="orgName">{t('orgProfileStep.orgName')}</Label>
+                    <Label htmlFor="orgName">Organization Name *</Label>
                     <Input
                       id="orgName"
                       value={orgData.name}
                       onChange={(e) => setOrgData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder={t('orgProfileStep.placeholders.orgName') || ''}
+                      placeholder="Enter organization name"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="gst">{t('orgProfileStep.gst')}</Label>
+                    <Label htmlFor="gst">GST Number</Label>
                     <Input
                       id="gst"
                       value={orgData.gst}
                       onChange={(e) => setOrgData(prev => ({ ...prev, gst: e.target.value }))}
-                      placeholder={t('orgProfileStep.placeholders.gst') || ''}
+                      placeholder="Enter GST number"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="address">{t('orgProfileStep.address')}</Label>
+                  <Label htmlFor="address">Address *</Label>
                   <Textarea
                     id="address"
                     value={orgData.address}
                     onChange={(e) => setOrgData(prev => ({ ...prev, address: e.target.value }))}
-                    placeholder={t('orgProfileStep.placeholders.address') || ''}
+                    placeholder="Enter complete address"
                     rows={3}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="contactPerson">{t('orgProfileStep.contactPerson')}</Label>
+                    <Label htmlFor="contactPerson">Contact Person *</Label>
                     <Input
                       id="contactPerson"
                       value={orgData.contactPerson}
                       onChange={(e) => setOrgData(prev => ({ ...prev, contactPerson: e.target.value }))}
-                      placeholder={t('orgProfileStep.placeholders.contactPerson') || ''}
+                      placeholder="Contact person name"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="orgEmail">{t('orgProfileStep.email')}</Label>
+                    <Label htmlFor="orgEmail">Email *</Label>
                     <Input
                       id="orgEmail"
                       type="email"
                       value={orgData.email}
                       onChange={(e) => setOrgData(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder={t('orgProfileStep.placeholders.email') || ''}
+                      placeholder="organization@example.com"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="orgPhone">{t('orgProfileStep.phone')}</Label>
+                    <Label htmlFor="orgPhone">Phone Number *</Label>
                     <Input
                       id="orgPhone"
                       value={orgData.phone}
                       onChange={(e) => setOrgData(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder={t('orgProfileStep.placeholders.phone') || ''}
+                      placeholder="+91 9876543210"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="website">{t('orgProfileStep.website')}</Label>
+                    <Label htmlFor="website">Website</Label>
                     <Input
                       id="website"
                       value={orgData.website}
                       onChange={(e) => setOrgData(prev => ({ ...prev, website: e.target.value }))}
-                      placeholder={t('orgProfileStep.placeholders.website') || ''}
+                      placeholder="https://yourcompany.com"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="orgDescription">{t('orgProfileStep.description')}</Label>
+                  <Label htmlFor="orgDescription">Organization Description</Label>
                   <Textarea
                     id="orgDescription"
                     value={orgData.description}
                     onChange={(e) => setOrgData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder={t('orgProfileStep.placeholders.description') || ''}
+                    placeholder="Brief description of your organization"
                     rows={3}
                   />
                 </div>
@@ -132,10 +130,10 @@ const OrgProfileStep: React.FC<OrgProfileStepProps> = ({
         <div className="flex-shrink-0 border-t pt-4">
           <div className="flex gap-2">
             <Button onClick={onSubmit} className="flex-1">
-              {t('orgProfileStep.saveAndContinue')}
+              Save & Continue to Job Posting
             </Button>
             <Button variant="outline" onClick={onClose}>
-              {t('common.cancel')}
+              Cancel
             </Button>
           </div>
         </div>

@@ -1,12 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Building, MapPin, Users } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 const TopEmployers = () => {
-  const { t } = useTranslation("topemployers");
-
   const employers = [
     {
       id: 1,
@@ -111,10 +109,10 @@ const TopEmployers = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground mb-4">
-            {t('topEmployers.title')}
+            Top Employers Hiring Now
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            {t('topEmployers.subtitle')}
+            Discover opportunities with India's leading companies across various sectors
           </p>
         </div>
 
@@ -139,7 +137,7 @@ const TopEmployers = () => {
                       </h3>
                       {employer.verified && (
                         <Badge variant="secondary" className="mt-1 bg-green-100 text-green-800 text-xs">
-                          {t('topEmployers.verified')}
+                          ✓ Verified
                         </Badge>
                       )}
                     </div>
@@ -158,8 +156,7 @@ const TopEmployers = () => {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Users className="h-3 w-3" />
-                    <span>{t('topEmployers.employees', { value: employer.employeeCount })}</span>
-
+                    <span>{employer.employeeCount} employees</span>
                   </div>
                 </div>
 
@@ -175,7 +172,7 @@ const TopEmployers = () => {
                       {employer.openings}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {t('topEmployers.openPositions')}
+                      Open Positions
                     </div>
                   </div>
                 </div>
@@ -188,7 +185,7 @@ const TopEmployers = () => {
                   </div>
                   <button className="text-primary hover:text-primary/80 text-sm font-medium
                                    transition-colors duration-200">
-                    {t('topEmployers.viewJobs')} →
+                    View Jobs →
                   </button>
                 </div>
               </CardContent>
@@ -200,7 +197,7 @@ const TopEmployers = () => {
           <button className="bg-white border border-primary text-primary hover:bg-primary 
                            hover:text-white px-8 py-3 rounded-lg font-medium transition-all duration-300
                            shadow-sm hover:shadow-md">
-            {t('topEmployers.viewAllCompanies')} →
+            View All Companies →
           </button>
         </div>
       </div>

@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,10 +23,8 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
   onDelete,
   isDefault = false
 }) => {
-  const { t } = useTranslation("employercard");
-
   return (
-    <Card
+    <Card 
       className={`cursor-pointer transition-shadow hover:shadow-md ${
         isSelected ? 'ring-2 ring-primary' : ''
       }`}
@@ -47,15 +45,15 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {isSelected && <Badge variant="default">{t('employerCard.selected')}</Badge>}
-            {isDefault && <Badge variant="secondary">{t('employerCard.default')}</Badge>}
+            {isSelected && <Badge variant="default">Selected</Badge>}
+            {isDefault && <Badge variant="secondary">Default</Badge>}
             <Badge variant={employer.isActive ? 'default' : 'secondary'}>
-              {employer.isActive ? t('employerCard.active') : t('employerCard.inactive')}
+              {employer.isActive ? 'Active' : 'Inactive'}
             </Badge>
           </div>
         </div>
       </CardHeader>
-
+      
       <CardContent className="space-y-3">
         <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
@@ -69,12 +67,7 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
           {employer.website && (
             <div className="flex items-center gap-2">
               <Globe className="h-4 w-4" />
-              <a
-                href={employer.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
+              <a href={employer.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                 {employer.website}
               </a>
             </div>
@@ -82,7 +75,9 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
         </div>
 
         {employer.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">{employer.description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {employer.description}
+          </p>
         )}
 
         <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
