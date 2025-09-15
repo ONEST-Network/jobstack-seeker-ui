@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { JobData } from '@/types/jobPost';
-import { useTranslation } from 'react-i18next';
 
 interface BasicJobInfoCardProps {
   jobData: JobData;
@@ -12,76 +12,68 @@ interface BasicJobInfoCardProps {
 }
 
 const BasicJobInfoCard: React.FC<BasicJobInfoCardProps> = ({ jobData, setJobData }) => {
-  const { t } = useTranslation('basicJobInfoCard'); 
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">{t('title')}</CardTitle>
+        <CardTitle className="text-lg">Basic Information</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="jobTitle">{t('jobTitle.label')}</Label>
+            <Label htmlFor="jobTitle">Job Title *</Label>
             <Input
               id="jobTitle"
               value={jobData.title}
               onChange={(e) => setJobData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder={t('jobTitle.placeholder')}
+              placeholder="e.g., Electrician, Welder, Security Guard"
             />
           </div>
           <div>
-            <Label htmlFor="location">{t('location.label')}</Label>
+            <Label htmlFor="location">Location *</Label>
             <Input
               id="location"
               value={jobData.location}
               onChange={(e) => setJobData(prev => ({ ...prev, location: e.target.value }))}
-              placeholder={t('location.placeholder')}
+              placeholder="City, State"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="jobType">{t('jobType.label')}</Label>
-            <Select
-              value={jobData.jobType}
-              onValueChange={(value) => setJobData(prev => ({ ...prev, jobType: value }))}
-            >
+            <Label htmlFor="jobType">Job Type *</Label>
+            <Select value={jobData.jobType} onValueChange={(value) => setJobData(prev => ({ ...prev, jobType: value }))}>
               <SelectTrigger>
-                <SelectValue placeholder={t('jobType.placeholder')} />
+                <SelectValue placeholder="Select job type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="full-time">{t('jobType.options.fullTime')}</SelectItem>
-                <SelectItem value="part-time">{t('jobType.options.partTime')}</SelectItem>
-                <SelectItem value="contract">{t('jobType.options.contract')}</SelectItem>
-                <SelectItem value="internship">{t('jobType.options.internship')}</SelectItem>
-                <SelectItem value="trainee">{t('jobType.options.trainee')}</SelectItem>
+                <SelectItem value="full-time">Full-time</SelectItem>
+                <SelectItem value="part-time">Part-time</SelectItem>
+                <SelectItem value="contract">Contract</SelectItem>
+                <SelectItem value="internship">Internship</SelectItem>
+                <SelectItem value="trainee">Trainee</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="salary">{t('salary.label')}</Label>
+            <Label htmlFor="salary">Salary Range *</Label>
             <Input
               id="salary"
               value={jobData.salary}
               onChange={(e) => setJobData(prev => ({ ...prev, salary: e.target.value }))}
-              placeholder={t('salary.placeholder')}
+              placeholder="₹15,000 - ₹25,000"
             />
           </div>
           <div>
-            <Label htmlFor="payFrequency">{t('payFrequency.label')}</Label>
-            <Select
-              value={jobData.payFrequency}
-              onValueChange={(value) => setJobData(prev => ({ ...prev, payFrequency: value }))}
-            >
+            <Label htmlFor="payFrequency">Pay Frequency *</Label>
+            <Select value={jobData.payFrequency} onValueChange={(value) => setJobData(prev => ({ ...prev, payFrequency: value }))}>
               <SelectTrigger>
-                <SelectValue placeholder={t('payFrequency.placeholder')} />
+                <SelectValue placeholder="Select frequency" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="daily">{t('payFrequency.options.daily')}</SelectItem>
-                <SelectItem value="weekly">{t('payFrequency.options.weekly')}</SelectItem>
-                <SelectItem value="monthly">{t('payFrequency.options.monthly')}</SelectItem>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -89,16 +81,16 @@ const BasicJobInfoCard: React.FC<BasicJobInfoCardProps> = ({ jobData, setJobData
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="experience">{t('experience.label')}</Label>
+            <Label htmlFor="experience">Experience Required</Label>
             <Input
               id="experience"
               value={jobData.experience}
               onChange={(e) => setJobData(prev => ({ ...prev, experience: e.target.value }))}
-              placeholder={t('experience.placeholder')}
+              placeholder="e.g., 2-5 years"
             />
           </div>
           <div>
-            <Label htmlFor="positions">{t('positions.label')}</Label>
+            <Label htmlFor="positions">Number of Positions</Label>
             <Input
               id="positions"
               type="number"
@@ -108,7 +100,7 @@ const BasicJobInfoCard: React.FC<BasicJobInfoCardProps> = ({ jobData, setJobData
             />
           </div>
           <div>
-            <Label htmlFor="lastDate">{t('lastDate.label')}</Label>
+            <Label htmlFor="lastDate">Last Date to Apply</Label>
             <Input
               id="lastDate"
               type="date"

@@ -1,8 +1,0 @@
-{
-  "scoreDisplay": {
-    "trustScore": "Trust Score",
-    "trustScoreHint": "Based on verified documents",
-    "matchScore": "Match Score",
-    "matchScoreHint": "Based on skills and experience"
-  }
-}

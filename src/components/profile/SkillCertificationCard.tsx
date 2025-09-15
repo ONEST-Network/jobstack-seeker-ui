@@ -4,7 +4,6 @@ import { Award } from 'lucide-react';
 import { SkillCertification } from '@/types/profile';
 import CertificationListItem from './skills/CertificationListItem';
 import AddCertificationForm from './skills/AddCertificationForm';
-import { useTranslation } from 'react-i18next';
 
 interface SkillCertificationCardProps {
   certifications: SkillCertification[];
@@ -13,16 +12,14 @@ interface SkillCertificationCardProps {
 
 const SkillCertificationCard: React.FC<SkillCertificationCardProps> = ({
   certifications,
-  onChange,
+  onChange
 }) => {
-  const { t } = useTranslation('skillcertificatecard'); 
-
   const handleAddCertification = (newCertification: SkillCertification) => {
     onChange([...certifications, newCertification]);
   };
 
   const handleRemoveCertification = (id: string) => {
-    onChange(certifications.filter((cert) => cert.id !== id));
+    onChange(certifications.filter(cert => cert.id !== id));
   };
 
   return (
@@ -30,11 +27,11 @@ const SkillCertificationCard: React.FC<SkillCertificationCardProps> = ({
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <Award className="h-4 w-4" />
-          {t('certifications.title')} {/* 🔑 from profile.json */}
+          Skill Certifications
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Existing Certifications */}
+        {/* Existing Certifications List */}
         {certifications.map((cert) => (
           <CertificationListItem
             key={cert.id}
@@ -43,7 +40,7 @@ const SkillCertificationCard: React.FC<SkillCertificationCardProps> = ({
           />
         ))}
 
-        {/* Add Certification Form */}
+        {/* Add New Certification Form */}
         <AddCertificationForm onAdd={handleAddCertification} />
       </CardContent>
     </Card>

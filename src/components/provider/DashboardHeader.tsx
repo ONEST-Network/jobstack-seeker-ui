@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Plus, Building2, Briefcase, Menu } from 'lucide-react';
 import EmployerSelector from '@/components/employer/EmployerSelector';
-import { useTranslation } from 'react-i18next';
 
 interface DashboardHeaderProps {
   showMobileMenu: boolean;
@@ -24,22 +24,21 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onManageEmployers
 }) => {
   const isMobile = useIsMobile();
-  const { t } = useTranslation("dashboardheader");
 
   const MobileActions = () => (
     <div className="space-y-2">
       <EmployerSelector onAddEmployer={onAddEmployer} />
       <Button variant="outline" onClick={onManageDrafts} className="w-full justify-start h-touch">
         <Briefcase className="h-4 w-4 mr-2" />
-        {t('dashboard.actions.manageDrafts')}
+        Manage Drafts
       </Button>
       <Button onClick={onPostJob} className="w-full justify-start h-touch">
         <Plus className="h-4 w-4 mr-2" />
-        {t('dashboard.actions.postJob')}
+        Post New Job
       </Button>
       <Button variant="outline" onClick={onManageEmployers} className="w-full justify-start h-touch">
         <Building2 className="h-4 w-4 mr-2" />
-        {t('dashboard.actions.manageEmployers')}
+        Manage Employers
       </Button>
     </div>
   );
@@ -47,9 +46,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   return (
     <div className="flex items-center justify-between mb-4 sm:mb-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">{t('dashboard.title')}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Provider Dashboard</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          {t('dashboard.subtitle')}
+          Manage employers, job postings, and candidate applications
         </p>
       </div>
       <div className="flex items-center gap-2 sm:gap-3">
@@ -62,7 +61,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </SheetTrigger>
             <SheetContent side="right">
               <SheetHeader>
-                <SheetTitle>{t('dashboard.actions.title')}</SheetTitle>
+                <SheetTitle>Actions</SheetTitle>
               </SheetHeader>
               <div className="mt-6">
                 <MobileActions />
@@ -74,15 +73,15 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <EmployerSelector onAddEmployer={onAddEmployer} />
             <Button variant="outline" onClick={onManageDrafts} className="h-touch">
               <Briefcase className="h-4 w-4 mr-2" />
-              {t('dashboard.actions.manageDrafts')}
+              Manage Drafts
             </Button>
             <Button onClick={onPostJob} className="h-touch">
               <Plus className="h-4 w-4 mr-2" />
-              {t('dashboard.actions.postJob')}
+              Post New Job
             </Button>
             <Button variant="outline" onClick={onManageEmployers} className="h-touch">
               <Building2 className="h-4 w-4 mr-2" />
-              {t('dashboard.actions.manageEmployers')}
+              Manage Employers
             </Button>
           </>
         )}

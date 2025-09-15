@@ -1,14 +1,7 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOrganizationSelection, Organization } from '@/hooks/useOrganizationSelection';
-import { useTranslation } from 'react-i18next';
 
 interface OrganizationSelectionProps {
   onOrganizationSelect: (organization: Organization | null) => void;
@@ -30,8 +23,6 @@ const OrganizationSelection: React.FC<OrganizationSelectionProps> = ({
     handleOrganizationChange,
   } = useOrganizationSelection();
 
-  const { t } = useTranslation('organizationSelection');
-
   const handleStateSelect = (stateName: string) => {
     handleStateChange(stateName);
     onOrganizationSelect(null);
@@ -50,14 +41,11 @@ const OrganizationSelection: React.FC<OrganizationSelectionProps> = ({
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      {/* State Selector */}
       <div>
-        <Label htmlFor="state" className="text-sm font-medium">
-          {t('form.state')}
-        </Label>
+        <Label htmlFor="state" className="text-sm font-medium">State</Label>
         <Select value={selectedState} onValueChange={handleStateSelect}>
           <SelectTrigger className="h-10 sm:h-11 text-sm">
-            <SelectValue placeholder={t('placeholder.state')} />
+            <SelectValue placeholder="Select a state" />
           </SelectTrigger>
           <SelectContent className="max-h-[200px] sm:max-h-[300px]">
             {availableStates.map((state) => (
@@ -69,15 +57,12 @@ const OrganizationSelection: React.FC<OrganizationSelectionProps> = ({
         </Select>
       </div>
 
-      {/* District Selector */}
       {selectedState && (
         <div>
-          <Label htmlFor="district" className="text-sm font-medium">
-            {t('form.district')}
-          </Label>
+          <Label htmlFor="district" className="text-sm font-medium">District</Label>
           <Select value={selectedDistrict} onValueChange={handleDistrictSelect}>
             <SelectTrigger className="h-10 sm:h-11 text-sm">
-              <SelectValue placeholder={t('placeholder.district')} />
+              <SelectValue placeholder="Select a district" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px] sm:max-h-[300px]">
               {availableDistricts.map((district) => (
@@ -90,18 +75,15 @@ const OrganizationSelection: React.FC<OrganizationSelectionProps> = ({
         </div>
       )}
 
-      {/* Organization Selector */}
       {selectedDistrict && (
         <div>
-          <Label htmlFor="organization" className="text-sm font-medium">
-            {t('form.organization')}
-          </Label>
-          <Select
-            value={selectedOrganization?.slug || ''}
+          <Label htmlFor="organization" className="text-sm font-medium">Organization/College</Label>
+          <Select 
+            value={selectedOrganization?.slug || ''} 
             onValueChange={handleOrganizationSelect}
           >
             <SelectTrigger className="h-10 sm:h-11 text-sm">
-              <SelectValue placeholder={t('placeholder.organization')} />
+              <SelectValue placeholder="Select an organization" />
             </SelectTrigger>
             <SelectContent className="max-h-[200px] sm:max-h-[300px] max-w-[calc(100vw-2rem)]">
               {availableOrganizations.map((organization) => (
@@ -119,10 +101,9 @@ const OrganizationSelection: React.FC<OrganizationSelectionProps> = ({
         </div>
       )}
 
-      {/* Selected Organization Details */}
       {selectedOrganization && (
         <div className="p-3 bg-muted rounded-lg">
-          <h4 className="font-medium text-sm">{t('organization.selected')}</h4>
+          <h4 className="font-medium text-sm">Selected Organization:</h4>
           <p className="text-sm font-medium truncate">{selectedOrganization.name}</p>
           <p className="text-xs text-muted-foreground">
             {selectedOrganization.type} • {selectedOrganization.location} • {selectedOrganization.district}

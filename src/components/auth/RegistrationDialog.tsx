@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,14 @@ import { useLocation, useParams } from 'react-router-dom';
 import OTPVerificationDialog from './OTPVerificationDialog';
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
-import { useTranslation } from 'react-i18next';
+
+interface RegistrationDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  defaultRole: 'individual' | 'organization';
+  preFilledEmail?: string;
+  preFilledPhone?: string;
+}
 
 interface RegistrationDialogProps {
   isOpen: boolean;
@@ -44,8 +52,6 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { data: orgDetails } = useOrgDetails(orgSlug || null);
 
-  const { t } = useTranslation();
-
   // Always set role to individual - organization registration is disabled
   useEffect(() => {
     setRole('individual');
@@ -54,9 +60,32 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   // Format phone number with country code
   const formatPhoneNumber = (input: string): string => {
     const digits = input.replace(/\D/g, '');
-    if (input.startsWith('+91')) return input;
-    if (digits.length === 10) return `+91${digits}`;
-    if ((digits.length === 11 || digits.length === 12) && digits.startsWith('91')) return `+${digits}`;
+    
+    // If it already starts with +91, return as is
+    if (input.startsWith('+91')) {
+      return input;
+    }
+    
+    // If it's a 10-digit number, add +91
+    if (digits.length === 10) {
+      return `+91${digits}`;
+    }
+    
+    // If it's an 11-digit number starting with 91, add +
+    if (digits.length === 11 && digits.startsWith('91')) {
+      return `+${digits}`;
+    }
+    
+    // If it's a 12-digit number starting with 91, add +
+    if (digits.length === 12 && digits.startsWith('91')) {
+      return `+${digits}`;
+    }
+    
+    // For other cases, just add +91 if it's a 10-digit number
+    if (digits.length === 10) {
+      return `+91${digits}`;
+    }
+    
     return input;
   };
 
@@ -76,17 +105,26 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
 
   const handlePhoneChange = (value: string) => {
     const currentCursorPosition = phoneInputRef.current?.selectionStart || 0;
+    
     setPhone(value);
     const formatted = formatPhoneNumber(value);
     setFormattedPhone(formatted);
+    
+    // Handle cursor position after formatting
     requestAnimationFrame(() => {
       if (phoneInputRef.current) {
         let newCursorPosition = currentCursorPosition;
+        
+        // If the formatted value has +91 prefix and the original input didn't start with it
         if (formatted.startsWith('+91') && !value.startsWith('+91')) {
+          // Position cursor after the +91 prefix
           newCursorPosition = Math.max(currentCursorPosition + 3, 3);
         }
+        
+        // Ensure cursor is within the input bounds
         const maxPosition = formatted.length;
         newCursorPosition = Math.min(newCursorPosition, maxPosition);
+        
         phoneInputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
       }
     });
@@ -103,35 +141,46 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   const handleRegister = async () => {
     if (!termsAccepted || !privacyAccepted) {
       toast({
-        title: t("registration.errors.accept"),
+        title: "Error",
+        description: "Please accept the terms and conditions and privacy policy.",
         variant: "destructive"
       });
       return;
     }
+
     if (!name) {
       toast({
-        title: t("registration.errors.name"),
+        title: "Error",
+        description: "Please enter your name.",
         variant: "destructive"
       });
       return;
     }
+
     if (!email && !phone) {
       toast({
-        title: t("registration.errors.contact"),
+        title: "Error",
+        description: "Please enter either your email address or phone number.",
         variant: "destructive"
       });
       return;
     }
+
+    // Validate email if provided
     if (email && !email.includes('@')) {
       toast({
-        title: t("registration.errors.email"),
+        title: "Error",
+        description: "Please enter a valid email address.",
         variant: "destructive"
       });
       return;
     }
+
+    // Validate phone if provided
     if (phone && phone.replace(/\D/g, '').length < 10) {
       toast({
-        title: t("registration.errors.phone"),
+        title: "Error",
+        description: "Please enter a valid phone number.",
         variant: "destructive"
       });
       return;
@@ -143,16 +192,17 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
         ...(email && { email }),
         ...(phone && { phoneNumber: formattedPhone || formatPhoneNumber(phone) })
       };
+
       await requestOTP(otpData);
       setStep('otp-verification');
       toast({
-        title: t("registration.otpSentTitle"),
-        description: t("registration.otpSentDescription", { method: email ? "email" : "phone" })
+        title: "OTP Sent",
+        description: `A 6-digit OTP has been sent to your ${email ? 'email' : 'phone'}.`
       });
     } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : t("registration.errors.otp"),
+        description: error instanceof Error ? error.message : "Failed to send OTP. Please try again.",
         variant: "destructive"
       });
     }
@@ -172,14 +222,18 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   };
 
   const handleOTPVerificationSuccess = () => {
+    // Check if user is on seeker path and role is individual
     const isSeeker = location.pathname.startsWith('/seeker');
+    
     if (isSeeker && role === 'individual') {
+      // Show profile dialog for new seekers
       setShowProfileDialog(true);
     } else {
+      // Standard flow for other cases
       handleClose();
       toast({
-        title: t("registration.registrationComplete"),
-        description: t("registration.registrationCompleteDescription")
+        title: "Registration Complete",
+        description: "Your account has been created successfully!"
       });
     }
   };
@@ -193,69 +247,69 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
       <Dialog open={isOpen && step !== 'otp-verification'} onOpenChange={handleClose}>
         <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">{t("registration.title")}</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Create Account</DialogTitle>
           </DialogHeader>
 
           {step === 'register' && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">{t("registration.fullName")}</Label>
+                <Label htmlFor="name">Full Name *</Label>
                 <Input
                   id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder={t("registration.fullNamePlaceholder")}
+                  placeholder="Enter your full name"
                 />
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="email">{t("registration.email")}</Label>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t("registration.emailPlaceholder")}
+                    placeholder="your@email.com"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">{t("registration.phone")}</Label>
+                  <Label htmlFor="phone">Phone Number</Label>
                   <Input
                     ref={phoneInputRef}
                     id="phone"
                     type="tel"
                     value={formattedPhone || phone}
                     onChange={(e) => handlePhoneChange(e.target.value)}
-                    placeholder={t("registration.phonePlaceholder")}
+                    placeholder="+91 98765 43210"
                   />
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  {t("registration.contactHint")}
+                  * Please provide at least one contact method (email or phone)
                 </p>
               </div>
 
               <div className="space-y-4">
-                <Label>{t("registration.accountType")}</Label>
+                <Label>Account Type</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
                     variant={role === 'individual' ? 'default' : 'outline'}
                     onClick={() => setRole('individual')}
                     className="h-16 sm:h-20 flex flex-col"
                   >
-                    <span className="font-medium text-sm sm:text-base">{t("registration.individual")}</span>
-                    <span className="text-xs text-muted-foreground">{t("registration.individualHint")}</span>
+                    <span className="font-medium text-sm sm:text-base">Individual</span>
+                    <span className="text-xs text-muted-foreground">Job seeker</span>
                   </Button>
                   <Button
                     variant="outline"
                     disabled={true}
                     className="h-16 sm:h-20 flex flex-col opacity-50 cursor-not-allowed"
                   >
-                    <span className="font-medium text-sm sm:text-base">{t("registration.organization")}</span>
-                    <span className="text-xs text-muted-foreground">{t("registration.organizationHint")}</span>
+                    <span className="font-medium text-sm sm:text-base">Organization</span>
+                    <span className="text-xs text-muted-foreground">Coming soon</span>
                   </Button>
                 </div>
               </div>
@@ -269,7 +323,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     className="mt-0.5"
                   />
                   <Label htmlFor="terms" className="text-sm leading-relaxed">
-                    {t("registration.terms", { interpolation: { escapeValue: false } })}
+                    I accept the <span className="text-primary cursor-pointer underline">Terms and Conditions</span>
                   </Label>
                 </div>
                 
@@ -281,7 +335,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     className="mt-0.5"
                   />
                   <Label htmlFor="privacy" className="text-sm leading-relaxed">
-                    {t("registration.privacy", { interpolation: { escapeValue: false } })}
+                    I consent to <span className="text-primary cursor-pointer underline">Data Privacy Policy</span>
                   </Label>
                 </div>
               </div>
@@ -291,7 +345,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                 disabled={isLoading || !canSubmit()}
                 className="w-full"
               >
-                {isLoading ? t("registration.sendingOtp") : t("registration.sendOtp")}
+                {isLoading ? 'Sending OTP...' : 'Send OTP'}
               </Button>
             </div>
           )}
@@ -315,8 +369,8 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
           setShowProfileDialog(false);
           handleClose();
           toast({
-            title: t("registration.profileCreated"),
-            description: t("registration.profileCreatedDescription")
+            title: "Profile Created",
+            description: "Welcome! Your profile has been created successfully."
           });
         }}
         mode="user"

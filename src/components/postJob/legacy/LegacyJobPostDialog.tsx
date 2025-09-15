@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,6 @@ import BasicJobInfoCard from './BasicJobInfoCard';
 import JobDescriptionCard from './JobDescriptionCard';
 import RequirementsBenefitsCard from './RequirementsBenefitsCard';
 import ApplicationQuestionsCard from './ApplicationQuestionsCard';
-import { useTranslation } from 'react-i18next';
 
 interface LegacyJobPostDialogProps {
   isOpen: boolean;
@@ -30,13 +30,11 @@ const LegacyJobPostDialog: React.FC<LegacyJobPostDialogProps> = ({
   onSubmit,
   onBack
 }) => {
-  const { t } = useTranslation('jobPostDialog'); 
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('dialog.title')}</DialogTitle>
+          <DialogTitle>Post a New Job</DialogTitle>
           {selectedJobRole && (
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="secondary">{selectedIndustry}</Badge>
@@ -45,7 +43,7 @@ const LegacyJobPostDialog: React.FC<LegacyJobPostDialogProps> = ({
             </div>
           )}
         </DialogHeader>
-
+        
         <div className="space-y-6">
           <BasicJobInfoCard jobData={jobData} setJobData={setJobData} />
           <JobDescriptionCard jobData={jobData} setJobData={setJobData} />
@@ -54,13 +52,13 @@ const LegacyJobPostDialog: React.FC<LegacyJobPostDialogProps> = ({
 
           <div className="flex gap-2">
             <Button onClick={onSubmit} className="flex-1">
-              {t('dialog.postJob')}
+              Post Job
             </Button>
             <Button variant="outline" onClick={onBack}>
-              {t('dialog.back')}
+              Back to Role Selection
             </Button>
             <Button variant="outline" onClick={onClose}>
-              {t('dialog.saveDraft')}
+              Save Draft
             </Button>
           </div>
         </div>

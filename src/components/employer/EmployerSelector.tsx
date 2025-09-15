@@ -1,13 +1,7 @@
+
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Building2, Plus, Crown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,7 +10,6 @@ interface EmployerSelectorProps {
 }
 
 const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) => {
-  const { t } = useTranslation("employerselector");
   const { user, selectEmployer, getSelectedEmployer } = useAuth();
   const selectedEmployer = getSelectedEmployer();
 
@@ -32,16 +25,11 @@ const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) =>
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          className="gap-2 min-w-0 flex-1 sm:flex-none justify-between"
-        >
+        <Button variant="outline" className="gap-2 min-w-0 flex-1 sm:flex-none justify-between">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Building2 className="h-4 w-4 flex-shrink-0" />
             <span className="truncate">
-              {selectedEmployer
-                ? selectedEmployer.name
-                : t('employerSelector.selectEmployer')}
+              {selectedEmployer ? selectedEmployer.name : 'Select Employer'}
             </span>
             {selectedEmployer?.id === 'default-employer' && (
               <Crown className="h-3 w-3 text-amber-500 flex-shrink-0" />
@@ -50,24 +38,22 @@ const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) =>
           <ChevronDown className="h-4 w-4 flex-shrink-0" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
+      <DropdownMenuContent 
+        align="end" 
         className="w-[280px] sm:w-[320px] max-h-[60vh] overflow-y-auto"
         sideOffset={8}
         avoidCollisions={true}
       >
         <div className="p-3">
-          <div className="text-sm font-medium text-muted-foreground mb-3">
-            {t('employerSelector.switchEmployer')}
-          </div>
+          <div className="text-sm font-medium text-muted-foreground mb-3">Switch Employer</div>
           <div className="space-y-1">
             {sortedEmployers.map((employer) => (
               <DropdownMenuItem
                 key={employer.id}
                 onClick={() => selectEmployer(employer.id)}
                 className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                  selectedEmployer?.id === employer.id
-                    ? 'bg-accent text-accent-foreground'
+                  selectedEmployer?.id === employer.id 
+                    ? 'bg-accent text-accent-foreground' 
                     : 'hover:bg-muted'
                 }`}
               >
@@ -79,9 +65,7 @@ const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) =>
                         <Crown className="h-3 w-3 text-amber-500 flex-shrink-0" />
                       )}
                     </div>
-                    <span className="text-xs text-muted-foreground truncate">
-                      {employer.contactEmail}
-                    </span>
+                    <span className="text-xs text-muted-foreground truncate">{employer.contactEmail}</span>
                   </div>
                 </div>
               </DropdownMenuItem>
@@ -89,12 +73,12 @@ const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) =>
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
+        <DropdownMenuItem 
           onClick={onAddEmployer}
           className="gap-2 p-3 cursor-pointer hover:bg-muted"
         >
           <Plus className="h-4 w-4" />
-          {t('employerSelector.addNewEmployer')}
+          Add New Employer
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

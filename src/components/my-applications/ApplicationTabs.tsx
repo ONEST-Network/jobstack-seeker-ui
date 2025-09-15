@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ApplicationCard from './ApplicationCard';
+// import DraftSyncButton from './DraftSyncButton';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useTranslation } from 'react-i18next';
 
 interface JobApplication {
   id: string;
@@ -38,29 +39,28 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
   onApplicationSubmitted
 }) => {
   const isMobile = useIsMobile();
-  const { t } = useTranslation("applicationtabs");
 
   return (
     <Tabs defaultValue="active" className="w-full">
       <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2 h-12' : 'grid-cols-2 h-touch'}`}>
         <TabsTrigger 
           value="active" 
-          className="text-sm font-medium"
+          className={`${isMobile ? 'text-sm font-medium' : 'text-sm font-medium'}`}
         >
-          {t('applications.active')} ({activeApplications.length})
+          Active ({activeApplications.length})
         </TabsTrigger>
         <TabsTrigger 
           value="completed" 
-          className="text-sm font-medium"
+          className={`${isMobile ? 'text-sm font-medium' : 'text-sm font-medium'}`}
         >
-          {t('applications.completed')} ({completedApplications.length})
+          Completed ({completedApplications.length})
         </TabsTrigger>
         {/* Draft tab disabled
         <TabsTrigger 
           value="draft" 
-          className="text-sm font-medium"
+          className={`${isMobile ? 'text-sm font-medium' : 'text-sm font-medium'}`}
         >
-          {t('applications.draft')} ({draftApplications.length})
+          Draft ({draftApplications.length})
         </TabsTrigger>
         */}
       </TabsList>
@@ -69,7 +69,7 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
         {activeApplications.length === 0 ? (
           <Card>
             <CardContent className={`${isMobile ? 'p-6' : 'p-8'} text-center`}>
-              <p className="text-muted-foreground">{t('applications.noActive')}</p>
+              <p className="text-muted-foreground">No active applications found</p>
             </CardContent>
           </Card>
         ) : (
@@ -87,7 +87,7 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
         {completedApplications.length === 0 ? (
           <Card>
             <CardContent className={`${isMobile ? 'p-6' : 'p-8'} text-center`}>
-              <p className="text-muted-foreground">{t('applications.noCompleted')}</p>
+              <p className="text-muted-foreground">No completed applications found</p>
             </CardContent>
           </Card>
         ) : (
@@ -106,14 +106,14 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
         {draftApplications.length === 0 ? (
           <Card>
             <CardContent className={`${isMobile ? 'p-6' : 'p-8'} text-center`}>
-              <p className="text-muted-foreground">{t('applications.noDraft')}</p>
+              <p className="text-muted-foreground">No draft applications found</p>
             </CardContent>
           </Card>
         ) : (
           <>
             <div className="flex justify-between items-center mb-4">
               <p className="text-sm text-muted-foreground">
-                {t('applications.draftHint')}
+                Keep your drafts up-to-date with your latest profile changes
               </p>
             </div>
             

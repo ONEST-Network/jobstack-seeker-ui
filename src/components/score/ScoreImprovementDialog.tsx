@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,6 @@ import { Shield, Target, FileText, BookOpen, ArrowRight } from 'lucide-react';
 import { ScoreResult } from '@/utils/scoreCalculation';
 import DocumentImportDialog from './DocumentImportDialog';
 import AssessmentDialog from './AssessmentDialog';
-import { useTranslation } from 'react-i18next';
 
 interface ScoreImprovementDialogProps {
   isOpen: boolean;
@@ -25,7 +25,6 @@ const ScoreImprovementDialog: React.FC<ScoreImprovementDialogProps> = ({
 }) => {
   const [showDocuments, setShowDocuments] = useState(false);
   const [showAssessments, setShowAssessments] = useState(false);
-  const { t } = useTranslation("scoredialog");
 
   const trustNeedsImprovement = scores.trustScore < 8;
   const matchNeedsImprovement = scores.matchScore < 8;
@@ -64,12 +63,12 @@ const ScoreImprovementDialog: React.FC<ScoreImprovementDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('scoreDialog.title')}</DialogTitle>
+          <DialogTitle>Boost Your Application</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div className="text-sm text-muted-foreground">
-            {t('scoreDialog.subtitle')}
+            Improve your scores to stand out to employers and increase your chances of getting hired.
           </div>
 
           {/* Current Scores */}
@@ -78,13 +77,13 @@ const ScoreImprovementDialog: React.FC<ScoreImprovementDialogProps> = ({
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Shield className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium">{t('scoreDialog.trustScore')}</span>
+                  <span className="text-sm font-medium">Trust Score</span>
                 </div>
-                <div className="text-2xl font-bold text-blue-600">{scores.trustScore}/10</div>
-                <Progress value={scores.trustScore * 10} className="mt-2" />
+                <div className="text-2xl font-bold text-blue-600">0/10</div>
+                <Progress value={0} className="mt-2" />
                 {trustNeedsImprovement && (
                   <Badge variant="secondary" className="mt-2 text-xs">
-                    {t('scoreDialog.needsImprovement')}
+                    Needs Improvement
                   </Badge>
                 )}
               </CardContent>
@@ -94,13 +93,13 @@ const ScoreImprovementDialog: React.FC<ScoreImprovementDialogProps> = ({
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Target className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">{t('scoreDialog.matchScore')}</span>
+                  <span className="text-sm font-medium">Match Score</span>
                 </div>
                 <div className="text-2xl font-bold text-green-600">{scores.matchScore}/10</div>
                 <Progress value={scores.matchScore * 10} className="mt-2" />
                 {matchNeedsImprovement && (
                   <Badge variant="secondary" className="mt-2 text-xs">
-                    {t('scoreDialog.needsImprovement')}
+                    Needs Improvement
                   </Badge>
                 )}
               </CardContent>
@@ -115,16 +114,16 @@ const ScoreImprovementDialog: React.FC<ScoreImprovementDialogProps> = ({
                   <div className="flex items-start gap-3">
                     <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
                     <div className="flex-1">
-                      <h3 className="font-medium text-blue-900">{t('scoreDialog.verifyDocs.title')}</h3>
+                      <h3 className="font-medium text-blue-900">Verify Your Documents</h3>
                       <p className="text-sm text-blue-700 mb-3">
-                        {t('scoreDialog.verifyDocs.description')}
+                        Import verified documents to boost your trust score to 8+
                       </p>
                       <Button 
                         size="sm" 
                         onClick={() => setShowDocuments(true)}
                         className="bg-blue-600 hover:bg-blue-700"
                       >
-                        {t('scoreDialog.verifyDocs.button')}
+                        Import Documents
                         <ArrowRight className="h-3 w-3 ml-1" />
                       </Button>
                     </div>
@@ -139,16 +138,16 @@ const ScoreImprovementDialog: React.FC<ScoreImprovementDialogProps> = ({
                   <div className="flex items-start gap-3">
                     <BookOpen className="h-5 w-5 text-green-600 mt-0.5" />
                     <div className="flex-1">
-                      <h3 className="font-medium text-green-900">{t('scoreDialog.takeAssessments.title')}</h3>
+                      <h3 className="font-medium text-green-900">Take Skill Assessments</h3>
                       <p className="text-sm text-green-700 mb-3">
-                        {t('scoreDialog.takeAssessments.description')}
+                        Complete assessments to improve your match score to 8+
                       </p>
                       <Button 
                         size="sm" 
                         onClick={() => setShowAssessments(true)}
                         className="bg-green-600 hover:bg-green-700"
                       >
-                        {t('scoreDialog.takeAssessments.button')}
+                        Start Assessment
                         <ArrowRight className="h-3 w-3 ml-1" />
                       </Button>
                     </div>
@@ -161,7 +160,7 @@ const ScoreImprovementDialog: React.FC<ScoreImprovementDialogProps> = ({
           {/* Skip Option */}
           <div className="text-center">
             <Button variant="outline" onClick={onClose} className="w-full">
-              {t('scoreDialog.continue')}
+              Continue with Current Scores
             </Button>
           </div>
         </div>

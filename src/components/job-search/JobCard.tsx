@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, ChevronDown, ChevronUp, Copy } from 'lucide-react';
+import { Building, MapPin, Clock, Users, Star, ChevronDown, ChevronUp, Share2, Copy } from 'lucide-react';
 import { JobItem } from '@/hooks/useJobSearch';
 import JobMediaCarousel from '../JobMediaCarousel';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,142 +19,263 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
-  const { t } = useTranslation("jobcard");
   const [showAllDetails, setShowAllDetails] = useState(false);
 
+  // Helper function to get provider and job IDs for sharing
   const getShareableLink = () => {
+    // Try to find provider and job IDs from the job data
+    // This assumes the job data contains the necessary IDs from the search API
     const providerId = job.providerId;
     const jobId = job.id;
+    
     if (providerId && jobId) {
+      // Use the new route structure with organization slug
       return `${window.location.origin}/${orgSlug || '0'}/${providerId}/${jobId}`;
     }
+    
     return null;
   };
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    
     const shareUrl = getShareableLink();
+    
     if (!shareUrl) {
       toast({
-        title: t('jobCard.shareUnavailableTitle'),
-        description: t('jobCard.shareUnavailableDesc'),
-        variant: 'destructive',
+        title: "Share Unavailable",
+        description: "This job cannot be shared at the moment.",
+        variant: "destructive"
       });
       return;
     }
 
     try {
+      // Always copy to clipboard first
       await navigator.clipboard.writeText(shareUrl);
       toast({
-        title: t('jobCard.shareCopiedTitle'),
-        description: t('jobCard.shareCopiedDesc'),
+        title: "Link Copied!",
+        description: "Job link has been copied to clipboard. You can now share it manually.",
       });
 
+      // Then try native sharing if available (mobile devices)
       if (navigator.share) {
         try {
           await navigator.share({
             title: job.title,
-            text: t('jobCard.shareText', { title: job.title }),
-            url: shareUrl,
+            text: `Check out this job opportunity: ${job.title}`,
+            url: shareUrl
           });
-        } catch {
+        } catch (shareError) {
+          // If native sharing fails, that's okay - we already copied to clipboard
           console.log('Native sharing cancelled or failed, but link was copied to clipboard');
         }
       }
     } catch (error) {
       console.error('Error sharing:', error);
       toast({
-        title: t('jobCard.shareFailedTitle'),
-        description: t('jobCard.shareFailedDesc'),
-        variant: 'destructive',
+        title: "Share Failed",
+        description: "Failed to copy job link. Please try again.",
+        variant: "destructive"
       });
     }
   };
 
+  // Helper function to format location display from BAP API response
   const formatLocation = (location: string | { city?: string; state?: string } | null | undefined): string => {
-    if (!location) return t('jobCard.locationNotSpecified');
+    if (!location) {
+      return 'Location not specified';
+    }
 
+    // Handle the new BAP API location format
     if (typeof location === 'object' && location.city && location.state) {
       return `${location.city}, ${location.state}`;
     }
 
+    // Handle string location (fallback)
     if (typeof location === 'string') {
-      if (location === t('jobCard.locationNotSpecified')) {
-        return t('jobCard.locationNotSpecified');
+      if (location === 'Location not specified') {
+        return 'Location not specified';
       }
+      
+      // If it's a full address with commas, extract city and state
       if (location.includes(',')) {
         const parts = location.split(',').map(part => part.trim());
         if (parts.length >= 2) {
+          // Return city and state only
           return `${parts[1]}, ${parts[2] || ''}`.trim();
         }
       }
+      
       return location;
     }
-    return t('jobCard.locationNotSpecified');
+
+    return 'Location not specified';
   };
 
+  // Helper function to format field values for better display
   const formatFieldValue = (value: string | number | boolean | null | undefined): string => {
     if (value === null || value === undefined || value === '') {
-      return t('jobCard.notSpecified');
+      return 'Not specified';
     }
-    if (typeof value === 'boolean') return value ? t('common.yes') : t('common.no');
-    if (typeof value === 'number') return value.toLocaleString();
+    
+    if (typeof value === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+    
+    if (typeof value === 'number') {
+      return value.toLocaleString();
+    }
+    
+    if (typeof value === 'string') {
+      // Handle currency formatting
+      if (value.includes('INR') || value.includes('₹')) {
+        return value;
+      }
+      
+      // Handle time formatting
+      if (value.includes('AM') || value.includes('PM') || value.includes(':')) {
+        return value;
+      }
+      
+      return value;
+    }
+    
     return String(value);
   };
 
   const renderJobDetailsTable = () => {
+    // Helper function to get salary range
     const getSalaryRange = () => {
       const minSalary = job.tags?.jobDetails?.minMonthlyInHand || job.jobDetails?.minMonthlyInHand;
       const maxSalary = job.tags?.jobDetails?.maxMonthlyInHand || job.jobDetails?.maxMonthlyInHand;
-      if (minSalary && maxSalary) return `₹${minSalary.toLocaleString()} - ₹${maxSalary.toLocaleString()}`;
-      if (maxSalary) return t('jobCard.salaryUpTo', { value: `₹${maxSalary.toLocaleString()}` });
-      if (minSalary) return t('jobCard.salaryFrom', { value: `₹${minSalary.toLocaleString()}` });
-      return t('jobCard.notSpecified');
+      
+      if (minSalary && maxSalary) {
+        return `₹${minSalary.toLocaleString()} - ₹${maxSalary.toLocaleString()}`;
+      } else if (maxSalary) {
+        return `Up to ₹${maxSalary.toLocaleString()}`;
+      } else if (minSalary) {
+        return `From ₹${minSalary.toLocaleString()}`;
+      }
+      return 'Not specified';
     };
 
+    // Helper function to get location from BAP API format
     const getJobLocation = () => {
       const location = job.tags?.basicInfo?.jobProviderLocation;
-      if (location && location.city && location.state) return `${location.city}, ${location.state}`;
+      if (location && location.city && location.state) {
+        return `${location.city}, ${location.state}`;
+      }
       return formatLocation(job.jobProviderLocation || job.location);
     };
 
+    // Define structured job details in the required order
     const structuredDetails = [
-      { label: t('jobCard.roleName'), value: job.title, key: 'roleName' },
-      { label: t('jobCard.openings'), value: job.tags?.jobDetails?.positions || job.positions || job.openings || 1, key: 'openings' },
-      { label: t('jobCard.roleDetails'), value: '', key: 'roleDetails' },
-      { label: t('jobCard.location'), value: getJobLocation(), key: 'location' },
-      { label: t('jobCard.workTimings'), value: job.tags?.jobDetails?.workingHoursPerDay || job.jobDetails?.workingHoursPerDay || t('jobCard.notSpecified'), key: 'workTimings' },
-      { label: t('jobCard.salaryRange'), value: getSalaryRange(), key: 'salaryRange' },
-      { label: t('jobCard.pfEsic'), value: job.tags?.jobDetails?.monthlyPfEsicBenefits || job.jobDetails?.monthlyPfEsicBenefits || t('jobCard.notSpecified'), key: 'pfEsic' },
-      { label: t('jobCard.overtime'), value: job.tags?.jobDetails?.monthlyAverageOT || job.jobDetails?.monthlyAverageOT || t('jobCard.notSpecified'), key: 'overtime' },
-      { label: t('jobCard.stayProvided'), value: job.tags?.jobDetails?.stayProvided || job.jobDetails?.stayProvided || t('jobCard.notSpecified'), key: 'stayProvided' },
-      { label: t('jobCard.minimumAge'), value: job.tags?.jobNeeds?.ageAllowedLowerLimit || job.jobDetails?.ageAllowedLowerLimit || t('jobCard.notSpecified'), key: 'minimumAge' },
+      {
+        label: 'Role Name',
+        value: job.title, // Using title as role name
+        key: 'roleName'
+      },
+      {
+        label: 'Openings',
+        value: job.tags?.jobDetails?.positions || job.positions || job.openings || 1,
+        key: 'openings'
+      },
+      {
+        label: 'Role Details',
+        value: '', // Empty for now as requested
+        key: 'roleDetails'
+      },
+      {
+        label: 'Location',
+        value: getJobLocation(),
+        key: 'location'
+      },
+      {
+        label: 'Work Timings',
+        value: job.tags?.jobDetails?.workingHoursPerDay || job.jobDetails?.workingHoursPerDay || 'Not specified',
+        key: 'workTimings'
+      },
+      {
+        label: 'Monthly Salary Range',
+        value: getSalaryRange(),
+        key: 'salaryRange'
+      },
+      {
+        label: 'Monthly PF & ESIC',
+        value: job.tags?.jobDetails?.monthlyPfEsicBenefits || job.jobDetails?.monthlyPfEsicBenefits || 'Not specified',
+        key: 'pfEsic'
+      },
+      {
+        label: 'Monthly Avg. Overtime (OT)',
+        value: job.tags?.jobDetails?.monthlyAverageOT || job.jobDetails?.monthlyAverageOT || 'Not specified',
+        key: 'overtime'
+      },
+      {
+        label: 'Stay Provided',
+        value: job.tags?.jobDetails?.stayProvided || job.jobDetails?.stayProvided || 'Not specified',
+        key: 'stayProvided'
+      },
+      {
+        label: 'Minimum Age',
+        value: job.tags?.jobNeeds?.ageAllowedLowerLimit || job.jobDetails?.ageAllowedLowerLimit || 'Not specified',
+        key: 'minimumAge'
+      }
     ];
 
-    const displayDetails = structuredDetails.filter(d => !(d.key === 'roleDetails' && !d.value));
+    // Filter out empty role details and any other fields that shouldn't be shown
+    const displayDetails = structuredDetails.filter(detail => {
+      if (detail.key === 'roleDetails' && !detail.value) {
+        return false; // Skip empty role details
+      }
+      return detail.value !== null && detail.value !== undefined && detail.value !== '';
+    });
 
+    if (displayDetails.length === 0) {
+      return null;
+    }
+
+    // Limit to 8 items initially (4 rows × 2 columns)
     const maxItems = 8;
     const visibleDetails = showAllDetails ? displayDetails : displayDetails.slice(0, maxItems);
     const hasMoreDetails = displayDetails.length > maxItems;
 
+    // Create rows with 2 columns each
+    const rows = [];
+    for (let i = 0; i < visibleDetails.length; i += 2) {
+      const row = visibleDetails.slice(i, i + 2);
+      rows.push(row);
+    }
+
     return (
       <div className="space-y-3">
-        <h4 className="text-sm font-semibold text-foreground">{t('jobCard.jobDetails')}</h4>
+        <h4 className="text-sm font-semibold text-foreground">Job Details</h4>
         <div className="border rounded-lg overflow-hidden">
           <table className="w-full">
             <tbody>
-              {visibleDetails.map((detail, idx) => (
-                <tr key={idx} className="border-b last:border-b-0">
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">
-                    <div className="font-medium text-muted-foreground">{detail.label}</div>
-                    <div className="text-foreground font-semibold">{formatFieldValue(detail.value)}</div>
-                  </td>
+              {rows.map((row, rowIndex) => (
+                <tr key={rowIndex} className="border-b last:border-b-0">
+                  {row.map((detail, colIndex) => (
+                    <td key={colIndex} className="p-2 sm:p-3 text-xs sm:text-sm">
+                      <div className="font-medium text-muted-foreground">
+                        {detail.label}
+                      </div>
+                      <div className="text-foreground font-semibold">
+                        {formatFieldValue(detail.value)}
+                      </div>
+                    </td>
+                  ))}
+                  {/* Fill empty cells if row has only one item */}
+                  {row.length === 1 && (
+                    <td className="p-2 sm:p-3"></td>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
+        
+        {/* View More/Less Button */}
         {hasMoreDetails && (
           <Button
             variant="ghost"
@@ -169,12 +289,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
             {showAllDetails ? (
               <>
                 <ChevronUp className="h-3 w-3 mr-1" />
-                {t('jobCard.showLess')}
+                Show Less
               </>
             ) : (
               <>
                 <ChevronDown className="h-3 w-3 mr-1" />
-                {t('jobCard.viewMore', { count: displayDetails.length - maxItems })}
+                View More ({displayDetails.length - maxItems} more)
               </>
             )}
           </Button>
@@ -183,13 +303,18 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
     );
   };
 
+  // Determine if we should show real trust scores
   const shouldShowRealScores = user && user.profile;
+  
+  // Get display scores - show 0 if user not logged in, real scores if logged in
   const displayTrustScore = shouldShowRealScores ? job.trustScore : 0;
   const displayMatchScore = shouldShowRealScores ? job.matchScore : 0;
 
+  // Get location from the new BAP API format
   const jobLocation = job.tags?.basicInfo?.jobProviderLocation || job.jobProviderLocation || job.location;
   const formattedLocation = formatLocation(jobLocation);
 
+  // Get positions from the new BAP API format
   const positions = job.tags?.jobDetails?.positions || job.positions || job.openings || 1;
 
   return (
@@ -226,46 +351,50 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
           </div>
         </div>
 
-        {/* Media */}
+        {/* Job Details Video & Photos Carousel */}
         <div className="w-full" onClick={(e) => e.stopPropagation()}>
-          <JobMediaCarousel media={job.media || []} title={job.title} className="w-full" />
+          <JobMediaCarousel 
+            media={job.media || []} 
+            title={job.title}
+            className="w-full"
+          />
         </div>
 
-        {/* Job Details */}
+        {/* Job Details Table */}
         {renderJobDetailsTable()}
 
-        {/* Scores */}
+        {/* Trust Score & Match Score */}
         <div className="flex gap-2 sm:gap-4">
           <div className="bg-blue-50 rounded-lg p-2 sm:p-3 flex-1 text-center">
-            <div className="text-xs text-blue-600">{t('jobCard.trustScore')}</div>
+            <div className="text-xs text-blue-600">Trust Score</div>
             <div className="text-sm sm:text-base font-bold text-blue-700">
               {shouldShowRealScores ? `${displayTrustScore}/10` : '0/10'}
             </div>
             {!shouldShowRealScores && (
-              <div className="text-xs text-blue-500 mt-1">{t('jobCard.loginToSee')}</div>
+              <div className="text-xs text-blue-500 mt-1">Login to see</div>
             )}
           </div>
           <div className="bg-green-50 rounded-lg p-2 sm:p-3 flex-1 text-center">
-            <div className="text-xs text-green-600">{t('jobCard.matchScore')}</div>
+            <div className="text-xs text-green-600">Match Score</div>
             <div className="text-sm sm:text-base font-bold text-green-700">{displayMatchScore}/10</div>
             {!shouldShowRealScores && (
-              <div className="text-xs text-green-500 mt-1">{t('jobCard.loginToSee')}</div>
+              <div className="text-xs text-green-500 mt-1">Login to see</div>
             )}
           </div>
         </div>
 
-        {/* Apply Now */}
-        <Button
+        {/* Apply Now Button */}
+        <Button 
           className="w-full bg-primary hover:bg-primary/90 h-10 sm:h-12 text-sm sm:text-base font-medium"
           onClick={(e) => {
             e.stopPropagation();
             onApply(job);
           }}
         >
-          {t('jobCard.applyNow')}
+          Apply Now
         </Button>
 
-        {/* Share */}
+        {/* Share Button */}
         <Button
           variant="outline"
           size="sm"
@@ -273,7 +402,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
           className="w-full text-xs text-muted-foreground hover:text-foreground"
         >
           <Copy className="h-3 w-3 mr-1" />
-          {t('jobCard.shareJob')}
+          Share Job
         </Button>
       </CardContent>
     </Card>

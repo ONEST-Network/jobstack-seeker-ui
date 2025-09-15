@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,11 +36,9 @@ const WhatIWantJobStep: React.FC<WhatIWantJobStepProps> = ({
   onSaveDraft,
   onPublish
 }) => {
-  const { t } = useTranslation('whatIWantJobStep');
-
   const handleSubmit = () => {
     if (!jobData.basicLiteracy || !jobData.commitmentMonths) {
-      alert(t('postJob.whatIWant.alertFillFields'));
+      alert('Please fill all required fields');
       return;
     }
     onSubmit();
@@ -48,7 +46,7 @@ const WhatIWantJobStep: React.FC<WhatIWantJobStepProps> = ({
 
   const handlePublish = () => {
     if (!jobData.basicLiteracy || !jobData.commitmentMonths) {
-      alert(t('postJob.whatIWant.alertPublishFields'));
+      alert('Please fill all required fields to publish');
       return;
     }
     if (onPublish) {
@@ -67,10 +65,10 @@ const WhatIWantJobStep: React.FC<WhatIWantJobStepProps> = ({
       <DialogContent className="w-full max-w-3xl h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0 border-b pb-4">
           <DialogTitle className="flex items-center justify-between">
-            <span>{t('postJob.whatIWant.title')}</span>
+            <span>What I Want - Candidate Requirements (Step 3 of 3)</span>
             {jobData.lastSavedAt && (
               <span className="text-xs text-muted-foreground">
-                {t('postJob.whatIWant.lastSaved')} {new Date(jobData.lastSavedAt).toLocaleTimeString()}
+                Last saved: {new Date(jobData.lastSavedAt).toLocaleTimeString()}
               </span>
             )}
           </DialogTitle>
@@ -90,30 +88,30 @@ const WhatIWantJobStep: React.FC<WhatIWantJobStepProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-blue-600" />
-                  {t('postJob.whatIWant.basicReq.title')}
+                  Basic Candidate Requirements
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="basicLiteracy">{t('postJob.whatIWant.basicReq.literacy')}</Label>
+                  <Label htmlFor="basicLiteracy">Basic Literacy Level *</Label>
                   <Select 
                     value={jobData.basicLiteracy} 
                     onValueChange={(value: '8th-pass' | '10th-pass' | '12th-pass' | 'graduate') => setJobData(prev => ({ ...prev, basicLiteracy: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={t('postJob.whatIWant.basicReq.educationPlaceholder')} />
+                      <SelectValue placeholder="Select minimum education" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="8th-pass">{t('postJob.whatIWant.basicReq.education.8th')}</SelectItem>
-                      <SelectItem value="10th-pass">{t('postJob.whatIWant.basicReq.education.10th')}</SelectItem>
-                      <SelectItem value="12th-pass">{t('postJob.whatIWant.basicReq.education.12th')}</SelectItem>
-                      <SelectItem value="graduate">{t('postJob.whatIWant.basicReq.education.graduate')}</SelectItem>
+                      <SelectItem value="8th-pass">8th Pass - Can read and write</SelectItem>
+                      <SelectItem value="10th-pass">10th Pass</SelectItem>
+                      <SelectItem value="12th-pass">12th Pass</SelectItem>
+                      <SelectItem value="graduate">Graduate</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="commitmentMonths">{t('postJob.whatIWant.basicReq.commitment')}</Label>
+                  <Label htmlFor="commitmentMonths">Minimum Commitment Period (Months) *</Label>
                   <Input
                     id="commitmentMonths"
                     type="number"
@@ -123,7 +121,7 @@ const WhatIWantJobStep: React.FC<WhatIWantJobStepProps> = ({
                     min="1"
                     max="36"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">{t('postJob.whatIWant.basicReq.commitmentHint')}</p>
+                  <p className="text-xs text-muted-foreground mt-1">How long should the candidate commit to work?</p>
                 </div>
               </CardContent>
             </Card>
@@ -133,52 +131,52 @@ const WhatIWantJobStep: React.FC<WhatIWantJobStepProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Award className="h-5 w-5 text-orange-600" />
-                  {t('postJob.whatIWant.skillReq.title')}
+                  Skill Requirements & Proof
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>{t('postJob.whatIWant.skillReq.skillProof')}</Label>
+                  <Label>Skill Proof Required</Label>
                   <div className="flex items-center space-x-2">
                     <Switch
                       checked={jobData.skillProofRequired}
                       onCheckedChange={(checked) => setJobData(prev => ({ ...prev, skillProofRequired: checked }))}
                     />
-                    <span className="text-sm">
-                      {jobData.skillProofRequired ? t('postJob.common.required') : t('postJob.common.notRequired')}
-                    </span>
+                    <span className="text-sm">{jobData.skillProofRequired ? 'Required' : 'Not Required'}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{t('postJob.whatIWant.skillReq.skillProofHint')}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Candidate must demonstrate ability to handle electrical sewing machine
+                  </p>
                 </div>
 
                 {jobData.skillProofRequired && (
                   <div className="space-y-4 pl-4 border-l-2 border-orange-200">
                     <div className="space-y-2">
-                      <Label>{t('postJob.whatIWant.skillReq.speedControl')}</Label>
+                      <Label>Machine Control - Speed & Straight Line Stitching</Label>
                       <div className="flex items-center space-x-2">
                         <Switch
                           checked={jobData.machineControlSpeed}
                           onCheckedChange={(checked) => setJobData(prev => ({ ...prev, machineControlSpeed: checked }))}
                         />
-                        <span className="text-sm">
-                          {jobData.machineControlSpeed ? t('postJob.common.required') : t('postJob.common.notRequired')}
-                        </span>
+                        <span className="text-sm">{jobData.machineControlSpeed ? 'Required' : 'Not Required'}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">{t('postJob.whatIWant.skillReq.speedControlHint')}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Candidate must demonstrate fast, straight-line stitching with speed control
+                      </p>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>{t('postJob.whatIWant.skillReq.cornerHandling')}</Label>
+                      <Label>Machine Control - Corner Handling</Label>
                       <div className="flex items-center space-x-2">
                         <Switch
                           checked={jobData.machineControlCorners}
                           onCheckedChange={(checked) => setJobData(prev => ({ ...prev, machineControlCorners: checked }))}
                         />
-                        <span className="text-sm">
-                          {jobData.machineControlCorners ? t('postJob.common.required') : t('postJob.common.notRequired')}
-                        </span>
+                        <span className="text-sm">{jobData.machineControlCorners ? 'Required' : 'Not Required'}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">{t('postJob.whatIWant.skillReq.cornerHandlingHint')}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Candidate must show ability to slow down at corners for consistent quality
+                      </p>
                     </div>
                   </div>
                 )}
@@ -190,31 +188,31 @@ const WhatIWantJobStep: React.FC<WhatIWantJobStepProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-green-600" />
-                  {t('postJob.whatIWant.intent.title')}
+                  Intent & Commitment Verification
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>{t('postJob.whatIWant.intent.proofOfIntent')}</Label>
+                  <Label>Proof of Intent Required</Label>
                   <div className="flex items-center space-x-2">
                     <Switch
                       checked={jobData.proofOfIntent}
                       onCheckedChange={(checked) => setJobData(prev => ({ ...prev, proofOfIntent: checked }))}
                     />
-                    <span className="text-sm">
-                      {jobData.proofOfIntent ? t('postJob.common.required') : t('postJob.common.notRequired')}
-                    </span>
+                    <span className="text-sm">{jobData.proofOfIntent ? 'Required' : 'Not Required'}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{t('postJob.whatIWant.intent.proofOfIntentHint')}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Candidate must demonstrate informed willingness to work in factory conditions
+                  </p>
                 </div>
 
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">{t('postJob.whatIWant.intent.verifyTitle')}</h4>
+                  <h4 className="font-medium text-blue-900 mb-2">What we'll verify:</h4>
                   <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• {t('postJob.whatIWant.intent.verifyPoints.conditions')}</li>
-                    <li>• {t('postJob.whatIWant.intent.verifyPoints.commitment')}</li>
-                    <li>• {t('postJob.whatIWant.intent.verifyPoints.actions')}</li>
-                    <li>• {t('postJob.whatIWant.intent.verifyPoints.interest')}</li>
+                    <li>• Understanding of factory floor working conditions</li>
+                    <li>• Willingness to commit for the specified duration</li>
+                    <li>• Actions taken throughout the application journey</li>
+                    <li>• Genuine interest in the role and industry</li>
                   </ul>
                 </div>
               </CardContent>
@@ -223,18 +221,34 @@ const WhatIWantJobStep: React.FC<WhatIWantJobStepProps> = ({
             {/* Summary */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('postJob.whatIWant.summary.title')}</CardTitle>
+                <CardTitle>Job Posting Summary</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div><strong>{t('postJob.whatIWant.summary.company')}</strong> {jobData.companyName}</div>
-                  <div><strong>{t('postJob.whatIWant.summary.role')}</strong> {jobData.openRole}</div>
-                  <div><strong>{t('postJob.whatIWant.summary.openings')}</strong> {jobData.numberOfOpenings}</div>
-                  <div><strong>{t('postJob.whatIWant.summary.location')}</strong> {jobData.factoryLocation}</div>
-                  <div><strong>{t('postJob.whatIWant.summary.salary')}</strong> ₹{jobData.inHandSalary}/month</div>
-                  <div><strong>{t('postJob.whatIWant.summary.education')}</strong> {jobData.basicLiteracy}</div>
-                  <div><strong>{t('postJob.whatIWant.summary.commitment')}</strong> {jobData.commitmentMonths} months</div>
-                  <div><strong>{t('postJob.whatIWant.summary.skillProof')}</strong> {jobData.skillProofRequired ? t('postJob.common.required') : t('postJob.common.notRequired')}</div>
+                  <div>
+                    <strong>Company:</strong> {jobData.companyName}
+                  </div>
+                  <div>
+                    <strong>Role:</strong> {jobData.openRole}
+                  </div>
+                  <div>
+                    <strong>Openings:</strong> {jobData.numberOfOpenings}
+                  </div>
+                  <div>
+                    <strong>Location:</strong> {jobData.factoryLocation}
+                  </div>
+                  <div>
+                    <strong>Salary:</strong> ₹{jobData.inHandSalary}/month (in-hand)
+                  </div>
+                  <div>
+                    <strong>Min. Education:</strong> {jobData.basicLiteracy}
+                  </div>
+                  <div>
+                    <strong>Commitment:</strong> {jobData.commitmentMonths} months
+                  </div>
+                  <div>
+                    <strong>Skill Proof:</strong> {jobData.skillProofRequired ? 'Required' : 'Not Required'}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -244,14 +258,14 @@ const WhatIWantJobStep: React.FC<WhatIWantJobStepProps> = ({
         <div className="flex-shrink-0 border-t pt-4">
           <div className="flex justify-between">
             <Button variant="outline" onClick={onBack}>
-              {t('postJob.whatIWant.back')}
+              Back: What I Have
             </Button>
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleSaveDraft}>
-                {t('postJob.whatIWant.saveDraft')}
+                Save Draft
               </Button>
               <Button onClick={handlePublish} className="bg-green-600 hover:bg-green-700">
-                {t('postJob.whatIWant.publish')}
+                Publish Job
               </Button>
             </div>
           </div>
