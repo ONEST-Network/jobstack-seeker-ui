@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Map, List, Search, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDebounce } from '@/hooks/useDebounce';
 import JobMapView from './JobMapView';
 import JobListView from './JobListView';
 import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
@@ -22,13 +23,39 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const isMobile = useIsMobile();
 
-  // Get loading states from both job search hooks
-  const { loading: listLoading, loadingState: listLoadingState } = useJobSearch();
-  const { loading: mapLoading, loadingState: mapLoadingState, fetchProgress, totalPages, currentPagesFetched } = useJobSearchForMap();
+  // Handle search functionality
+  const handleSearch = useCallback(() => {
+    // This will trigger the search in JobListView via props
+    // The actual API call will be handled by JobListView
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  }, [handleSearch]);
+
+  // Debounce search query to reduce API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+  
+  // Centralized hooks - these are the ONLY instances that should fetch data
+  const listHookData = useJobSearch(debouncedSearchQuery);
+  const mapHookData = useJobSearchForMap({ autoFetch: false }); // Only fetch when map is actually viewed
   
   // Determine which loading state to show based on active view
-  const loading = activeView === 'list' ? listLoading : mapLoading;
-  const loadingState = activeView === 'list' ? listLoadingState : mapLoadingState;
+  const loading = activeView === 'list' ? listHookData.loading : mapHookData.loading;
+  const loadingState = activeView === 'list' ? listHookData.loadingState : mapHookData.loadingState;
+
+  // Trigger map fetch when map view is first accessed
+  useEffect(() => {
+    if (activeView === 'map' && !mapHookData.loading && mapHookData.loadingState === 'idle') {
+      mapHookData.refetch();
+    }
+  }, [activeView, mapHookData]);
 
   const handlePromptLogin = () => {
     if (onPromptLogin) {
@@ -48,20 +75,45 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
           <div className="flex items-center gap-3">
             {/* Search - Reduced width */}
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={loading ? "Loading jobs..." : "Search jobs..."}
+                placeholder={loading ? "Loading jobs..." : "Search jobs by role..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-touch text-base"
+                onKeyPress={handleKeyPress}
+                className="pl-3 pr-20 h-touch text-base"
                 disabled={loading}
               />
-              {/* Loading indicator in search bar */}
-              {loading && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                </div>
-              )}
+              <div className="absolute right-1 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                {/* Clear button */}
+                {searchQuery && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-gray-100"
+                    onClick={handleClearSearch}
+                    disabled={loading}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+                {/* Loading indicator or search button */}
+                {loading ? (
+                  <div className="p-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-gray-100"
+                    onClick={handleSearch}
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* View Toggle */}
@@ -110,16 +162,16 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
               </div>
               
               {/* Map view progress bar */}
-              {activeView === 'map' && loadingState === 'fetching' && fetchProgress && totalPages > 0 && (
+              {activeView === 'map' && loadingState === 'fetching' && mapHookData.fetchProgress && mapHookData.totalPages > 0 && (
                 <div className="mt-2">
                   <div className="w-full bg-gray-200 rounded-full h-1">
                     <div 
                       className="bg-blue-600 h-1 rounded-full transition-all duration-300 ease-out" 
-                      style={{ width: `${Math.round(fetchProgress * 100)}%` }}
+                      style={{ width: `${Math.round(mapHookData.fetchProgress * 100)}%` }}
                     ></div>
                   </div>
                   <div className="flex justify-center mt-1 text-xs text-muted-foreground">
-                    {Math.round(fetchProgress * 100)}% complete
+                    {Math.round(mapHookData.fetchProgress * 100)}% complete
                   </div>
                 </div>
               )}
@@ -132,10 +184,18 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
       <div className="min-h-[60vh]">
         <Tabs value={activeView} className="h-full">
           <TabsContent value="list" className="mt-0 h-full">
-            <JobListView searchQuery={searchQuery} onPromptLogin={handlePromptLogin} />
+            <JobListView 
+              searchQuery={searchQuery} 
+              onPromptLogin={handlePromptLogin}
+              hookData={listHookData}
+            />
           </TabsContent>
           <TabsContent value="map" className="mt-0 h-full">
-            <JobMapView searchQuery={searchQuery} onPromptLogin={handlePromptLogin} />
+            <JobMapView 
+              searchQuery={searchQuery} 
+              onPromptLogin={handlePromptLogin}
+              hookData={mapHookData}
+            />
           </TabsContent>
         </Tabs>
       </div>

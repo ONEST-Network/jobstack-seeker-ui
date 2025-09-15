@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { MapPin, Upload, QrCode, Shield, Lock, Loader2 } from 'lucide-react';
 import DigiLockerModal from './DigiLockerModal';
+import WalletImportModal from './WalletImportModal';
 import QRCodeScannerDialog from './QRCodeScannerDialog';
 import { FileUploadField } from '@/components/ui/file-upload-field';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +33,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const isMobile = useIsMobile();
 
   const [showDigiLocker, setShowDigiLocker] = React.useState(false);
+  const [showWallet, setShowWallet] = React.useState(false);
   const [showQRScanner, setShowQRScanner] = React.useState(false);
   const [qrFieldName, setQrFieldName] = React.useState<string>('');
   const [dropdownStates, setDropdownStates] = React.useState<Record<string, boolean>>({});
@@ -259,6 +261,76 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     });
 
     setShowDigiLocker(false);
+  };
+
+  const handleWalletSuccess = (data: Record<string, string | number | boolean | undefined>) => {
+    // Transform wallet data to match profile format
+    const mappedData: Record<string, unknown> = {};
+    const verificationFlags: Record<string, unknown> = {};
+
+    // Map common fields from wallet credentials
+    if (data.name) {
+      mappedData.name = data.name as string;
+      verificationFlags.isNameVerified = true;
+    }
+
+    if (data.email) {
+      mappedData.email = data.email as string;
+      verificationFlags.isEmailVerified = true;
+    }
+
+    if (data.phone) {
+      mappedData.phone = data.phone as string;
+      verificationFlags.isPhoneVerified = true;
+    }
+
+    if (data.age) {
+      mappedData.age = data.age as number;
+      verificationFlags.isAgeVerified = true;
+    }
+
+    // Map certification fields
+    if (data.certificationName) {
+      mappedData.certificationName = data.certificationName as string;
+    }
+
+    if (data.certificationId) {
+      mappedData.certificationId = data.certificationId as string;
+    }
+
+    if (data.grade) {
+      mappedData.grade = data.grade as string;
+    }
+
+    if (data.universitySerialNumber) {
+      mappedData.usn = data.universitySerialNumber as string;
+    }
+
+    if (data.courseDuration) {
+      mappedData.courseDuration = data.courseDuration as string;
+    }
+
+    if (data.event) {
+      mappedData.event = data.event as string;
+    }
+
+    // Update step data
+    console.log('Setting step data with wallet mapped data:', mappedData);
+    setStepData(mappedData);
+
+    // Update global profile state with verification flags
+    setProfile(prevProfile => {
+      const updatedProfile = {
+        ...prevProfile,
+        ...mappedData,
+        ...verificationFlags
+      };
+
+      console.log('Updated profile with wallet data:', updatedProfile);
+      return updatedProfile;
+    });
+
+    setShowWallet(false);
   };
 
   const handleQRScanComplete = (data: unknown) => {
@@ -1291,6 +1363,32 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         </div>
       )}
 
+      {/* Wallet Import Integration */}
+      {schema.ui?.showWallet && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium text-purple-800">
+                {schema.ui.walletConfig?.title || "Import from Wallet"}
+              </h4>
+              <p className="text-sm text-purple-700 mt-1">
+                {schema.ui.walletConfig?.description || "Import verified credentials from your digital wallet"}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowWallet(true)}
+              className="text-purple-700 border-purple-300 hover:bg-purple-100"
+            >
+              {schema.ui.walletConfig?.buttonText || "Import from Wallet"}
+            </Button>
+          </div>
+          <p className="text-xs text-purple-600 mt-2">
+            {schema.ui.walletConfig?.footerText || "This will import your verified credentials, certificates, and personal details"}
+          </p>
+        </div>
+      )}
+
       {/* Form Fields */}
       <div className="space-y-4">
         {schema.ui?.order?.map((fieldName: string) => {
@@ -1305,6 +1403,13 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         isOpen={showDigiLocker}
         onClose={() => setShowDigiLocker(false)}
         onSuccess={handleDigiLockerSuccess}
+      />
+
+      {/* Wallet Import Modal */}
+      <WalletImportModal
+        isOpen={showWallet}
+        onClose={() => setShowWallet(false)}
+        onSuccess={handleWalletSuccess}
       />
 
       {/* QR Scanner Dialog */}

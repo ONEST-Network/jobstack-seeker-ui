@@ -410,56 +410,19 @@ class ApiClient {
   }
 
   // BAP Job Search API
-  async searchJobs(intentOverrides?: Record<string, any>, page: number = 1, limit: number = 5) {
+  async searchJobs(intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
-    const url = `${BAP_URL}/api/v1/search`;
+    const url = `${BAP_URL}/api/v2/search`;
     
-    const payload: { message: { intent: Record<string, any>; pagination: { page: number; limit: number } } } = {
-      message: {
-        intent: {
-          item: {
-            tags: [
-              {
-                descriptor: {
-                  code: "status",
-                  name: "Status"
-                },
-                list: [
-                  {
-                    descriptor: {
-                      code: "status",
-                      name: "Status"
-                    },
-                    value: "open"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        pagination: {
-          page,
-          limit
-        }
-      }
+    const payload = {
+      limit,
+      page,
     };
 
-    // Merge optional intent overrides from callers (e.g., org metadata filters)
+    // Note: intentOverrides are not supported in v2 API as it uses a simplified structure
+    // The v2 API focuses on search query-based filtering rather than complex intent structures
     if (intentOverrides && typeof intentOverrides === 'object') {
-      // Merge the overrides while preserving the item tags structure
-      if (intentOverrides.item) {
-        // If intentOverrides has item, merge it with existing item structure
-        payload.message.intent.item = {
-          ...payload.message.intent.item,
-          ...intentOverrides.item,
-          tags: [
-            ...payload.message.intent.item.tags,
-            ...(intentOverrides.item.tags || [])
-          ]
-        };
-        delete intentOverrides.item;
-      }
-      payload.message.intent = { ...payload.message.intent, ...intentOverrides };
+      console.warn('Intent overrides are not supported in v2 search API. Use query parameter for filtering.');
     }
 
     try {
@@ -498,19 +461,19 @@ class ApiClient {
 
       const data = await response.json();
       
-      // Validate the response structure
+      // Validate the v2 response structure
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format from job service');
       }
 
-      // Check if the response has the expected structure
-      // Note: Empty results array is valid - it means no jobs are available
-      if (!data.results && !data.message) {
+      // Check if the response has the expected v2 structure
+      // v2 API has top-level pagination and results objects
+      if (!data.pagination || !data.results) {
         throw new Error('No job data received from server');
       }
 
       // If results is an empty array, that's valid - it means no jobs are available
-      if (data.results && Array.isArray(data.results) && data.results.length === 0) {
+      if (Array.isArray(data.results) && data.results.length === 0) {
         console.log('API returned empty results array - no jobs available');
         return data; // Return the empty result as valid
       }
@@ -540,6 +503,105 @@ class ApiClient {
       }
       
       throw new Error('Failed to fetch jobs. Please try again.');
+    }
+  }
+
+  // BAP Job Search API with Query - Used for API-based search functionality
+  async searchJobsWithQuery(searchQuery: string, intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30) {
+    const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const url = `${BAP_URL}/api/v2/search`;
+    
+    const payload = {
+      limit,
+      page,
+      query: searchQuery.trim() // Use the search query directly
+    };
+
+    // Note: intentOverrides are not supported in v2 API as it uses a simplified structure
+    // The v2 API focuses on search query-based filtering rather than complex intent structures
+    if (intentOverrides && typeof intentOverrides === 'object') {
+      console.warn('Intent overrides are not supported in v2 search API. Use query parameter for filtering.');
+    }
+
+
+    try {
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        
+        if (response.status === 404) {
+          throw new Error('Job service temporarily unavailable. Please try again later.');
+        } else if (response.status === 500) {
+          throw new Error('Server error. Please try again in a few moments.');
+        } else if (response.status === 401) {
+          throw new Error('Authentication required. Please log in and try again.');
+        } else if (response.status === 403) {
+          throw new Error('Access denied. Please check your permissions and try again.');
+        } else if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        } else {
+          throw new Error(`Request failed: ${errorMessage}`);
+        }
+      }
+
+      const data = await response.json();
+      
+      // Validate the v2 response structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from job service');
+      }
+
+      // Check if the response has the expected v2 structure
+      // v2 API has top-level pagination and results objects
+      if (!data.pagination || !data.results) {
+        throw new Error('No job data received from server');
+      }
+
+      // If results is an empty array, that's valid - it means no jobs are available
+      if (Array.isArray(data.results) && data.results.length === 0) {
+        console.log('API returned empty results array - no jobs available for search:', searchQuery);
+        return data; // Return the empty result as valid
+      }
+
+      return data;
+    } catch (error) {
+      console.error('BAP Search API Error:', error);
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('Request timed out. Please check your internet connection and try again.');
+        }
+        
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          throw new Error('Network error. Please check your internet connection and try again.');
+        }
+        
+        // Re-throw the error if it's already a formatted error message
+        if (error.message.includes('Job service') || 
+            error.message.includes('Server error') || 
+            error.message.includes('Authentication') || 
+            error.message.includes('Access denied') ||
+            error.message.includes('Request timed out') ||
+            error.message.includes('Network error')) {
+          throw error;
+        }
+      }
+      
+      throw new Error('Failed to search jobs. Please try again.');
     }
   }
 
