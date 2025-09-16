@@ -396,7 +396,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               if (transformedUser.role === 'individual') {
                 const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
                 transformedUser.managedCandidates = [defaultCandidate];
-                transformedUser.selectedCandidateId = defaultCandidate.id;
+                // Only set as selected if no candidate is already selected
+                if (!transformedUser.selectedCandidateId) {
+                  transformedUser.selectedCandidateId = defaultCandidate.id;
+                }
               }
             }
           } catch (profileError) {
@@ -409,12 +412,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const profiles = await fetchAndTransformProfiles();
               if (profiles.length > 0) {
                 transformedUser.managedCandidates = profiles;
-                transformedUser.selectedCandidateId = profiles[0].id;
+                // Only set first profile as selected if no candidate is already selected
+                // or if the selected candidate doesn't exist in the fetched profiles
+                const selectedExists = transformedUser.selectedCandidateId && 
+                  profiles.some(profile => profile.id === transformedUser.selectedCandidateId);
+                if (!selectedExists) {
+                  transformedUser.selectedCandidateId = profiles[0].id;
+                }
               } else {
                 if (transformedUser.profile) {
                   const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
                   transformedUser.managedCandidates = [defaultCandidate];
-                  transformedUser.selectedCandidateId = defaultCandidate.id;
+                  // Only set as selected if no candidate is already selected
+                  if (!transformedUser.selectedCandidateId) {
+                    transformedUser.selectedCandidateId = defaultCandidate.id;
+                  }
                 }
               }
             } catch (profilesError) {
@@ -422,7 +434,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               if (transformedUser.profile) {
                 const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
                 transformedUser.managedCandidates = [defaultCandidate];
-                transformedUser.selectedCandidateId = defaultCandidate.id;
+                // Only set as selected if no candidate is already selected
+                if (!transformedUser.selectedCandidateId) {
+                  transformedUser.selectedCandidateId = defaultCandidate.id;
+                }
               }
             }
           }
@@ -438,7 +453,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (transformedUser.profile && transformedUser.role === 'individual' && transformedUser.managedCandidates.length === 0) {
             const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
             transformedUser.managedCandidates = [defaultCandidate];
-            transformedUser.selectedCandidateId = defaultCandidate.id;
+            // Only set as selected if no candidate is already selected
+            if (!transformedUser.selectedCandidateId) {
+              transformedUser.selectedCandidateId = defaultCandidate.id;
+            }
           }
           
           localStorage.setItem('user', JSON.stringify(transformedUser));
@@ -779,7 +797,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (transformedUser.role === 'individual') {
               const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
               transformedUser.managedCandidates = [defaultCandidate];
-              transformedUser.selectedCandidateId = defaultCandidate.id;
+              // Only set as selected if no candidate is already selected
+              if (!transformedUser.selectedCandidateId) {
+                transformedUser.selectedCandidateId = defaultCandidate.id;
+              }
             }
           }
         } catch (profileError) {
@@ -793,13 +814,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const profiles = await fetchAndTransformProfiles();
             if (profiles.length > 0) {
               transformedUser.managedCandidates = profiles;
-              transformedUser.selectedCandidateId = profiles[0].id;
+              // Only set first profile as selected if no candidate is already selected
+              // or if the selected candidate doesn't exist in the fetched profiles
+              const selectedExists = transformedUser.selectedCandidateId && 
+                profiles.some(profile => profile.id === transformedUser.selectedCandidateId);
+              if (!selectedExists) {
+                transformedUser.selectedCandidateId = profiles[0].id;
+              }
             } else {
               // Create default candidate if no profiles found
               if (transformedUser.profile) {
                 const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
                 transformedUser.managedCandidates = [defaultCandidate];
-                transformedUser.selectedCandidateId = defaultCandidate.id;
+                // Only set as selected if no candidate is already selected
+                if (!transformedUser.selectedCandidateId) {
+                  transformedUser.selectedCandidateId = defaultCandidate.id;
+                }
               }
             }
           } catch (profilesError) {
@@ -808,7 +838,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (transformedUser.profile) {
               const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
               transformedUser.managedCandidates = [defaultCandidate];
-              transformedUser.selectedCandidateId = defaultCandidate.id;
+              // Only set as selected if no candidate is already selected
+              if (!transformedUser.selectedCandidateId) {
+                transformedUser.selectedCandidateId = defaultCandidate.id;
+              }
             }
           }
         }
@@ -824,7 +857,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (transformedUser.profile && transformedUser.role === 'individual' && transformedUser.managedCandidates.length === 0) {
           const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
           transformedUser.managedCandidates = [defaultCandidate];
-          transformedUser.selectedCandidateId = defaultCandidate.id;
+          // Only set as selected if no candidate is already selected
+          if (!transformedUser.selectedCandidateId) {
+            transformedUser.selectedCandidateId = defaultCandidate.id;
+          }
         }
         
         // Store user data
@@ -1116,7 +1152,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (transformedUser.role === 'individual') {
               const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
               transformedUser.managedCandidates = [defaultCandidate];
-              transformedUser.selectedCandidateId = defaultCandidate.id;
+              // Only set as selected if no candidate is already selected
+              if (!transformedUser.selectedCandidateId) {
+                transformedUser.selectedCandidateId = defaultCandidate.id;
+              }
             }
           }
         } catch (profileError) {
@@ -1129,13 +1168,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const profiles = await fetchAndTransformProfiles();
             if (profiles.length > 0) {
               transformedUser.managedCandidates = profiles;
-              transformedUser.selectedCandidateId = profiles[0].id;
+              // Only set first profile as selected if no candidate is already selected
+              // or if the selected candidate doesn't exist in the fetched profiles
+              const selectedExists = transformedUser.selectedCandidateId && 
+                profiles.some(profile => profile.id === transformedUser.selectedCandidateId);
+              if (!selectedExists) {
+                transformedUser.selectedCandidateId = profiles[0].id;
+              }
             } else {
               // Create default candidate if no profiles found
               if (transformedUser.profile) {
                 const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
                 transformedUser.managedCandidates = [defaultCandidate];
-                transformedUser.selectedCandidateId = defaultCandidate.id;
+                // Only set as selected if no candidate is already selected
+                if (!transformedUser.selectedCandidateId) {
+                  transformedUser.selectedCandidateId = defaultCandidate.id;
+                }
               }
             }
           } catch (profilesError) {
@@ -1144,7 +1192,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (transformedUser.profile) {
               const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
               transformedUser.managedCandidates = [defaultCandidate];
-              transformedUser.selectedCandidateId = defaultCandidate.id;
+              // Only set as selected if no candidate is already selected
+              if (!transformedUser.selectedCandidateId) {
+                transformedUser.selectedCandidateId = defaultCandidate.id;
+              }
             }
           }
         }
@@ -1160,7 +1211,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (transformedUser.profile && transformedUser.role === 'individual' && transformedUser.managedCandidates.length === 0) {
           const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
           transformedUser.managedCandidates = [defaultCandidate];
-          transformedUser.selectedCandidateId = defaultCandidate.id;
+          // Only set as selected if no candidate is already selected
+          if (!transformedUser.selectedCandidateId) {
+            transformedUser.selectedCandidateId = defaultCandidate.id;
+          }
         }
         
         localStorage.setItem('user', JSON.stringify(transformedUser));

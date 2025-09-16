@@ -182,11 +182,37 @@ const JobListView: React.FC<JobListViewProps> = ({
 
     console.log(`📄 Jobs changed - Page ${pagination.page} with ${jobs.length} jobs`);
     
-    // Step 1: Update jobsWithScores with new jobs (without scores initially)
-    setJobsWithScores(jobs);
+    // Step 1: SMART update of jobsWithScores - preserve existing scores where possible
+    setJobsWithScores(prev => {
+      const newJobsWithScores = jobs.map(job => {
+        // Check if we already have a scored version of this job
+        const existingScoredJob = prev.find(scoredJob => scoredJob.id === job.id);
+        // If we have existing scores, use the scored version, otherwise use the new job
+        return existingScoredJob && (existingScoredJob.trustScore !== undefined || existingScoredJob.matchScore !== undefined) 
+          ? existingScoredJob 
+          : job;
+      });
+      
+      console.log(`🔄 Smart update: Preserved scores for ${newJobsWithScores.filter(job => job.trustScore !== undefined || job.matchScore !== undefined).length} jobs`);
+      return newJobsWithScores;
+    });
     
-    // Step 2: Reset scored jobs cache for new page (this is important for new pages)
-    setScoredJobIds(new Set());
+    // Step 2: SMART cache reset - only clear scores for jobs that are no longer present
+    // Preserve scores for jobs that are still in the new jobs array
+    setScoredJobIds(prev => {
+      const newJobIds = new Set(jobs.map(job => job.id));
+      const preservedScoredIds = new Set();
+      
+      // Only keep scored job IDs that are still in the current jobs list
+      prev.forEach(jobId => {
+        if (newJobIds.has(jobId)) {
+          preservedScoredIds.add(jobId);
+        }
+      });
+      
+      console.log(`🧠 Smart cache: Preserved scores for ${preservedScoredIds.size} jobs, cleared ${prev.size - preservedScoredIds.size} jobs`);
+      return preservedScoredIds;
+    });
     
     // Step 3: Fetch scores for the new jobs (but do it after state has been updated)
     // Use setTimeout to ensure state updates have been applied
