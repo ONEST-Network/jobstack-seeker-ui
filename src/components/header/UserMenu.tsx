@@ -115,7 +115,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           {/* Separator between contact info and menu items */}
           {(user.email || user.phone) && <DropdownMenuSeparator />}
           
-          {/* Show Create Profile option when no profiles exist */}
+          {/* Show Create Profile option when no profiles exist
           {user.managedCandidates.length === 0 && (
             <>
               <DropdownMenuItem 
@@ -127,7 +127,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
-          )}
+          )} */}
           {(user.role === 'individual' || !user.role) && (
             <>
               <DropdownMenuItem onClick={handleMyApplications}>
