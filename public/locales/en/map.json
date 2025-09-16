@@ -1,0 +1,289 @@
+{
+  "map": {
+    "title": "Map View",
+    "subtitle": "Explore jobs and candidates on the map",
+    "mapView": "Map View",
+    "listView": "List View",
+    "tableView": "Table View",
+    "cardView": "Card View",
+    "gridView": "Grid View",
+    "mapControls": {
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "resetView": "Reset View",
+      "fullscreen": "Fullscreen",
+      "locateMe": "Locate Me",
+      "searchLocation": "Search Location",
+      "clearMarkers": "Clear Markers",
+      "showClusters": "Show Clusters",
+      "hideClusters": "Hide Clusters"
+    },
+    "mapLayers": {
+      "title": "Map Layers",
+      "jobs": "Jobs",
+      "candidates": "Candidates",
+      "employers": "Employers",
+      "companies": "Companies",
+      "locations": "Locations",
+      "routes": "Routes",
+      "boundaries": "Boundaries",
+      "satellite": "Satellite",
+      "terrain": "Terrain",
+      "traffic": "Traffic",
+      "transit": "Transit"
+    },
+    "mapMarkers": {
+      "jobMarker": "Job",
+      "candidateMarker": "Candidate",
+      "employerMarker": "Employer",
+      "companyMarker": "Company",
+      "locationMarker": "Location",
+      "clusterMarker": "{{count}} items",
+      "selectedMarker": "Selected",
+      "highlightedMarker": "Highlighted",
+      "customMarker": "Custom"
+    },
+    "mapPopups": {
+      "jobDetails": "Job Details",
+      "candidateDetails": "Candidate Details",
+      "employerDetails": "Employer Details",
+      "companyDetails": "Company Details",
+      "locationDetails": "Location Details",
+      "viewDetails": "View Details",
+      "applyNow": "Apply Now",
+      "contact": "Contact",
+      "directions": "Get Directions",
+      "share": "Share",
+      "bookmark": "Bookmark",
+      "report": "Report"
+    },
+    "mapSearch": {
+      "title": "Search on Map",
+      "searchJobs": "Search Jobs",
+      "searchCandidates": "Search Candidates",
+      "searchEmployers": "Search Employers",
+      "searchCompanies": "Search Companies",
+      "searchLocations": "Search Locations",
+      "searchRadius": "Search Radius",
+      "searchArea": "Search Area",
+      "searchFilters": "Search Filters",
+      "searchResults": "Search Results",
+      "noResults": "No results found",
+      "searchPlaceholder": "Search for jobs, candidates, or locations...",
+      "searchActions": {
+        "search": "Search",
+        "clear": "Clear",
+        "reset": "Reset",
+        "apply": "Apply",
+        "save": "Save Search",
+        "load": "Load Search"
+      }
+    },
+    "mapFilters": {
+      "title": "Map Filters",
+      "distance": "Distance",
+      "salary": "Salary Range",
+      "experience": "Experience Level",
+      "jobType": "Job Type",
+      "industry": "Industry",
+      "skills": "Skills",
+      "education": "Education",
+      "location": "Location",
+      "datePosted": "Date Posted",
+      "companySize": "Company Size",
+      "verificationStatus": "Verification Status",
+      "filterActions": {
+        "applyFilters": "Apply Filters",
+        "clearFilters": "Clear Filters",
+        "resetFilters": "Reset Filters",
+        "saveFilters": "Save Filters",
+        "loadFilters": "Load Filters"
+      }
+    },
+    "mapNavigation": {
+      "title": "Navigation",
+      "getDirections": "Get Directions",
+      "startNavigation": "Start Navigation",
+      "stopNavigation": "Stop Navigation",
+      "routeOptions": "Route Options",
+      "travelMode": "Travel Mode",
+      "avoidTolls": "Avoid Tolls",
+      "avoidHighways": "Avoid Highways",
+      "avoidFerries": "Avoid Ferries",
+      "travelModes": {
+        "driving": "Driving",
+        "walking": "Walking",
+        "bicycling": "Bicycling",
+        "transit": "Transit",
+        "flying": "Flying"
+      },
+      "routeInfo": {
+        "distance": "Distance",
+        "duration": "Duration",
+        "traffic": "Traffic",
+        "tolls": "Tolls",
+        "steps": "Steps"
+      }
+    },
+    "mapClustering": {
+      "title": "Map Clustering",
+      "enableClustering": "Enable Clustering",
+      "disableClustering": "Disable Clustering",
+      "clusterRadius": "Cluster Radius",
+      "clusterMaxZoom": "Cluster Max Zoom",
+      "clusterMinPoints": "Cluster Min Points",
+      "clusterOptions": "Cluster Options",
+      "clusterStyles": "Cluster Styles",
+      "clusterColors": "Cluster Colors",
+      "clusterLabels": "Cluster Labels"
+    },
+    "mapCustomization": {
+      "title": "Map Customization",
+      "mapStyle": "Map Style",
+      "mapTheme": "Map Theme",
+      "mapColors": "Map Colors",
+      "mapIcons": "Map Icons",
+      "mapLabels": "Map Labels",
+      "mapOverlays": "Map Overlays",
+      "customStyles": "Custom Styles",
+      "styleOptions": {
+        "standard": "Standard",
+        "silver": "Silver",
+        "retro": "Retro",
+        "dark": "Dark",
+        "night": "Night",
+        "aubergine": "Aubergine"
+      }
+    },
+    "mapSharing": {
+      "title": "Share Map",
+      "shareMap": "Share Map",
+      "shareLink": "Share Link",
+      "shareEmbed": "Share Embed",
+      "shareScreenshot": "Share Screenshot",
+      "shareCoordinates": "Share Coordinates",
+      "shareLocation": "Share Location",
+      "shareRoute": "Share Route",
+      "sharingOptions": {
+        "public": "Public",
+        "private": "Private",
+        "passwordProtected": "Password Protected",
+        "expires": "Expires",
+        "viewOnly": "View Only",
+        "editable": "Editable"
+      },
+      "sharingChannels": {
+        "email": "Email",
+        "sms": "SMS",
+        "whatsapp": "WhatsApp",
+        "telegram": "Telegram",
+        "facebook": "Facebook",
+        "twitter": "Twitter",
+        "linkedin": "LinkedIn",
+        "copyLink": "Copy Link"
+      }
+    },
+    "mapExport": {
+      "title": "Export Map",
+      "exportMap": "Export Map",
+      "exportImage": "Export Image",
+      "exportPDF": "Export PDF",
+      "exportData": "Export Data",
+      "exportCoordinates": "Export Coordinates",
+      "exportRoute": "Export Route",
+      "exportFormats": {
+        "png": "PNG Image",
+        "jpg": "JPG Image",
+        "svg": "SVG Vector",
+        "pdf": "PDF Document",
+        "csv": "CSV Data",
+        "json": "JSON Data",
+        "kml": "KML File",
+        "gpx": "GPX File"
+      },
+      "exportOptions": {
+        "includeMarkers": "Include Markers",
+        "includeLabels": "Include Labels",
+        "includeRoutes": "Include Routes",
+        "includeLegend": "Include Legend",
+        "includeScale": "Include Scale",
+        "highResolution": "High Resolution",
+        "transparent": "Transparent Background"
+      }
+    },
+    "mapAnalytics": {
+      "title": "Map Analytics",
+      "viewAnalytics": "View Analytics",
+      "mapUsage": "Map Usage",
+      "popularLocations": "Popular Locations",
+      "searchPatterns": "Search Patterns",
+      "userBehavior": "User Behavior",
+      "mapPerformance": "Map Performance",
+      "analyticsMetrics": {
+        "totalViews": "Total Views",
+        "uniqueUsers": "Unique Users",
+        "averageSession": "Average Session",
+        "popularSearches": "Popular Searches",
+        "clickThroughRate": "Click Through Rate",
+        "bounceRate": "Bounce Rate"
+      }
+    },
+    "mapSettings": {
+      "title": "Map Settings",
+      "generalSettings": "General Settings",
+      "displaySettings": "Display Settings",
+      "interactionSettings": "Interaction Settings",
+      "performanceSettings": "Performance Settings",
+      "accessibilitySettings": "Accessibility Settings",
+      "settingOptions": {
+        "autoZoom": "Auto Zoom",
+        "autoCenter": "Auto Center",
+        "showControls": "Show Controls",
+        "showLabels": "Show Labels",
+        "showGrid": "Show Grid",
+        "showCoordinates": "Show Coordinates",
+        "enableAnimations": "Enable Animations",
+        "enableGestures": "Enable Gestures"
+      }
+    },
+    "mapHelp": {
+      "title": "Map Help",
+      "gettingStarted": "Getting Started",
+      "basicUsage": "Basic Usage",
+      "advancedFeatures": "Advanced Features",
+      "troubleshooting": "Troubleshooting",
+      "faq": "Frequently Asked Questions",
+      "contactSupport": "Contact Support",
+      "helpTopics": {
+        "navigation": "Navigation",
+        "searching": "Searching",
+        "filtering": "Filtering",
+        "clustering": "Clustering",
+        "sharing": "Sharing",
+        "exporting": "Exporting"
+      }
+    },
+    "mapErrors": {
+      "title": "Map Errors",
+      "commonErrors": "Common Errors",
+      "errorMessages": {
+        "mapLoadFailed": "Failed to load map",
+        "locationAccessDenied": "Location access denied",
+        "searchFailed": "Search failed",
+        "directionsFailed": "Failed to get directions",
+        "exportFailed": "Export failed",
+        "shareFailed": "Share failed",
+        "networkError": "Network error",
+        "permissionDenied": "Permission denied"
+      },
+      "errorSolutions": {
+        "checkInternet": "Check your internet connection",
+        "enableLocation": "Enable location services",
+        "refreshPage": "Refresh the page",
+        "clearCache": "Clear browser cache",
+        "updateBrowser": "Update your browser",
+        "contactSupport": "Contact support"
+      }
+    }
+  }
+}

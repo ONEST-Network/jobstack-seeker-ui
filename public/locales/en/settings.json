@@ -1,0 +1,108 @@
+{
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Customize your experience and preferences",
+    "generalSettings": "General Settings",
+    "profileSettings": "Profile Settings",
+    "privacySettings": "Privacy Settings",
+    "notificationSettings": "Notification Settings",
+    "securitySettings": "Security Settings",
+    "languageSettings": "Language Settings",
+    "displaySettings": "Display Settings",
+    "accountSettings": "Account Settings",
+    "general": {
+      "title": "General",
+      "language": "Language",
+      "timezone": "Timezone",
+      "dateFormat": "Date Format",
+      "timeFormat": "Time Format",
+      "currency": "Currency",
+      "units": "Units",
+      "theme": "Theme",
+      "fontSize": "Font Size"
+    },
+    "profile": {
+      "title": "Profile",
+      "visibility": "Profile Visibility",
+      "sharing": "Profile Sharing",
+      "notifications": "Profile Notifications",
+      "updates": "Profile Updates",
+      "verification": "Profile Verification",
+      "completion": "Profile Completion"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "dataSharing": "Data Sharing",
+      "profileVisibility": "Profile Visibility",
+      "contactInfo": "Contact Information",
+      "locationSharing": "Location Sharing",
+      "searchVisibility": "Search Visibility",
+      "thirdPartyAccess": "Third Party Access"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "emailNotifications": "Email Notifications",
+      "smsNotifications": "SMS Notifications",
+      "pushNotifications": "Push Notifications",
+      "inAppNotifications": "In-App Notifications",
+      "notificationFrequency": "Notification Frequency",
+      "quietHours": "Quiet Hours"
+    },
+    "security": {
+      "title": "Security",
+      "password": "Password",
+      "twoFactorAuth": "Two-Factor Authentication",
+      "loginHistory": "Login History",
+      "deviceManagement": "Device Management",
+      "sessionManagement": "Session Management",
+      "securityLogs": "Security Logs"
+    },
+    "language": {
+      "title": "Language",
+      "primaryLanguage": "Primary Language",
+      "secondaryLanguage": "Secondary Language",
+      "autoTranslate": "Auto Translate",
+      "translationQuality": "Translation Quality",
+      "languageDetection": "Language Detection"
+    },
+    "display": {
+      "title": "Display",
+      "theme": "Theme",
+      "colorScheme": "Color Scheme",
+      "fontSize": "Font Size",
+      "fontFamily": "Font Family",
+      "lineHeight": "Line Height",
+      "spacing": "Spacing",
+      "animations": "Animations"
+    },
+    "account": {
+      "title": "Account",
+      "personalInfo": "Personal Information",
+      "contactInfo": "Contact Information",
+      "preferences": "Preferences",
+      "subscription": "Subscription",
+      "billing": "Billing",
+      "dataExport": "Data Export",
+      "accountDeletion": "Account Deletion"
+    },
+    "actions": {
+      "save": "Save Settings",
+      "reset": "Reset to Default",
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "test": "Test",
+      "export": "Export",
+      "import": "Import",
+      "backup": "Backup",
+      "restore": "Restore"
+    },
+    "messages": {
+      "settingsSaved": "Settings saved successfully",
+      "settingsReset": "Settings reset to default",
+      "settingsExported": "Settings exported successfully",
+      "settingsImported": "Settings imported successfully",
+      "settingsBackedUp": "Settings backed up successfully",
+      "settingsRestored": "Settings restored successfully"
+    }
+  }
+}

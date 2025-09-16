@@ -1,0 +1,56 @@
+{
+  "jobRoles": {
+    "Industrial Tailor": {
+      "industry": "Textile Industry",
+      "description": "Manufacturing and garment industry positions"
+    },
+    "Warehouse Loader & Picker": {
+      "industry": "Warehousing Industry",
+      "description": "Logistics and warehouse operations"
+    },
+    "Field Sales Executive": {
+      "industry": "Sales",
+      "description": "Sales and business development roles"
+    },
+    "In Store Promoter": {
+      "industry": "Retail",
+      "description": "Retail and promotional activities"
+    },
+    "Recruitment Associate": {
+      "industry": "Human Resources",
+      "description": "HR and talent acquisition positions"
+    },
+    "Electrician": {
+      "industry": "Manufacturing",
+      "description": "Electrical installation, maintenance, and repair work"
+    },
+    "Fitter": {
+      "industry": "Manufacturing",
+      "description": "Mechanical fitting, assembly, and installation work"
+    },
+    "Mechanic": {
+      "industry": "Manufacturing",
+      "description": "Equipment maintenance, repair, and troubleshooting"
+    },
+    "Machine Operator": {
+      "industry": "Manufacturing",
+      "description": "Operating and monitoring industrial machinery and equipment"
+    },
+    "Data Entry Operator": {
+      "industry": "Administration",
+      "description": "Data entry and administrative work"
+    },
+    "Tele Salesperson": {
+      "industry": "Sales",
+      "description": "Telephone-based sales and customer service"
+    },
+    "Field Sales Person": {
+      "industry": "Sales",
+      "description": "Field-based sales and business development"
+    },
+    "ITI (Other)": {
+      "industry": "Manufacturing",
+      "description": "ITI (Industrial Training Institute) student roles and specializations"
+    }
+  }
+} 

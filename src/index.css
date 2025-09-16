@@ -1,0 +1,261 @@
+/* Leaflet CSS - must be imported first */
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Chatbot animations */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Ensure dialogs appear above map elements */
+[data-radix-popper-content-wrapper],
+[data-radix-dialog-overlay],
+[data-radix-dialog-content],
+[data-vaul-drawer-wrapper],
+[data-vaul-overlay],
+[data-vaul-drawer],
+.fixed[data-state="open"],
+.fixed.z-50 {
+  z-index: 999999 !important;
+}
+
+/* Force all dialog elements to appear above map */
+div[role="dialog"],
+div[role="alertdialog"],
+.leaflet-container ~ div[data-radix-dialog-overlay],
+.leaflet-container ~ div[data-radix-dialog-content] {
+  z-index: 999999 !important;
+}
+
+/* Custom map toast container - now handled inline with higher z-index */
+
+/* Marker Cluster Custom Styles */
+.marker-cluster-small {
+  background-color: rgba(59, 130, 246, 0.6);
+}
+
+.marker-cluster-small div {
+  background-color: rgba(59, 130, 246, 0.8);
+}
+
+.marker-cluster-medium {
+  background-color: rgba(37, 99, 235, 0.6);
+}
+
+.marker-cluster-medium div {
+  background-color: rgba(37, 99, 235, 0.8);
+}
+
+.marker-cluster-large {
+  background-color: rgba(30, 58, 138, 0.6);
+}
+
+.marker-cluster-large div {
+  background-color: rgba(30, 58, 138, 0.8);
+}
+
+/* Custom cluster icon styles - allow background colors */
+.custom-cluster {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-cluster div {
+  /* Allow the inline background-color to work */
+  border: none !important;
+  color: white !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  line-height: 1 !important;
+}
+
+/* Ensure clusters are visible above other map elements */
+.marker-cluster {
+  z-index: 1000 !important;
+}
+
+/* Custom marker styles - preserve colors */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-marker div {
+  /* Don't override the background color - let the inline styles work */
+  border: none !important;
+}
+
+/* User marker styles */
+.user-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.user-marker div {
+  /* Allow the inline background-color to work for user marker */
+  border: none !important;
+}

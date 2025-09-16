@@ -1,0 +1,55 @@
+{
+  "header": {
+    "navigation": {
+      "home": "Home",
+      "jobs": "Jobs",
+      "candidates": "Candidates",
+      "employers": "Employers",
+      "applications": "Applications",
+      "profile": "Profile",
+      "dashboard": "Dashboard",
+      "settings": "Settings",
+      "help": "Help",
+      "about": "About",
+      "contact": "Contact"
+    },
+    "userMenu": {
+      "login": "Login",
+      "logout": "Logout",
+      "completeProfile": "Complete Profile",
+      "myApplications": "My Applications",
+      "viewAllProfiles": "View All Profiles",
+      "manageEmployers": "Manage Employers",
+      "manageCandidates": "Manage Candidates",
+      "accountSettings": "Account Settings",
+      "user": "User",
+      "contactInfo": "Contact Information",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "languageSelector": {
+      "title": "Language",
+      "english": "English",
+      "hindi": "Hindi",
+      "marathi": "Marathi",
+      "gujarati": "Gujarati",
+      "tamil": "Tamil",
+      "telugu": "Telugu",
+      "kannada": "Kannada",
+      "malayalam": "Malayalam",
+      "bengali": "Bengali",
+      "punjabi": "Punjabi",
+      "urdu": "Urdu",
+      "odia": "Odia",
+      "assamese": "Assamese",
+      "nepali": "Nepali"
+    },
+    "candidateSelector": {
+      "title": "Candidates",
+      "addCandidate": "Add Candidate",
+      "selectCandidate": "Select Candidate",
+      "noCandidates": "No candidates available",
+      "manageCandidates": "Manage Candidates"
+    }
+  }
+}
