@@ -19,12 +19,14 @@ import { useDebounce } from '@/hooks/useDebounce';
 interface JobListViewProps {
   searchQuery: string;
   onPromptLogin?: () => void;
+  onClearSearch?: () => void; // Callback to clear search from parent component
   hookData?: any; // Pass hook data from parent to avoid duplicate calls
 }
 
 const JobListView: React.FC<JobListViewProps> = ({
   searchQuery,
   onPromptLogin,
+  onClearSearch,
   hookData
 }) => {
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
@@ -41,8 +43,8 @@ const JobListView: React.FC<JobListViewProps> = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  // Debounce search query to reduce API calls
-  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+  // Debounce search query to reduce API calls - require at least 3 characters
+  const debouncedSearchQuery = useDebounce(searchQuery, 500, 3);
 
   // Prevent unauthenticated users from opening the job detail dialog
   const handleViewDetails = (job: JobItem) => {
@@ -547,9 +549,9 @@ const JobListView: React.FC<JobListViewProps> = ({
                     jobs.length === 0 && error && retryCount < 3 ? {
                       label: 'Try again',
                       onClick: handleRetry
-                    } : currentSearchQuery ? {
+                    } : currentSearchQuery && onClearSearch ? {
                       label: 'Clear search',
-                      onClick: () => updateSearchQuery && updateSearchQuery('')
+                      onClick: onClearSearch
                     } : undefined
                   }
                 />
