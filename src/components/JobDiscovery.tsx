@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Map, List, Search, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,23 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
 
   const handleClearSearch = useCallback(() => {
     setSearchQuery('');
+    
+    // Mark as typing to maintain focus during the clear operation
+    isTypingRef.current = true;
+    lastFocusedRef.current = true;
+    cursorPositionRef.current = 0; // Cursor will be at beginning after clear
+    
+    // Maintain focus on the input after clearing
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.setSelectionRange(0, 0);
+      }
+      // Clear typing flag after focus is restored
+      setTimeout(() => {
+        isTypingRef.current = false;
+      }, 100);
+    });
   }, []);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
@@ -39,8 +56,112 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
     }
   }, [handleSearch]);
 
-  // Debounce search query to reduce API calls
-  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+  // Use a ref to maintain focus during re-renders
+  const inputRef = useRef<HTMLInputElement>(null);
+  const lastFocusedRef = useRef<boolean>(false);
+  const cursorPositionRef = useRef<number>(0);
+  const isTypingRef = useRef<boolean>(false);
+
+  // Handle input change with proper cursor retention
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const cursorPosition = input.selectionStart || 0;
+    
+    setSearchQuery(input.value);
+    
+    // Track that user is actively typing and store cursor position
+    isTypingRef.current = true;
+    cursorPositionRef.current = cursorPosition;
+    lastFocusedRef.current = true;
+    
+    // Clear typing flag after a short delay
+    setTimeout(() => {
+      isTypingRef.current = false;
+    }, 100);
+  }, []);
+
+  // Reset focus tracking when input loses focus naturally (user clicks elsewhere)
+  const handleInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    // Only clear focus tracking if we're not typing (to prevent clearing during re-renders)
+    if (!isTypingRef.current) {
+      lastFocusedRef.current = false;
+    }
+  }, []);
+
+  // Track when input gains focus
+  const handleInputFocus = useCallback(() => {
+    lastFocusedRef.current = true;
+  }, []);
+
+  // Track active typing on keydown
+  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Mark as typing for any key that could change the input value
+    if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
+      isTypingRef.current = true;
+      lastFocusedRef.current = true;
+      
+      // Store current cursor position before the keystroke
+      if (inputRef.current) {
+        cursorPositionRef.current = inputRef.current.selectionStart || 0;
+        // For regular characters, cursor will move forward
+        if (e.key.length === 1) {
+          cursorPositionRef.current += 1;
+        }
+        // For backspace, cursor moves backward
+        if (e.key === 'Backspace' && cursorPositionRef.current > 0) {
+          cursorPositionRef.current -= 1;
+        }
+      }
+    }
+  }, []);
+
+  // Debounce search query to reduce API calls - require at least 3 characters
+  const debouncedSearchQuery = useDebounce(searchQuery, 500, 3);
+  
+  // Effect to maintain focus during re-renders caused by debouncing
+  useEffect(() => {
+    if (lastFocusedRef.current && inputRef.current) {
+      const input = inputRef.current;
+      const shouldRestoreFocus = document.activeElement !== input;
+      
+      if (shouldRestoreFocus || isTypingRef.current) {
+        // Use requestAnimationFrame to ensure DOM updates are complete
+        requestAnimationFrame(() => {
+          if (inputRef.current && lastFocusedRef.current) {
+            inputRef.current.focus();
+            
+            // Restore cursor position if we were typing, otherwise move to end
+            if (isTypingRef.current) {
+              inputRef.current.setSelectionRange(cursorPositionRef.current, cursorPositionRef.current);
+            } else {
+              const length = inputRef.current.value.length;
+              inputRef.current.setSelectionRange(length, length);
+            }
+          }
+        });
+      }
+    }
+  }, [debouncedSearchQuery, searchQuery]); // React to both immediate and debounced changes
+
+  // Additional effect to monitor and restore focus if lost during typing
+  useEffect(() => {
+    if (!lastFocusedRef.current || !inputRef.current) return;
+    
+    const checkFocus = () => {
+      if (isTypingRef.current && document.activeElement !== inputRef.current) {
+        // Focus was lost while typing, restore it immediately
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.setSelectionRange(cursorPositionRef.current, cursorPositionRef.current);
+        }
+      }
+    };
+    
+    // Check focus more frequently while typing
+    const intervalId = setInterval(checkFocus, 50); // Check every 50ms
+    
+    return () => clearInterval(intervalId);
+  }, [searchQuery]); // Re-run whenever searchQuery changes
   
   // Centralized hooks - these are the ONLY instances that should fetch data
   const listHookData = useJobSearch(debouncedSearchQuery);
@@ -49,6 +170,9 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   // Determine which loading state to show based on active view
   const loading = activeView === 'list' ? listHookData.loading : mapHookData.loading;
   const loadingState = activeView === 'list' ? listHookData.loadingState : mapHookData.loadingState;
+  
+  // Extract map-specific variables
+  const { totalPages, currentPagesFetched, fetchProgress } = mapHookData;
 
   // Trigger map fetch when map view is first accessed
   useEffect(() => {
@@ -76,10 +200,14 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
             {/* Search - Reduced width */}
             <div className="relative flex-1 max-w-sm">
               <Input
+                ref={inputRef}
                 placeholder={loading ? "Loading jobs..." : "Search jobs by role..."}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleInputChange}
+                onKeyDown={handleInputKeyDown}
                 onKeyPress={handleKeyPress}
+                onBlur={handleInputBlur}
+                onFocus={handleInputFocus}
                 className="pl-3 pr-20 h-touch text-base"
                 disabled={loading}
               />
@@ -149,12 +277,12 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
                   
                   {/* Map view loading states */}
                   {activeView === 'map' && loadingState === 'initial' && 'Initializing map view...'}
-                  {activeView === 'map' && loadingState === 'fetching' && (
+                  {activeView === 'map' && loadingState === 'loading' && (
                     totalPages > 0 
                       ? `Loading all jobs for map: ${currentPagesFetched}/${totalPages} pages`
                       : 'Fetching job data for map...'
                   )}
-                  {activeView === 'map' && loadingState === 'processing' && 'Processing job locations...'}
+                  {activeView === 'map' && loadingState === 'partial' && 'Processing job locations...'}
                   
                   {/* Fallback */}
                   {!loadingState && (activeView === 'list' ? 'Loading jobs...' : 'Loading map data...')}
@@ -162,7 +290,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
               </div>
               
               {/* Map view progress bar */}
-              {activeView === 'map' && loadingState === 'fetching' && mapHookData.fetchProgress && mapHookData.totalPages > 0 && (
+              {activeView === 'map' && loadingState === 'loading' && mapHookData.fetchProgress && mapHookData.totalPages > 0 && (
                 <div className="mt-2">
                   <div className="w-full bg-gray-200 rounded-full h-1">
                     <div 
@@ -185,8 +313,9 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
         <Tabs value={activeView} className="h-full">
           <TabsContent value="list" className="mt-0 h-full">
             <JobListView 
-              searchQuery={searchQuery} 
+              searchQuery={debouncedSearchQuery} 
               onPromptLogin={handlePromptLogin}
+              onClearSearch={handleClearSearch}
               hookData={listHookData}
             />
           </TabsContent>
