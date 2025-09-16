@@ -32,10 +32,9 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   const handleClearSearch = useCallback(() => {
     setSearchQuery('');
     
-    // Mark as typing to maintain focus during the clear operation
-    isTypingRef.current = true;
-    lastFocusedRef.current = true;
-    cursorPositionRef.current = 0; // Cursor will be at beginning after clear
+    // Mark that focus should be maintained and set cursor to beginning
+    shouldMaintainFocusRef.current = true;
+    savedSelectionRef.current = { start: 0, end: 0 };
     
     // Maintain focus on the input after clearing
     requestAnimationFrame(() => {
@@ -43,10 +42,6 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
         inputRef.current.focus();
         inputRef.current.setSelectionRange(0, 0);
       }
-      // Clear typing flag after focus is restored
-      setTimeout(() => {
-        isTypingRef.current = false;
-      }, 100);
     });
   }, []);
 
@@ -58,110 +53,164 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
 
   // Use a ref to maintain focus during re-renders
   const inputRef = useRef<HTMLInputElement>(null);
-  const lastFocusedRef = useRef<boolean>(false);
-  const cursorPositionRef = useRef<number>(0);
-  const isTypingRef = useRef<boolean>(false);
+  const shouldMaintainFocusRef = useRef<boolean>(false);
+  const savedSelectionRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
+  const preventBlurRef = useRef<boolean>(false);
+  const lastTypingTimeRef = useRef<number>(0);
+  const preventBlurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle input change with proper cursor retention
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
-    const cursorPosition = input.selectionStart || 0;
+    const now = Date.now();
+    
+    // Save current selection before state update
+    if (input.selectionStart !== null && input.selectionEnd !== null) {
+      savedSelectionRef.current = {
+        start: input.selectionStart,
+        end: input.selectionEnd
+      };
+    }
+    
+    // Mark that we should maintain focus through re-renders
+    shouldMaintainFocusRef.current = true;
+    preventBlurRef.current = true;
+    lastTypingTimeRef.current = now;
+    
+    // Clear any existing timeout
+    if (preventBlurTimeoutRef.current) {
+      clearTimeout(preventBlurTimeoutRef.current);
+    }
     
     setSearchQuery(input.value);
     
-    // Track that user is actively typing and store cursor position
-    isTypingRef.current = true;
-    cursorPositionRef.current = cursorPosition;
-    lastFocusedRef.current = true;
-    
-    // Clear typing flag after a short delay
-    setTimeout(() => {
-      isTypingRef.current = false;
-    }, 100);
+    // Clear the prevent blur flag after 2 seconds of no typing
+    preventBlurTimeoutRef.current = setTimeout(() => {
+      // Only clear if no recent typing activity
+      if (Date.now() - lastTypingTimeRef.current >= 2000) {
+        preventBlurRef.current = false;
+        shouldMaintainFocusRef.current = false;
+      }
+    }, 2000);
   }, []);
 
-  // Reset focus tracking when input loses focus naturally (user clicks elsewhere)
-  const handleInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
-    // Only clear focus tracking if we're not typing (to prevent clearing during re-renders)
-    if (!isTypingRef.current) {
-      lastFocusedRef.current = false;
+  // Handle focus events
+  const handleInputFocus = useCallback(() => {
+    shouldMaintainFocusRef.current = true;
+  }, []);
+
+  // Handle keydown to track all typing activities
+  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Update typing time for any key that could affect input
+    if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete' || 
+        e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End') {
+      lastTypingTimeRef.current = Date.now();
+      shouldMaintainFocusRef.current = true;
+      preventBlurRef.current = true;
+      
+      // Save current selection before the key action
+      if (inputRef.current) {
+        const input = inputRef.current;
+        if (input.selectionStart !== null && input.selectionEnd !== null) {
+          savedSelectionRef.current = {
+            start: input.selectionStart,
+            end: input.selectionEnd
+          };
+        }
+      }
+      
+      // Extend the focus retention period
+      if (preventBlurTimeoutRef.current) {
+        clearTimeout(preventBlurTimeoutRef.current);
+      }
+      
+      preventBlurTimeoutRef.current = setTimeout(() => {
+        if (Date.now() - lastTypingTimeRef.current >= 2000) {
+          preventBlurRef.current = false;
+          shouldMaintainFocusRef.current = false;
+        }
+      }, 2000);
     }
   }, []);
 
-  // Track when input gains focus
-  const handleInputFocus = useCallback(() => {
-    lastFocusedRef.current = true;
-  }, []);
-
-  // Track active typing on keydown
-  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Mark as typing for any key that could change the input value
-    if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
-      isTypingRef.current = true;
-      lastFocusedRef.current = true;
-      
-      // Store current cursor position before the keystroke
-      if (inputRef.current) {
-        cursorPositionRef.current = inputRef.current.selectionStart || 0;
-        // For regular characters, cursor will move forward
-        if (e.key.length === 1) {
-          cursorPositionRef.current += 1;
+  // Handle blur events - prevent blur during typing
+  const handleInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    if (preventBlurRef.current) {
+      // Prevent blur and refocus immediately
+      e.preventDefault();
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.setSelectionRange(
+            savedSelectionRef.current.start,
+            savedSelectionRef.current.end
+          );
         }
-        // For backspace, cursor moves backward
-        if (e.key === 'Backspace' && cursorPositionRef.current > 0) {
-          cursorPositionRef.current -= 1;
-        }
-      }
+      });
+    } else {
+      shouldMaintainFocusRef.current = false;
     }
   }, []);
 
   // Debounce search query to reduce API calls - require at least 3 characters
   const debouncedSearchQuery = useDebounce(searchQuery, 500, 3);
   
-  // Effect to maintain focus during re-renders caused by debouncing
+  // Effect to restore focus and selection after re-renders
   useEffect(() => {
-    if (lastFocusedRef.current && inputRef.current) {
+    if (shouldMaintainFocusRef.current && inputRef.current) {
       const input = inputRef.current;
-      const shouldRestoreFocus = document.activeElement !== input;
       
-      if (shouldRestoreFocus || isTypingRef.current) {
-        // Use requestAnimationFrame to ensure DOM updates are complete
+      // If input is not focused, restore focus and selection
+      if (document.activeElement !== input) {
         requestAnimationFrame(() => {
-          if (inputRef.current && lastFocusedRef.current) {
+          if (inputRef.current && shouldMaintainFocusRef.current) {
             inputRef.current.focus();
-            
-            // Restore cursor position if we were typing, otherwise move to end
-            if (isTypingRef.current) {
-              inputRef.current.setSelectionRange(cursorPositionRef.current, cursorPositionRef.current);
-            } else {
-              const length = inputRef.current.value.length;
-              inputRef.current.setSelectionRange(length, length);
-            }
+            inputRef.current.setSelectionRange(
+              savedSelectionRef.current.start,
+              savedSelectionRef.current.end
+            );
           }
         });
       }
     }
-  }, [debouncedSearchQuery, searchQuery]); // React to both immediate and debounced changes
+  }, [searchQuery]); // Restore focus after each character typed
 
-  // Additional effect to monitor and restore focus if lost during typing
+  // Additional effect to handle focus loss when debounced query triggers
   useEffect(() => {
-    if (!lastFocusedRef.current || !inputRef.current) return;
-    
-    const checkFocus = () => {
-      if (isTypingRef.current && document.activeElement !== inputRef.current) {
-        // Focus was lost while typing, restore it immediately
-        if (inputRef.current) {
+    if (shouldMaintainFocusRef.current && inputRef.current) {
+      // Check if focus was lost due to debounced search triggering other effects
+      const checkAndRestoreFocus = () => {
+        if (inputRef.current && document.activeElement !== inputRef.current && shouldMaintainFocusRef.current) {
           inputRef.current.focus();
-          inputRef.current.setSelectionRange(cursorPositionRef.current, cursorPositionRef.current);
+          inputRef.current.setSelectionRange(
+            savedSelectionRef.current.start,
+            savedSelectionRef.current.end
+          );
         }
+      };
+      
+      // Check immediately and after a small delay to catch async focus loss
+      checkAndRestoreFocus();
+      const timeoutId = setTimeout(checkAndRestoreFocus, 50);
+      const timeoutId2 = setTimeout(checkAndRestoreFocus, 200);
+      const timeoutId3 = setTimeout(checkAndRestoreFocus, 500);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        clearTimeout(timeoutId2);
+        clearTimeout(timeoutId3);
+      };
+    }
+  }, [debouncedSearchQuery]); // Monitor debounced changes that might cause focus loss
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      if (preventBlurTimeoutRef.current) {
+        clearTimeout(preventBlurTimeoutRef.current);
       }
     };
-    
-    // Check focus more frequently while typing
-    const intervalId = setInterval(checkFocus, 50); // Check every 50ms
-    
-    return () => clearInterval(intervalId);
-  }, [searchQuery]); // Re-run whenever searchQuery changes
+  }, []);
   
   // Centralized hooks - these are the ONLY instances that should fetch data
   const listHookData = useJobSearch(debouncedSearchQuery);
