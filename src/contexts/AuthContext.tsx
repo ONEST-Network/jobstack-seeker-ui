@@ -244,7 +244,7 @@ interface AuthContextType {
   deleteEmployer: (employerId: string) => void;
   selectEmployer: (employerId: string) => void;
   getSelectedEmployer: () => EmployerProfile | null;
-  addCandidate: (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>) => void;
+  addCandidate: (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>, autoSelect?: boolean) => CandidateProfile | null;
   updateCandidate: (candidateId: string, candidate: Partial<CandidateProfile>) => void;
   deleteCandidate: (candidateId: string) => void;
   selectCandidate: (candidateId: string) => void;
@@ -1410,7 +1410,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   };
 
-  const addCandidate = (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>) => {
+  const addCandidate = (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>, autoSelect = false) => {
     if (user) {
       // Validate that the candidate has required data before adding
       // Relaxed: location is no longer required so profiles without location still show up in UI
@@ -1420,7 +1420,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!hasRequiredData) {
         console.log('Incomplete candidate data, not adding candidate:', candidate);
-        return;
+        return null; // Return null to indicate failure
       }
 
       const newCandidate: CandidateProfile = {
@@ -1433,12 +1433,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedUser = {
         ...user,
         managedCandidates: [...user.managedCandidates, newCandidate],
-        selectedCandidateId: user.selectedCandidateId || newCandidate.id
+        // Auto-select if requested or if no candidate is currently selected
+        selectedCandidateId: autoSelect ? newCandidate.id : (user.selectedCandidateId || newCandidate.id)
       };
       
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      return newCandidate; // Return the new candidate for further processing
     }
+    return null;
   };
 
   const updateCandidate = (candidateId: string, candidateUpdate: Partial<CandidateProfile>) => {

@@ -14,6 +14,7 @@ interface CandidateProfileDialogProps {
   isUpdate?: boolean;
   profileId?: string;
   preSelectedRole?: string;
+  onProfileCreated?: (profile: CandidateProfile) => void; // Callback when profile is successfully created
 }
 
 const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
@@ -23,9 +24,10 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
   candidateId,
   isUpdate,
   profileId,
-  preSelectedRole
+  preSelectedRole,
+  onProfileCreated
 }) => {
-  const { user, addCandidate, updateCandidate, getSelectedCandidate, refreshProfileData } = useAuth();
+  const { user, addCandidate, updateCandidate, getSelectedCandidate, refreshProfileData, selectCandidate } = useAuth();
   const { toast } = useToast();
 
 
@@ -98,16 +100,34 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
     };
 
     if (mode === 'add') {
-      addCandidate(candidateData);
-      toast({
-        title: "Profile Created",
-        description: "New candidate profile has been created successfully."
-      });
+      // Add the candidate and automatically select it
+      const newProfile = addCandidate(candidateData, true); // Auto-select the new profile
       
-      // Refresh the page after successful profile creation to update the UI
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000); // Small delay to show the success toast
+      if (newProfile) {
+        toast({
+          title: "Profile Created",
+          description: "New candidate profile has been created successfully."
+        });
+        
+        // Call the callback if provided (for apply now flow)
+        if (onProfileCreated) {
+          onProfileCreated(newProfile);
+        }
+        
+        // Refresh profile data to ensure UI updates
+        refreshProfileData();
+        
+        // Close the dialog - no page reload needed!
+        onClose();
+        return; // Exit early to prevent the refresh below
+      } else {
+        toast({
+          title: "Profile Creation Failed",
+          description: "Failed to create profile. Please check all required fields.",
+          variant: "destructive"
+        });
+        return;
+      }
     } else if (mode === 'edit') {
       const candidateToUpdate = candidateId || existingCandidate?.id;
       if (candidateToUpdate) {
