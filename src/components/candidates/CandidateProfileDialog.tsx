@@ -113,36 +113,18 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           description: "New candidate profile has been created successfully."
         });
         
-        // Force localStorage update with the latest user state to ensure the new profile is properly selected after reload
-        if (user) {
-          const updatedUser = {
-            ...user,
-            selectedCandidateId: newProfile.id,
-            managedCandidates: user.managedCandidates.map(c => c.id === newProfile.id ? newProfile : c)
-          };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-          console.log('CandidateProfileDialog: Updated localStorage with new selectedCandidateId:', newProfile.id);
-        }
-        
         // Call the callback if provided (for apply now flow) - IMPORTANT: Call this BEFORE closing dialogs
         if (onProfileCreated) {
           console.log('CandidateProfileDialog: Calling onProfileCreated callback for apply now flow');
           onProfileCreated(newProfile);
         }
         
-        // Refresh profile data to ensure UI updates
-        try {
-          await refreshProfileData();
-        } catch (error) {
-          console.log('Profile refresh error (non-critical):', error);
-        }
-        
         // Close the dialog after callback
         onClose();
         
-        // Automated page reload to activate new profile
-        console.log('CandidateProfileDialog: Profile created successfully, triggering automated refresh for new profile activation');
-        console.log('CandidateProfileDialog: New profile details - Name:', newProfile.name, 'ID:', newProfile.id);
+        // The profile is already activated via addCandidate(candidateData, true) 
+        // No need for page reload - the UI should reflect the change immediately
+        console.log('CandidateProfileDialog: Profile created and activated successfully - Name:', newProfile.name, 'ID:', newProfile.id);
         
         if (!preventReload) {
           console.log('CandidateProfileDialog: Initiating automated page reload in 300ms for immediate profile activation');

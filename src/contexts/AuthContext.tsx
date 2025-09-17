@@ -313,6 +313,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             transformedUser.role = parsedUser.role || 'individual';
           }
           
+          // Check for separate selectedCandidateId in localStorage (for better persistence)
+          const savedSelectedCandidateId = localStorage.getItem('selectedCandidateId');
+          if (savedSelectedCandidateId && transformedUser.managedCandidates.some(c => c.id === savedSelectedCandidateId)) {
+            transformedUser.selectedCandidateId = savedSelectedCandidateId;
+            console.log('AuthContext: Restored selectedCandidateId from localStorage:', savedSelectedCandidateId);
+          }
+          
           // Handle backward compatibility - create default employer if none exists but org profile exists
           if (transformedUser.profile && transformedUser.role === 'organization' && transformedUser.managedEmployers.length === 0) {
             const defaultEmployer = createDefaultEmployerFromProfile(transformedUser.profile as OrganizationProfile);
@@ -1561,9 +1568,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('AuthContext: New profile created with ID:', newCandidate.id, 'timestamp:', newCandidate.createdAt);
       
       // Always auto-select new profiles to ensure they become active immediately
-      const willAutoSelect = autoSelect || !user.selectedCandidateId;
-      const newSelectedId = willAutoSelect ? newCandidate.id : user.selectedCandidateId;
-      
       const updatedUser = {
         ...user,
         managedCandidates: [...user.managedCandidates, newCandidate],
@@ -1574,9 +1578,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Immediate state update and localStorage sync for automated activation
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
       
       // Force update localStorage with latest selection for persistence across reloads
+      try {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('selectedCandidateId', newCandidate.id);
+        console.log('AuthContext: Updated localStorage with new profile selection');
+      } catch (error) {
+        console.error('AuthContext: Failed to update localStorage:', error);
+      }
       setTimeout(() => {
         const currentUserData = JSON.parse(localStorage.getItem('user') || '{}');
         if (currentUserData.id === user.id) {
@@ -1680,9 +1690,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const selectCandidate = (candidateId: string) => {
     if (user) {
+      console.log('AuthContext: selectCandidate called with candidateId:', candidateId);
       const updatedUser = { ...user, selectedCandidateId: candidateId };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Update both user data and separate selectedCandidateId for persistence
+      try {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('selectedCandidateId', candidateId);
+        console.log('AuthContext: Updated localStorage with selected candidate:', candidateId);
+      } catch (error) {
+        console.error('AuthContext: Failed to update localStorage for candidate selection:', error);
+      }
     }
   };
 
