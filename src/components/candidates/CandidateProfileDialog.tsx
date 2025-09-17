@@ -111,31 +111,40 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           description: "New candidate profile has been created successfully."
         });
         
-        // Call the callback if provided (for apply now flow)
-        if (onProfileCreated) {
-          onProfileCreated(newProfile);
-        }
-        
-        // Refresh profile data to ensure UI updates
-        await refreshProfileData();
-        
-        // Handle different flows based on preventReload and callback
-        if (onProfileCreated) {
-          // Call the callback to notify parent component
-          onProfileCreated(newProfile);
-        }
-        
-        if (!preventReload) {
-          // Apply now flow - trigger page reload after a short delay
+        // For header flow (preventReload=true), we need to ensure the UI updates immediately
+        if (preventReload) {
+          // Force a more aggressive refresh for header flow
+          try {
+            await refreshProfileData();
+          } catch (error) {
+            console.log('Profile refresh error (non-critical):', error);
+          }
+          
+          // Add a small delay to ensure all state updates are processed
+          setTimeout(() => {
+            if (onProfileCreated) {
+              onProfileCreated(newProfile);
+            }
+            onClose();
+          }, 100);
+          return;
+        } else {
+          // Apply now flow - refresh data then trigger page reload
+          try {
+            await refreshProfileData();
+          } catch (error) {
+            console.log('Profile refresh error (non-critical):', error);
+          }
+          
+          if (onProfileCreated) {
+            onProfileCreated(newProfile);
+          }
+          
           onClose();
           setTimeout(() => {
             window.location.reload();
-          }, 1000); // Small delay to show the success toast
+          }, 1000);
           return;
-        } else {
-          // Header flow - no reload needed, profile is already active
-          onClose();
-          return; // Exit early to prevent any refresh below
         }
       } else {
         toast({

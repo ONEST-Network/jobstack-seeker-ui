@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
   const [showCandidateDialog, setShowCandidateDialog] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
   
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, refreshSession } = useAuth();
   const location = useLocation();
 
   // Reset auth modal state when user changes (login/logout)
@@ -50,14 +50,24 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
     }
   };
 
-  const handleCandidateCreated = () => {
+  const handleCandidateCreated = async () => {
     // Close the dialog first
     setShowCandidateDialog(false);
     
-    // Force a re-render after a small delay to ensure the context has updated
+    // Try to refresh the session to get latest user data
+    try {
+      await refreshSession();
+    } catch (error) {
+      console.log('Session refresh error (non-critical):', error);
+    }
+    
+    // Force a re-render
+    setForceUpdate(prev => prev + 1);
+    
+    // Additional re-render after delay as backup
     setTimeout(() => {
       setForceUpdate(prev => prev + 1);
-    }, 50);
+    }, 100);
   };
 
   const handleShowAuth = () => {
