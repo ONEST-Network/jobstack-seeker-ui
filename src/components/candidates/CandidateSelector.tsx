@@ -258,6 +258,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
           isUpdate={true}
           candidateId={editingProfileId}
           profileId={editingProfileId}
+          preventReload={true}
         />
       )}
 

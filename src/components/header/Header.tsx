@@ -20,6 +20,7 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showOrgProfile, setShowOrgProfile] = useState(false);
   const [showCandidateDialog, setShowCandidateDialog] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
   
   const { user, isLoading } = useAuth();
   const location = useLocation();
@@ -47,6 +48,16 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
     } else if (user?.role === 'organization') {
       setShowOrgProfile(true);
     }
+  };
+
+  const handleCandidateCreated = () => {
+    // Close the dialog first
+    setShowCandidateDialog(false);
+    
+    // Force a re-render after a small delay to ensure the context has updated
+    setTimeout(() => {
+      setForceUpdate(prev => prev + 1);
+    }, 50);
   };
 
   const handleShowAuth = () => {
@@ -128,6 +139,7 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
         onCloseCandidateDialog={() => setShowCandidateDialog(false)}
         onSwitchToRegister={() => {}}
         currentPath={location.pathname}
+        onCandidateCreated={handleCandidateCreated}
       />
     </header>
   );
