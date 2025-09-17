@@ -439,22 +439,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 
                 transformedUser.managedCandidates = allProfiles;
                 
-                // Ensure selected profile is valid
-                const selectedExists = transformedUser.selectedCandidateId && 
-                  allProfiles.some(profile => profile.id === transformedUser.selectedCandidateId);
-                
-                if (!selectedExists && allProfiles.length > 0) {
-                  // Select the most recently created profile
-                  const newestProfile = allProfiles.reduce((newest, current) => {
-                    const currentTime = new Date(current.createdAt).getTime();
-                    const newestTime = new Date(newest.createdAt).getTime();
-                    return currentTime > newestTime ? current : newest;
-                  });
+                // Always prioritize the newest profile from API since it returns newest first
+                if (allProfiles.length > 0) {
+                  // Since API returns profiles sorted by newest first, the first profile is the most recent
+                  const newestProfile = allProfiles[0];
                   
-                  console.log('AuthContext: Selecting newest profile:', newestProfile.name, 'ID:', newestProfile.id);
-                  transformedUser.selectedCandidateId = newestProfile.id;
-                } else {
-                  console.log('AuthContext: Keeping existing selected profile:', transformedUser.selectedCandidateId);
+                  // Check if we have a currently selected profile
+                  const currentSelection = transformedUser.selectedCandidateId;
+                  const selectedExists = currentSelection && 
+                    allProfiles.some(profile => profile.id === currentSelection);
+                  
+                  // Auto-select newest profile if:
+                  // 1. No current selection exists, OR
+                  // 2. Current selection is invalid, OR  
+                  // 3. There's a newer profile than the currently selected one
+                  const shouldSelectNewest = !selectedExists || 
+                    (selectedExists && currentSelection !== newestProfile.id);
+                  
+                  if (shouldSelectNewest) {
+                    console.log('AuthContext: Auto-selecting newest profile from API:', newestProfile.name, 'ID:', newestProfile.id);
+                    transformedUser.selectedCandidateId = newestProfile.id;
+                    
+                    // Update localStorage immediately to persist the new selection
+                    try {
+                      localStorage.setItem('selectedCandidateId', newestProfile.id);
+                    } catch (error) {
+                      console.error('AuthContext: Failed to update localStorage with newest profile selection:', error);
+                    }
+                  } else {
+                    console.log('AuthContext: Keeping existing selected profile:', currentSelection);
+                  }
                 }
               } else {
                 // No profiles found from API, create defaults if needed
@@ -1091,19 +1105,87 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Update user with fresh profile data
         const updatedUser = { ...user, profile: userProfile, profileId: profileData.id };
         
-        // Update default candidate for individual users
+        // For individual users, also fetch all profiles to ensure we have the latest list
         if (user.role === 'individual') {
-          const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
-          const existingDefaultIndex = updatedUser.managedCandidates.findIndex(cand => cand.id === 'default-candidate');
-          
-          if (existingDefaultIndex >= 0) {
-            updatedUser.managedCandidates[existingDefaultIndex] = defaultCandidate;
-          } else {
-            updatedUser.managedCandidates = [defaultCandidate, ...updatedUser.managedCandidates];
-          }
-          
-          if (!updatedUser.selectedCandidateId) {
-            updatedUser.selectedCandidateId = defaultCandidate.id;
+          try {
+            const apiProfiles = await fetchAndTransformProfiles();
+            
+            if (apiProfiles.length > 0) {
+              // Merge API profiles with local profiles (same logic as checkSession)
+              const localProfiles = updatedUser.managedCandidates || [];
+              const allProfiles = [...apiProfiles];
+              
+              // Add recently created local profiles that might not be in API yet
+              const now = Date.now();
+              localProfiles.forEach(localProfile => {
+                const existsInApi = apiProfiles.some(api => api.id === localProfile.id);
+                if (!existsInApi) {
+                  const profileTimestamp = parseInt(localProfile.id);
+                  const isRecent = profileTimestamp > (now - 30000); // Within last 30 seconds
+                  if (isRecent) {
+                    console.log('AuthContext (refreshProfileData): Adding recently created profile not yet in API:', localProfile.name, localProfile.id);
+                    allProfiles.push(localProfile);
+                  }
+                }
+              });
+              
+              updatedUser.managedCandidates = allProfiles;
+              
+              // Always prioritize the newest profile from API since it returns newest first
+              if (allProfiles.length > 0) {
+                const newestProfile = allProfiles[0];
+                const currentSelection = updatedUser.selectedCandidateId;
+                const selectedExists = currentSelection && 
+                  allProfiles.some(profile => profile.id === currentSelection);
+                
+                // Auto-select newest profile if there's a newer one or no valid selection
+                const shouldSelectNewest = !selectedExists || 
+                  (selectedExists && currentSelection !== newestProfile.id);
+                
+                if (shouldSelectNewest) {
+                  console.log('AuthContext (refreshProfileData): Auto-selecting newest profile:', newestProfile.name, 'ID:', newestProfile.id);
+                  updatedUser.selectedCandidateId = newestProfile.id;
+                  
+                  // Update localStorage immediately to persist the new selection
+                  try {
+                    localStorage.setItem('selectedCandidateId', newestProfile.id);
+                  } catch (error) {
+                    console.error('AuthContext (refreshProfileData): Failed to update localStorage:', error);
+                  }
+                } else {
+                  console.log('AuthContext (refreshProfileData): Keeping existing selected profile:', currentSelection);
+                }
+              }
+            } else {
+              // Fallback: Update default candidate for individual users if no API profiles
+              const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
+              const existingDefaultIndex = updatedUser.managedCandidates.findIndex(cand => cand.id === 'default-candidate');
+              
+              if (existingDefaultIndex >= 0) {
+                updatedUser.managedCandidates[existingDefaultIndex] = defaultCandidate;
+              } else {
+                updatedUser.managedCandidates = [defaultCandidate, ...updatedUser.managedCandidates];
+              }
+              
+              if (!updatedUser.selectedCandidateId) {
+                updatedUser.selectedCandidateId = defaultCandidate.id;
+              }
+            }
+          } catch (error) {
+            console.log('AuthContext (refreshProfileData): Error fetching all profiles, using fallback logic:', error);
+            // Fallback to original logic if API call fails
+            const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
+            const existingDefaultIndex = updatedUser.managedCandidates.findIndex(cand => cand.id === 'default-candidate');
+            
+            if (existingDefaultIndex >= 0) {
+              updatedUser.managedCandidates[existingDefaultIndex] = defaultCandidate;
+            } else {
+              updatedUser.managedCandidates = [defaultCandidate, ...updatedUser.managedCandidates];
+            }
+            
+            if (!updatedUser.selectedCandidateId) {
+              updatedUser.selectedCandidateId = defaultCandidate.id;
+            }
           }
         }
         
