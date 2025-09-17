@@ -125,20 +125,33 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           console.log('Profile refresh error (non-critical):', error);
         }
         
+        // Force localStorage update with the latest user state to ensure the new profile is properly selected after reload
+        if (user) {
+          const updatedUser = {
+            ...user,
+            selectedCandidateId: newProfile.id,
+            managedCandidates: user.managedCandidates.map(c => c.id === newProfile.id ? newProfile : c)
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          console.log('CandidateProfileDialog: Updated localStorage with new selectedCandidateId:', newProfile.id);
+        }
+        
         // Close the dialog first
         onClose();
         
-        // Handle page reload based on preventReload setting
-        console.log('CandidateProfileDialog: Profile created, preventReload =', preventReload);
+        // Automated page reload to activate new profile
+        console.log('CandidateProfileDialog: Profile created successfully, triggering automated refresh for new profile activation');
+        console.log('CandidateProfileDialog: New profile details - Name:', newProfile.name, 'ID:', newProfile.id);
+        
         if (!preventReload) {
-          console.log('CandidateProfileDialog: Triggering page reload in 500ms');
-          // Small delay to ensure the toast is shown and dialog closes gracefully
+          console.log('CandidateProfileDialog: Initiating automated page reload in 300ms for immediate profile activation');
+          // Faster reload for better user experience - profile becomes active immediately
           setTimeout(() => {
-            console.log('CandidateProfileDialog: Executing page reload now');
+            console.log('CandidateProfileDialog: Executing automated page reload - new profile will be active after reload');
             window.location.reload();
-          }, 500); // Reduced delay for faster reload
+          }, 300); // Faster reload for better UX
         } else {
-          console.log('CandidateProfileDialog: Skipping page reload (preventReload=true)');
+          console.log('CandidateProfileDialog: Automated reload disabled (preventReload=true)');
         }
         
         return;

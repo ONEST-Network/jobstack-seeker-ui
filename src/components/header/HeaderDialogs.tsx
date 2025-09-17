@@ -79,7 +79,7 @@ const HeaderDialogs: React.FC<HeaderDialogsProps> = ({
         isOpen={showCandidateDialog}
         onClose={onCloseCandidateDialog}
         mode="add"
-        preventReload={true}
+        preventReload={false}
         onProfileCreated={handleCandidateCreated}
       />
     </>
