@@ -194,10 +194,11 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   };
 
   const handleProfileCreated = (newProfile: any) => {
-    // Profile was created successfully and page will reload to make it active
-    // Set localStorage intent to show application modal after reload
+    // Profile was created successfully and will become active after reload
     const jobTitle = getJobTitle(job);
     const mappedRole = getRoleFromJobTitle(jobTitle);
+    
+    // Set localStorage intent to show application modal after reload
     const applicationIntent = {
       showApplicationAfterReload: true,
       jobData: {
@@ -207,11 +208,19 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
         descriptor: job.descriptor,
         ...job
       },
+      newProfileId: newProfile.id, // Store the new profile ID for immediate use
       timestamp: Date.now()
     };
     localStorage.setItem('pendingJobApplication', JSON.stringify(applicationIntent));
     
-    // Close the dialog - the page will reload and then show the application modal
+    // Show immediate confirmation modal
+    toast({
+      title: "Profile Created Successfully!",
+      description: "Your profile has been created. Redirecting to application form...",
+      duration: 2000,
+    });
+    
+    // Close the dialogs
     setShowCandidateDialog(false);
     onClose(); // Close the profile selection modal as well
     

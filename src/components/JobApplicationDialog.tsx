@@ -3,6 +3,7 @@ import { JobApplicationData } from '@/hooks/useJobApplication';
 import ProfileSelectionModal from './job-application/ProfileSelectionModal';
 import ConsolidatedJobApplication from './job-application/ConsolidatedJobApplication';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface JobApplicationDialogProps {
   job: any;
@@ -27,6 +28,7 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [showConsolidatedApplication, setShowConsolidatedApplication] = useState(false);
   const { user, getSelectedCandidate, selectCandidate } = useAuth();
+  const { toast } = useToast();
 
   const handleProfileSelected = (profile: any) => {
     setSelectedProfile(profile);
@@ -57,27 +59,47 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
           const isMatchingJob = applicationIntent.jobData?.id === job?.id;
           
           if (applicationIntent.showApplicationAfterReload && isRecentIntent && isMatchingJob) {
-            // Find the profile that matches the role created for this job, or the most recently created profile
-            const mappedRole = applicationIntent.jobData.mappedRole;
-            const matchingProfile = user.managedCandidates.find(candidate => 
-              candidate.interestedRole === mappedRole
-            );
+            let profileToSelect = null;
             
-            const newestProfile = matchingProfile || user.managedCandidates.reduce((newest, candidate) => {
-              const candidateTime = new Date(candidate.createdAt).getTime();
-              const newestTime = new Date(newest.createdAt).getTime();
-              return candidateTime > newestTime ? candidate : newest;
-            });
+            // First try to use the specific profile ID if provided
+            if (applicationIntent.newProfileId) {
+              profileToSelect = user.managedCandidates.find(candidate => 
+                candidate.id === applicationIntent.newProfileId
+              );
+            }
             
-            if (newestProfile) {
+            // Fallback: Find the profile that matches the role created for this job
+            if (!profileToSelect) {
+              const mappedRole = applicationIntent.jobData.mappedRole;
+              profileToSelect = user.managedCandidates.find(candidate => 
+                candidate.interestedRole === mappedRole
+              );
+            }
+            
+            // Last fallback: Most recently created profile
+            if (!profileToSelect) {
+              profileToSelect = user.managedCandidates.reduce((newest, candidate) => {
+                const candidateTime = new Date(candidate.createdAt).getTime();
+                const newestTime = new Date(newest.createdAt).getTime();
+                return candidateTime > newestTime ? candidate : newest;
+              });
+            }
+            
+            if (profileToSelect) {
               // Clear the pending application
               localStorage.removeItem('pendingJobApplication');
               
               // Select the profile and automatically proceed to application
-              selectCandidate(newestProfile.id);
-              setSelectedProfile(newestProfile);
+              selectCandidate(profileToSelect.id);
+              setSelectedProfile(profileToSelect);
               setShowProfileSelection(false);
               setShowConsolidatedApplication(true);
+              
+              // Show success message to confirm the profile selection
+              toast({
+                title: "Ready to Apply!",
+                description: `Using profile: ${profileToSelect.nickname || profileToSelect.name}`,
+              });
             }
           } else if (!isRecentIntent) {
             // Clean up old intents
