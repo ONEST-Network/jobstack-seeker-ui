@@ -187,12 +187,32 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   };
 
   const handleProfileComplete = (profile: any) => {
+    // Store the job information and intent to show application modal after page reload
+    const jobTitle = getJobTitle(job);
+    const mappedRole = getRoleFromJobTitle(jobTitle);
+    
+    const applicationIntent = {
+      showApplicationAfterReload: true,
+      jobData: {
+        id: job.id,
+        title: jobTitle,
+        mappedRole: mappedRole,
+        descriptor: job.descriptor,
+        // Store essential job data needed for the application
+        ...job
+      },
+      timestamp: Date.now()
+    };
+    
+    localStorage.setItem('pendingJobApplication', JSON.stringify(applicationIntent));
+    
     setShowCandidateDialog(false);
-    // The profile will be automatically added to the user's managedCandidates
-    // We can close the dialog and let the user select from the updated list
     
     // Refresh profile data to ensure UI updates
     refreshProfileData();
+    
+    // The actual application modal will be shown after page reload
+    // This is handled in the main component that checks localStorage
   };
 
 
