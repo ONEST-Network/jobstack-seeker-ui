@@ -119,11 +119,18 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
         // Refresh profile data to ensure UI updates
         await refreshProfileData();
         
-        // For apply now flow, allow page reload to ensure proper state
-        // For header creation, prevent reload since profile is already selected in localStorage
-        if (onProfileCreated && !preventReload) {
-          // Apply now flow - allow reload
+        // Handle different flows based on preventReload and callback
+        if (onProfileCreated) {
+          // Call the callback to notify parent component
+          onProfileCreated(newProfile);
+        }
+        
+        if (!preventReload) {
+          // Apply now flow - trigger page reload after a short delay
           onClose();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000); // Small delay to show the success toast
           return;
         } else {
           // Header flow - no reload needed, profile is already active
