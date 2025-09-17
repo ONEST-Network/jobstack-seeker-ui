@@ -27,6 +27,7 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   const [showProfileSelection, setShowProfileSelection] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [showConsolidatedApplication, setShowConsolidatedApplication] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const { user, getSelectedCandidate, selectCandidate } = useAuth();
   const { toast } = useToast();
 
@@ -42,6 +43,7 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
       setShowProfileSelection(true);
       setShowConsolidatedApplication(false);
       setSelectedProfile(null);
+      setRetryCount(0); // Reset retry count when dialog opens
       
       // If user has a selected candidate and this is a simple apply (not profile creation flow),
       // we can pre-populate but still show profile selection first
@@ -54,8 +56,9 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
 
   // Enhanced: Check for pending job application after profile creation with better detection
   useEffect(() => {
-    if (isOpen && user?.managedCandidates && user.managedCandidates.length > 0) {
-      console.log('JobApplicationDialog: Checking for pending job application intent');
+    // Check if dialog is open and we have user data (but allow empty managed candidates initially)
+    if (isOpen && user) {
+      console.log('JobApplicationDialog: Checking for pending job application intent - managedCandidates count:', user.managedCandidates?.length || 0);
       const pendingApplication = localStorage.getItem('pendingJobApplication');
       
       if (pendingApplication) {
@@ -70,11 +73,30 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
           console.log('JobApplicationDialog: Intent validation - showAfterReload:', applicationIntent.showApplicationAfterReload, 'isRecent:', isRecentIntent, 'isMatchingJob:', isMatchingJob, 'jobId:', job?.id);
           
           if (applicationIntent.showApplicationAfterReload && isRecentIntent && isMatchingJob) {
+            // Wait a bit for profiles to load if they're not ready yet
+            const candidates = user.managedCandidates || [];
+            
+            if (candidates.length === 0 && retryCount < 3) {
+              console.log('JobApplicationDialog: No profiles loaded yet, retrying in 1 second... (attempt', retryCount + 1, '/ 3)');
+              
+              // Set a timeout to retry after a short delay (in case profiles are still being fetched)
+              setTimeout(() => {
+                setRetryCount(prev => prev + 1);
+              }, 1000); // Wait 1 second for profiles to load
+              
+              // Don't clear the intent yet, let it retry when profiles are loaded
+              return;
+            } else if (candidates.length === 0) {
+              console.log('JobApplicationDialog: No profiles found after 3 retries, clearing intent');
+              localStorage.removeItem('pendingJobApplication');
+              return;
+            }
+            
             let profileToSelect = null;
             
             // First priority: Use the specific profile ID if provided and exists
             if (applicationIntent.newProfileId) {
-              profileToSelect = user.managedCandidates.find(candidate => 
+              profileToSelect = candidates.find(candidate => 
                 candidate.id === applicationIntent.newProfileId
               );
               console.log('JobApplicationDialog: Looking for specific profile ID:', applicationIntent.newProfileId, 'Found:', !!profileToSelect);
@@ -92,20 +114,17 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
             // Third priority: Find the profile that matches the role created for this job
             if (!profileToSelect) {
               const mappedRole = applicationIntent.jobData.mappedRole;
-              profileToSelect = user.managedCandidates.find(candidate => 
+              profileToSelect = candidates.find(candidate => 
                 candidate.interestedRole === mappedRole
               );
               console.log('JobApplicationDialog: Looking for profile with role:', mappedRole, 'Found:', !!profileToSelect);
             }
             
-            // Last fallback: Most recently created profile
-            if (!profileToSelect && user.managedCandidates.length > 0) {
-              profileToSelect = user.managedCandidates.reduce((newest, candidate) => {
-                const candidateTime = new Date(candidate.createdAt).getTime();
-                const newestTime = new Date(newest.createdAt).getTime();
-                return candidateTime > newestTime ? candidate : newest;
-              });
-              console.log('JobApplicationDialog: Using most recent profile as fallback:', profileToSelect.name);
+            // Fourth priority: Find the most recently created profile (since API returns newest first)
+            if (!profileToSelect && candidates.length > 0) {
+              // Since our updated AuthContext now ensures newest profiles are first, use the first one
+              profileToSelect = candidates[0];
+              console.log('JobApplicationDialog: Using newest profile (first in list):', profileToSelect.name, 'ID:', profileToSelect.id);
             }
             
             if (profileToSelect) {
@@ -146,7 +165,7 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
         }
       }
     }
-  }, [isOpen, user?.managedCandidates, job?.id, selectCandidate, getSelectedCandidate, toast]);
+  }, [isOpen, user?.managedCandidates, job?.id, selectCandidate, getSelectedCandidate, toast, retryCount]);
 
   const handleApplicationSubmit = async (applicationData: JobApplicationData) => {
     if (onSubmit) {
