@@ -42,10 +42,17 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
       setShowProfileSelection(true);
       setShowConsolidatedApplication(false);
       setSelectedProfile(null);
+      
+      // If user has a selected candidate and this is a simple apply (not profile creation flow),
+      // we can pre-populate but still show profile selection first
+      const currentlySelected = getSelectedCandidate();
+      if (currentlySelected && !localStorage.getItem('pendingJobApplication')) {
+        console.log('JobApplicationDialog: Pre-populating with currently selected profile:', currentlySelected.name);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, getSelectedCandidate]);
 
-  // Fallback: Check for pending job application after profile creation (in case of unexpected page reload)
+  // Enhanced: Check for pending job application after profile creation with better detection
   useEffect(() => {
     if (isOpen && user?.managedCandidates && user.managedCandidates.length > 0) {
       console.log('JobApplicationDialog: Checking for pending job application intent');
@@ -65,28 +72,40 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
           if (applicationIntent.showApplicationAfterReload && isRecentIntent && isMatchingJob) {
             let profileToSelect = null;
             
-            // First try to use the specific profile ID if provided
+            // First priority: Use the specific profile ID if provided and exists
             if (applicationIntent.newProfileId) {
               profileToSelect = user.managedCandidates.find(candidate => 
                 candidate.id === applicationIntent.newProfileId
               );
+              console.log('JobApplicationDialog: Looking for specific profile ID:', applicationIntent.newProfileId, 'Found:', !!profileToSelect);
             }
             
-            // Fallback: Find the profile that matches the role created for this job
+            // Second priority: Use currently selected candidate if it exists and matches the role
+            if (!profileToSelect) {
+              const currentlySelected = getSelectedCandidate();
+              if (currentlySelected && currentlySelected.interestedRole === applicationIntent.jobData.mappedRole) {
+                profileToSelect = currentlySelected;
+                console.log('JobApplicationDialog: Using currently selected profile that matches role:', profileToSelect.name);
+              }
+            }
+            
+            // Third priority: Find the profile that matches the role created for this job
             if (!profileToSelect) {
               const mappedRole = applicationIntent.jobData.mappedRole;
               profileToSelect = user.managedCandidates.find(candidate => 
                 candidate.interestedRole === mappedRole
               );
+              console.log('JobApplicationDialog: Looking for profile with role:', mappedRole, 'Found:', !!profileToSelect);
             }
             
             // Last fallback: Most recently created profile
-            if (!profileToSelect) {
+            if (!profileToSelect && user.managedCandidates.length > 0) {
               profileToSelect = user.managedCandidates.reduce((newest, candidate) => {
                 const candidateTime = new Date(candidate.createdAt).getTime();
                 const newestTime = new Date(newest.createdAt).getTime();
                 return candidateTime > newestTime ? candidate : newest;
               });
+              console.log('JobApplicationDialog: Using most recent profile as fallback:', profileToSelect.name);
             }
             
             if (profileToSelect) {
@@ -104,23 +123,30 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
               
               console.log('JobApplicationDialog: Auto-selected profile and opened application modal');
               
-              // Show success message to confirm the profile selection
+              // Show success message to confirm the profile selection and flow
               toast({
-                title: "Ready to Apply!",
-                description: `Using profile: ${profileToSelect.nickname || profileToSelect.name}`,
+                title: "Profile Activated & Ready!",
+                description: `Your new profile "${profileToSelect.nickname || profileToSelect.name}" is now active and ready for job applications.`,
+                duration: 3000,
               });
+            } else {
+              console.log('JobApplicationDialog: No suitable profile found for auto-selection');
+              // Clear the intent since we can't fulfill it
+              localStorage.removeItem('pendingJobApplication');
             }
           } else if (!isRecentIntent) {
             // Clean up old intents
+            console.log('JobApplicationDialog: Cleaning up old application intent');
             localStorage.removeItem('pendingJobApplication');
           }
         } catch (error) {
+          console.log('JobApplicationDialog: Error parsing application intent:', error);
           // Invalid JSON or other error, clean up
           localStorage.removeItem('pendingJobApplication');
         }
       }
     }
-  }, [isOpen, user?.managedCandidates, job?.id, selectCandidate]);
+  }, [isOpen, user?.managedCandidates, job?.id, selectCandidate, getSelectedCandidate, toast]);
 
   const handleApplicationSubmit = async (applicationData: JobApplicationData) => {
     if (onSubmit) {

@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ChevronDown, Plus, User, CheckCircle, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
 
 interface ProfileSelectionModalProps {
@@ -30,6 +31,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   const [tempSelectedCandidate, setTempSelectedCandidate] = useState<any>(null);
   const [preSelectedRole, setPreSelectedRole] = useState<string>('');
   const isMobile = useIsMobile();
+  const { toast } = useToast();
 
   // Pre-select the currently active candidate when modal opens
   useEffect(() => {
@@ -194,11 +196,11 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   };
 
   const handleProfileCreated = (newProfile: any) => {
-    // Profile was created successfully and will become active after reload
+    // Profile was created successfully - set up for page reload and automatic modal show
     const jobTitle = getJobTitle(job);
     const mappedRole = getRoleFromJobTitle(jobTitle);
     
-    console.log('ProfileSelectionModal: handleProfileCreated called with profile:', newProfile.id);
+    console.log('ProfileSelectionModal: handleProfileCreated called with profile:', newProfile.id, newProfile.name);
     
     // Set localStorage intent to show application modal after reload
     const applicationIntent = {
@@ -213,13 +215,13 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
       newProfileId: newProfile.id, // Store the new profile ID for immediate use
       timestamp: Date.now()
     };
-    console.log('ProfileSelectionModal: Setting localStorage intent:', applicationIntent);
+    console.log('ProfileSelectionModal: Setting localStorage intent for post-reload application:', applicationIntent);
     localStorage.setItem('pendingJobApplication', JSON.stringify(applicationIntent));
     
-    // Show immediate confirmation modal
+    // Show success message
     toast({
       title: "Profile Created Successfully!",
-      description: "Your profile has been created. Redirecting to application form...",
+      description: "Your profile has been created. The application form will open after the page refreshes.",
       duration: 2000,
     });
     
@@ -227,8 +229,11 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     setShowCandidateDialog(false);
     onClose(); // Close the profile selection modal as well
     
-    // Note: Page reload will happen automatically due to preventReload=false
-    // After reload, JobApplicationDialog will detect the localStorage intent and show the application modal
+    // Page reload will happen automatically due to preventReload=false in CandidateProfileDialog
+    // After reload:
+    // 1. The new profile will become active through AuthContext logic
+    // 2. JobApplicationDialog will detect the localStorage intent
+    // 3. Application modal will automatically open with the active profile
   };
 
 
@@ -449,7 +454,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
           profileId={user.profileId}
           preSelectedRole={preSelectedRole}
           onProfileCreated={handleProfileCreated}
-          preventReload={false} // Allow reload to make profile active
+          preventReload={false} // Allow reload to ensure profile becomes active across all components
         />
         )}
 
@@ -479,7 +484,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
           profileId={user.profileId}
           preSelectedRole={preSelectedRole}
           onProfileCreated={handleProfileCreated}
-          preventReload={false} // Allow reload to make profile active
+          preventReload={false} // Allow reload to ensure profile becomes active across all components
         />
       )}
 
