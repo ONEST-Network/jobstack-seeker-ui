@@ -1437,8 +1437,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         selectedCandidateId: autoSelect ? newCandidate.id : (user.selectedCandidateId || newCandidate.id)
       };
       
+      // Force immediate state update and localStorage sync
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Force React to flush any pending updates immediately
+      setTimeout(() => {
+        setUser({...updatedUser}); // Force a re-render with a new object reference
+      }, 0);
       
       return newCandidate; // Return the new candidate for further processing
     }
