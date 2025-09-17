@@ -27,9 +27,16 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   const selectedCandidate = getSelectedCandidate();
   const [showCandidateDialog, setShowCandidateDialog] = useState(false);
   const [profileMode, setProfileMode] = useState<'add' | 'edit'>('add');
-  const [tempSelectedCandidate, setTempSelectedCandidate] = useState<any>(selectedCandidate);
+  const [tempSelectedCandidate, setTempSelectedCandidate] = useState<any>(null);
   const [preSelectedRole, setPreSelectedRole] = useState<string>('');
   const isMobile = useIsMobile();
+
+  // Pre-select the currently active candidate when modal opens
+  useEffect(() => {
+    if (isOpen && selectedCandidate && !tempSelectedCandidate) {
+      setTempSelectedCandidate(selectedCandidate);
+    }
+  }, [isOpen, selectedCandidate, tempSelectedCandidate]);
 
   // Helper function to map job title to role name
   const getRoleFromJobTitle = (jobTitle: string): string => {

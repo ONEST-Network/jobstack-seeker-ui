@@ -34,18 +34,14 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
     setShowConsolidatedApplication(true);
   };
   
-  // Auto-select the active candidate when dialog opens if there's already a selected candidate
+  // Reset state when dialog opens to always start with profile selection
   useEffect(() => {
-    if (isOpen && user?.selectedCandidateId) {
-      const selectedCandidate = getSelectedCandidate();
-      if (selectedCandidate && !selectedProfile) {
-        // Auto-select the currently active candidate for faster application flow
-        setSelectedProfile(selectedCandidate);
-        setShowProfileSelection(false);
-        setShowConsolidatedApplication(true);
-      }
+    if (isOpen) {
+      setShowProfileSelection(true);
+      setShowConsolidatedApplication(false);
+      setSelectedProfile(null);
     }
-  }, [isOpen, user?.selectedCandidateId, getSelectedCandidate, selectedProfile]);
+  }, [isOpen]);
 
   const handleApplicationSubmit = async (applicationData: JobApplicationData) => {
     if (onSubmit) {
