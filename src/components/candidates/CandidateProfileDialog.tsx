@@ -237,7 +237,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       isUpdate={isUpdate}
       profileId={currentProfileId}
       preSelectedRole={preSelectedRole}
-      preventReload={preventReload || !!onProfileCreated} // Prevent reload if in apply now flow
+      preventReload={preventReload} // Only prevent reload when explicitly requested
     />
   );
 };

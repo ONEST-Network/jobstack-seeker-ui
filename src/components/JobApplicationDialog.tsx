@@ -52,13 +52,18 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
         try {
           const applicationIntent = JSON.parse(pendingApplication);
           
-          // Check if this matches the current job and the timestamp is recent (within 2 minutes)
-          const isRecentIntent = (Date.now() - applicationIntent.timestamp) < 2 * 60 * 1000; // 2 minutes
+          // Check if this matches the current job and the timestamp is recent (within 5 minutes)
+          const isRecentIntent = (Date.now() - applicationIntent.timestamp) < 5 * 60 * 1000; // 5 minutes
           const isMatchingJob = applicationIntent.jobData?.id === job?.id;
           
           if (applicationIntent.showApplicationAfterReload && isRecentIntent && isMatchingJob) {
-            // Find the most recently created profile
-            const newestProfile = user.managedCandidates.reduce((newest, candidate) => {
+            // Find the profile that matches the role created for this job, or the most recently created profile
+            const mappedRole = applicationIntent.jobData.mappedRole;
+            const matchingProfile = user.managedCandidates.find(candidate => 
+              candidate.interestedRole === mappedRole
+            );
+            
+            const newestProfile = matchingProfile || user.managedCandidates.reduce((newest, candidate) => {
               const candidateTime = new Date(candidate.createdAt).getTime();
               const newestTime = new Date(newest.createdAt).getTime();
               return candidateTime > newestTime ? candidate : newest;

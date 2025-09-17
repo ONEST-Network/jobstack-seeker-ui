@@ -194,12 +194,8 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   };
 
   const handleProfileCreated = (newProfile: any) => {
-    // Profile was created successfully, now select it and proceed to application
-    selectCandidate(newProfile.id);
-    setTempSelectedCandidate(newProfile);
-    setShowCandidateDialog(false);
-    
-    // Set localStorage fallback in case page reloads unexpectedly
+    // Profile was created successfully and page will reload to make it active
+    // Set localStorage intent to show application modal after reload
     const jobTitle = getJobTitle(job);
     const mappedRole = getRoleFromJobTitle(jobTitle);
     const applicationIntent = {
@@ -215,8 +211,12 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     };
     localStorage.setItem('pendingJobApplication', JSON.stringify(applicationIntent));
     
-    // Immediately proceed to application with the new profile (no reload needed)
-    onProfileSelected(newProfile);
+    // Close the dialog - the page will reload and then show the application modal
+    setShowCandidateDialog(false);
+    onClose(); // Close the profile selection modal as well
+    
+    // Note: Page reload will happen automatically due to preventReload=false
+    // After reload, JobApplicationDialog will detect the localStorage intent and show the application modal
   };
 
 
@@ -437,7 +437,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
           profileId={user.profileId}
           preSelectedRole={preSelectedRole}
           onProfileCreated={handleProfileCreated}
-          preventReload={true} // Prevent reload during apply now flow
+          preventReload={false} // Allow reload to make profile active
         />
         )}
 
@@ -467,7 +467,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
           profileId={user.profileId}
           preSelectedRole={preSelectedRole}
           onProfileCreated={handleProfileCreated}
-          preventReload={true} // Prevent reload during apply now flow
+          preventReload={false} // Allow reload to make profile active
         />
       )}
 
