@@ -113,6 +113,18 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           description: "New candidate profile has been created successfully."
         });
         
+        // Refresh profile data to sync with API, but ensure our new profile stays selected
+        try {
+          await refreshProfileData();
+          
+          // After refresh, re-select our newly created profile to ensure it remains active
+          // This handles the case where API might not yet have the new profile or returns different order
+          selectCandidate(newProfile.id);
+          console.log('CandidateProfileDialog: Profile data refreshed and new profile re-selected:', newProfile.id);
+        } catch (error) {
+          console.log('CandidateProfileDialog: Profile refresh error (non-critical):', error);
+        }
+        
         // Call the callback if provided (for apply now flow) - IMPORTANT: Call this BEFORE closing dialogs
         if (onProfileCreated) {
           console.log('CandidateProfileDialog: Calling onProfileCreated callback for apply now flow');
@@ -122,9 +134,8 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
         // Close the dialog after callback
         onClose();
         
-        // The profile is already activated via addCandidate(candidateData, true) 
-        // No need for page reload - the UI should reflect the change immediately
-        console.log('CandidateProfileDialog: Profile created and activated successfully - Name:', newProfile.name, 'ID:', newProfile.id);
+        // The profile is already activated and refreshed
+        console.log('CandidateProfileDialog: Profile created, activated, and refreshed successfully - Name:', newProfile.name, 'ID:', newProfile.id);
         
         if (!preventReload) {
           console.log('CandidateProfileDialog: Initiating automated page reload in 300ms for immediate profile activation');
