@@ -15,6 +15,7 @@ interface CandidateProfileDialogProps {
   profileId?: string;
   preSelectedRole?: string;
   onProfileCreated?: (profile: CandidateProfile) => void; // Callback when profile is successfully created
+  preventReload?: boolean; // Prevent page reload after profile creation (for apply now flow)
 }
 
 const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
@@ -25,7 +26,8 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
   isUpdate,
   profileId,
   preSelectedRole,
-  onProfileCreated
+  onProfileCreated,
+  preventReload = false
 }) => {
   const { user, addCandidate, updateCandidate, getSelectedCandidate, refreshProfileData, selectCandidate } = useAuth();
   const { toast } = useToast();
@@ -140,10 +142,12 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           description: "Candidate profile has been updated successfully."
         });
         
-        // Refresh the page after successful profile update to update the UI
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000); // Small delay to show the success toast
+        // Conditionally refresh the page after successful profile update
+        if (!preventReload) {
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000); // Small delay to show the success toast
+        }
       }
     }
 
@@ -233,6 +237,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       isUpdate={isUpdate}
       profileId={currentProfileId}
       preSelectedRole={preSelectedRole}
+      preventReload={preventReload || !!onProfileCreated} // Prevent reload if in apply now flow
     />
   );
 };

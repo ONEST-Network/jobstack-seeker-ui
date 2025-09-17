@@ -20,11 +20,12 @@ interface UserProfileDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete?: (profile: Record<string, unknown>) => void;
-  mode?: 'user' | 'candidate';
-  initialProfile?: Record<string, unknown>;
+  mode?: 'individual' | 'candidate';
+  initialProfile?: any;
   isUpdate?: boolean;
   profileId?: string;
   preSelectedRole?: string;
+  preventReload?: boolean; // Prevent page reload after profile creation/update
 }
 
 const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({ 
@@ -35,7 +36,8 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   initialProfile,
   isUpdate,
   profileId,
-  preSelectedRole
+  preSelectedRole,
+  preventReload = false
 }) => {
   const { updateProfile, user, getSelectedCandidate, refreshProfileData } = useAuth();
   const { profile, setProfile, clearAllValidations } = useProfileForm();
@@ -346,10 +348,12 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           : "Your profile has been successfully created and saved."
       });
 
-      // Refresh the page after successful profile creation or update to update the UI
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000); // Small delay to show the success toast
+      // Conditionally refresh the page after successful profile creation or update
+      if (!preventReload) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000); // Small delay to show the success toast
+      }
 
       onClose();
     } catch (error: unknown) {
@@ -589,11 +593,12 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   isOpen, 
   onClose, 
   onComplete, 
-  mode,
+  mode = 'individual',
   initialProfile,
-  isUpdate,
+  isUpdate = false,
   profileId,
-  preSelectedRole
+  preSelectedRole,
+  preventReload = false
 }) => {
   // Create a unique key to force ProfileFormProvider reset when dialog opens
   const dialogKey = `${isOpen ? 'open' : 'closed'}-${preSelectedRole || 'no-role'}-${isUpdate ? 'edit' : 'add'}`;
@@ -609,6 +614,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
         isUpdate={isUpdate}
         profileId={profileId}
         preSelectedRole={preSelectedRole}
+        preventReload={preventReload}
       />
     </ProfileFormProvider>
   );
