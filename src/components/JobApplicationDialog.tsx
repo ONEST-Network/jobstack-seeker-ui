@@ -48,15 +48,19 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   // Fallback: Check for pending job application after profile creation (in case of unexpected page reload)
   useEffect(() => {
     if (isOpen && user?.managedCandidates && user.managedCandidates.length > 0) {
+      console.log('JobApplicationDialog: Checking for pending job application intent');
       const pendingApplication = localStorage.getItem('pendingJobApplication');
       
       if (pendingApplication) {
+        console.log('JobApplicationDialog: Found pending application intent:', pendingApplication);
         try {
           const applicationIntent = JSON.parse(pendingApplication);
           
           // Check if this matches the current job and the timestamp is recent (within 5 minutes)
           const isRecentIntent = (Date.now() - applicationIntent.timestamp) < 5 * 60 * 1000; // 5 minutes
           const isMatchingJob = applicationIntent.jobData?.id === job?.id;
+          
+          console.log('JobApplicationDialog: Intent validation - showAfterReload:', applicationIntent.showApplicationAfterReload, 'isRecent:', isRecentIntent, 'isMatchingJob:', isMatchingJob, 'jobId:', job?.id);
           
           if (applicationIntent.showApplicationAfterReload && isRecentIntent && isMatchingJob) {
             let profileToSelect = null;
@@ -86,14 +90,19 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
             }
             
             if (profileToSelect) {
+              console.log('JobApplicationDialog: Profile found for auto-selection:', profileToSelect.id, profileToSelect.name);
+              
               // Clear the pending application
               localStorage.removeItem('pendingJobApplication');
+              console.log('JobApplicationDialog: Cleared localStorage intent');
               
               // Select the profile and automatically proceed to application
               selectCandidate(profileToSelect.id);
               setSelectedProfile(profileToSelect);
               setShowProfileSelection(false);
               setShowConsolidatedApplication(true);
+              
+              console.log('JobApplicationDialog: Auto-selected profile and opened application modal');
               
               // Show success message to confirm the profile selection
               toast({

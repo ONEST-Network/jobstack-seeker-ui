@@ -198,6 +198,8 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     const jobTitle = getJobTitle(job);
     const mappedRole = getRoleFromJobTitle(jobTitle);
     
+    console.log('ProfileSelectionModal: handleProfileCreated called with profile:', newProfile.id);
+    
     // Set localStorage intent to show application modal after reload
     const applicationIntent = {
       showApplicationAfterReload: true,
@@ -211,6 +213,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
       newProfileId: newProfile.id, // Store the new profile ID for immediate use
       timestamp: Date.now()
     };
+    console.log('ProfileSelectionModal: Setting localStorage intent:', applicationIntent);
     localStorage.setItem('pendingJobApplication', JSON.stringify(applicationIntent));
     
     // Show immediate confirmation modal

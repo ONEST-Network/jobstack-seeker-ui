@@ -113,18 +113,6 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           description: "New candidate profile has been created successfully."
         });
         
-        // Call the callback if provided (for apply now flow)
-        if (onProfileCreated) {
-          onProfileCreated(newProfile);
-        }
-        
-        // Refresh profile data to ensure UI updates
-        try {
-          await refreshProfileData();
-        } catch (error) {
-          console.log('Profile refresh error (non-critical):', error);
-        }
-        
         // Force localStorage update with the latest user state to ensure the new profile is properly selected after reload
         if (user) {
           const updatedUser = {
@@ -136,7 +124,20 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           console.log('CandidateProfileDialog: Updated localStorage with new selectedCandidateId:', newProfile.id);
         }
         
-        // Close the dialog first
+        // Call the callback if provided (for apply now flow) - IMPORTANT: Call this BEFORE closing dialogs
+        if (onProfileCreated) {
+          console.log('CandidateProfileDialog: Calling onProfileCreated callback for apply now flow');
+          onProfileCreated(newProfile);
+        }
+        
+        // Refresh profile data to ensure UI updates
+        try {
+          await refreshProfileData();
+        } catch (error) {
+          console.log('Profile refresh error (non-critical):', error);
+        }
+        
+        // Close the dialog after callback
         onClose();
         
         // Automated page reload to activate new profile
