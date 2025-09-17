@@ -38,6 +38,8 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
     : mode === 'edit' ? getSelectedCandidate() : null;
 
   const handleProfileComplete = async (profileData: Record<string, unknown>) => {
+    console.log('CandidateProfileDialog: handleProfileComplete called, mode =', mode, 'preventReload =', preventReload);
+    
     // Validate that we have the minimum required data before creating a profile
     // The profileData is already flattened by UserProfileDialog, so check flat fields
     
@@ -111,41 +113,35 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           description: "New candidate profile has been created successfully."
         });
         
-        // For header flow (preventReload=true), we need to ensure the UI updates immediately
-        if (preventReload) {
-          // Force a more aggressive refresh for header flow
-          try {
-            await refreshProfileData();
-          } catch (error) {
-            console.log('Profile refresh error (non-critical):', error);
-          }
-          
-          // Add a small delay to ensure all state updates are processed
-          setTimeout(() => {
-            if (onProfileCreated) {
-              onProfileCreated(newProfile);
-            }
-            onClose();
-          }, 100);
-          return;
-        } else {
-          // Apply now flow - refresh data then trigger page reload
-          try {
-            await refreshProfileData();
-          } catch (error) {
-            console.log('Profile refresh error (non-critical):', error);
-          }
-          
-          if (onProfileCreated) {
-            onProfileCreated(newProfile);
-          }
-          
-          onClose();
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-          return;
+        // Call the callback if provided (for apply now flow)
+        if (onProfileCreated) {
+          onProfileCreated(newProfile);
         }
+        
+        // Refresh profile data to ensure UI updates
+        try {
+          await refreshProfileData();
+        } catch (error) {
+          console.log('Profile refresh error (non-critical):', error);
+        }
+        
+        // Close the dialog first
+        onClose();
+        
+        // Handle page reload based on preventReload setting
+        console.log('CandidateProfileDialog: Profile created, preventReload =', preventReload);
+        if (!preventReload) {
+          console.log('CandidateProfileDialog: Triggering page reload in 500ms');
+          // Small delay to ensure the toast is shown and dialog closes gracefully
+          setTimeout(() => {
+            console.log('CandidateProfileDialog: Executing page reload now');
+            window.location.reload();
+          }, 500); // Reduced delay for faster reload
+        } else {
+          console.log('CandidateProfileDialog: Skipping page reload (preventReload=true)');
+        }
+        
+        return;
       } else {
         toast({
           title: "Profile Creation Failed",
