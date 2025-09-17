@@ -43,6 +43,49 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
     }
   }, [isOpen]);
 
+  // Fallback: Check for pending job application after profile creation (in case of unexpected page reload)
+  useEffect(() => {
+    if (isOpen && user?.managedCandidates && user.managedCandidates.length > 0) {
+      const pendingApplication = localStorage.getItem('pendingJobApplication');
+      
+      if (pendingApplication) {
+        try {
+          const applicationIntent = JSON.parse(pendingApplication);
+          
+          // Check if this matches the current job and the timestamp is recent (within 2 minutes)
+          const isRecentIntent = (Date.now() - applicationIntent.timestamp) < 2 * 60 * 1000; // 2 minutes
+          const isMatchingJob = applicationIntent.jobData?.id === job?.id;
+          
+          if (applicationIntent.showApplicationAfterReload && isRecentIntent && isMatchingJob) {
+            // Find the most recently created profile
+            const newestProfile = user.managedCandidates.reduce((newest, candidate) => {
+              const candidateTime = new Date(candidate.createdAt).getTime();
+              const newestTime = new Date(newest.createdAt).getTime();
+              return candidateTime > newestTime ? candidate : newest;
+            });
+            
+            if (newestProfile) {
+              // Clear the pending application
+              localStorage.removeItem('pendingJobApplication');
+              
+              // Select the profile and automatically proceed to application
+              selectCandidate(newestProfile.id);
+              setSelectedProfile(newestProfile);
+              setShowProfileSelection(false);
+              setShowConsolidatedApplication(true);
+            }
+          } else if (!isRecentIntent) {
+            // Clean up old intents
+            localStorage.removeItem('pendingJobApplication');
+          }
+        } catch (error) {
+          // Invalid JSON or other error, clean up
+          localStorage.removeItem('pendingJobApplication');
+        }
+      }
+    }
+  }, [isOpen, user?.managedCandidates, job?.id, selectCandidate]);
+
   const handleApplicationSubmit = async (applicationData: JobApplicationData) => {
     if (onSubmit) {
       await onSubmit(applicationData);
@@ -58,6 +101,9 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   };
 
   const handleClose = () => {
+    // Clean up any pending application intent when dialog is closed
+    localStorage.removeItem('pendingJobApplication');
+    
     setShowProfileSelection(true);
     setShowConsolidatedApplication(false);
     setSelectedProfile(null);

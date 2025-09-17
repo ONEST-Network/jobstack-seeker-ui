@@ -199,7 +199,23 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     setTempSelectedCandidate(newProfile);
     setShowCandidateDialog(false);
     
-    // Immediately proceed to application with the new profile
+    // Set localStorage fallback in case page reloads unexpectedly
+    const jobTitle = getJobTitle(job);
+    const mappedRole = getRoleFromJobTitle(jobTitle);
+    const applicationIntent = {
+      showApplicationAfterReload: true,
+      jobData: {
+        id: job.id,
+        title: jobTitle,
+        mappedRole: mappedRole,
+        descriptor: job.descriptor,
+        ...job
+      },
+      timestamp: Date.now()
+    };
+    localStorage.setItem('pendingJobApplication', JSON.stringify(applicationIntent));
+    
+    // Immediately proceed to application with the new profile (no reload needed)
     onProfileSelected(newProfile);
   };
 
@@ -413,15 +429,16 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
 
         {/* Profile Creation/Edit Dialog */}
         {user?.role === 'individual' && (
-          <CandidateProfileDialog
-            isOpen={showCandidateDialog}
-            onClose={() => setShowCandidateDialog(false)}
-            mode={profileMode}
-            isUpdate={profileMode === 'edit'}
-            profileId={user.profileId}
-            preSelectedRole={preSelectedRole}
-            onProfileCreated={handleProfileCreated}
-          />
+        <CandidateProfileDialog
+          isOpen={showCandidateDialog}
+          onClose={() => setShowCandidateDialog(false)}
+          mode={profileMode}
+          isUpdate={profileMode === 'edit'}
+          profileId={user.profileId}
+          preSelectedRole={preSelectedRole}
+          onProfileCreated={handleProfileCreated}
+          preventReload={true} // Prevent reload during apply now flow
+        />
         )}
 
       </>
@@ -450,6 +467,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
           profileId={user.profileId}
           preSelectedRole={preSelectedRole}
           onProfileCreated={handleProfileCreated}
+          preventReload={true} // Prevent reload during apply now flow
         />
       )}
 
