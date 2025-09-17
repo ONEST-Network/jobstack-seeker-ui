@@ -37,7 +37,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
     ? user?.managedCandidates.find(c => c.id === candidateId)
     : mode === 'edit' ? getSelectedCandidate() : null;
 
-  const handleProfileComplete = (profileData: Record<string, unknown>) => {
+  const handleProfileComplete = async (profileData: Record<string, unknown>) => {
     // Validate that we have the minimum required data before creating a profile
     // The profileData is already flattened by UserProfileDialog, so check flat fields
     
@@ -117,11 +117,19 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
         }
         
         // Refresh profile data to ensure UI updates
-        refreshProfileData();
+        await refreshProfileData();
         
-        // Close the dialog - no page reload needed!
-        onClose();
-        return; // Exit early to prevent the refresh below
+        // For apply now flow, allow page reload to ensure proper state
+        // For header creation, prevent reload since profile is already selected in localStorage
+        if (onProfileCreated && !preventReload) {
+          // Apply now flow - allow reload
+          onClose();
+          return;
+        } else {
+          // Header flow - no reload needed, profile is already active
+          onClose();
+          return; // Exit early to prevent any refresh below
+        }
       } else {
         toast({
           title: "Profile Creation Failed",
