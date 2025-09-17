@@ -413,22 +413,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               if (profiles.length > 0) {
                 transformedUser.managedCandidates = profiles;
                 
-                // Smart profile selection after reload
+                // Smart profile selection after reload with fallback for timing issues
                 const selectedExists = transformedUser.selectedCandidateId && 
                   profiles.some(profile => profile.id === transformedUser.selectedCandidateId);
                 
-                if (!selectedExists) {
-                  // If the previously selected profile doesn't exist, select the most recently created one
-                  const newestProfile = profiles.reduce((newest, current) => {
-                    const currentTime = new Date(current.createdAt).getTime();
-                    const newestTime = new Date(newest.createdAt).getTime();
-                    return currentTime > newestTime ? current : newest;
-                  });
+                if (!selectedExists && transformedUser.selectedCandidateId) {
+                  // Check if we have a recently created profile ID in localStorage that doesn't exist in API yet
+                  // This handles timing issues where localStorage has newer data than the API
+                  const recentlyCreatedId = transformedUser.selectedCandidateId;
+                  const isRecentTimestamp = parseInt(recentlyCreatedId) > (Date.now() - 30000); // Within last 30 seconds
                   
-                  console.log('AuthContext: Selecting newest profile:', newestProfile.name, 'ID:', newestProfile.id);
-                  transformedUser.selectedCandidateId = newestProfile.id;
+                  if (isRecentTimestamp) {
+                    console.log('AuthContext: Recently created profile not found in API yet, keeping localStorage selection:', recentlyCreatedId);
+                    // Keep the localStorage selection - don't override it
+                  } else {
+                    // If the previously selected profile doesn't exist and isn't recent, select the most recently created one from API
+                    const newestProfile = profiles.reduce((newest, current) => {
+                      const currentTime = new Date(current.createdAt).getTime();
+                      const newestTime = new Date(newest.createdAt).getTime();
+                      return currentTime > newestTime ? current : newest;
+                    });
+                    
+                    console.log('AuthContext: Old selected profile not found in API, selecting newest available:', newestProfile.name, 'ID:', newestProfile.id);
+                    transformedUser.selectedCandidateId = newestProfile.id;
+                  }
                 } else {
-                  console.log('AuthContext: Keeping existing selected profile ID:', transformedUser.selectedCandidateId);
+                  console.log('AuthContext: Selected profile exists in API or no selection, keeping:', transformedUser.selectedCandidateId);
                 }
               } else {
                 if (transformedUser.profile) {
@@ -826,22 +836,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (profiles.length > 0) {
               transformedUser.managedCandidates = profiles;
               
-              // Smart profile selection in verifyOTP
+              // Smart profile selection in verifyOTP with timing awareness
               const selectedExists = transformedUser.selectedCandidateId && 
                 profiles.some(profile => profile.id === transformedUser.selectedCandidateId);
               
-              if (!selectedExists) {
-                // If the previously selected profile doesn't exist, select the most recently created one
-                const newestProfile = profiles.reduce((newest, current) => {
-                  const currentTime = new Date(current.createdAt).getTime();
-                  const newestTime = new Date(newest.createdAt).getTime();
-                  return currentTime > newestTime ? current : newest;
-                });
+              if (!selectedExists && transformedUser.selectedCandidateId) {
+                // Check for timing issues where localStorage has newer data than the API
+                const recentlyCreatedId = transformedUser.selectedCandidateId;
+                const isRecentTimestamp = parseInt(recentlyCreatedId) > (Date.now() - 30000); // Within last 30 seconds
                 
-                console.log('AuthContext (verifyOTP): Selecting newest profile:', newestProfile.name, 'ID:', newestProfile.id);
-                transformedUser.selectedCandidateId = newestProfile.id;
+                if (isRecentTimestamp) {
+                  console.log('AuthContext (verifyOTP): Recently created profile not found in API yet, keeping localStorage selection:', recentlyCreatedId);
+                  // Keep the localStorage selection - don't override it
+                } else {
+                  // If the previously selected profile doesn't exist and isn't recent, select the most recently created one from API
+                  const newestProfile = profiles.reduce((newest, current) => {
+                    const currentTime = new Date(current.createdAt).getTime();
+                    const newestTime = new Date(newest.createdAt).getTime();
+                    return currentTime > newestTime ? current : newest;
+                  });
+                  
+                  console.log('AuthContext (verifyOTP): Old selected profile not found in API, selecting newest available:', newestProfile.name, 'ID:', newestProfile.id);
+                  transformedUser.selectedCandidateId = newestProfile.id;
+                }
               } else {
-                console.log('AuthContext (verifyOTP): Keeping existing selected profile ID:', transformedUser.selectedCandidateId);
+                console.log('AuthContext (verifyOTP): Selected profile exists in API or no selection, keeping:', transformedUser.selectedCandidateId);
               }
             } else {
               // Create default candidate if no profiles found
@@ -1191,22 +1210,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (profiles.length > 0) {
               transformedUser.managedCandidates = profiles;
               
-              // Smart profile selection in refreshSession
+              // Smart profile selection in refreshSession with timing awareness
               const selectedExists = transformedUser.selectedCandidateId && 
                 profiles.some(profile => profile.id === transformedUser.selectedCandidateId);
               
-              if (!selectedExists) {
-                // If the previously selected profile doesn't exist, select the most recently created one
-                const newestProfile = profiles.reduce((newest, current) => {
-                  const currentTime = new Date(current.createdAt).getTime();
-                  const newestTime = new Date(newest.createdAt).getTime();
-                  return currentTime > newestTime ? current : newest;
-                });
+              if (!selectedExists && transformedUser.selectedCandidateId) {
+                // Check for timing issues where localStorage has newer data than the API
+                const recentlyCreatedId = transformedUser.selectedCandidateId;
+                const isRecentTimestamp = parseInt(recentlyCreatedId) > (Date.now() - 30000); // Within last 30 seconds
                 
-                console.log('AuthContext (refreshSession): Selecting newest profile:', newestProfile.name, 'ID:', newestProfile.id);
-                transformedUser.selectedCandidateId = newestProfile.id;
+                if (isRecentTimestamp) {
+                  console.log('AuthContext (refreshSession): Recently created profile not found in API yet, keeping localStorage selection:', recentlyCreatedId);
+                  // Keep the localStorage selection - don't override it
+                } else {
+                  // If the previously selected profile doesn't exist and isn't recent, select the most recently created one from API
+                  const newestProfile = profiles.reduce((newest, current) => {
+                    const currentTime = new Date(current.createdAt).getTime();
+                    const newestTime = new Date(newest.createdAt).getTime();
+                    return currentTime > newestTime ? current : newest;
+                  });
+                  
+                  console.log('AuthContext (refreshSession): Old selected profile not found in API, selecting newest available:', newestProfile.name, 'ID:', newestProfile.id);
+                  transformedUser.selectedCandidateId = newestProfile.id;
+                }
               } else {
-                console.log('AuthContext (refreshSession): Keeping existing selected profile ID:', transformedUser.selectedCandidateId);
+                console.log('AuthContext (refreshSession): Selected profile exists in API or no selection, keeping:', transformedUser.selectedCandidateId);
               }
             } else {
               // Create default candidate if no profiles found
