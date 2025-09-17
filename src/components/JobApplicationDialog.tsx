@@ -28,27 +28,44 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [showConsolidatedApplication, setShowConsolidatedApplication] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [hasCheckedPendingApplication, setHasCheckedPendingApplication] = useState(false);
   const { user, getSelectedCandidate, selectCandidate } = useAuth();
   const { toast } = useToast();
 
   const handleProfileSelected = (profile: any) => {
+    console.log('JobApplicationDialog: handleProfileSelected called with profile:', profile?.name, profile?.id);
     setSelectedProfile(profile);
     setShowProfileSelection(false);
     setShowConsolidatedApplication(true);
+    console.log('JobApplicationDialog: State updated - showProfileSelection: false, showConsolidatedApplication: true');
   };
   
   // Reset state when dialog opens to always start with profile selection
   useEffect(() => {
     if (isOpen) {
+      // Reset state first
+      setRetryCount(0);
+      setHasCheckedPendingApplication(false);
+      
+      // Check for pending application first before resetting state
+      const pendingApplication = localStorage.getItem('pendingJobApplication');
+      
+      if (pendingApplication) {
+        console.log('JobApplicationDialog: Found pending application on open, will let pending application effect handle it');
+        // Don't reset state if there's a pending application - let the other effect handle it
+        return;
+      }
+      
+      // Only reset to profile selection if no pending application
+      console.log('JobApplicationDialog: No pending application found, resetting to profile selection');
       setShowProfileSelection(true);
       setShowConsolidatedApplication(false);
       setSelectedProfile(null);
-      setRetryCount(0); // Reset retry count when dialog opens
       
       // If user has a selected candidate and this is a simple apply (not profile creation flow),
       // we can pre-populate but still show profile selection first
       const currentlySelected = getSelectedCandidate();
-      if (currentlySelected && !localStorage.getItem('pendingJobApplication')) {
+      if (currentlySelected) {
         console.log('JobApplicationDialog: Pre-populating with currently selected profile:', currentlySelected.name);
       }
     }
@@ -59,6 +76,7 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
     // Check if dialog is open and we have user data (but allow empty managed candidates initially)
     if (isOpen && user) {
       console.log('JobApplicationDialog: Checking for pending job application intent - managedCandidates count:', user.managedCandidates?.length || 0);
+      console.log('JobApplicationDialog: Current showProfileSelection:', showProfileSelection, 'showConsolidatedApplication:', showConsolidatedApplication);
       const pendingApplication = localStorage.getItem('pendingJobApplication');
       
       if (pendingApplication) {
@@ -68,9 +86,20 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
           
           // Check if this matches the current job and the timestamp is recent (within 5 minutes)
           const isRecentIntent = (Date.now() - applicationIntent.timestamp) < 5 * 60 * 1000; // 5 minutes
-          const isMatchingJob = applicationIntent.jobData?.id === job?.id;
+          const isMatchingJobById = applicationIntent.jobData?.id === job?.id;
+          const isMatchingJobByTitle = applicationIntent.jobData?.title === (job?.title || job?.descriptor?.name);
+          const isMatchingJob = isMatchingJobById || isMatchingJobByTitle;
           
-          console.log('JobApplicationDialog: Intent validation - showAfterReload:', applicationIntent.showApplicationAfterReload, 'isRecent:', isRecentIntent, 'isMatchingJob:', isMatchingJob, 'jobId:', job?.id);
+          console.log('JobApplicationDialog: Intent validation:');
+          console.log('  - showAfterReload:', applicationIntent.showApplicationAfterReload);
+          console.log('  - isRecent:', isRecentIntent, '(intent timestamp:', new Date(applicationIntent.timestamp).toISOString(), ')');
+          console.log('  - isMatchingJobById:', isMatchingJobById);
+          console.log('  - isMatchingJobByTitle:', isMatchingJobByTitle);
+          console.log('  - isMatchingJob (overall):', isMatchingJob);
+          console.log('  - stored jobId:', applicationIntent.jobData?.id);
+          console.log('  - current jobId:', job?.id);
+          console.log('  - stored job title:', applicationIntent.jobData?.title);
+          console.log('  - current job title:', job?.title || job?.descriptor?.name);
           
           if (applicationIntent.showApplicationAfterReload && isRecentIntent && isMatchingJob) {
             // Wait a bit for profiles to load if they're not ready yet
@@ -134,6 +163,9 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
               localStorage.removeItem('pendingJobApplication');
               console.log('JobApplicationDialog: Cleared localStorage intent');
               
+              // Mark that we've checked and processed the pending application
+              setHasCheckedPendingApplication(true);
+              
               // Select the profile and automatically proceed to application
               selectCandidate(profileToSelect.id);
               setSelectedProfile(profileToSelect);
@@ -152,6 +184,7 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
               console.log('JobApplicationDialog: No suitable profile found for auto-selection');
               // Clear the intent since we can't fulfill it
               localStorage.removeItem('pendingJobApplication');
+              setHasCheckedPendingApplication(true);
             }
           } else if (!isRecentIntent) {
             // Clean up old intents
@@ -165,7 +198,7 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
         }
       }
     }
-  }, [isOpen, user?.managedCandidates, job?.id, selectCandidate, getSelectedCandidate, toast, retryCount]);
+  }, [isOpen, user?.managedCandidates, job?.id, selectCandidate, getSelectedCandidate, toast, retryCount, hasCheckedPendingApplication]);
 
   const handleApplicationSubmit = async (applicationData: JobApplicationData) => {
     if (onSubmit) {
@@ -188,6 +221,7 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
     setShowProfileSelection(true);
     setShowConsolidatedApplication(false);
     setSelectedProfile(null);
+    setHasCheckedPendingApplication(false);
     onClose();
   };
 

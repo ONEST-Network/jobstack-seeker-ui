@@ -33,12 +33,16 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
-  // Pre-select the currently active candidate when modal opens
+  // Pre-select the currently active candidate when modal opens (only once when opening)
   useEffect(() => {
-    if (isOpen && selectedCandidate && !tempSelectedCandidate) {
-      setTempSelectedCandidate(selectedCandidate);
+    if (isOpen) {
+      const currentlySelected = getSelectedCandidate();
+      if (currentlySelected && !tempSelectedCandidate) {
+        console.log('ProfileSelectionModal: Pre-selecting currently active candidate:', currentlySelected.name);
+        setTempSelectedCandidate(currentlySelected);
+      }
     }
-  }, [isOpen, selectedCandidate, tempSelectedCandidate]);
+  }, [isOpen]); // Remove selectedCandidate and tempSelectedCandidate from deps to prevent loops
 
   // Helper function to map job title to role name
   const getRoleFromJobTitle = (jobTitle: string): string => {
@@ -124,9 +128,13 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   };
 
   const handleContinueWithSelectedProfile = () => {
+    console.log('ProfileSelectionModal: handleContinueWithSelectedProfile called with:', tempSelectedCandidate?.name, tempSelectedCandidate?.id);
     if (tempSelectedCandidate) {
       selectCandidate(tempSelectedCandidate.id);
+      console.log('ProfileSelectionModal: Selected candidate and calling onProfileSelected');
       onProfileSelected(tempSelectedCandidate);
+    } else {
+      console.log('ProfileSelectionModal: No tempSelectedCandidate found');
     }
   };
 
@@ -141,6 +149,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
 
   // Reset state when dialog closes
   const handleClose = () => {
+    console.log('ProfileSelectionModal: handleClose called');
     setShowCandidateDialog(false);
     setTempSelectedCandidate(null);
     setPreSelectedRole('');
@@ -150,6 +159,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
 
   // Reset state when main dialog closes
   const handleMainClose = () => {
+    console.log('ProfileSelectionModal: handleMainClose called');
     setTempSelectedCandidate(null);
     setPreSelectedRole('');
     setProfileMode('add');
