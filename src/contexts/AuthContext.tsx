@@ -412,12 +412,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const profiles = await fetchAndTransformProfiles();
               if (profiles.length > 0) {
                 transformedUser.managedCandidates = profiles;
-                // Only set first profile as selected if no candidate is already selected
-                // or if the selected candidate doesn't exist in the fetched profiles
+                
+                // Smart profile selection after reload
                 const selectedExists = transformedUser.selectedCandidateId && 
                   profiles.some(profile => profile.id === transformedUser.selectedCandidateId);
+                
                 if (!selectedExists) {
-                  transformedUser.selectedCandidateId = profiles[0].id;
+                  // If the previously selected profile doesn't exist, select the most recently created one
+                  const newestProfile = profiles.reduce((newest, current) => {
+                    const currentTime = new Date(current.createdAt).getTime();
+                    const newestTime = new Date(newest.createdAt).getTime();
+                    return currentTime > newestTime ? current : newest;
+                  });
+                  
+                  console.log('AuthContext: Selecting newest profile:', newestProfile.name, 'ID:', newestProfile.id);
+                  transformedUser.selectedCandidateId = newestProfile.id;
+                } else {
+                  console.log('AuthContext: Keeping existing selected profile ID:', transformedUser.selectedCandidateId);
                 }
               } else {
                 if (transformedUser.profile) {
@@ -814,12 +825,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const profiles = await fetchAndTransformProfiles();
             if (profiles.length > 0) {
               transformedUser.managedCandidates = profiles;
-              // Only set first profile as selected if no candidate is already selected
-              // or if the selected candidate doesn't exist in the fetched profiles
+              
+              // Smart profile selection in verifyOTP
               const selectedExists = transformedUser.selectedCandidateId && 
                 profiles.some(profile => profile.id === transformedUser.selectedCandidateId);
+              
               if (!selectedExists) {
-                transformedUser.selectedCandidateId = profiles[0].id;
+                // If the previously selected profile doesn't exist, select the most recently created one
+                const newestProfile = profiles.reduce((newest, current) => {
+                  const currentTime = new Date(current.createdAt).getTime();
+                  const newestTime = new Date(newest.createdAt).getTime();
+                  return currentTime > newestTime ? current : newest;
+                });
+                
+                console.log('AuthContext (verifyOTP): Selecting newest profile:', newestProfile.name, 'ID:', newestProfile.id);
+                transformedUser.selectedCandidateId = newestProfile.id;
+              } else {
+                console.log('AuthContext (verifyOTP): Keeping existing selected profile ID:', transformedUser.selectedCandidateId);
               }
             } else {
               // Create default candidate if no profiles found
@@ -1168,12 +1190,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const profiles = await fetchAndTransformProfiles();
             if (profiles.length > 0) {
               transformedUser.managedCandidates = profiles;
-              // Only set first profile as selected if no candidate is already selected
-              // or if the selected candidate doesn't exist in the fetched profiles
+              
+              // Smart profile selection in refreshSession
               const selectedExists = transformedUser.selectedCandidateId && 
                 profiles.some(profile => profile.id === transformedUser.selectedCandidateId);
+              
               if (!selectedExists) {
-                transformedUser.selectedCandidateId = profiles[0].id;
+                // If the previously selected profile doesn't exist, select the most recently created one
+                const newestProfile = profiles.reduce((newest, current) => {
+                  const currentTime = new Date(current.createdAt).getTime();
+                  const newestTime = new Date(newest.createdAt).getTime();
+                  return currentTime > newestTime ? current : newest;
+                });
+                
+                console.log('AuthContext (refreshSession): Selecting newest profile:', newestProfile.name, 'ID:', newestProfile.id);
+                transformedUser.selectedCandidateId = newestProfile.id;
+              } else {
+                console.log('AuthContext (refreshSession): Keeping existing selected profile ID:', transformedUser.selectedCandidateId);
               }
             } else {
               // Create default candidate if no profiles found
@@ -1412,6 +1445,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addCandidate = (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>, autoSelect = false) => {
     if (user) {
+      console.log('AuthContext: addCandidate called with autoSelect =', autoSelect);
+      console.log('AuthContext: Creating profile for', candidate.name, 'with role', candidate.interestedRole);
+      
       // Validate that the candidate has required data before adding
       // Relaxed: location is no longer required so profiles without location still show up in UI
       const hasRequiredData = candidate.name?.trim() && 
@@ -1419,7 +1455,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                              (candidate.phone?.trim() || candidate.whoIAm?.phone?.trim());
 
       if (!hasRequiredData) {
-        console.log('Incomplete candidate data, not adding candidate:', candidate);
+        console.error('AuthContext: Incomplete candidate data, profile creation failed:', candidate);
         return null; // Return null to indicate failure
       }
 
@@ -1430,24 +1466,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isActive: true
       };
       
+      console.log('AuthContext: New profile created with ID:', newCandidate.id, 'timestamp:', newCandidate.createdAt);
+      
+      const willAutoSelect = autoSelect || !user.selectedCandidateId;
+      const newSelectedId = willAutoSelect ? newCandidate.id : user.selectedCandidateId;
+      
       const updatedUser = {
         ...user,
         managedCandidates: [...user.managedCandidates, newCandidate],
-        // Auto-select if requested or if no candidate is currently selected
-        selectedCandidateId: autoSelect ? newCandidate.id : (user.selectedCandidateId || newCandidate.id)
+        selectedCandidateId: newSelectedId
       };
       
-      // Force immediate state update and localStorage sync
+      console.log('AuthContext: Setting selectedCandidateId to:', newSelectedId, '(autoSelect active:', willAutoSelect, ')');
+      
+      // Immediate state update and localStorage sync for automated activation
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
-      // Force React to flush any pending updates immediately
-      setTimeout(() => {
-        setUser({...updatedUser}); // Force a re-render with a new object reference
-      }, 0);
+      console.log('AuthContext: Profile successfully added to managedCandidates. Total profiles:', updatedUser.managedCandidates.length);
+      console.log('AuthContext: localStorage updated - new profile will be automatically activated after page reload');
       
       return newCandidate; // Return the new candidate for further processing
     }
+    console.error('AuthContext: addCandidate called but no user found');
     return null;
   };
 
