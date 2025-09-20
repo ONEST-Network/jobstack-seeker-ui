@@ -1,0 +1,431 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Karya Gig Job Profile Schema",
+    "description": "Complete profile schema for Karya gig job role",
+    "type": "object",
+    "properties": {
+      "whoIAm": {
+        "type": "object",
+        "title": "Who I Am",
+        "description": "Basic personal information",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Full Name",
+            "description": "Enter your full name",
+            "ui:widget": "text",
+            "ui:placeholder": "Enter your full name",
+            "ui:disabled": false,
+            "ui:verified": false,
+            "ui:verificationMessage": "✓ Verified from DigiLocker"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "Your current location",
+            "ui:widget": "text",
+            "ui:placeholder": "Enter your current location",
+            "ui:disabled": false,
+            "ui:hasLocationButton": true
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone Number",
+            "description": "Your contact phone number",
+            "pattern": "^[0-9]{10}$",
+            "ui:widget": "tel",
+            "ui:placeholder": "Enter phone number",
+            "ui:disabled": false,
+            "ui:verified": false
+          },
+          "age": {
+            "type": "integer",
+            "title": "Age",
+            "description": "Your age",
+            "minimum": 18,
+            "maximum": 65,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter your age",
+            "ui:disabled": false
+          }
+        },
+        "required": ["name", "location", "phone"],
+        "ui": {
+          "order": ["name", "location", "phone", "age"],
+          "description": "Enter your basic details or import from DigiLocker/Wallet for quick setup",
+          "showDigiLocker": true,
+          "digiLockerConfig": {
+            "title": "Quick Import from DigiLocker",
+            "description": "Import verified documents to auto-fill your profile information",
+            "buttonText": "Import from DigiLocker",
+            "footerText": "This will import your AADHAAR, name, date of birth and other verified details"
+          },
+          "showWallet": true,
+          "walletConfig": {
+            "title": "Import from Wallet",
+            "description": "Import verified credentials from your digital wallet",
+            "buttonText": "Import from Wallet",
+            "footerText": "This will import your verified credentials, certificates, and personal details"
+          }
+        }
+      },
+      "whatIHave": {
+        "type": "object",
+        "title": "What I Have",
+        "description": "Your qualifications, skills, and experience",
+        "properties": {
+          "internetSpeed": {
+            "type": "number",
+            "title": "Internet Speed (Mbps)",
+            "description": "Your internet connection speed in Mbps",
+            "minimum": 0,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter internet speed in Mbps",
+            "ui:disabled": false
+          },
+          "devices": {
+            "type": "array",
+            "title": "Devices",
+            "description": "Select all devices you have access to",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select devices",
+            "ui:hasOther": true,
+            "enum": ["Smartphone", "Tablet", "Laptop", "Other"],
+            "enumNames": ["Smartphone", "Tablet", "Laptop", "Other"]
+          },
+          "devicesOS": {
+            "type": "array",
+            "title": "Devices OS",
+            "description": "Select all operating systems your devices run on",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select operating systems",
+            "ui:hasOther": true,
+            "enum": [
+              "Android 6",
+              "Android 7", 
+              "Android 8",
+              "Android 9",
+              "Android 10",
+              "Android 11",
+              "Android 12",
+              "Android 13",
+              "Android 14",
+              "Android 15",
+              "Android 16",
+              "iOS 10",
+              "iOS 11",
+              "iOS 12",
+              "iOS 13",
+              "iOS 14",
+              "iOS 15",
+              "iOS 16",
+              "iOS 17",
+              "iOS 18",
+              "iOS 19",
+              "Windows 10",
+              "Windows 11",
+              "macOS Monterey",
+              "macOS Ventura",
+              "macOS Sonoma",
+              "macOS Sequoia",
+              "Ubuntu 20.04",
+              "Ubuntu 22.04",
+              "Ubuntu 24.04",
+              "Other"
+            ],
+            "enumNames": [
+              "Android 6",
+              "Android 7", 
+              "Android 8",
+              "Android 9",
+              "Android 10",
+              "Android 11",
+              "Android 12",
+              "Android 13",
+              "Android 14",
+              "Android 15",
+              "Android 16",
+              "iOS 10",
+              "iOS 11",
+              "iOS 12",
+              "iOS 13",
+              "iOS 14",
+              "iOS 15",
+              "iOS 16",
+              "iOS 17",
+              "iOS 18",
+              "iOS 19",
+              "Windows 10",
+              "Windows 11",
+              "macOS Monterey",
+              "macOS Ventura",
+              "macOS Sonoma",
+              "macOS Sequoia",
+              "Ubuntu 20.04",
+              "Ubuntu 22.04",
+              "Ubuntu 24.04",
+              "Other"
+            ]
+          },
+          "householdIncomePerAnnum": {
+            "type": "number",
+            "title": "Household Income per Annum (INR)",
+            "description": "Your household's annual income in INR",
+            "minimum": 0,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter annual household income",
+            "ui:currency": "₹",
+            "ui:disabled": false
+          },
+          "languagesKnown": {
+            "type": "array",
+            "title": "Languages Known",
+            "description": "Select all languages you can speak",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select languages",
+            "ui:hasOther": true,
+            "enum": [
+              "Assamese",
+              "Bengali",
+              "Bodo",
+              "Dogri",
+              "English",
+              "Gujarati",
+              "Hindi",
+              "Kannada",
+              "Kashmiri",
+              "Konkani",
+              "Maithili",
+              "Malayalam",
+              "Manipuri",
+              "Marathi",
+              "Mizo",
+              "Nepali",
+              "Odia",
+              "Punjabi",
+              "Sanskrit",
+              "Santali",
+              "Sindhi",
+              "Tamil",
+              "Telugu",
+              "Urdu"
+            ],
+            "enumNames": [
+              "Assamese (অসমীয়া)",
+              "Bengali (বাংলা)",
+              "Bodo (बड़ो)",
+              "Dogri (डोगरी)",
+              "English",
+              "Gujarati (ગુજરાતી)",
+              "Hindi (हिन्दी)",
+              "Kannada (ಕನ್ನಡ)",
+              "Kashmiri (कॉशुर)",
+              "Konkani (कोंकणी)",
+              "Maithili (मैथिली)",
+              "Malayalam (മലയാളം)",
+              "Manipuri (মৈতৈলোন্)",
+              "Marathi (मराठी)",
+              "Mizo (Mizo ṭawng)",
+              "Nepali (नेपाली)",
+              "Odia (ଓଡ଼ିଆ)",
+              "Punjabi (ਪੰਜਾਬੀ)",
+              "Sanskrit (संस्कृतम्)",
+              "Santali (ᱥᱟᱱᱛᱟᱲᱤ)",
+              "Sindhi (سنڌي)",
+              "Tamil (தமிழ்)",
+              "Telugu (తెలుగు)",
+              "Urdu (اردو)"
+            ]
+          },
+          "highestQualification": {
+            "type": "array",
+            "title": "Highest Educational Qualification",
+            "description": "What is your highest qualification? (Select all that apply)",
+            "items": {
+              "type": "string"
+            },
+            "enum": ["10th", "12th", "ITI", "Diploma", "Graduate", "Other"],
+            "enumNames": ["10th Pass", "12th Pass", "ITI", "Diploma", "Graduate", "Other"],
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select your highest qualification(s)",
+            "ui:disabled": false,
+            "ui:hasOther": true
+          },
+          "digitalToolsKnown": {
+            "type": "array",
+            "title": "Digital Tools Known",
+            "description": "Select all digital tools you are familiar with",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select digital tools",
+            "ui:hasOther": true,
+            "enum": ["Word", "Spreadsheets", "Image & Video editors", "AI LLMs", "Other"],
+            "enumNames": ["Word", "Spreadsheets", "Image & Video editors", "AI LLMs", "Other"]
+          },
+          "communicationSkillsScore": {
+            "type": "number",
+            "title": "Communication Skills Score",
+            "description": "Enter the score for communication skills",
+            "minimum": 0,
+            "maximum": 10,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter communication skills score (0-10)",
+            "ui:disabled": false
+          },
+          "domainKnowledge": {
+            "type": "array",
+            "title": "Domain Knowledge",
+            "description": "Select your areas of expertise",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select domains",
+            "ui:disabled": false,
+            "ui:hasOther": true,
+            "enum": ["General", "Cashcards", "Electronics", "Mobile Phones", "Kitchen Appliances", "Furniture", "Other"],
+            "enumNames": ["General", "Cashcards", "Electronics", "Mobile Phones", "Kitchen Appliances", "Furniture", "Other"]
+          },
+          "karyaExperienceTaskType": {
+            "type": "string",
+            "title": "Karya Experience - Task Type",
+            "description": "Select your Karya task experience type",
+            "ui:widget": "select",
+            "ui:placeholder": "Select task type",
+            "ui:disabled": false,
+            "enum": ["Image annotation", "Translation", "Transcription"],
+            "enumNames": ["Image annotation", "Translation", "Transcription"]
+          },
+          "karyaExperienceHours": {
+            "type": "number",
+            "title": "Karya Experience - Hours",
+            "description": "Total hours of Karya experience",
+            "minimum": 0,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter total hours of experience",
+            "ui:disabled": false
+          },
+          "karyaExperienceQualityScore": {
+            "type": "number",
+            "title": "Karya Experience - Quality Score",
+            "description": "Your quality score from Karya experience",
+            "minimum": 0,
+            "maximum": 10,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter quality score (0-10)",
+            "ui:disabled": false
+          },
+          "taskVideo": {
+            "type": "string",
+            "title": "Task Upload",
+            "description": "Upload any file (document, image, video) showing your work",
+            "ui:widget": "file-upload",
+            "ui:placeholder": "Upload file showing your work",
+            "ui:disabled": false,
+            "ui:accept": "*/*",
+            "ui:noSizeLimit": true
+          },
+          "scanQRCode": {
+            "type": "string",
+            "title": "Scan QR Code",
+            "description": "Scan QR code to import additional information",
+            "ui:widget": "qr-scanner",
+            "ui:placeholder": "Scan QR code"
+          }
+        },
+        "ui": {
+          "order": [
+            "internetSpeed",
+            "devices", 
+            "devicesOS",
+            "householdIncomePerAnnum",
+            "languagesKnown",
+            "highestQualification",
+            "digitalToolsKnown",
+            "communicationSkillsScore",
+            "domainKnowledge",
+            "karyaExperienceTaskType",
+            "karyaExperienceHours",
+            "karyaExperienceQualityScore",
+            "taskVideo",
+            "scanQRCode"
+          ],
+          "description": "Tell us about your technical setup, qualifications, skills, and experience"
+        }
+      },
+      "whatIWant": {
+        "type": "object",
+        "title": "What I Want",
+        "description": "Your work schedule and preferences",
+        "properties": {
+          "workHoursPerDay": {
+            "type": "number",
+            "title": "Number of hours willing to work / day",
+            "description": "How many hours are you willing to work per day?",
+            "minimum": 1,
+            "maximum": 24,
+            "ui:widget": "number",
+            "ui:placeholder": "Enter hours per day",
+            "ui:disabled": false
+          },
+          "daysOfTheWeek": {
+            "type": "array",
+            "title": "Days of the Week",
+            "description": "Select the days you are available to work",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select working days",
+            "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            "enumNames": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+          },
+          "startTime": {
+            "type": "string",
+            "title": "Start Time",
+            "description": "Preferred work start time",
+            "ui:widget": "time",
+            "ui:placeholder": "Select start time",
+            "ui:disabled": false
+          },
+          "endTime": {
+            "type": "string",
+            "title": "End Time", 
+            "description": "Preferred work end time",
+            "ui:widget": "time",
+            "ui:placeholder": "Select end time",
+            "ui:disabled": false
+          },
+          "preferredWorkMode": {
+            "type": "array",
+            "title": "Preferred mode of work",
+            "description": "Select your preferred work arrangements",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select work modes",
+            "ui:hasOther": true,
+            "enum": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling"],
+            "enumNames": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling"]
+          }
+        },
+        "ui": {
+          "order": ["workHoursPerDay", "daysOfTheWeek", "startTime", "endTime", "preferredWorkMode"],
+          "description": "Tell us about your availability and work preferences"
+        }
+      }
+    },
+    "ui": {
+      "steps": [
+        {
+          "id": "whoIAm",
+          "title": "Who I Am",
+          "description": "Basic personal information",
+          "icon": "User"
+        },
+        {
+          "id": "whatIHave",
+          "title": "What I Have",
+          "description": "Qualifications, skills, and experience",
+          "icon": "Briefcase"
+        },
+        {
+          "id": "whatIWant",
+          "title": "What I Want",
+          "description": "Work schedule and preferences",
+          "icon": "Target"
+        }
+      ]
+    }
+  }

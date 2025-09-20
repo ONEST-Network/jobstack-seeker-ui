@@ -13,6 +13,7 @@ import genericITISchema from './GenericITI.json';
 import cncOperatorSchema from './cnc-operator.json';
 import welderSchema from './welder.json';
 import latheOperatorSchema from './lathe-operator.json';
+import karyaGigJobSchema from './karya-gig-job.json';
 import jobRolesConfig from './job-roles-config.json';
 import jobSectorsConfig from './job-sectors-config.json';
 
@@ -114,6 +115,9 @@ export const getUnifiedSchema = (role?: string): any => {
   }
   if (role === 'Lathe Operator') {
     return latheOperatorSchema;
+  }
+  if (role === 'Karya Gig Job') {
+    return karyaGigJobSchema;
   }
   // For roles without specific schemas, fall back to Industrial Tailor
   if (role === 'Field Sales Executive') {
