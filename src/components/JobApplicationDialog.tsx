@@ -29,21 +29,24 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   const [showConsolidatedApplication, setShowConsolidatedApplication] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [hasCheckedPendingApplication, setHasCheckedPendingApplication] = useState(false);
+  const [hasUserMadeSelection, setHasUserMadeSelection] = useState(false);
   const { user, getSelectedCandidate, selectCandidate } = useAuth();
   const { toast } = useToast();
 
   const handleProfileSelected = (profile: any) => {
     console.log('JobApplicationDialog: handleProfileSelected called with profile:', profile?.name, profile?.id);
+    console.log('JobApplicationDialog: Current state before update - showProfileSelection:', showProfileSelection, 'showConsolidatedApplication:', showConsolidatedApplication);
     setSelectedProfile(profile);
     setShowProfileSelection(false);
     setShowConsolidatedApplication(true);
-    console.log('JobApplicationDialog: State updated - showProfileSelection: false, showConsolidatedApplication: true');
+    setHasUserMadeSelection(true); // Mark that user has made a selection
+    console.log('JobApplicationDialog: State updated - showProfileSelection: false, showConsolidatedApplication: true, hasUserMadeSelection: true');
   };
   
-  // Reset state when dialog opens to always start with profile selection
+  // Reset state when dialog opens to always start with profile selection (ONCE)
   useEffect(() => {
-    if (isOpen) {
-      console.log('JobApplicationDialog: Dialog opened, resetting to profile selection');
+    if (isOpen && !hasUserMadeSelection) {
+      console.log('JobApplicationDialog: Dialog opened for first time, resetting to profile selection');
       setShowProfileSelection(true);
       setShowConsolidatedApplication(false);
       setSelectedProfile(null);
@@ -56,8 +59,15 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
       if (currentlySelected && !localStorage.getItem('pendingJobApplication')) {
         console.log('JobApplicationDialog: Pre-populating with currently selected profile:', currentlySelected.name);
       }
+    } else if (isOpen && hasUserMadeSelection) {
+      console.log('JobApplicationDialog: Dialog re-opened but user has already made selection, preserving state');
     }
-  }, [isOpen, getSelectedCandidate]);
+  }, [isOpen, hasUserMadeSelection]); // Added hasUserMadeSelection to dependencies
+
+  // Debug effect to monitor state changes
+  useEffect(() => {
+    console.log('JobApplicationDialog: State change detected - showProfileSelection:', showProfileSelection, 'showConsolidatedApplication:', showConsolidatedApplication, 'selectedProfile:', selectedProfile?.name, 'hasUserMadeSelection:', hasUserMadeSelection);
+  }, [showProfileSelection, showConsolidatedApplication, selectedProfile, hasUserMadeSelection]);
 
   // Enhanced: Check for pending job application after profile creation with better detection
   useEffect(() => {
@@ -216,6 +226,8 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
     setShowConsolidatedApplication(false);
     setSelectedProfile(null);
     setHasCheckedPendingApplication(false);
+    setHasUserMadeSelection(false); // Reset selection flag when closing
+    console.log('JobApplicationDialog: Dialog closed, resetting all state flags');
     onClose();
   };
 
@@ -229,7 +241,7 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
       />
       
       <ConsolidatedJobApplication
-        isOpen={showConsolidatedApplication}
+        isOpen={isOpen && showConsolidatedApplication}
         onClose={handleClose}
         onSubmit={handleApplicationSubmit}
         onSaveDraft={onSaveDraft ? handleSaveDraft : undefined}
