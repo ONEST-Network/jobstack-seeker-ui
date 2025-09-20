@@ -43,29 +43,17 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
   // Reset state when dialog opens to always start with profile selection
   useEffect(() => {
     if (isOpen) {
-      // Reset state first
-      setRetryCount(0);
-      setHasCheckedPendingApplication(false);
-      
-      // Check for pending application first before resetting state
-      const pendingApplication = localStorage.getItem('pendingJobApplication');
-      
-      if (pendingApplication) {
-        console.log('JobApplicationDialog: Found pending application on open, will let pending application effect handle it');
-        // Don't reset state if there's a pending application - let the other effect handle it
-        return;
-      }
-      
-      // Only reset to profile selection if no pending application
-      console.log('JobApplicationDialog: No pending application found, resetting to profile selection');
+      console.log('JobApplicationDialog: Dialog opened, resetting to profile selection');
       setShowProfileSelection(true);
       setShowConsolidatedApplication(false);
       setSelectedProfile(null);
+      setRetryCount(0);
+      setHasCheckedPendingApplication(false);
       
       // If user has a selected candidate and this is a simple apply (not profile creation flow),
       // we can pre-populate but still show profile selection first
       const currentlySelected = getSelectedCandidate();
-      if (currentlySelected) {
+      if (currentlySelected && !localStorage.getItem('pendingJobApplication')) {
         console.log('JobApplicationDialog: Pre-populating with currently selected profile:', currentlySelected.name);
       }
     }
@@ -73,16 +61,22 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
 
   // Enhanced: Check for pending job application after profile creation with better detection
   useEffect(() => {
-    // Check if dialog is open and we have user data (but allow empty managed candidates initially)
-    if (isOpen && user) {
-      console.log('JobApplicationDialog: Checking for pending job application intent - managedCandidates count:', user.managedCandidates?.length || 0);
-      console.log('JobApplicationDialog: Current showProfileSelection:', showProfileSelection, 'showConsolidatedApplication:', showConsolidatedApplication);
+    // ONLY run this if we have a pending application and haven't checked it yet
+    // This prevents interference with normal apply flow
+    if (isOpen && user && !hasCheckedPendingApplication) {
       const pendingApplication = localStorage.getItem('pendingJobApplication');
       
-      if (pendingApplication) {
-        console.log('JobApplicationDialog: Found pending application intent:', pendingApplication);
-        try {
-          const applicationIntent = JSON.parse(pendingApplication);
+      if (!pendingApplication) {
+        setHasCheckedPendingApplication(true);
+        return;
+      }
+      
+      console.log('JobApplicationDialog: Checking pending job application intent - managedCandidates count:', user.managedCandidates?.length || 0);
+      console.log('JobApplicationDialog: Current showProfileSelection:', showProfileSelection, 'showConsolidatedApplication:', showConsolidatedApplication);
+      console.log('JobApplicationDialog: Found pending application intent:', pendingApplication);
+      
+      try {
+        const applicationIntent = JSON.parse(pendingApplication);
           
           // Check if this matches the current job and the timestamp is recent (within 5 minutes)
           const isRecentIntent = (Date.now() - applicationIntent.timestamp) < 5 * 60 * 1000; // 5 minutes
@@ -195,8 +189,8 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
           console.log('JobApplicationDialog: Error parsing application intent:', error);
           // Invalid JSON or other error, clean up
           localStorage.removeItem('pendingJobApplication');
+          setHasCheckedPendingApplication(true);
         }
-      }
     }
   }, [isOpen, user?.managedCandidates, job?.id, selectCandidate, getSelectedCandidate, toast, retryCount, hasCheckedPendingApplication]);
 
