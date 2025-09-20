@@ -45,5 +45,8 @@ export const JOB_ROLES_BY_INDUSTRY = {
   'Administration': [
     'Data Entry Operator', 'Office Assistant', 'Receptionist', 'Administrative Assistant',
     'Document Controller', 'Records Manager', 'Data Processor', 'Typist'
+  ],
+  'Gig Economy': [
+    'Karya Gig Job'
   ]
 };
