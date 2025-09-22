@@ -438,7 +438,17 @@ const MyApplications = () => {
 
   // Function to fetch all applications with their statuses
   const fetchApplicationsWithStatus = useCallback(async () => {
-    if (!user?.id || isFetchingRef.current) return;
+    console.log('MyApplications: fetchApplicationsWithStatus called', {
+      'user?.id': user?.id,
+      'isFetchingRef.current': isFetchingRef.current,
+      'selectedCandidate?.id': selectedCandidate?.id,
+      'timestamp': new Date().toISOString()
+    });
+    
+    if (!user?.id || isFetchingRef.current) {
+      console.log('MyApplications: Skipping fetch - no user ID or already fetching');
+      return;
+    }
     
     isFetchingRef.current = true;
     setIsLoading(true);
@@ -447,9 +457,56 @@ const MyApplications = () => {
     try {
       // Use profile ID (selected candidate ID) instead of user ID for fetching applications
       const profileIdForApi = selectedCandidate?.id || user.id;
+      
+      console.log('🔍 MyApplications: DETAILED PROFILE ID ANALYSIS:', {
+        'selectedCandidate?.id': selectedCandidate?.id,
+        'selectedCandidate?.name': selectedCandidate?.name,
+        'user.id': user.id,
+        'finalProfileIdForApi': profileIdForApi,
+        'selectedCandidateExists': !!selectedCandidate,
+        'Profile ID characteristics': {
+          'length': profileIdForApi?.length,
+          'isUUID (>20 chars)': profileIdForApi && profileIdForApi.length > 20,
+          'isNumeric (timestamp)': profileIdForApi && profileIdForApi.match(/^\d+$/),
+          'first10chars': profileIdForApi?.substring(0, 10),
+          'last10chars': profileIdForApi?.substring(profileIdForApi.length - 10)
+        }
+      });
+      
       const url = `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${profileIdForApi}`;
+      console.log('🌐 MyApplications: Making API request to:', url);
+      
       const response = await fetch(url);
       const data = await response.json();
+      
+      console.log('📊 MyApplications: Detailed API response analysis:', {
+        'response.status': response.status,
+        'response.ok': response.ok,
+        'data.applications?.length': data?.applications?.length,
+        'data.user_id': data?.user_id,
+        'requested_user_id': profileIdForApi,
+        'user_id_matches': data?.user_id === profileIdForApi,
+        'Applications found': data?.applications?.map(app => ({
+          jobId: app.jobId || app.job_id || 'unknown',
+          profileId: extractProfileId(app),
+          appliedDate: app.appliedDate || app.created_at || 'unknown'
+        })) || []
+      });
+      
+      // Log individual applications for debugging
+      if (data?.applications && data.applications.length > 0) {
+        console.log('📋 MyApplications: Found applications - detailed analysis:');
+        data.applications.forEach((app, index) => {
+          console.log(`Application ${index + 1}:`, {
+            jobId: app.jobId || app.job_id || 'unknown',
+            profileId: extractProfileId(app),
+            status: app.status,
+            raw: app
+          });
+        });
+      } else {
+        console.log('📭 MyApplications: No applications found for profile ID:', profileIdForApi);
+      }
       
       const applicationsData = data?.applications || [];
       
@@ -640,6 +697,15 @@ const MyApplications = () => {
   }, [applications.length, statusLoading, isLoading]);
 
   useEffect(() => {
+    console.log('🎯 MyApplications: MAIN useEffect triggered (selectedCandidate or user change)', {
+      'user?.id': user?.id,
+      'selectedCandidate?.id': selectedCandidate?.id,
+      'selectedCandidate?.name': selectedCandidate?.name,
+      'selectedCandidate exists': !!selectedCandidate,
+      'trigger': 'user or selectedCandidate dependency change',
+      'timestamp': new Date().toISOString()
+    });
+    
     // Clear cache when user or selected candidate changes
     statusCache.current.clear();
     fetchApplicationsWithStatus();
@@ -663,9 +729,17 @@ const MyApplications = () => {
 
   // Additional refresh when component mounts and user is available
   useEffect(() => {
+    console.log('🔄 MyApplications: Additional refresh useEffect triggered', {
+      'user?.id': user?.id,
+      'isFetchingRef.current': isFetchingRef.current,
+      'selectedCandidate?.id': selectedCandidate?.id,
+      'trigger': 'user?.id change or mount'
+    });
+    
     if (user?.id && !isFetchingRef.current) {
       // Small delay to ensure any pending applications are processed
       const timer = setTimeout(() => {
+        console.log('🔄 MyApplications: Triggering fetchApplicationsWithStatus from timer (mount/user change)');
         fetchApplicationsWithStatus();
         // fetchDraftApplications(); // Commented out as per edit hint
       }, 1000);

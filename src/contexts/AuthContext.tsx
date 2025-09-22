@@ -244,7 +244,7 @@ interface AuthContextType {
   deleteEmployer: (employerId: string) => void;
   selectEmployer: (employerId: string) => void;
   getSelectedEmployer: () => EmployerProfile | null;
-  addCandidate: (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>, autoSelect?: boolean) => CandidateProfile | null;
+  addCandidate: (candidate: Omit<CandidateProfile, 'createdAt'> | Omit<CandidateProfile, 'id' | 'createdAt'>, autoSelect?: boolean) => CandidateProfile | null;
   updateCandidate: (candidateId: string, candidate: Partial<CandidateProfile>) => void;
   deleteCandidate: (candidateId: string) => void;
   selectCandidate: (candidateId: string) => void;
@@ -1624,10 +1624,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   };
 
-  const addCandidate = (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>, autoSelect = false) => {
+  const addCandidate = (candidate: Omit<CandidateProfile, 'createdAt'> | Omit<CandidateProfile, 'id' | 'createdAt'>, autoSelect = false) => {
     if (user) {
       console.log('AuthContext: addCandidate called with autoSelect =', autoSelect);
       console.log('AuthContext: Creating profile for', candidate.name, 'with role', candidate.interestedRole);
+      
+      // Check if candidate already has an ID (from backend API response)
+      const candidateWithId = candidate as CandidateProfile;
+      const hasBackendId = candidateWithId.id && 
+                          candidateWithId.id.length > 20 && 
+                          !candidateWithId.id.match(/^\d+$/);
+      
+      console.log('AuthContext: Backend ID analysis:', {
+        'candidate.id': candidateWithId.id,
+        'hasBackendId': hasBackendId,
+        'id length': candidateWithId.id?.length,
+        'is numeric': candidateWithId.id?.match(/^\d+$/),
+        'will use backend ID': hasBackendId
+      });
       
       // Validate that the candidate has required data before adding
       // Relaxed: location is no longer required so profiles without location still show up in UI
@@ -1642,12 +1656,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const newCandidate: CandidateProfile = {
         ...candidate,
-        id: Date.now().toString(),
+        id: hasBackendId ? candidateWithId.id : Date.now().toString(), // Use backend ID if available, otherwise generate timestamp
         createdAt: new Date().toISOString(),
         isActive: true
       };
       
-      console.log('AuthContext: New profile created with ID:', newCandidate.id, 'timestamp:', newCandidate.createdAt);
+      console.log('AuthContext: New profile created with ID:', newCandidate.id, 'timestamp:', newCandidate.createdAt, 'source:', hasBackendId ? 'backend API' : 'timestamp');
       
       // Always auto-select new profiles to ensure they become active immediately
       const updatedUser = {

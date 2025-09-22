@@ -572,6 +572,15 @@ class GoogleMapsService extends MapService {
       );
       const data = await response.json();
       
+      // Handle Google Maps API errors gracefully
+      if (data.error_message) {
+        console.warn('Google Maps Place Details API error:', data.error_message);
+        
+        // Fallback: Use geocoding API instead for the place_id 
+        console.log('Falling back to geocoding API for place details...');
+        return await this.getPlaceDetailsFallback(placeId);
+      }
+      
       if (data.status === 'OK' && data.result) {
         const result = data.result;
         const addressComponents: GoogleAddressComponent[] = result.address_components || [];
@@ -607,7 +616,58 @@ class GoogleMapsService extends MapService {
       
       return null;
     } catch (error) {
-      console.error('Google Place Details error:', error);
+      console.error('Google Place Details error (likely CORS or network issue):', error);
+      
+      // Fallback: Try geocoding API instead
+      console.log('Falling back to geocoding API due to fetch error...');
+      return await this.getPlaceDetailsFallback(placeId);
+    }
+  }
+
+  // NEW: Fallback method to get place details using geocoding when place details API fails
+  private async getPlaceDetailsFallback(placeId: string): Promise<GeocodingResult | null> {
+    try {
+      // Use geocoding API with place_id parameter as fallback
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?place_id=${placeId}&key=${this.geocodingApiKey}`
+      );
+      const data = await response.json();
+      
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        const result = data.results[0];
+        const addressComponents: GoogleAddressComponent[] = result.address_components || [];
+        
+        // Extract city (locality or administrative_area_level_2)
+        const city = addressComponents.find((comp: GoogleAddressComponent) => 
+          comp.types.includes('locality') || comp.types.includes('administrative_area_level_2')
+        )?.long_name || '';
+        
+        // Extract state (administrative_area_level_1)
+        const state = addressComponents.find((comp: GoogleAddressComponent) => 
+          comp.types.includes('administrative_area_level_1')
+        )?.long_name || '';
+        
+        // Extract country
+        const country = addressComponents.find((comp: GoogleAddressComponent) => 
+          comp.types.includes('country')
+        )?.long_name || '';
+        
+        console.log('Geocoding fallback successful for place_id:', placeId);
+        
+        return {
+          lat: result.geometry.location.lat,
+          lng: result.geometry.location.lng,
+          address: result.formatted_address,
+          city,
+          state,
+          country
+        };
+      } else {
+        console.warn('Geocoding fallback failed:', data.status, data.error_message);
+        return null;
+      }
+    } catch (fallbackError) {
+      console.error('Geocoding fallback also failed:', fallbackError);
       return null;
     }
   }

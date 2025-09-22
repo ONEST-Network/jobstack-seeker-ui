@@ -206,32 +206,16 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   };
 
   const handleProfileCreated = (newProfile: any) => {
-    // Profile was created successfully - set up for page reload and automatic modal show
-    const jobTitle = getJobTitle(job);
-    const mappedRole = getRoleFromJobTitle(jobTitle);
-    
     console.log('ProfileSelectionModal: handleProfileCreated called with profile:', newProfile.id, newProfile.name);
     
-    // Set localStorage intent to show application modal after reload
-    const applicationIntent = {
-      showApplicationAfterReload: true,
-      jobData: {
-        id: job.id,
-        title: jobTitle,
-        mappedRole: mappedRole,
-        descriptor: job.descriptor,
-        ...job
-      },
-      newProfileId: newProfile.id, // Store the new profile ID for immediate use
-      timestamp: Date.now()
-    };
-    console.log('ProfileSelectionModal: Setting localStorage intent for post-reload application:', applicationIntent);
-    localStorage.setItem('pendingJobApplication', JSON.stringify(applicationIntent));
+    // In the new integrated flow, the profile creation and application submission happen together
+    // in CandidateProfileDialog, so we don't need the complex localStorage intent system anymore.
+    // We just need to handle the callback and show success message.
     
-    // Show success message
+    // Show success message - this will be overridden by CandidateProfileDialog if application succeeds
     toast({
       title: "Profile Created Successfully!",
-      description: "Your profile has been created. The application form will open after the page refreshes.",
+      description: "Your profile has been created successfully.",
       duration: 2000,
     });
     
@@ -240,10 +224,8 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     onClose(); // Close the profile selection modal as well
     
     // Page reload will happen automatically due to preventReload=false in CandidateProfileDialog
-    // After reload:
-    // 1. The new profile will become active through AuthContext logic
-    // 2. JobApplicationDialog will detect the localStorage intent
-    // 3. Application modal will automatically open with the active profile
+    // In the new flow, if application submission was successful, the user will see the success message
+    // and be redirected appropriately. If application failed, they can try again manually.
   };
 
 
@@ -465,6 +447,8 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
           preSelectedRole={preSelectedRole}
           onProfileCreated={handleProfileCreated}
           preventReload={false} // Allow reload to ensure profile becomes active across all components
+          applyFlow={true} // Indicate we're in apply flow
+          jobForApplication={job} // Pass job details for application
         />
         )}
 
@@ -495,6 +479,8 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
           preSelectedRole={preSelectedRole}
           onProfileCreated={handleProfileCreated}
           preventReload={false} // Allow reload to ensure profile becomes active across all components
+          applyFlow={true} // Indicate we're in apply flow
+          jobForApplication={job} // Pass job details for application
         />
       )}
 

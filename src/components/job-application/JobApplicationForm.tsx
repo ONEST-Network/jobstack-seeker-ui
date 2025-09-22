@@ -98,6 +98,8 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({
         isOpen={showCandidateDialog}
         onClose={() => setShowCandidateDialog(false)}
         mode="add"
+        applyFlow={false} // This is standalone profile creation, not part of apply flow
+        jobForApplication={undefined} // No job context in this usage
       />
     </>
   );

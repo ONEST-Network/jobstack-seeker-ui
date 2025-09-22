@@ -466,7 +466,7 @@ const SharedJob: React.FC = () => {
 
       toast({
         title: "Application Submitted!",
-        description: "Your job application has been successfully submitted. You can view it in My Applications.",
+        description: "Your job application has been successfully submitted!",
       });
 
       setShowApplicationDialog(false);
