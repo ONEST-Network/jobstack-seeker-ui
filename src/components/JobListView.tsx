@@ -201,7 +201,7 @@ const JobListView: React.FC<JobListViewProps> = ({
     // Preserve scores for jobs that are still in the new jobs array
     setScoredJobIds(prev => {
       const newJobIds = new Set(jobs.map(job => job.id));
-      const preservedScoredIds = new Set();
+      const preservedScoredIds = new Set<string>();
       
       // Only keep scored job IDs that are still in the current jobs list
       prev.forEach(jobId => {
