@@ -31,6 +31,8 @@ export interface JobApplicationData {
 }
 
 export const useJobApplication = () => {
+  console.log('🎯 useJobApplication: Hook initialized/called');
+  
   const [applying, setApplying] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const { user, getSelectedCandidate } = useAuth();
@@ -43,6 +45,16 @@ export const useJobApplication = () => {
     transactionId?: string,
     jobDetails?: any // Job details from BAP search API response
   ) => {
+    console.log('🚀 useJobApplication: applyToJob CALLED with parameters:', {
+      jobId,
+      providerId,
+      'applicationData.profileId': applicationData.profileId,
+      'applicationData.name': applicationData.name,
+      'applicationData.phone': applicationData.phone,
+      transactionId,
+      'jobDetails exists': !!jobDetails,
+      'timestamp': new Date().toISOString()
+    });
     if (!user?.id) {
       toast({
         title: "Authentication Required",
@@ -55,11 +67,28 @@ export const useJobApplication = () => {
     setApplying(true);
 
     try {
-      // Get the selected candidate/profile ID
+      // Use the profile ID from applicationData if provided, otherwise fall back to selected candidate
       const selectedCandidate = getSelectedCandidate();
-      const profileId = selectedCandidate?.id || 'default';
+      const profileId = applicationData.profileId || selectedCandidate?.id || 'default';
 
-      const response = await apiClient.applyToJobBAP({
+      console.log('useJobApplication: applyToJob profileId selection:', {
+        'applicationData.profileId': applicationData.profileId,
+        'selectedCandidate?.id': selectedCandidate?.id,
+        'finalProfileId': profileId
+      });
+
+      // Validate critical data before API call
+      if (!profileId || profileId === 'default') {
+        console.error('useJobApplication: CRITICAL ERROR - No valid profile ID found!');
+        throw new Error('No profile selected for application submission');
+      }
+      
+      if (!applicationData.name || !applicationData.phone) {
+        console.error('useJobApplication: CRITICAL ERROR - Missing required application data!');
+        throw new Error('Missing required application data (name or phone)');
+      }
+
+      const apiPayload = {
         providerId,
         jobId,
         userId: user.id,
@@ -68,10 +97,20 @@ export const useJobApplication = () => {
         userData: applicationData,
         profileData: applicationData.profileData,
         transactionId // Pass the transaction ID if provided (for draft conversion)
-      });
+      };
+      
+      console.log('useJobApplication: Complete API payload being sent:', JSON.stringify(apiPayload, null, 2));
+      console.log('useJobApplication: Critical validation check passed - profileId:', profileId, 'name:', applicationData.name, 'phone:', applicationData.phone);
+
+      console.log('🌐 useJobApplication: About to call apiClient.applyToJobBAP with payload:', JSON.stringify(apiPayload, null, 2));
+      
+      const response = await apiClient.applyToJobBAP(apiPayload);
+      
+      console.log('🌐 useJobApplication: Raw API response received:', JSON.stringify(response, null, 2));
 
       // If server indicates the user has already applied, show an info toast and short-circuit
       if (response?.message && typeof response.message === "string" && response.message.toLowerCase().includes("already applied")) {
+        console.log('useJobApplication: User has already applied for this job');
         toast({
           title: "Already Applied",
           description: "You have already applied for this job with this profile.",
@@ -81,25 +120,30 @@ export const useJobApplication = () => {
         return { success: false, data: response };
       }
 
+      console.log('useJobApplication: Application submitted successfully');
       toast({
         title: "Application Submitted!",
-        description: "Your job application has been successfully submitted. You can view it in My Applications.",
+        description: "Your job application has been successfully submitted. You can check your applications anytime from the menu.",
       });
 
       return { success: true, data: response };
     } catch (error) {
-      console.error('Job application error:', error);
+      console.error('useJobApplication: Job application error - Full error object:', error);
+      console.error('useJobApplication: Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('useJobApplication: Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       
       const errorMessage = error instanceof Error ? error.message : 'Failed to submit application';
       
       // Show appropriate toast based on server error message
       if (typeof errorMessage === "string" && errorMessage.toLowerCase().includes("already applied")) {
+        console.log('useJobApplication: Already applied error detected');
         toast({
           title: "Already Applied",
           description: "You have already applied for this job with this profile.",
           variant: "default",
         });
       } else {
+        console.log('useJobApplication: Application failed with error:', errorMessage);
         toast({
           title: "Application Failed",
           description: errorMessage,
@@ -131,9 +175,15 @@ export const useJobApplication = () => {
     setSavingDraft(true);
 
     try {
-      // Get the selected candidate/profile ID
+      // Use the profile ID from applicationData if provided, otherwise fall back to selected candidate
       const selectedCandidate = getSelectedCandidate();
-      const profileId = selectedCandidate?.id || 'default';
+      const profileId = applicationData.profileId || selectedCandidate?.id || 'default';
+
+      console.log('useJobApplication: saveDraft profileId selection:', {
+        'applicationData.profileId': applicationData.profileId,
+        'selectedCandidate?.id': selectedCandidate?.id,
+        'finalProfileId': profileId
+      });
 
       const response = await apiClient.saveJobDraft({
         providerId,
@@ -195,9 +245,15 @@ export const useJobApplication = () => {
     }
 
     try {
-      // Get the selected candidate/profile ID
+      // Use the profile ID from applicationData if provided, otherwise fall back to selected candidate
       const selectedCandidate = getSelectedCandidate();
-      const profileId = selectedCandidate?.id || 'default';
+      const profileId = applicationData.profileId || selectedCandidate?.id || 'default';
+
+      console.log('useJobApplication: updateDraft profileId selection:', {
+        'applicationData.profileId': applicationData.profileId,
+        'selectedCandidate?.id': selectedCandidate?.id,
+        'finalProfileId': profileId
+      });
 
       const response = await apiClient.updateJobDraft(jobId, {
         providerId,

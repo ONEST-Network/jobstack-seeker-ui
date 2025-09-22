@@ -310,7 +310,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
       const result = await applyToJob(ids.jobId, ids.providerId, applicationData, undefined, selectedJob);
       
       if (result.success) {
-        showMapToast('success', 'Application Submitted!', 'Your job application has been successfully submitted.');
+        showMapToast('success', 'Application Submitted!', 'Your job application has been successfully submitted!');
         // Close the application dialog on success
         setSelectedJob(null);
       } else {

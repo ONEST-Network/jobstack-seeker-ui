@@ -26,6 +26,7 @@ interface UserProfileDialogProps {
   profileId?: string;
   preSelectedRole?: string;
   preventReload?: boolean; // Prevent page reload after profile creation/update
+  applyFlow?: boolean; // Indicates we're in the apply now flow
 }
 
 const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({ 
@@ -37,7 +38,8 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   isUpdate,
   profileId,
   preSelectedRole,
-  preventReload = false
+  preventReload = false,
+  applyFlow = false
 }) => {
   const { updateProfile, user, getSelectedCandidate, refreshProfileData } = useAuth();
   const { profile, setProfile, clearAllValidations } = useProfileForm();
@@ -185,6 +187,13 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   }, [isOpen, preSelectedRole, isUpdate, mode, profile.interestedRole]);
 
   const handleSave = async () => {
+    console.log('🔥 UserProfileDialog: handleSave called - FORM SUBMISSION STARTED!', {
+      mode, 
+      isUpdate, 
+      applyFlow,
+      'onComplete exists': !!onComplete,
+      'Will delegate to CandidateProfileDialog?': !!(onComplete && !isUpdate)
+    });
     setIsSaving(true);
     try {
       // Check if user is authenticated
@@ -270,6 +279,23 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           locationTag = `home${timestamp}`;
           contactTag = `personal${timestamp}`;
         }
+      }
+
+      // In apply flow, let parent component handle profile creation to avoid duplication
+      if (onComplete && !isUpdate) {
+        console.log('🎯 UserProfileDialog: DELEGATING to CandidateProfileDialog - Apply flow detected!', {
+          'onComplete exists': !!onComplete,
+          'isUpdate': isUpdate,
+          'applyFlow': applyFlow,
+          'Will call onComplete': true
+        });
+        
+        // Just call onComplete with the profile data, don't create profile here
+        console.log('🚀 UserProfileDialog: Calling onComplete(finalProfile) with profile data...');
+        onComplete(finalProfile);
+        
+        onClose();
+        return;
       }
 
       // Transform profile for API
@@ -571,7 +597,13 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
                 return (
                   <Button onClick={handleSave} disabled={!canProceed() || isSaving}>
                     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {isSaving ? 'Saving...' : (isUpdate ? 'Update Profile' : 'Save Profile')}
+                    {isSaving 
+                      ? (applyFlow ? 'Saving & Applying...' : 'Saving...') 
+                      : (isUpdate 
+                          ? 'Update Profile' 
+                          : (applyFlow ? 'Save & Submit Application' : 'Save Profile')
+                        )
+                    }
                   </Button>
                 );
               }
@@ -598,23 +630,25 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   isUpdate = false,
   profileId,
   preSelectedRole,
-  preventReload = false
+  preventReload = false,
+  applyFlow = false
 }) => {
   // Create a unique key to force ProfileFormProvider reset when dialog opens
   const dialogKey = `${isOpen ? 'open' : 'closed'}-${preSelectedRole || 'no-role'}-${isUpdate ? 'edit' : 'add'}`;
   
   return (
     <ProfileFormProvider key={dialogKey} initialProfile={initialProfile as unknown as Parameters<typeof ProfileFormProvider>[0]['initialProfile']}>
-      <UserProfileDialogContent 
-        isOpen={isOpen} 
-        onClose={onClose} 
-        onComplete={onComplete} 
+      <UserProfileDialogContent
+        isOpen={isOpen}
+        onClose={onClose}
+        onComplete={onComplete}
         mode={mode}
         initialProfile={initialProfile}
         isUpdate={isUpdate}
         profileId={profileId}
         preSelectedRole={preSelectedRole}
         preventReload={preventReload}
+        applyFlow={applyFlow}
       />
     </ProfileFormProvider>
   );

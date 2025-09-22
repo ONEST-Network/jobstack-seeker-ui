@@ -174,15 +174,39 @@ export const LocationInput: React.FC<LocationInputProps> = ({
           });
         }
       } else {
-        // Fallback to just the description
+        // FALLBACK: If place details fail, use the suggestion description directly
+        console.warn('Place details failed, using suggestion description as fallback');
         onChange(suggestion.description);
         validateLocation(suggestion.description);
+        
+        // Provide basic location data from suggestion if possible
+        if (onLocationDataChange) {
+          const parts = suggestion.description.split(', ');
+          onLocationDataChange({
+            address: suggestion.description,
+            city: parts[0] || '',
+            state: parts[1] || '',
+            country: parts[parts.length - 1] || 'India'
+          });
+        }
       }
     } catch (error) {
       console.error('Error getting place details:', error);
-      // Fallback to just the description
+      // ULTIMATE FALLBACK: Use the suggestion description directly
+      console.log('Using suggestion description as ultimate fallback:', suggestion.description);
       onChange(suggestion.description);
       validateLocation(suggestion.description);
+      
+      // Provide basic location data from suggestion
+      if (onLocationDataChange) {
+        const parts = suggestion.description.split(', ');
+        onLocationDataChange({
+          address: suggestion.description,
+          city: parts[0] || '',
+          state: parts[1] || '',
+          country: parts[parts.length - 1] || 'India'
+        });
+      }
     }
     
     setShowSuggestions(false);
