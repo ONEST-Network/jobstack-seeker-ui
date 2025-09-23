@@ -51,10 +51,6 @@
     "ITI (Other)": {
       "industry": "Manufacturing",
       "description": "ITI (Industrial Training Institute) student roles and specializations"
-    },
-    "Karya Gig Job": {
-      "industry": "Gig Economy",
-      "description": "Digital gig work and freelance opportunities"
     }
   }
 } 
