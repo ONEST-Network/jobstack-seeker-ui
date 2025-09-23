@@ -27,6 +27,7 @@ interface UserProfileDialogProps {
   preSelectedRole?: string;
   preventReload?: boolean; // Prevent page reload after profile creation/update
   applyFlow?: boolean; // Indicates we're in the apply now flow
+  forceBackendSync?: boolean; // Force backend profile creation even when not in apply flow
 }
 
 const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({ 
@@ -39,7 +40,8 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   profileId,
   preSelectedRole,
   preventReload = false,
-  applyFlow = false
+  applyFlow = false,
+  forceBackendSync = false
 }) => {
   const { updateProfile, user, getSelectedCandidate, refreshProfileData } = useAuth();
   const { profile, setProfile, clearAllValidations } = useProfileForm();
@@ -631,7 +633,8 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   profileId,
   preSelectedRole,
   preventReload = false,
-  applyFlow = false
+  applyFlow = false,
+  forceBackendSync = false
 }) => {
   // Create a unique key to force ProfileFormProvider reset when dialog opens
   const dialogKey = `${isOpen ? 'open' : 'closed'}-${preSelectedRole || 'no-role'}-${isUpdate ? 'edit' : 'add'}`;
@@ -649,6 +652,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
         preSelectedRole={preSelectedRole}
         preventReload={preventReload}
         applyFlow={applyFlow}
+        forceBackendSync={forceBackendSync}
       />
     </ProfileFormProvider>
   );

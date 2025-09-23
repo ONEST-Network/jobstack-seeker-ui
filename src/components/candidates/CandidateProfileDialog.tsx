@@ -17,8 +17,9 @@ interface CandidateProfileDialogProps {
   preSelectedRole?: string;
   onProfileCreated?: (profile: CandidateProfile) => void; // Callback when profile is successfully created
   preventReload?: boolean; // Prevent page reload after profile creation (for apply now flow)
-  applyFlow?: boolean; // Indicates we're in the apply now flow
+  applyFlow?: boolean; // Indicates we're in the apply now flow (affects UI and automatic job application)
   jobForApplication?: any; // Job details for automatic application after profile creation
+  forceBackendSync?: boolean; // Force backend profile creation even when not in apply flow
 }
 
 const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
@@ -32,7 +33,8 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
   onProfileCreated,
   preventReload = false,
   applyFlow = false,
-  jobForApplication
+  jobForApplication,
+  forceBackendSync = false
 }) => {
   
   // DEBUG: Log component props on every render
@@ -280,10 +282,17 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
         'if (applyFlow) will be': !!applyFlow
       });
       
-      if (applyFlow) {
-        console.log('✅ CandidateProfileDialog: BACKEND PATH TAKEN - if (applyFlow) condition passed!');
+      // Create profile on backend when in apply flow OR when forced via forceBackendSync
+      // This ensures proper UUID and activation for all profile creation methods
+      if (applyFlow || forceBackendSync) {
+        console.log('✅ CandidateProfileDialog: BACKEND PATH TAKEN - backend sync enabled!');
         console.log('🎯 CandidateProfileDialog: ENTERING BACKEND PROFILE CREATION PATH!');
-        console.log('✅ CandidateProfileDialog: Apply flow detected - will create backend profile FIRST');
+        console.log('🔍 CandidateProfileDialog: Sync reason:', {
+          applyFlow,
+          forceBackendSync,
+          reason: applyFlow ? 'Apply flow active' : forceBackendSync ? 'Forced backend sync' : 'Unknown'
+        });
+        console.log('✅ CandidateProfileDialog: Will create backend profile FIRST to get proper UUID');
         console.log('🚨 CandidateProfileDialog: IMPORTANT - Will ignore any timestamp ID from UserProfileDialog and use backend ID only');
         
         try {
@@ -439,32 +448,21 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
           }
         }
       } else {
-        // Normal flow - just add to local state
-        console.log('❌ CandidateProfileDialog: ELSE BLOCK TAKEN - if (applyFlow) condition FAILED!');
-        console.log('❌ CandidateProfileDialog: TAKING NORMAL FLOW PATH - creating local-only profile (NOT backend)');
-        console.log('🔍 CandidateProfileDialog: Normal flow conditions (THIS IS THE BUG!):', {
-          'applyFlow': applyFlow,
-          'applyFlow type': typeof applyFlow,
-          'applyFlow === true': applyFlow === true,
-          'applyFlow === false': applyFlow === false,
-          'applyFlow === undefined': applyFlow === undefined,
-          'applyFlow === null': applyFlow === null,
-          'Boolean(applyFlow)': Boolean(applyFlow),
-          'jobForApplication exists': !!jobForApplication,
-          'isUpdate': isUpdate,
-          'mode': mode,
-          'Why normal flow?': !applyFlow ? 'applyFlow false/falsy' : !jobForApplication ? 'no job' : isUpdate ? 'is update' : 'unknown',
-          'THIS IS THE PROBLEM!': 'Profile will get timestamp ID because no backend call'
+        // Local-only profile creation (when neither applyFlow nor forceBackendSync is true)
+        // This is used for simple profile creation without backend sync requirements
+        console.log('📝 CandidateProfileDialog: LOCAL PATH - creating local-only profile');
+        console.log('🔍 CandidateProfileDialog: Local creation reason:', {
+          applyFlow,
+          forceBackendSync,
+          reason: 'Neither apply flow nor forced backend sync enabled'
         });
         
-        console.log('🚨 CandidateProfileDialog: WARNING - This will create timestamp ID profile!');
         newProfile = addCandidate(candidateData, true);
         
-        console.log('📋 CandidateProfileDialog: Local profile created in normal flow:', {
-          'applyFlow': applyFlow,
+        console.log('📋 CandidateProfileDialog: Local profile created:', {
           'profileId': newProfile?.id,
           'profileId length': newProfile?.id?.length,
-          'Will apply flow execute later?': !!(applyFlow && jobForApplication && newProfile)
+          'will have timestamp ID': true
         });
       }
       
@@ -1035,6 +1033,7 @@ const CandidateProfileDialog: React.FC<CandidateProfileDialogProps> = ({
       preSelectedRole={preSelectedRole}
       preventReload={preventReload} // Only prevent reload when explicitly requested
       applyFlow={applyFlow} // Pass apply flow context to change button text
+      forceBackendSync={forceBackendSync} // Pass backend sync preference
     />
   );
 };
