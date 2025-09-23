@@ -51,9 +51,6 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     // Map based on keywords in the job title - Order matters! More specific patterns first
     
     // Check for specific multi-word patterns first
-    if (lowerJobTitle.includes('karya') || lowerJobTitle.includes('gig') || lowerJobTitle.includes('freelance') || lowerJobTitle.includes('digital work') || lowerJobTitle.includes('micro task') || lowerJobTitle.includes('annotation') || lowerJobTitle.includes('transcription') || lowerJobTitle.includes('translation')) {
-      return 'Karya Gig Job';
-    }
     if (lowerJobTitle.includes('data entry operator') || lowerJobTitle.includes('data entry') || lowerJobTitle.includes('data-entry-operator') || lowerJobTitle.includes('data-entry')) {
       return 'Data Entry Operator';
     }
