@@ -124,6 +124,7 @@ class ApiClient {
       body: JSON.stringify({
         ...data,
         rememberMe: data.rememberMe ?? true
+
       }),
     });
     
