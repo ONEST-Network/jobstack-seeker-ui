@@ -173,6 +173,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           mode={profileMode}
           isUpdate={profileMode === 'edit'}
           profileId={user.profileId}
+          forceBackendSync={true}
         />
       )}
 
