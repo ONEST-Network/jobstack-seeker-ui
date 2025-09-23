@@ -81,6 +81,7 @@ const HeaderDialogs: React.FC<HeaderDialogsProps> = ({
         mode="add"
         preventReload={false}
         onProfileCreated={handleCandidateCreated}
+        forceBackendSync={true}
       />
     </>
   );

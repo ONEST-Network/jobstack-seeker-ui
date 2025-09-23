@@ -34,6 +34,10 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
     setShowProfileDialog(false);
     setEditingProfileId(null);
   };
+  
+  const handleAddNewProfile = () => {
+    onAddCandidate();
+  };
 
   const handleProfileCheckboxToggle = (candidateId: string) => {
     setSelectedProfiles(prev => {
@@ -237,7 +241,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem 
-                  onClick={onAddCandidate} 
+                  onClick={handleAddNewProfile} 
                   className="gap-2 p-2 cursor-pointer hover:bg-muted rounded-none"
                 >
                   <Plus className="h-4 w-4" />
