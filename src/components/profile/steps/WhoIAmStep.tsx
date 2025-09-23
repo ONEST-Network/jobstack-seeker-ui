@@ -5,10 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Lock, Mic, MapPin, FileText } from 'lucide-react';
+import { Shield, Lock, Mic, MapPin, FileText, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useProfileForm } from '../ProfileFormProvider';
 import DigiLockerModal from '../DigiLockerModal';
+import WalletImportModal from '../WalletImportModal';
 import { getSchema, getFieldConfig, getFieldUI, getSchemaDescription } from '@/schemas';
 import { getCurrentLocation, formatLocationForDisplay } from '@/lib/utils';
 import { LocationInput } from '@/components/ui/location-input';
@@ -28,6 +29,7 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
     toast
   } = useToast();
   const [showDigiLockerModal, setShowDigiLockerModal] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
 
   // Get schema data
   const schema = getSchema('whoIAm', profile.interestedRole);
@@ -127,6 +129,55 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
 
   const handleDigiLockerClose = () => {
     setShowDigiLockerModal(false);
+  };
+
+  const handleWalletImport = () => {
+    setShowWalletModal(true);
+  };
+
+  const handleWalletSuccess = (data: Record<string, string | number | boolean | undefined>) => {
+    // Extract and map wallet data to the profile format
+    const updatedProfile = { ...profile };
+
+    // Map common fields
+    if (data.name) {
+      updatedProfile.whoIAm = { ...updatedProfile.whoIAm, name: data.name as string };
+      updatedProfile.isNameVerified = true;
+    }
+
+    if (data.email) {
+      updatedProfile.whoIAm = { ...updatedProfile.whoIAm, email: data.email as string };
+      updatedProfile.isEmailVerified = true;
+    }
+
+    if (data.phone) {
+      updatedProfile.whoIAm = { ...updatedProfile.whoIAm, phone: data.phone as string };
+      updatedProfile.isPhoneVerified = true;
+    }
+
+    if (data.age) {
+      updatedProfile.whoIAm = { ...updatedProfile.whoIAm, age: data.age as number };
+      updatedProfile.isAgeVerified = true;
+    }
+
+    // Set additional verification flags
+    Object.keys(data).forEach(key => {
+      if (key.includes('Verified') && data[key]) {
+        (updatedProfile as any)[key] = data[key];
+      }
+    });
+
+    setProfile(updatedProfile);
+    setShowWalletModal(false);
+
+    toast({
+      title: "Wallet Import Successful",
+      description: "Your verified credentials have been imported from your wallet."
+    });
+  };
+
+  const handleWalletClose = () => {
+    setShowWalletModal(false);
   };
 
   const maskAadharNumber = (aadhar: string) => {
@@ -336,6 +387,48 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
         </Card>
       )}
       
+      {/* Wallet Import */}
+      {schema.ui?.showWallet && (
+        <Card className="border-dashed border-2 border-purple-200 bg-purple-50/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2 text-purple-700">
+              <Wallet className="h-4 w-4" />
+              {schema.ui?.walletConfig?.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              {schema.ui?.walletConfig?.description}
+            </p>
+            <Button onClick={handleWalletImport} className="w-full">
+              {schema.ui?.walletConfig?.buttonText}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              {schema.ui?.walletConfig?.footerText}
+            </p>
+            
+            {/* Test button for development */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button 
+                onClick={() => handleWalletSuccess({
+                  name: 'Jane Smith',
+                  email: 'jane.smith@example.com',
+                  phone: '9876543210',
+                  age: 25,
+                  certificationName: 'Digital Marketing Certificate',
+                  isNameVerified: true,
+                  isEmailVerified: true,
+                  isPhoneVerified: true
+                })} 
+                variant="outline" 
+                className="w-full mt-2"
+              >
+                Test Wallet Import
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -430,6 +523,13 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
         isOpen={showDigiLockerModal}
         onClose={handleDigiLockerClose}
         onSuccess={handleDigiLockerSuccess}
+      />
+
+      {/* Wallet Import Modal */}
+      <WalletImportModal
+        isOpen={showWalletModal}
+        onClose={handleWalletClose}
+        onSuccess={handleWalletSuccess}
       />
     </div>
   );

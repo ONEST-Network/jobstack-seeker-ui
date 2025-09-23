@@ -244,7 +244,7 @@ interface AuthContextType {
   deleteEmployer: (employerId: string) => void;
   selectEmployer: (employerId: string) => void;
   getSelectedEmployer: () => EmployerProfile | null;
-  addCandidate: (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>) => void;
+  addCandidate: (candidate: Omit<CandidateProfile, 'createdAt'> | Omit<CandidateProfile, 'id' | 'createdAt'>, autoSelect?: boolean) => CandidateProfile | null;
   updateCandidate: (candidateId: string, candidate: Partial<CandidateProfile>) => void;
   deleteCandidate: (candidateId: string) => void;
   selectCandidate: (candidateId: string) => void;
@@ -311,6 +311,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             transformedUser.managedCandidates = parsedUser.managedCandidates || [];
             transformedUser.selectedCandidateId = parsedUser.selectedCandidateId;
             transformedUser.role = parsedUser.role || 'individual';
+          }
+          
+          // Check for separate selectedCandidateId in localStorage (for better persistence)
+          const savedSelectedCandidateId = localStorage.getItem('selectedCandidateId');
+          if (savedSelectedCandidateId && transformedUser.managedCandidates.some(c => c.id === savedSelectedCandidateId)) {
+            transformedUser.selectedCandidateId = savedSelectedCandidateId;
+            console.log('AuthContext: Restored selectedCandidateId from localStorage:', savedSelectedCandidateId);
           }
           
           // Handle backward compatibility - create default employer if none exists but org profile exists
@@ -396,7 +403,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               if (transformedUser.role === 'individual') {
                 const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
                 transformedUser.managedCandidates = [defaultCandidate];
-                transformedUser.selectedCandidateId = defaultCandidate.id;
+                // Only set as selected if no candidate is already selected
+                if (!transformedUser.selectedCandidateId) {
+                  transformedUser.selectedCandidateId = defaultCandidate.id;
+                }
               }
             }
           } catch (profileError) {
@@ -405,26 +415,82 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Always fetch profiles for individual users to ensure we have the latest data
           if (transformedUser.role === 'individual') {
             try {
-              const profiles = await fetchAndTransformProfiles();
-              if (profiles.length > 0) {
-                transformedUser.managedCandidates = profiles;
-                transformedUser.selectedCandidateId = profiles[0].id;
+              const apiProfiles = await fetchAndTransformProfiles();
+              
+              if (apiProfiles.length > 0) {
+                // Simple fix: Always keep localStorage profiles and just ensure selected profile is valid
+                const localProfiles = transformedUser.managedCandidates || [];
+                const allProfiles = [...apiProfiles];
+                
+                // Add recently created local profiles that might not be in API yet
+                const now = Date.now();
+                localProfiles.forEach(localProfile => {
+                  const existsInApi = apiProfiles.some(api => api.id === localProfile.id);
+                  if (!existsInApi) {
+                    const profileTimestamp = parseInt(localProfile.id);
+                    const isRecent = profileTimestamp > (now - 30000); // Within last 30 seconds
+                    if (isRecent) {
+                      console.log('AuthContext: Adding recently created profile not yet in API:', localProfile.name, localProfile.id);
+                      allProfiles.push(localProfile);
+                    }
+                  }
+                });
+                
+                transformedUser.managedCandidates = allProfiles;
+                
+                // Always prioritize the newest profile from API since it returns newest first
+                if (allProfiles.length > 0) {
+                  // Since API returns profiles sorted by newest first, the first profile is the most recent
+                  const newestProfile = allProfiles[0];
+                  
+                  // Check if we have a currently selected profile
+                  const currentSelection = transformedUser.selectedCandidateId;
+                  const selectedExists = currentSelection && 
+                    allProfiles.some(profile => profile.id === currentSelection);
+                  
+                  // Auto-select newest profile if:
+                  // 1. No current selection exists, OR
+                  // 2. Current selection is invalid, OR  
+                  // 3. There's a newer profile than the currently selected one
+                  const shouldSelectNewest = !selectedExists || 
+                    (selectedExists && currentSelection !== newestProfile.id);
+                  
+                  if (shouldSelectNewest) {
+                    console.log('AuthContext: Auto-selecting newest profile from API:', newestProfile.name, 'ID:', newestProfile.id);
+                    transformedUser.selectedCandidateId = newestProfile.id;
+                    
+                    // Update localStorage immediately to persist the new selection
+                    try {
+                      localStorage.setItem('selectedCandidateId', newestProfile.id);
+                    } catch (error) {
+                      console.error('AuthContext: Failed to update localStorage with newest profile selection:', error);
+                    }
+                  } else {
+                    console.log('AuthContext: Keeping existing selected profile:', currentSelection);
+                  }
+                }
               } else {
-                if (transformedUser.profile) {
+                // No profiles found from API, create defaults if needed
+                if (transformedUser.profile && transformedUser.managedCandidates.length === 0) {
                   const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
                   transformedUser.managedCandidates = [defaultCandidate];
-                  transformedUser.selectedCandidateId = defaultCandidate.id;
+                  if (!transformedUser.selectedCandidateId) {
+                    transformedUser.selectedCandidateId = defaultCandidate.id;
+                  }
                 }
               }
-            } catch (profilesError) {
-              // Error fetching profiles
-        
-              if (transformedUser.profile) {
-                const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
-                transformedUser.managedCandidates = [defaultCandidate];
+
+          } catch (profilesError) {
+            // Error fetching profiles
+            if (transformedUser.profile) {
+              const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
+              transformedUser.managedCandidates = [defaultCandidate];
+              // Only set as selected if no candidate is already selected
+              if (!transformedUser.selectedCandidateId) {
                 transformedUser.selectedCandidateId = defaultCandidate.id;
               }
             }
+          }
           }
           
           // Handle backward compatibility - create default employer if none exists but org profile exists
@@ -438,7 +504,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (transformedUser.profile && transformedUser.role === 'individual' && transformedUser.managedCandidates.length === 0) {
             const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
             transformedUser.managedCandidates = [defaultCandidate];
-            transformedUser.selectedCandidateId = defaultCandidate.id;
+            // Only set as selected if no candidate is already selected
+            if (!transformedUser.selectedCandidateId) {
+              transformedUser.selectedCandidateId = defaultCandidate.id;
+            }
           }
           
           localStorage.setItem('user', JSON.stringify(transformedUser));
@@ -779,7 +848,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (transformedUser.role === 'individual') {
               const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
               transformedUser.managedCandidates = [defaultCandidate];
-              transformedUser.selectedCandidateId = defaultCandidate.id;
+              // Only set as selected if no candidate is already selected
+              if (!transformedUser.selectedCandidateId) {
+                transformedUser.selectedCandidateId = defaultCandidate.id;
+              }
             }
           }
         } catch (profileError) {
@@ -790,24 +862,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Always fetch profiles for individual users to ensure we have the latest data
         if (transformedUser.role === 'individual') {
           try {
-            const profiles = await fetchAndTransformProfiles();
-            if (profiles.length > 0) {
-              transformedUser.managedCandidates = profiles;
-              transformedUser.selectedCandidateId = profiles[0].id;
-            } else {
-              // Create default candidate if no profiles found
-              if (transformedUser.profile) {
-                const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
-                transformedUser.managedCandidates = [defaultCandidate];
-                transformedUser.selectedCandidateId = defaultCandidate.id;
+            const apiProfiles = await fetchAndTransformProfiles();
+            const localProfiles = transformedUser.managedCandidates || [];
+            
+            // Merge localStorage profiles with API profiles, prioritizing localStorage for recent profiles
+            const mergedProfiles = [...localProfiles];
+            const now = Date.now();
+            
+            // Add/update profiles from API
+            apiProfiles.forEach(apiProfile => {
+              const existingIndex = mergedProfiles.findIndex(local => local.id === apiProfile.id);
+              if (existingIndex >= 0) {
+                // Update existing profile with API data (API is source of truth for existing profiles)
+                mergedProfiles[existingIndex] = apiProfile;
+              } else {
+                // Add new profile from API
+                mergedProfiles.push(apiProfile);
+              }
+            });
+            
+            // Remove profiles that exist locally but not in API (only if they're old)
+            const filteredProfiles = mergedProfiles.filter(profile => {
+              const existsInApi = apiProfiles.some(api => api.id === profile.id);
+              if (existsInApi) return true; // Keep profiles that exist in API
+              
+              // For profiles that don't exist in API, only keep if they're recently created (within 30 seconds)
+              const profileTimestamp = parseInt(profile.id);
+              const isRecent = profileTimestamp > (now - 30000);
+              
+              if (isRecent) {
+                console.log('AuthContext (verifyOTP): Keeping recently created profile not yet in API:', profile.name, profile.id);
+                return true;
+              } else {
+                console.log('AuthContext (verifyOTP): Removing old profile not found in API:', profile.name, profile.id);
+                return false;
+              }
+            });
+            
+            transformedUser.managedCandidates = filteredProfiles;
+            
+            // Smart profile selection with merged profiles
+            if (transformedUser.managedCandidates.length > 0) {
+              const selectedExists = transformedUser.selectedCandidateId && 
+                transformedUser.managedCandidates.some(profile => profile.id === transformedUser.selectedCandidateId);
+              
+              if (selectedExists) {
+                console.log('AuthContext (verifyOTP): Selected profile exists in merged profiles, keeping:', transformedUser.selectedCandidateId);
+              } else {
+                // Select the most recently created profile from merged profiles
+                const newestProfile = transformedUser.managedCandidates.reduce((newest, current) => {
+                  const currentTime = new Date(current.createdAt).getTime();
+                  const newestTime = new Date(newest.createdAt).getTime();
+                  return currentTime > newestTime ? current : newest;
+                });
+                
+                console.log('AuthContext (verifyOTP): No valid selected profile, selecting newest from merged profiles:', newestProfile.name, 'ID:', newestProfile.id);
+                transformedUser.selectedCandidateId = newestProfile.id;
               }
             }
           } catch (profilesError) {
             console.log('Error fetching profiles:', profilesError);
-            // Create default candidate if error
-            if (transformedUser.profile) {
-              const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
-              transformedUser.managedCandidates = [defaultCandidate];
+          }
+
+          // Create default candidate if no profiles found or if an error occurred and no candidates are managed
+          if (transformedUser.profile && transformedUser.managedCandidates.length === 0) {
+            const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
+            transformedUser.managedCandidates = [defaultCandidate];
+            if (!transformedUser.selectedCandidateId) {
               transformedUser.selectedCandidateId = defaultCandidate.id;
             }
           }
@@ -824,7 +945,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (transformedUser.profile && transformedUser.role === 'individual' && transformedUser.managedCandidates.length === 0) {
           const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
           transformedUser.managedCandidates = [defaultCandidate];
-          transformedUser.selectedCandidateId = defaultCandidate.id;
+          // Only set as selected if no candidate is already selected
+          if (!transformedUser.selectedCandidateId) {
+            transformedUser.selectedCandidateId = defaultCandidate.id;
+          }
         }
         
         // Store user data
@@ -981,19 +1105,87 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Update user with fresh profile data
         const updatedUser = { ...user, profile: userProfile, profileId: profileData.id };
         
-        // Update default candidate for individual users
+        // For individual users, also fetch all profiles to ensure we have the latest list
         if (user.role === 'individual') {
-          const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
-          const existingDefaultIndex = updatedUser.managedCandidates.findIndex(cand => cand.id === 'default-candidate');
-          
-          if (existingDefaultIndex >= 0) {
-            updatedUser.managedCandidates[existingDefaultIndex] = defaultCandidate;
-          } else {
-            updatedUser.managedCandidates = [defaultCandidate, ...updatedUser.managedCandidates];
-          }
-          
-          if (!updatedUser.selectedCandidateId) {
-            updatedUser.selectedCandidateId = defaultCandidate.id;
+          try {
+            const apiProfiles = await fetchAndTransformProfiles();
+            
+            if (apiProfiles.length > 0) {
+              // Merge API profiles with local profiles (same logic as checkSession)
+              const localProfiles = updatedUser.managedCandidates || [];
+              const allProfiles = [...apiProfiles];
+              
+              // Add recently created local profiles that might not be in API yet
+              const now = Date.now();
+              localProfiles.forEach(localProfile => {
+                const existsInApi = apiProfiles.some(api => api.id === localProfile.id);
+                if (!existsInApi) {
+                  const profileTimestamp = parseInt(localProfile.id);
+                  const isRecent = profileTimestamp > (now - 30000); // Within last 30 seconds
+                  if (isRecent) {
+                    console.log('AuthContext (refreshProfileData): Adding recently created profile not yet in API:', localProfile.name, localProfile.id);
+                    allProfiles.push(localProfile);
+                  }
+                }
+              });
+              
+              updatedUser.managedCandidates = allProfiles;
+              
+              // Always prioritize the newest profile from API since it returns newest first
+              if (allProfiles.length > 0) {
+                const newestProfile = allProfiles[0];
+                const currentSelection = updatedUser.selectedCandidateId;
+                const selectedExists = currentSelection && 
+                  allProfiles.some(profile => profile.id === currentSelection);
+                
+                // Auto-select newest profile if there's a newer one or no valid selection
+                const shouldSelectNewest = !selectedExists || 
+                  (selectedExists && currentSelection !== newestProfile.id);
+                
+                if (shouldSelectNewest) {
+                  console.log('AuthContext (refreshProfileData): Auto-selecting newest profile:', newestProfile.name, 'ID:', newestProfile.id);
+                  updatedUser.selectedCandidateId = newestProfile.id;
+                  
+                  // Update localStorage immediately to persist the new selection
+                  try {
+                    localStorage.setItem('selectedCandidateId', newestProfile.id);
+                  } catch (error) {
+                    console.error('AuthContext (refreshProfileData): Failed to update localStorage:', error);
+                  }
+                } else {
+                  console.log('AuthContext (refreshProfileData): Keeping existing selected profile:', currentSelection);
+                }
+              }
+            } else {
+              // Fallback: Update default candidate for individual users if no API profiles
+              const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
+              const existingDefaultIndex = updatedUser.managedCandidates.findIndex(cand => cand.id === 'default-candidate');
+              
+              if (existingDefaultIndex >= 0) {
+                updatedUser.managedCandidates[existingDefaultIndex] = defaultCandidate;
+              } else {
+                updatedUser.managedCandidates = [defaultCandidate, ...updatedUser.managedCandidates];
+              }
+              
+              if (!updatedUser.selectedCandidateId) {
+                updatedUser.selectedCandidateId = defaultCandidate.id;
+              }
+            }
+          } catch (error) {
+            console.log('AuthContext (refreshProfileData): Error fetching all profiles, using fallback logic:', error);
+            // Fallback to original logic if API call fails
+            const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
+            const existingDefaultIndex = updatedUser.managedCandidates.findIndex(cand => cand.id === 'default-candidate');
+            
+            if (existingDefaultIndex >= 0) {
+              updatedUser.managedCandidates[existingDefaultIndex] = defaultCandidate;
+            } else {
+              updatedUser.managedCandidates = [defaultCandidate, ...updatedUser.managedCandidates];
+            }
+            
+            if (!updatedUser.selectedCandidateId) {
+              updatedUser.selectedCandidateId = defaultCandidate.id;
+            }
           }
         }
         
@@ -1116,7 +1308,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (transformedUser.role === 'individual') {
               const defaultCandidate = createDefaultCandidateFromProfile(userProfile);
               transformedUser.managedCandidates = [defaultCandidate];
-              transformedUser.selectedCandidateId = defaultCandidate.id;
+              // Only set as selected if no candidate is already selected
+              if (!transformedUser.selectedCandidateId) {
+                transformedUser.selectedCandidateId = defaultCandidate.id;
+              }
             }
           }
         } catch (profileError) {
@@ -1128,16 +1323,83 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Always fetch profiles for individual users to ensure we have the latest data
         if (transformedUser.role === 'individual') {
           try {
-            const profiles = await fetchAndTransformProfiles();
-            if (profiles.length > 0) {
-              transformedUser.managedCandidates = profiles;
-              transformedUser.selectedCandidateId = profiles[0].id;
+            const apiProfiles = await fetchAndTransformProfiles();
+            const localProfiles = transformedUser.managedCandidates || [];
+            
+            // Merge localStorage profiles with API profiles, prioritizing localStorage for recent profiles
+            const mergedProfiles = [...localProfiles];
+            const now = Date.now();
+            
+            // Add/update profiles from API
+            apiProfiles.forEach(apiProfile => {
+              const existingIndex = mergedProfiles.findIndex(local => local.id === apiProfile.id);
+              if (existingIndex >= 0) {
+                // Update existing profile with API data (API is source of truth for existing profiles)
+                mergedProfiles[existingIndex] = apiProfile;
+              } else {
+                // Add new profile from API
+                mergedProfiles.push(apiProfile);
+              }
+            });
+            
+            // Remove profiles that exist locally but not in API (only if they're old)
+            const filteredProfiles = mergedProfiles.filter(profile => {
+              const existsInApi = apiProfiles.some(api => api.id === profile.id);
+              if (existsInApi) return true; // Keep profiles that exist in API
+              
+              // For profiles that don't exist in API, only keep if they're recently created (within 30 seconds)
+              const profileTimestamp = parseInt(profile.id);
+              const isRecent = profileTimestamp > (now - 30000);
+              
+              if (isRecent) {
+                console.log('AuthContext (refreshSession): Keeping recently created profile not yet in API:', profile.name, profile.id);
+                return true;
+              } else {
+                console.log('AuthContext (refreshSession): Removing old profile not found in API:', profile.name, profile.id);
+                return false;
+              }
+            });
+            
+            transformedUser.managedCandidates = filteredProfiles;
+            
+            // Smart profile selection with merged profiles
+            if (transformedUser.managedCandidates.length > 0) {
+              const selectedExists = transformedUser.selectedCandidateId && 
+                transformedUser.managedCandidates.some(profile => profile.id === transformedUser.selectedCandidateId);
+              
+              // Check if there's a very recently created profile (within last 30 seconds)
+              const now = Date.now();
+              const veryRecentProfile = transformedUser.managedCandidates.find(profile => {
+                const profileTimestamp = parseInt(profile.id);
+                return profileTimestamp > (now - 30000); // Within last 30 seconds
+              });
+              
+              if (veryRecentProfile && (!selectedExists || veryRecentProfile.id !== transformedUser.selectedCandidateId)) {
+                // Prioritize very recently created profiles (likely just created by user)
+                console.log('AuthContext (refreshSession): Found very recent profile, selecting:', veryRecentProfile.name, 'ID:', veryRecentProfile.id);
+                transformedUser.selectedCandidateId = veryRecentProfile.id;
+              } else if (selectedExists) {
+                console.log('AuthContext (refreshSession): Selected profile exists in merged profiles, keeping:', transformedUser.selectedCandidateId);
+              } else {
+                // Select the most recently created profile from merged profiles
+                const newestProfile = transformedUser.managedCandidates.reduce((newest, current) => {
+                  const currentTime = new Date(current.createdAt).getTime();
+                  const newestTime = new Date(newest.createdAt).getTime();
+                  return currentTime > newestTime ? current : newest;
+                });
+                
+                console.log('AuthContext (refreshSession): No valid selected profile, selecting newest from merged profiles:', newestProfile.name, 'ID:', newestProfile.id);
+                transformedUser.selectedCandidateId = newestProfile.id;
+              }
             } else {
               // Create default candidate if no profiles found
               if (transformedUser.profile) {
                 const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
                 transformedUser.managedCandidates = [defaultCandidate];
-                transformedUser.selectedCandidateId = defaultCandidate.id;
+                // Only set as selected if no candidate is already selected
+                if (!transformedUser.selectedCandidateId) {
+                  transformedUser.selectedCandidateId = defaultCandidate.id;
+                }
               }
             }
           } catch (profilesError) {
@@ -1146,7 +1408,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (transformedUser.profile) {
               const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
               transformedUser.managedCandidates = [defaultCandidate];
-              transformedUser.selectedCandidateId = defaultCandidate.id;
+              // Only set as selected if no candidate is already selected
+              if (!transformedUser.selectedCandidateId) {
+                transformedUser.selectedCandidateId = defaultCandidate.id;
+              }
             }
           }
         }
@@ -1162,7 +1427,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (transformedUser.profile && transformedUser.role === 'individual' && transformedUser.managedCandidates.length === 0) {
           const defaultCandidate = createDefaultCandidateFromProfile(transformedUser.profile as UserProfile);
           transformedUser.managedCandidates = [defaultCandidate];
-          transformedUser.selectedCandidateId = defaultCandidate.id;
+          // Only set as selected if no candidate is already selected
+          if (!transformedUser.selectedCandidateId) {
+            transformedUser.selectedCandidateId = defaultCandidate.id;
+          }
         }
         
         localStorage.setItem('user', JSON.stringify(transformedUser));
@@ -1358,8 +1626,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   };
 
-  const addCandidate = (candidate: Omit<CandidateProfile, 'id' | 'createdAt'>) => {
+  const addCandidate = (candidate: Omit<CandidateProfile, 'createdAt'> | Omit<CandidateProfile, 'id' | 'createdAt'>, autoSelect = false) => {
     if (user) {
+      console.log('AuthContext: addCandidate called with autoSelect =', autoSelect);
+      console.log('AuthContext: Creating profile for', candidate.name, 'with role', candidate.interestedRole);
+      
+      // Check if candidate already has an ID (from backend API response)
+      const candidateWithId = candidate as CandidateProfile;
+      const hasBackendId = candidateWithId.id && 
+                          candidateWithId.id.length > 20 && 
+                          !candidateWithId.id.match(/^\d+$/);
+      
+      console.log('AuthContext: Backend ID analysis:', {
+        'candidate.id': candidateWithId.id,
+        'hasBackendId': hasBackendId,
+        'id length': candidateWithId.id?.length,
+        'is numeric': candidateWithId.id?.match(/^\d+$/),
+        'will use backend ID': hasBackendId
+      });
+      
       // Validate that the candidate has required data before adding
       // Relaxed: location is no longer required so profiles without location still show up in UI
       const hasRequiredData = candidate.name?.trim() && 
@@ -1367,26 +1652,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                              (candidate.phone?.trim() || candidate.whoIAm?.phone?.trim());
 
       if (!hasRequiredData) {
-        console.log('Incomplete candidate data, not adding candidate:', candidate);
-        return;
+        console.error('AuthContext: Incomplete candidate data, profile creation failed:', candidate);
+        return null; // Return null to indicate failure
       }
 
       const newCandidate: CandidateProfile = {
         ...candidate,
-        id: Date.now().toString(),
+        id: hasBackendId ? candidateWithId.id : Date.now().toString(), // Use backend ID if available, otherwise generate timestamp
         createdAt: new Date().toISOString(),
         isActive: true
       };
       
+      console.log('AuthContext: New profile created with ID:', newCandidate.id, 'timestamp:', newCandidate.createdAt, 'source:', hasBackendId ? 'backend API' : 'timestamp');
+      
+      // Always auto-select new profiles to ensure they become active immediately
       const updatedUser = {
         ...user,
         managedCandidates: [...user.managedCandidates, newCandidate],
-        selectedCandidateId: user.selectedCandidateId || newCandidate.id
+        selectedCandidateId: newCandidate.id // Always select the new profile to make it immediately active
       };
       
+      console.log('AuthContext: Setting selectedCandidateId to:', newCandidate.id, '(new profile immediately activated)');
+      
+      // Immediate state update and localStorage sync for automated activation
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Force update localStorage with latest selection for persistence across reloads
+      try {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('selectedCandidateId', newCandidate.id);
+        console.log('AuthContext: Updated localStorage with new profile selection');
+      } catch (error) {
+        console.error('AuthContext: Failed to update localStorage:', error);
+      }
+      setTimeout(() => {
+        const currentUserData = JSON.parse(localStorage.getItem('user') || '{}');
+        if (currentUserData.id === user.id) {
+          currentUserData.selectedCandidateId = newCandidate.id;
+          localStorage.setItem('user', JSON.stringify(currentUserData));
+          console.log('AuthContext: Double-checked localStorage profile selection persistence');
+        }
+      }, 100);
+      
+      console.log('AuthContext: Profile successfully added to managedCandidates. Total profiles:', updatedUser.managedCandidates.length);
+      console.log('AuthContext: localStorage updated - new profile will be automatically activated after page reload');
+      
+      return newCandidate; // Return the new candidate for further processing
     }
+    console.error('AuthContext: addCandidate called but no user found');
+    return null;
   };
 
   const updateCandidate = (candidateId: string, candidateUpdate: Partial<CandidateProfile>) => {
@@ -1474,9 +1788,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const selectCandidate = (candidateId: string) => {
     if (user) {
+      console.log('AuthContext: selectCandidate called with candidateId:', candidateId);
       const updatedUser = { ...user, selectedCandidateId: candidateId };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Update both user data and separate selectedCandidateId for persistence
+      try {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('selectedCandidateId', candidateId);
+        console.log('AuthContext: Updated localStorage with selected candidate:', candidateId);
+      } catch (error) {
+        console.error('AuthContext: Failed to update localStorage for candidate selection:', error);
+      }
     }
   };
 

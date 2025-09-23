@@ -19,11 +19,15 @@ import { useDebounce } from '@/hooks/useDebounce';
 interface JobListViewProps {
   searchQuery: string;
   onPromptLogin?: () => void;
+  onClearSearch?: () => void; // Callback to clear search from parent component
+  hookData?: any; // Pass hook data from parent to avoid duplicate calls
 }
 
 const JobListView: React.FC<JobListViewProps> = ({
   searchQuery,
-  onPromptLogin
+  onPromptLogin,
+  onClearSearch,
+  hookData
 }) => {
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
   const [detailJob, setDetailJob] = useState<JobItem | null>(null);
@@ -39,8 +43,8 @@ const JobListView: React.FC<JobListViewProps> = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  // Debounce search query to reduce API calls
-  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+  // Debounce search query to reduce API calls - require at least 3 characters
+  const debouncedSearchQuery = useDebounce(searchQuery, 500, 3);
 
   // Prevent unauthenticated users from opening the job detail dialog
   const handleViewDetails = (job: JobItem) => {
@@ -51,6 +55,8 @@ const JobListView: React.FC<JobListViewProps> = ({
     setDetailJob(job);
   };
   
+  // Use hookData if provided (from parent), otherwise call local hook (for standalone usage)
+  const localHookData = useJobSearch(debouncedSearchQuery, { autoFetch: !!hookData ? false : true });
   const { 
     jobs, 
     loading, 
@@ -68,15 +74,15 @@ const JobListView: React.FC<JobListViewProps> = ({
     isAutoRetrying,
     updateSearchQuery,
     currentSearchQuery
-  } = useJobSearch(debouncedSearchQuery);
+  } = hookData || localHookData;
   const { applyToJob, applying } = useJobApplication();
 
-  // Update search query when debounced search query changes
+  // Update search query when debounced search query changes (only if using local hook)
   useEffect(() => {
-    if (updateSearchQuery) {
+    if (!hookData && updateSearchQuery) {
       updateSearchQuery(debouncedSearchQuery);
     }
-  }, [debouncedSearchQuery, updateSearchQuery]);
+  }, [debouncedSearchQuery, updateSearchQuery, hookData]);
 
   // Use jobs directly from API (no client-side filtering)
   const displayJobs = jobs || [];
@@ -176,11 +182,37 @@ const JobListView: React.FC<JobListViewProps> = ({
 
     console.log(`📄 Jobs changed - Page ${pagination.page} with ${jobs.length} jobs`);
     
-    // Step 1: Update jobsWithScores with new jobs (without scores initially)
-    setJobsWithScores(jobs);
+    // Step 1: SMART update of jobsWithScores - preserve existing scores where possible
+    setJobsWithScores(prev => {
+      const newJobsWithScores = jobs.map(job => {
+        // Check if we already have a scored version of this job
+        const existingScoredJob = prev.find(scoredJob => scoredJob.id === job.id);
+        // If we have existing scores, use the scored version, otherwise use the new job
+        return existingScoredJob && (existingScoredJob.trustScore !== undefined || existingScoredJob.matchScore !== undefined) 
+          ? existingScoredJob 
+          : job;
+      });
+      
+      console.log(`🔄 Smart update: Preserved scores for ${newJobsWithScores.filter(job => job.trustScore !== undefined || job.matchScore !== undefined).length} jobs`);
+      return newJobsWithScores;
+    });
     
-    // Step 2: Reset scored jobs cache for new page (this is important for new pages)
-    setScoredJobIds(new Set());
+    // Step 2: SMART cache reset - only clear scores for jobs that are no longer present
+    // Preserve scores for jobs that are still in the new jobs array
+    setScoredJobIds(prev => {
+      const newJobIds = new Set(jobs.map(job => job.id));
+      const preservedScoredIds = new Set<string>();
+      
+      // Only keep scored job IDs that are still in the current jobs list
+      prev.forEach(jobId => {
+        if (newJobIds.has(jobId)) {
+          preservedScoredIds.add(jobId);
+        }
+      });
+      
+      console.log(`🧠 Smart cache: Preserved scores for ${preservedScoredIds.size} jobs, cleared ${prev.size - preservedScoredIds.size} jobs`);
+      return preservedScoredIds;
+    });
     
     // Step 3: Fetch scores for the new jobs (but do it after state has been updated)
     // Use setTimeout to ensure state updates have been applied
@@ -543,9 +575,9 @@ const JobListView: React.FC<JobListViewProps> = ({
                     jobs.length === 0 && error && retryCount < 3 ? {
                       label: 'Try again',
                       onClick: handleRetry
-                    } : currentSearchQuery ? {
+                    } : currentSearchQuery && onClearSearch ? {
                       label: 'Clear search',
-                      onClick: () => updateSearchQuery && updateSearchQuery('')
+                      onClick: onClearSearch
                     } : undefined
                   }
                 />

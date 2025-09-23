@@ -19,6 +19,7 @@ interface HeaderDialogsProps {
   onCloseCandidateDialog: () => void;
   onSwitchToRegister: () => void;
   currentPath: string;
+  onCandidateCreated?: () => void;
 }
 
 const HeaderDialogs: React.FC<HeaderDialogsProps> = ({
@@ -33,12 +34,20 @@ const HeaderDialogs: React.FC<HeaderDialogsProps> = ({
   onCloseOrgProfile,
   onCloseCandidateDialog,
   onSwitchToRegister,
-  currentPath
+  currentPath,
+  onCandidateCreated
 }) => {
   // Determine default role based on path
   const getDefaultRole = (): 'individual' | 'organization' => {
     // Disabled organization registration - always return individual
     return 'individual';
+  };
+
+  // Create a combined handler for when a candidate is created
+  const handleCandidateCreated = (profile: any) => {
+    if (onCandidateCreated) {
+      onCandidateCreated();
+    }
   };
 
   return (
@@ -70,6 +79,8 @@ const HeaderDialogs: React.FC<HeaderDialogsProps> = ({
         isOpen={showCandidateDialog}
         onClose={onCloseCandidateDialog}
         mode="add"
+        preventReload={false}
+        onProfileCreated={handleCandidateCreated}
       />
     </>
   );

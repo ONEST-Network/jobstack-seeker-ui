@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { User, LogOut, Building2, Users, FileText, Mail, Phone, Eye, Settings, Loader2 } from 'lucide-react';
+import { User, LogOut, Building2, Users, FileText, Mail, Phone, Eye, Settings, Loader2, Plus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -115,12 +115,19 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           {/* Separator between contact info and menu items */}
           {(user.email || user.phone) && <DropdownMenuSeparator />}
           
-          {/* Only show Complete Profile if user has no profile data */}
-          {!user.profile && user.managedCandidates.length === 0 && (
-            <DropdownMenuItem onClick={handleCompleteProfile}>
-              Complete Profile
-            </DropdownMenuItem>
-          )}
+          {/* Show Create Profile option when no profiles exist
+          {user.managedCandidates.length === 0 && (
+            <>
+              <DropdownMenuItem 
+                onClick={handleCompleteProfile}
+                className="bg-primary/5 text-primary hover:bg-primary/10 font-medium"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Your First Profile
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )} */}
           {(user.role === 'individual' || !user.role) && (
             <>
               <DropdownMenuItem onClick={handleMyApplications}>

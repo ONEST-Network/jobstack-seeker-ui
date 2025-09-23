@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Map, List, Search, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDebounce } from '@/hooks/useDebounce';
 import JobMapView from './JobMapView';
 import JobListView from './JobListView';
 import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
@@ -30,6 +31,18 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
 
   const handleClearSearch = useCallback(() => {
     setSearchQuery('');
+    
+    // Mark that focus should be maintained and set cursor to beginning
+    shouldMaintainFocusRef.current = true;
+    savedSelectionRef.current = { start: 0, end: 0 };
+    
+    // Maintain focus on the input after clearing
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.setSelectionRange(0, 0);
+      }
+    });
   }, []);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
@@ -38,13 +51,184 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
     }
   }, [handleSearch]);
 
-  // Get loading states from both job search hooks
-  const { loading: listLoading, loadingState: listLoadingState } = useJobSearch();
-  const { loading: mapLoading, loadingState: mapLoadingState, fetchProgress, totalPages, currentPagesFetched } = useJobSearchForMap();
+  // Use a ref to maintain focus during re-renders
+  const inputRef = useRef<HTMLInputElement>(null);
+  const shouldMaintainFocusRef = useRef<boolean>(false);
+  const savedSelectionRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
+  const preventBlurRef = useRef<boolean>(false);
+  const lastTypingTimeRef = useRef<number>(0);
+  const preventBlurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle input change with proper cursor retention
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const now = Date.now();
+    
+    // Save current selection before state update
+    if (input.selectionStart !== null && input.selectionEnd !== null) {
+      savedSelectionRef.current = {
+        start: input.selectionStart,
+        end: input.selectionEnd
+      };
+    }
+    
+    // Mark that we should maintain focus through re-renders
+    shouldMaintainFocusRef.current = true;
+    preventBlurRef.current = true;
+    lastTypingTimeRef.current = now;
+    
+    // Clear any existing timeout
+    if (preventBlurTimeoutRef.current) {
+      clearTimeout(preventBlurTimeoutRef.current);
+    }
+    
+    setSearchQuery(input.value);
+    
+    // Clear the prevent blur flag after 2 seconds of no typing
+    preventBlurTimeoutRef.current = setTimeout(() => {
+      // Only clear if no recent typing activity
+      if (Date.now() - lastTypingTimeRef.current >= 2000) {
+        preventBlurRef.current = false;
+        shouldMaintainFocusRef.current = false;
+      }
+    }, 2000);
+  }, []);
+
+  // Handle focus events
+  const handleInputFocus = useCallback(() => {
+    shouldMaintainFocusRef.current = true;
+  }, []);
+
+  // Handle keydown to track all typing activities
+  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Update typing time for any key that could affect input
+    if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete' || 
+        e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End') {
+      lastTypingTimeRef.current = Date.now();
+      shouldMaintainFocusRef.current = true;
+      preventBlurRef.current = true;
+      
+      // Save current selection before the key action
+      if (inputRef.current) {
+        const input = inputRef.current;
+        if (input.selectionStart !== null && input.selectionEnd !== null) {
+          savedSelectionRef.current = {
+            start: input.selectionStart,
+            end: input.selectionEnd
+          };
+        }
+      }
+      
+      // Extend the focus retention period
+      if (preventBlurTimeoutRef.current) {
+        clearTimeout(preventBlurTimeoutRef.current);
+      }
+      
+      preventBlurTimeoutRef.current = setTimeout(() => {
+        if (Date.now() - lastTypingTimeRef.current >= 2000) {
+          preventBlurRef.current = false;
+          shouldMaintainFocusRef.current = false;
+        }
+      }, 2000);
+    }
+  }, []);
+
+  // Handle blur events - prevent blur during typing
+  const handleInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    if (preventBlurRef.current) {
+      // Prevent blur and refocus immediately
+      e.preventDefault();
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.setSelectionRange(
+            savedSelectionRef.current.start,
+            savedSelectionRef.current.end
+          );
+        }
+      });
+    } else {
+      shouldMaintainFocusRef.current = false;
+    }
+  }, []);
+
+  // Debounce search query to reduce API calls - require at least 3 characters
+  const debouncedSearchQuery = useDebounce(searchQuery, 500, 3);
+  
+  // Effect to restore focus and selection after re-renders
+  useEffect(() => {
+    if (shouldMaintainFocusRef.current && inputRef.current) {
+      const input = inputRef.current;
+      
+      // If input is not focused, restore focus and selection
+      if (document.activeElement !== input) {
+        requestAnimationFrame(() => {
+          if (inputRef.current && shouldMaintainFocusRef.current) {
+            inputRef.current.focus();
+            inputRef.current.setSelectionRange(
+              savedSelectionRef.current.start,
+              savedSelectionRef.current.end
+            );
+          }
+        });
+      }
+    }
+  }, [searchQuery]); // Restore focus after each character typed
+
+  // Additional effect to handle focus loss when debounced query triggers
+  useEffect(() => {
+    if (shouldMaintainFocusRef.current && inputRef.current) {
+      // Check if focus was lost due to debounced search triggering other effects
+      const checkAndRestoreFocus = () => {
+        if (inputRef.current && document.activeElement !== inputRef.current && shouldMaintainFocusRef.current) {
+          inputRef.current.focus();
+          inputRef.current.setSelectionRange(
+            savedSelectionRef.current.start,
+            savedSelectionRef.current.end
+          );
+        }
+      };
+      
+      // Check immediately and after a small delay to catch async focus loss
+      checkAndRestoreFocus();
+      const timeoutId = setTimeout(checkAndRestoreFocus, 50);
+      const timeoutId2 = setTimeout(checkAndRestoreFocus, 200);
+      const timeoutId3 = setTimeout(checkAndRestoreFocus, 500);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        clearTimeout(timeoutId2);
+        clearTimeout(timeoutId3);
+      };
+    }
+  }, [debouncedSearchQuery]); // Monitor debounced changes that might cause focus loss
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      if (preventBlurTimeoutRef.current) {
+        clearTimeout(preventBlurTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  // Centralized hooks - these are the ONLY instances that should fetch data
+  const listHookData = useJobSearch(debouncedSearchQuery);
+  const mapHookData = useJobSearchForMap({ autoFetch: false }); // Only fetch when map is actually viewed
   
   // Determine which loading state to show based on active view
-  const loading = activeView === 'list' ? listLoading : mapLoading;
-  const loadingState = activeView === 'list' ? listLoadingState : mapLoadingState;
+  const loading = activeView === 'list' ? listHookData.loading : mapHookData.loading;
+  const loadingState = activeView === 'list' ? listHookData.loadingState : mapHookData.loadingState;
+  
+  // Extract map-specific variables
+  const { totalPages, currentPagesFetched, fetchProgress } = mapHookData;
+
+  // Trigger map fetch when map view is first accessed
+  useEffect(() => {
+    if (activeView === 'map' && !mapHookData.loading && mapHookData.loadingState === 'idle') {
+      mapHookData.refetch();
+    }
+  }, [activeView, mapHookData]);
 
   const handlePromptLogin = () => {
     if (onPromptLogin) {
@@ -65,10 +249,14 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
             {/* Search - Reduced width */}
             <div className="relative flex-1 max-w-sm">
               <Input
+                ref={inputRef}
                 placeholder={loading ? "Loading jobs..." : "Search jobs by role..."}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleInputChange}
+                onKeyDown={handleInputKeyDown}
                 onKeyPress={handleKeyPress}
+                onBlur={handleInputBlur}
+                onFocus={handleInputFocus}
                 className="pl-3 pr-20 h-touch text-base"
                 disabled={loading}
               />
@@ -138,12 +326,12 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
                   
                   {/* Map view loading states */}
                   {activeView === 'map' && loadingState === 'initial' && 'Initializing map view...'}
-                  {activeView === 'map' && loadingState === 'fetching' && (
+                  {activeView === 'map' && loadingState === 'loading' && (
                     totalPages > 0 
                       ? `Loading all jobs for map: ${currentPagesFetched}/${totalPages} pages`
                       : 'Fetching job data for map...'
                   )}
-                  {activeView === 'map' && loadingState === 'processing' && 'Processing job locations...'}
+                  {activeView === 'map' && loadingState === 'partial' && 'Processing job locations...'}
                   
                   {/* Fallback */}
                   {!loadingState && (activeView === 'list' ? 'Loading jobs...' : 'Loading map data...')}
@@ -151,16 +339,16 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
               </div>
               
               {/* Map view progress bar */}
-              {activeView === 'map' && loadingState === 'fetching' && fetchProgress && totalPages > 0 && (
+              {activeView === 'map' && loadingState === 'loading' && mapHookData.fetchProgress && mapHookData.totalPages > 0 && (
                 <div className="mt-2">
                   <div className="w-full bg-gray-200 rounded-full h-1">
                     <div 
                       className="bg-blue-600 h-1 rounded-full transition-all duration-300 ease-out" 
-                      style={{ width: `${Math.round(fetchProgress * 100)}%` }}
+                      style={{ width: `${Math.round(mapHookData.fetchProgress * 100)}%` }}
                     ></div>
                   </div>
                   <div className="flex justify-center mt-1 text-xs text-muted-foreground">
-                    {Math.round(fetchProgress * 100)}% complete
+                    {Math.round(mapHookData.fetchProgress * 100)}% complete
                   </div>
                 </div>
               )}
@@ -173,10 +361,19 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
       <div className="min-h-[60vh]">
         <Tabs value={activeView} className="h-full">
           <TabsContent value="list" className="mt-0 h-full">
-            <JobListView searchQuery={searchQuery} onPromptLogin={handlePromptLogin} />
+            <JobListView 
+              searchQuery={debouncedSearchQuery} 
+              onPromptLogin={handlePromptLogin}
+              onClearSearch={handleClearSearch}
+              hookData={listHookData}
+            />
           </TabsContent>
           <TabsContent value="map" className="mt-0 h-full">
-            <JobMapView searchQuery={searchQuery} onPromptLogin={handlePromptLogin} />
+            <JobMapView 
+              searchQuery={searchQuery} 
+              onPromptLogin={handlePromptLogin}
+              hookData={mapHookData}
+            />
           </TabsContent>
         </Tabs>
       </div>

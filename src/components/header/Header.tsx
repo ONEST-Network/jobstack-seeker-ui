@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MapPin } from 'lucide-react';
+import { MapPin, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateSelector from '@/components/candidates/CandidateSelector';
 import OrgLogo from './OrgLogo';
@@ -20,8 +20,9 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showOrgProfile, setShowOrgProfile] = useState(false);
   const [showCandidateDialog, setShowCandidateDialog] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
   
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, refreshSession } = useAuth();
   const location = useLocation();
 
   // Reset auth modal state when user changes (login/logout)
@@ -49,6 +50,26 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
     }
   };
 
+  const handleCandidateCreated = async () => {
+    // Close the dialog first
+    setShowCandidateDialog(false);
+    
+    // Try to refresh the session to get latest user data
+    try {
+      await refreshSession();
+    } catch (error) {
+      console.log('Session refresh error (non-critical):', error);
+    }
+    
+    // Force a re-render
+    setForceUpdate(prev => prev + 1);
+    
+    // Additional re-render after delay as backup
+    setTimeout(() => {
+      setForceUpdate(prev => prev + 1);
+    }, 100);
+  };
+
   const handleShowAuth = () => {
     // Prevent opening auth modal if still loading from logout
     if (isLoading) return;
@@ -74,9 +95,24 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
 
           {/* Right Section */}
           <div className="flex items-center gap-1 sm:gap-3">
-            {/* Candidate Selector - For individual users */}
+            {/* Candidate Selector - For individual users with profiles */}
             {user?.role === 'individual' && user.managedCandidates.length > 0 && (
               <CandidateSelector onAddCandidate={() => setShowCandidateDialog(true)} />
+            )}
+            
+            {/* Create Profile Button - For individual users without profiles */}
+            {user?.role === 'individual' && user.managedCandidates.length === 0 && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowCandidateDialog(true)}
+                className="gap-2 bg-primary/10 border-primary/30 hover:bg-primary/20 text-primary hover:text-primary font-medium shadow-sm"
+                title="Create your first profile to start applying for jobs"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Create Profile</span>
+                <span className="sm:hidden">Create</span>
+              </Button>
             )}
 
             <LanguageSelector />
@@ -113,6 +149,7 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
         onCloseCandidateDialog={() => setShowCandidateDialog(false)}
         onSwitchToRegister={() => {}}
         currentPath={location.pathname}
+        onCandidateCreated={handleCandidateCreated}
       />
     </header>
   );
