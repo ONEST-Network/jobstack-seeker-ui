@@ -237,23 +237,41 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
       }
 
       const overrides: Record<string, any> = {};
-      const providerName = meta?.search_on_provider;
-      const jobName = meta?.search_on_job;
+      const providerNames = meta?.search_on_provider;
+      const jobNames = meta?.search_on_job;
+      const profileRestrictions = meta?.profile_restriction;
 
-      if (typeof providerName === 'string' && providerName.trim().length > 0) {
-        overrides.provider = { descriptor: { name: providerName } };
+      // Handle search_on_provider: can be string or array
+      let providerSearchTerms: string[] = [];
+      if (typeof providerNames === 'string' && providerNames.trim().length > 0) {
+        providerSearchTerms = [providerNames.trim()];
+      } else if (Array.isArray(providerNames)) {
+        providerSearchTerms = providerNames.filter(name => typeof name === 'string' && name.trim().length > 0);
       }
-      if (typeof jobName === 'string' && jobName.trim().length > 0) {
-        overrides.item = { descriptor: { name: jobName } };
+
+      // Handle search_on_job: can be string or array
+      let jobSearchTerms: string[] = [];
+      if (typeof jobNames === 'string' && jobNames.trim().length > 0) {
+        jobSearchTerms = [jobNames.trim()];
+      } else if (Array.isArray(jobNames)) {
+        jobSearchTerms = jobNames.filter(name => typeof name === 'string' && name.trim().length > 0);
+      }
+
+      // Create search query from the arrays
+      const searchTerms = [...providerSearchTerms, ...jobSearchTerms];
+      if (searchTerms.length > 0) {
+        // Store search terms for use in search query - join with commas for API
+        overrides.searchQuery = searchTerms.join(',');
+        console.log(`🔍 Organization filtering: Generated search query from metadata: "${overrides.searchQuery}"`);
+      }
+
+      // Store profile restrictions for use in profile creation
+      if (Array.isArray(profileRestrictions)) {
+        overrides.profileRestrictions = profileRestrictions;
+        console.log(`🔒 Profile restrictions detected:`, profileRestrictions);
       }
 
       setIntentOverrides(overrides);
-      
-      // TODO: v2 API doesn't support intent overrides. Consider implementing organization
-      // filtering by modifying the search query to include provider/job names when available
-      if (Object.keys(overrides).length > 0) {
-        console.warn('Organization-specific filtering detected but v2 API does not support intent overrides. Consider adding provider/job names to search query instead.');
-      }
     } catch {
       setIntentOverrides({});
     }
@@ -809,12 +827,20 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
         setLoadingState('partial');
       }, 2000);
 
-      // Use search API if search query is provided, otherwise use regular search
-      console.log(`🔍 fetchJobsInternal: Using search query: "${searchQuery}" (trimmed: "${searchQuery?.trim()}")`);
+      // Use search API if search query is provided OR if organization has search terms, otherwise use regular search
+      const orgSearchQuery = intent?.searchQuery;
+      const finalSearchQuery = searchQuery?.trim() || orgSearchQuery || '';
+      
+      console.log(`🔍 fetchJobsInternal: Using search query: "${searchQuery}" (trimmed: "${searchQuery?.trim()}")`, {
+        userQuery: searchQuery,
+        orgQuery: orgSearchQuery,
+        finalQuery: finalSearchQuery
+      });
+      
       let data;
-      if (searchQuery && searchQuery.trim()) {
-        console.log(`➡️ Calling searchJobsWithQuery with: "${searchQuery}"`);
-        data = await apiClient.searchJobsWithQuery(searchQuery, intent || undefined, page, limit);
+      if (finalSearchQuery) {
+        console.log(`➡️ Calling searchJobsWithQuery with: "${finalSearchQuery}"`);
+        data = await apiClient.searchJobsWithQuery(finalSearchQuery, intent || undefined, page, limit);
       } else {
         console.log(`➡️ Calling regular searchJobs (no search query)`);
         data = await apiClient.searchJobs(intent || undefined, page, limit);
