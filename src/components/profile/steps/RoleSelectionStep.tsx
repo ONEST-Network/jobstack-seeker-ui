@@ -7,6 +7,7 @@ import { getSectorForRole } from '@/constants/sectors';
 import { useProfileForm } from '../ProfileFormProvider';
 import SectorRolesSection from '../role-selection/SectorRolesSection';
 import { jobSectorsConfig } from '@/schemas';
+import { useProfileRestrictions } from '@/hooks/useProfileRestrictions';
 
 interface RoleSelectionStepProps {
   onVoiceStart?: () => void;
@@ -24,12 +25,24 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
     setSearchQuery
   } = useProfileForm();
 
-  // Get all available roles from sectors for searching
+  const { 
+    hasRestrictions, 
+    isRoleAllowed, 
+    allowedRoles,
+    loading: restrictionsLoading 
+  } = useProfileRestrictions();
+
+  // Get all available roles from sectors, applying restrictions
   const getAllRoles = () => {
     const allRoles: string[] = [];
     Object.values(jobSectorsConfig.sectors).forEach(sector => {
       allRoles.push(...sector.roles);
     });
+    
+    if (hasRestrictions) {
+      return allRoles.filter(role => isRoleAllowed(role));
+    }
+    
     return allRoles;
   };
 
@@ -56,6 +69,16 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
     });
   };
 
+  if (restrictionsLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="text-sm text-muted-foreground">
+          Loading available roles...
+        </div>
+      </div>
+    );
+  }
+
   const filteredRoles = getFilteredRoles();
   const hasSearchResults = filteredRoles.length > 0;
 
@@ -66,6 +89,11 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
         <p className="text-sm text-muted-foreground">
           {isUpdate ? 'Current role (cannot be changed)' : 'Find suitable work for you'}
         </p>
+        {hasRestrictions && !isUpdate && (
+          <p className="text-xs text-blue-600 mt-1">
+            {allowedRoles.length} role{allowedRoles.length !== 1 ? 's' : ''} available for this organization
+          </p>
+        )}
       </div>
       
       {/* Search Bar - Fixed (only show when not in update mode) */}
@@ -88,15 +116,31 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
                 <p className="text-sm text-muted-foreground mb-4">
                   We couldn't find any job roles matching "{searchQuery}"
                 </p>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>Try searching for roles from these sectors:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li><strong>Garment Manufacturing:</strong> Industrial Tailor, Warehouse Loader & Picker</li>
-                    <li><strong>Customer Facing:</strong> Field Sales Person, Tele Salesperson, In Store Promoter, Recruitment Associate</li>
-                    <li><strong>ITeS:</strong> Data Entry Operator</li>
-                    <li><strong>ITI/Polytechnic:</strong> Electrician, Fitter, Mechanic, Machine Operator, ITI (Other)</li>
-                  </ul>
-                </div>
+                {hasRestrictions ? (
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>Available roles for this organization:</p>
+                    <div className="max-w-md mx-auto text-left">
+                      {allowedRoles.slice(0, 10).map(role => (
+                        <p key={role} className="truncate">• {role}</p>
+                      ))}
+                      {allowedRoles.length > 10 && (
+                        <p className="text-center text-muted-foreground">
+                          ... and {allowedRoles.length - 10} more
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>Try searching for roles from these sectors:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li><strong>Garment Manufacturing:</strong> Industrial Tailor, Warehouse Loader & Picker</li>
+                      <li><strong>Customer Facing:</strong> Field Sales Person, Tele Salesperson, In Store Promoter, Recruitment Associate</li>
+                      <li><strong>ITeS:</strong> Data Entry Operator</li>
+                      <li><strong>ITI/Polytechnic:</strong> Electrician, Fitter, Mechanic, Machine Operator, ITI (Other)</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 
