@@ -89,12 +89,13 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
         jobSearchTerms = jobNames.filter(name => typeof name === 'string' && name.trim().length > 0);
       }
 
-      // Create search query from the arrays
+      // Create search terms and primary filters from the arrays
       const searchTerms = [...providerSearchTerms, ...jobSearchTerms];
       if (searchTerms.length > 0) {
-        // Store search terms for use in search query - join with commas for API
-        overrides.searchQuery = searchTerms.join(',');
-        console.log(`🔍 Map Organization filtering: Generated search query from metadata: "${overrides.searchQuery}"`);
+        // Store search terms for primary_filters - these are always included for org filtering
+        overrides.primaryFilters = searchTerms.join(',');
+        // Don't set searchQuery here - it will only be set when user actively searches
+        console.log(`🔍 Map Organization filtering: Generated primary_filters from metadata: "${overrides.primaryFilters}"`);
       }
 
       // Store profile restrictions for use in profile creation
@@ -476,16 +477,21 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
     try {
       console.log(`Fetching page ${page} with limit ${limit} for map view`);
       
-      // Use search API if organization has search terms, otherwise use regular search
-      const orgSearchQuery = intent?.searchQuery || intentOverrides?.searchQuery;
-      let data;
+      // For map view, we typically don't have user search queries, just use org filters
+      const orgPrimaryFilters = intent?.primaryFilters || intentOverrides?.primaryFilters;
       
-      if (orgSearchQuery) {
-        console.log(`➡️ Map view calling searchJobsWithQuery with: "${orgSearchQuery}"`);
-        data = await apiClient.searchJobsWithQuery(orgSearchQuery, intent || intentOverrides || undefined, page, limit);
+      console.log(`🔍 Map view: Using org primary_filters: "${orgPrimaryFilters}"`);
+      
+      let data;
+      if (orgPrimaryFilters) {
+        // Map view with organization filters - use regular search with primary_filters
+        console.log(`➡️ Map view calling regular searchJobs with primary_filters`);
+        const intentWithFilters = { primaryFilters: orgPrimaryFilters };
+        data = await apiClient.searchJobs(intentWithFilters, page, limit);
       } else {
-        console.log(`➡️ Map view calling regular searchJobs (no search query)`);
-        data = await apiClient.searchJobs(intent || intentOverrides || undefined, page, limit);
+        // No filters - regular search
+        console.log(`➡️ Map view calling regular searchJobs (no filters)`);
+        data = await apiClient.searchJobs(undefined, page, limit);
       }
       
       const transformedJobs = transformJobData(data);
