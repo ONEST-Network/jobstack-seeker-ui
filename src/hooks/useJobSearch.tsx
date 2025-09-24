@@ -257,12 +257,13 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
         jobSearchTerms = jobNames.filter(name => typeof name === 'string' && name.trim().length > 0);
       }
 
-      // Create search query from the arrays
+      // Create search terms and primary filters from the arrays
       const searchTerms = [...providerSearchTerms, ...jobSearchTerms];
       if (searchTerms.length > 0) {
-        // Store search terms for use in search query - join with commas for API
-        overrides.searchQuery = searchTerms.join(',');
-        console.log(`🔍 Organization filtering: Generated search query from metadata: "${overrides.searchQuery}"`);
+        // Store search terms for primary_filters - these are always included for org filtering
+        overrides.primaryFilters = searchTerms.join(',');
+        // Don't set searchQuery here - it will only be set when user actively searches
+        console.log(`🔍 Organization filtering: Generated primary_filters from metadata: "${overrides.primaryFilters}"`);
       }
 
       // Store profile restrictions for use in profile creation
@@ -827,22 +828,26 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
         setLoadingState('partial');
       }, 2000);
 
-      // Use search API if search query is provided OR if organization has search terms, otherwise use regular search
-      const orgSearchQuery = intent?.searchQuery;
-      const finalSearchQuery = searchQuery?.trim() || orgSearchQuery || '';
+      // Use search API only if user provided a search query, otherwise use regular search with primary_filters
+      const userSearchQuery = searchQuery?.trim();
+      const orgPrimaryFilters = intent?.primaryFilters;
       
-      console.log(`🔍 fetchJobsInternal: Using search query: "${searchQuery}" (trimmed: "${searchQuery?.trim()}")`, {
-        userQuery: searchQuery,
-        orgQuery: orgSearchQuery,
-        finalQuery: finalSearchQuery
+      console.log(`🔍 fetchJobsInternal: User search query: "${userSearchQuery}"`, {
+        userQuery: userSearchQuery,
+        orgPrimaryFilters: orgPrimaryFilters,
+        hasUserSearch: !!userSearchQuery,
+        hasOrgFilters: !!orgPrimaryFilters
       });
       
       let data;
-      if (finalSearchQuery) {
-        console.log(`➡️ Calling searchJobsWithQuery with: "${finalSearchQuery}"`);
-        data = await apiClient.searchJobsWithQuery(finalSearchQuery, intent || undefined, page, limit);
+      if (userSearchQuery) {
+        // User is actively searching - use search API with their query + org filters
+        console.log(`➡️ Calling searchJobsWithQuery with user query: "${userSearchQuery}"`);
+        const intentWithFilters = orgPrimaryFilters ? { ...intent, primaryFilters: orgPrimaryFilters } : intent;
+        data = await apiClient.searchJobsWithQuery(userSearchQuery, intentWithFilters || undefined, page, limit);
       } else {
-        console.log(`➡️ Calling regular searchJobs (no search query)`);
+        // No user search - use regular search API but include org filters via intent
+        console.log(`➡️ Calling regular searchJobs (no user search, may have org filters)`);
         data = await apiClient.searchJobs(intent || undefined, page, limit);
       }
       
