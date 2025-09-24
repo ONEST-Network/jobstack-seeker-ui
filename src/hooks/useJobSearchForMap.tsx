@@ -69,23 +69,42 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
       }
 
       const overrides: Record<string, any> = {};
-      const providerName = meta?.search_on_provider;
-      const jobName = meta?.search_on_job;
+      const providerNames = meta?.search_on_provider;
+      const jobNames = meta?.search_on_job;
+      const profileRestrictions = meta?.profile_restriction;
 
-      if (typeof providerName === 'string' && providerName.trim().length > 0) {
-        overrides.provider = { descriptor: { name: providerName } };
+      // Handle search_on_provider: can be string or array
+      let providerSearchTerms: string[] = [];
+      if (typeof providerNames === 'string' && providerNames.trim().length > 0) {
+        providerSearchTerms = [providerNames.trim()];
+      } else if (Array.isArray(providerNames)) {
+        providerSearchTerms = providerNames.filter(name => typeof name === 'string' && name.trim().length > 0);
       }
-      if (typeof jobName === 'string' && jobName.trim().length > 0) {
-        overrides.item = { descriptor: { name: jobName } };
+
+      // Handle search_on_job: can be string or array
+      let jobSearchTerms: string[] = [];
+      if (typeof jobNames === 'string' && jobNames.trim().length > 0) {
+        jobSearchTerms = [jobNames.trim()];
+      } else if (Array.isArray(jobNames)) {
+        jobSearchTerms = jobNames.filter(name => typeof name === 'string' && name.trim().length > 0);
+      }
+
+      // Create search terms and primary filters from the arrays
+      const searchTerms = [...providerSearchTerms, ...jobSearchTerms];
+      if (searchTerms.length > 0) {
+        // Store search terms for primary_filters - these are always included for org filtering
+        overrides.primaryFilters = searchTerms.join(',');
+        // Don't set searchQuery here - it will only be set when user actively searches
+        console.log(`🔍 Map Organization filtering: Generated primary_filters from metadata: "${overrides.primaryFilters}"`);
+      }
+
+      // Store profile restrictions for use in profile creation
+      if (Array.isArray(profileRestrictions)) {
+        overrides.profileRestrictions = profileRestrictions;
+        console.log(`🔒 Map Profile restrictions detected:`, profileRestrictions);
       }
 
       setIntentOverrides(overrides);
-      
-      // TODO: v2 API doesn't support intent overrides. Consider implementing organization
-      // filtering by modifying the search query to include provider/job names when available
-      if (Object.keys(overrides).length > 0) {
-        console.warn('Organization-specific filtering detected but v2 API does not support intent overrides. Consider adding provider/job names to search query instead.');
-      }
     } catch {
       setIntentOverrides({});
     }
@@ -458,7 +477,23 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
     try {
       console.log(`Fetching page ${page} with limit ${limit} for map view`);
       
-      const data = await apiClient.searchJobs(intent || intentOverrides || undefined, page, limit);
+      // For map view, we typically don't have user search queries, just use org filters
+      const orgPrimaryFilters = intent?.primaryFilters || intentOverrides?.primaryFilters;
+      
+      console.log(`🔍 Map view: Using org primary_filters: "${orgPrimaryFilters}"`);
+      
+      let data;
+      if (orgPrimaryFilters) {
+        // Map view with organization filters - use regular search with primary_filters
+        console.log(`➡️ Map view calling regular searchJobs with primary_filters`);
+        const intentWithFilters = { primaryFilters: orgPrimaryFilters };
+        data = await apiClient.searchJobs(intentWithFilters, page, limit);
+      } else {
+        // No filters - regular search
+        console.log(`➡️ Map view calling regular searchJobs (no filters)`);
+        data = await apiClient.searchJobs(undefined, page, limit);
+      }
+      
       const transformedJobs = transformJobData(data);
       
       // Extract pagination info from the top-level pagination object (v2 API)

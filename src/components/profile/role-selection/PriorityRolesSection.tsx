@@ -1,5 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { useProfileRestrictions } from '@/hooks/useProfileRestrictions';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 interface PriorityRolesSectionProps {
   roles: string[];
@@ -14,7 +17,29 @@ const PriorityRolesSection: React.FC<PriorityRolesSectionProps> = ({
   onRoleSelect,
   isUpdate = false
 }) => {
-  if (roles.length === 0) return null;
+  const { 
+    hasRestrictions, 
+    isRoleAllowed, 
+    loading: restrictionsLoading 
+  } = useProfileRestrictions();
+
+  // Apply profile restrictions
+  const getFilteredRoles = () => {
+    if (!hasRestrictions) return roles;
+    return roles.filter(role => isRoleAllowed(role));
+  };
+
+  if (restrictionsLoading) {
+    return (
+      <div className="text-sm text-muted-foreground">
+        Loading available roles...
+      </div>
+    );
+  }
+
+  const filteredRoles = getFilteredRoles();
+
+  if (filteredRoles.length === 0) return null;
 
   return (
     <div>
@@ -22,8 +47,18 @@ const PriorityRolesSection: React.FC<PriorityRolesSectionProps> = ({
         <span className="text-lg">⭐</span>
         {isUpdate ? 'Current Role (Read Only)' : 'Popular Roles'}
       </h4>
+      
+      {hasRestrictions && !isUpdate && (
+        <Alert className="mb-4">
+          <InfoIcon className="h-4 w-4" />
+          <AlertDescription>
+            Only showing roles available for this organization.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {roles.map(role => (
+        {filteredRoles.map(role => (
           <Button
             key={role}
             variant={selectedRole === role ? "default" : "outline"}

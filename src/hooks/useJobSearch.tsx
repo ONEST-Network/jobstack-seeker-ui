@@ -237,23 +237,42 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
       }
 
       const overrides: Record<string, any> = {};
-      const providerName = meta?.search_on_provider;
-      const jobName = meta?.search_on_job;
+      const providerNames = meta?.search_on_provider;
+      const jobNames = meta?.search_on_job;
+      const profileRestrictions = meta?.profile_restriction;
 
-      if (typeof providerName === 'string' && providerName.trim().length > 0) {
-        overrides.provider = { descriptor: { name: providerName } };
+      // Handle search_on_provider: can be string or array
+      let providerSearchTerms: string[] = [];
+      if (typeof providerNames === 'string' && providerNames.trim().length > 0) {
+        providerSearchTerms = [providerNames.trim()];
+      } else if (Array.isArray(providerNames)) {
+        providerSearchTerms = providerNames.filter(name => typeof name === 'string' && name.trim().length > 0);
       }
-      if (typeof jobName === 'string' && jobName.trim().length > 0) {
-        overrides.item = { descriptor: { name: jobName } };
+
+      // Handle search_on_job: can be string or array
+      let jobSearchTerms: string[] = [];
+      if (typeof jobNames === 'string' && jobNames.trim().length > 0) {
+        jobSearchTerms = [jobNames.trim()];
+      } else if (Array.isArray(jobNames)) {
+        jobSearchTerms = jobNames.filter(name => typeof name === 'string' && name.trim().length > 0);
+      }
+
+      // Create search terms and primary filters from the arrays
+      const searchTerms = [...providerSearchTerms, ...jobSearchTerms];
+      if (searchTerms.length > 0) {
+        // Store search terms for primary_filters - these are always included for org filtering
+        overrides.primaryFilters = searchTerms.join(',');
+        // Don't set searchQuery here - it will only be set when user actively searches
+        console.log(`🔍 Organization filtering: Generated primary_filters from metadata: "${overrides.primaryFilters}"`);
+      }
+
+      // Store profile restrictions for use in profile creation
+      if (Array.isArray(profileRestrictions)) {
+        overrides.profileRestrictions = profileRestrictions;
+        console.log(`🔒 Profile restrictions detected:`, profileRestrictions);
       }
 
       setIntentOverrides(overrides);
-      
-      // TODO: v2 API doesn't support intent overrides. Consider implementing organization
-      // filtering by modifying the search query to include provider/job names when available
-      if (Object.keys(overrides).length > 0) {
-        console.warn('Organization-specific filtering detected but v2 API does not support intent overrides. Consider adding provider/job names to search query instead.');
-      }
     } catch {
       setIntentOverrides({});
     }
@@ -809,14 +828,26 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
         setLoadingState('partial');
       }, 2000);
 
-      // Use search API if search query is provided, otherwise use regular search
-      console.log(`🔍 fetchJobsInternal: Using search query: "${searchQuery}" (trimmed: "${searchQuery?.trim()}")`);
+      // Use search API only if user provided a search query, otherwise use regular search with primary_filters
+      const userSearchQuery = searchQuery?.trim();
+      const orgPrimaryFilters = intent?.primaryFilters;
+      
+      console.log(`🔍 fetchJobsInternal: User search query: "${userSearchQuery}"`, {
+        userQuery: userSearchQuery,
+        orgPrimaryFilters: orgPrimaryFilters,
+        hasUserSearch: !!userSearchQuery,
+        hasOrgFilters: !!orgPrimaryFilters
+      });
+      
       let data;
-      if (searchQuery && searchQuery.trim()) {
-        console.log(`➡️ Calling searchJobsWithQuery with: "${searchQuery}"`);
-        data = await apiClient.searchJobsWithQuery(searchQuery, intent || undefined, page, limit);
+      if (userSearchQuery) {
+        // User is actively searching - use search API with their query + org filters
+        console.log(`➡️ Calling searchJobsWithQuery with user query: "${userSearchQuery}"`);
+        const intentWithFilters = orgPrimaryFilters ? { ...intent, primaryFilters: orgPrimaryFilters } : intent;
+        data = await apiClient.searchJobsWithQuery(userSearchQuery, intentWithFilters || undefined, page, limit);
       } else {
-        console.log(`➡️ Calling regular searchJobs (no search query)`);
+        // No user search - use regular search API but include org filters via intent
+        console.log(`➡️ Calling regular searchJobs (no user search, may have org filters)`);
         data = await apiClient.searchJobs(intent || undefined, page, limit);
       }
       

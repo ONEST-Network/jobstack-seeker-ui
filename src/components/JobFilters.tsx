@@ -18,17 +18,37 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
+import { useProfileRestrictions } from '@/hooks/useProfileRestrictions';
+import { getAllAvailableRoles } from '@/constants/sectors';
 
 const JobFilters = () => {
   const [salaryRange, setSalaryRange] = useState([15000, 50000]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
 
-  const jobRoles = [
-    'Electrician', 'Plumber', 'Carpenter', 'Welder', 'Driver', 
-    'Security Guard', 'Tailor', 'Mason', 'Painter', 'Machine Operator',
-    'Factory Worker', 'Sales Representative', 'Cook', 'Cleaner'
-  ];
+  const { 
+    hasRestrictions, 
+    allowedRoles, 
+    loading: restrictionsLoading 
+  } = useProfileRestrictions();
+
+  // Get available job roles based on restrictions
+  const getAvailableJobRoles = () => {
+    if (hasRestrictions) {
+      return allowedRoles;
+    }
+    
+    // Fallback to all available roles from sectors plus some additional common roles
+    const allRoles = getAllAvailableRoles();
+    const additionalRoles = [
+      'Driver', 'Security Guard', 'Mason', 'Painter', 
+      'Factory Worker', 'Sales Representative', 'Cook', 'Cleaner'
+    ];
+    
+    return [...allRoles, ...additionalRoles];
+  };
+
+  const jobRoles = getAvailableJobRoles();
 
   const locations = [
     'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad',
@@ -124,23 +144,36 @@ const JobFilters = () => {
 
         {/* Job Role Filter */}
         <AccordionItem value="role">
-          <AccordionTrigger className="text-sm font-medium">Job Role</AccordionTrigger>
+          <AccordionTrigger className="text-sm font-medium">
+            Job Role {hasRestrictions && `(${jobRoles.length} available)`}
+          </AccordionTrigger>
           <AccordionContent className="space-y-3">
+            {hasRestrictions && (
+              <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                Only showing roles available for this organization
+              </div>
+            )}
             <Input placeholder="Search roles..." className="text-sm" />
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {jobRoles.map((role) => (
-                <div key={role} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`role-${role}`}
-                    checked={selectedRoles.includes(role)}
-                    onCheckedChange={() => handleRoleToggle(role)}
-                  />
-                  <Label htmlFor={`role-${role}`} className="text-sm flex-1 cursor-pointer">
-                    {role}
-                  </Label>
-                </div>
-              ))}
-            </div>
+            {restrictionsLoading ? (
+              <div className="text-sm text-muted-foreground py-4 text-center">
+                Loading available roles...
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {jobRoles.map((role) => (
+                  <div key={role} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`role-${role}`}
+                      checked={selectedRoles.includes(role)}
+                      onCheckedChange={() => handleRoleToggle(role)}
+                    />
+                    <Label htmlFor={`role-${role}`} className="text-sm flex-1 cursor-pointer">
+                      {role}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            )}
           </AccordionContent>
         </AccordionItem>
 

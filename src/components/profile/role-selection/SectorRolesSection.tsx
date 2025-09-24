@@ -2,6 +2,9 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { jobSectorsConfig } from '@/schemas';
+import { useProfileRestrictions } from '@/hooks/useProfileRestrictions';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 interface SectorRolesSectionProps {
   selectedRole?: string;
@@ -17,14 +20,47 @@ const SectorRolesSection: React.FC<SectorRolesSectionProps> = ({
   isUpdate = false
 }) => {
   const sectors = jobSectorsConfig.sectors;
+  const { 
+    hasRestrictions, 
+    isRoleAllowed, 
+    isSectorAllowed, 
+    allowedSectors, 
+    allowedRoles,
+    loading: restrictionsLoading 
+  } = useProfileRestrictions();
 
-  // Filter sectors and roles based on search query
+  // Filter sectors and roles based on search query AND profile restrictions
   const getFilteredSectors = () => {
-    if (!searchQuery) return sectors;
+    let sectorsToFilter = sectors;
+
+    // Apply profile restrictions first if they exist
+    if (hasRestrictions) {
+      const restrictedSectors: Record<string, { description: string; roles: string[] }> = {};
+      
+      Object.entries(sectors).forEach(([sectorName, sectorData]) => {
+        // Only include sector if it's allowed OR if some of its roles are allowed
+        if (isSectorAllowed(sectorName)) {
+          // Filter roles within the sector to only allowed ones
+          const allowedRolesInSector = sectorData.roles.filter(role => isRoleAllowed(role));
+          
+          if (allowedRolesInSector.length > 0) {
+            restrictedSectors[sectorName] = {
+              ...sectorData,
+              roles: allowedRolesInSector
+            };
+          }
+        }
+      });
+      
+      sectorsToFilter = restrictedSectors;
+    }
+
+    // Then apply search filtering
+    if (!searchQuery) return sectorsToFilter;
 
     const filtered: Record<string, { description: string; roles: string[] }> = {};
     
-    Object.entries(sectors).forEach(([sectorName, sectorData]) => {
+    Object.entries(sectorsToFilter).forEach(([sectorName, sectorData]) => {
       const matchingSectorName = sectorName.toLowerCase().includes(searchQuery.toLowerCase());
       const matchingRoles = sectorData.roles.filter(role => 
         role.toLowerCase().includes(searchQuery.toLowerCase())
@@ -40,6 +76,14 @@ const SectorRolesSection: React.FC<SectorRolesSectionProps> = ({
 
     return filtered;
   };
+
+  if (restrictionsLoading) {
+    return (
+      <div className="text-sm text-muted-foreground">
+        Loading available roles...
+      </div>
+    );
+  }
 
   const filteredSectors = getFilteredSectors();
   const hasResults = Object.keys(filteredSectors).length > 0;
@@ -58,6 +102,21 @@ const SectorRolesSection: React.FC<SectorRolesSectionProps> = ({
         <span className="text-lg">⭐</span>
         {isUpdate ? 'Current Role (Read Only)' : 'Popular Roles by Sector'}
       </h4>
+      
+      {hasRestrictions && !isUpdate && (
+        <Alert className="mb-4">
+          <InfoIcon className="h-4 w-4" />
+          <AlertDescription>
+            Only showing roles available for this organization. 
+            {allowedSectors.length > 0 && (
+              <span> Allowed sectors: {allowedSectors.join(', ')}.</span>
+            )}
+            {allowedRoles.length > 0 && (
+              <span> Additional allowed roles: {allowedRoles.join(', ')}.</span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
       
       <Accordion type="single" collapsible defaultValue={defaultOpenSector} className="space-y-2">
         {Object.entries(filteredSectors).map(([sectorName, sectorData]) => (

@@ -415,16 +415,18 @@ class ApiClient {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v2/search`;
     
-    const payload = {
+    const payload: any = {
       limit,
       page,
     };
 
-    // Note: intentOverrides are not supported in v2 API as it uses a simplified structure
-    // The v2 API focuses on search query-based filtering rather than complex intent structures
-    if (intentOverrides && typeof intentOverrides === 'object') {
-      console.warn('Intent overrides are not supported in v2 search API. Use query parameter for filtering.');
+    // Add primary_filters if available in intentOverrides for organization-specific filtering
+    if (intentOverrides?.primaryFilters) {
+      payload.primary_filters = intentOverrides.primaryFilters;
+      console.log(`🔍 Adding primary_filters to regular search payload: "${payload.primary_filters}"`);
     }
+
+    console.log(`🚀 Regular search API payload:`, payload);
 
     try {
       // Create an AbortController for timeout
@@ -512,17 +514,19 @@ class ApiClient {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v2/search`;
     
-    const payload = {
+    const payload: any = {
       limit,
       page,
       query: searchQuery.trim() // Use the search query directly
     };
 
-    // Note: intentOverrides are not supported in v2 API as it uses a simplified structure
-    // The v2 API focuses on search query-based filtering rather than complex intent structures
-    if (intentOverrides && typeof intentOverrides === 'object') {
-      console.warn('Intent overrides are not supported in v2 search API. Use query parameter for filtering.');
+    // Add primary_filters if available in intentOverrides for organization-specific filtering
+    if (intentOverrides?.primaryFilters) {
+      payload.primary_filters = intentOverrides.primaryFilters;
+      console.log(`🔍 Adding primary_filters to search payload: "${payload.primary_filters}"`);
     }
+
+    console.log(`🚀 Search API payload:`, payload);
 
 
     try {
