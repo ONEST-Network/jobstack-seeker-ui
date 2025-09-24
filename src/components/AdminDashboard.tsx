@@ -88,7 +88,8 @@ const AdminDashboard = () => {
       };
       
       // Fetch users by status
-      const usersByStatusRes = await fetch(`${API_BASE_URL}/admin/users/by-status?type=both&page=1`, {
+      const usersByStatusUrl = `${API_BASE_URL}/admin/users/by-status?${orgSlug ? `organizationSlug=${orgSlug}&` : ''}type=both&limit=50000&page=1`;
+      const usersByStatusRes = await fetch(usersByStatusUrl, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
@@ -101,7 +102,8 @@ const AdminDashboard = () => {
       };
       
       // Fetch users with job applications
-      const usersWithJobAppsRes = await fetch(`${API_BASE_URL}/admin/users/with-job-applications?type=both&page=1`, {
+      const usersWithJobAppsUrl = `${API_BASE_URL}/admin/users/with-job-applications?${orgSlug ? `organizationSlug=${orgSlug}&` : ''}type=both&limit=50000&page=1`;
+      const usersWithJobAppsRes = await fetch(usersWithJobAppsUrl, {
         headers: {
           'Authorization': `Bearer ${apiClient['authToken']}`,
           'Content-Type': 'application/json',
