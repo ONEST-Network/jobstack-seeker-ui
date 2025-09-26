@@ -252,6 +252,16 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
     }
   };
 
+  const handleViewPreferenceApply = (view: 'list' | 'map') => {
+    setActiveView(view);
+    // Trigger refresh of the selected view
+    if (view === 'list') {
+      listHookData.refetch();
+    } else {
+      mapHookData.refetch();
+    }
+  };
+
   
 
   return (
@@ -325,7 +335,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
             </Tabs>
 
             {/* View Preferences Settings */}
-            <ViewPreferenceDialog>
+            <ViewPreferenceDialog onApply={handleViewPreferenceApply}>
               <Button
                 variant="outline"
                 size="sm"

@@ -3,7 +3,6 @@ import { Settings, Map, List, RotateCcw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useViewPreference, ViewType } from '@/hooks/useViewPreference';
@@ -11,28 +10,39 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ViewPreferenceDialogProps {
   children?: React.ReactNode;
+  onApply?: (view: ViewType) => void;
 }
 
-const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children }) => {
+const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children, onApply }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [selectedView, setSelectedView] = React.useState<ViewType>('map');
   const isMobile = useIsMobile();
   const {
     preferences,
     setDefaultView,
-    setRememberPreference,
     resetPreferences
   } = useViewPreference();
 
+  // Initialize selected view when dialog opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedView(preferences.defaultView);
+    }
+  }, [isOpen, preferences.defaultView]);
+
   const handleViewChange = (value: string) => {
-    setDefaultView(value as ViewType);
+    setSelectedView(value as ViewType);
   };
 
-  const handleRememberToggle = (checked: boolean) => {
-    setRememberPreference(checked);
+  const handleApply = () => {
+    setDefaultView(selectedView);
+    onApply?.(selectedView);
+    setIsOpen(false);
   };
 
   const handleReset = () => {
     resetPreferences();
+    setSelectedView('map'); // Reset to default
   };
 
   const triggerButton = children || (
@@ -70,7 +80,7 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children })
             </CardHeader>
             <CardContent>
               <RadioGroup
-                value={preferences.defaultView}
+                value={selectedView}
                 onValueChange={handleViewChange}
                 className="space-y-3"
               >
@@ -103,35 +113,8 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children })
             </CardContent>
           </Card>
 
-          {/* Remember Preference Toggle */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Remember Preference</CardTitle>
-              <CardDescription className="text-sm">
-                Save your view preference for future visits
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="remember-preference" className="text-sm font-medium">
-                    Remember my choice
-                  </Label>
-                  <div className="text-xs text-muted-foreground">
-                    Your preference will be saved locally
-                  </div>
-                </div>
-                <Switch
-                  id="remember-preference"
-                  checked={preferences.rememberPreference}
-                  onCheckedChange={handleRememberToggle}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Reset Button */}
-          <div className="flex justify-end">
+          {/* Action Buttons */}
+          <div className="flex justify-between">
             <Button
               variant="outline"
               size="sm"
@@ -140,6 +123,12 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children })
             >
               <RotateCcw className="h-4 w-4" />
               Reset to Default
+            </Button>
+            <Button
+              onClick={handleApply}
+              className="flex items-center gap-2"
+            >
+              Apply
             </Button>
           </div>
         </div>
