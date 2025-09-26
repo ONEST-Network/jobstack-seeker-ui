@@ -4,12 +4,10 @@ export type ViewType = 'list' | 'map';
 
 interface ViewPreference {
   defaultView: ViewType;
-  rememberPreference: boolean;
 }
 
 const DEFAULT_PREFERENCES: ViewPreference = {
   defaultView: 'map', // Default to map as mentioned in requirements
-  rememberPreference: true
 };
 
 const STORAGE_KEY = 'jobViewPreference';
@@ -52,12 +50,12 @@ export const useViewPreference = () => {
 
   // Get the current default view
   const getDefaultView = (): ViewType => {
-    return preferences.rememberPreference ? preferences.defaultView : 'map';
+    return preferences.defaultView;
   };
 
   // Check if we should apply the default view (only on initial load)
   const shouldApplyDefaultView = (): boolean => {
-    return isLoaded && preferences.rememberPreference && !hasAppliedInitialView;
+    return isLoaded && !hasAppliedInitialView;
   };
 
   // Mark that initial view has been applied
@@ -70,10 +68,6 @@ export const useViewPreference = () => {
     updatePreferences({ defaultView: view });
   };
 
-  // Toggle remember preference
-  const setRememberPreference = (remember: boolean) => {
-    updatePreferences({ rememberPreference: remember });
-  };
 
   // Reset to defaults
   const resetPreferences = () => {
@@ -92,7 +86,6 @@ export const useViewPreference = () => {
     shouldApplyDefaultView,
     markInitialViewApplied,
     setDefaultView,
-    setRememberPreference,
     resetPreferences,
     updatePreferences
   };
