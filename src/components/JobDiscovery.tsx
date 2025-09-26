@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Map, List, Search, X, Loader2 } from 'lucide-react';
+import { Map, List, Search, X, Loader2, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,8 +9,10 @@ import { useDebounce } from '@/hooks/useDebounce';
 import JobMapView from './JobMapView';
 import JobListView from './JobListView';
 import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
+import ViewPreferenceDialog from './ViewPreferenceDialog';
 import { useJobSearch } from '@/hooks/useJobSearch';
 import { useJobSearchForMap } from '@/hooks/useJobSearchForMap';
+import { useViewPreference } from '@/hooks/useViewPreference';
 
 interface JobDiscoveryProps {
   onPromptLogin?: () => void;
@@ -22,6 +24,9 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const isMobile = useIsMobile();
+  
+  // View preference management
+  const { getDefaultView, shouldApplyDefaultView, markInitialViewApplied, isLoaded } = useViewPreference();
 
   // Handle search functionality
   const handleSearch = useCallback(() => {
@@ -223,6 +228,15 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   // Extract map-specific variables
   const { totalPages, currentPagesFetched, fetchProgress } = mapHookData;
 
+  // Set initial view based on user preference (only once on mount)
+  useEffect(() => {
+    if (shouldApplyDefaultView()) {
+      const defaultView = getDefaultView();
+      setActiveView(defaultView);
+      markInitialViewApplied(); // Mark that we've applied the initial view
+    }
+  }, [shouldApplyDefaultView, getDefaultView, markInitialViewApplied]);
+
   // Trigger map fetch when map view is first accessed
   useEffect(() => {
     if (activeView === 'map' && !mapHookData.loading && mapHookData.loadingState === 'idle') {
@@ -310,7 +324,17 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
               </TabsList>
             </Tabs>
 
-            {/* Filters Toggle removed */}
+            {/* View Preferences Settings */}
+            <ViewPreferenceDialog>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-touch flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </Button>
+            </ViewPreferenceDialog>
           </div>
           
           {/* Enhanced loading status message */}
