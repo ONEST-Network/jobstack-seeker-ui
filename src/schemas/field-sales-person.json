@@ -267,20 +267,10 @@
             "ui:placeholder": "Enter amount in INR",
             "ui:currency": "₹",
             "ui:disabled": false
-          },
-          "monthlyPFHealthInsurance": {
-            "type": "string",
-            "title": "Monthly PF & Health Insurance",
-            "description": "Do you want PF and health insurance benefits?",
-            "ui:widget": "select",
-            "ui:placeholder": "Select option",
-            "ui:disabled": false,
-            "enum": ["Y", "N"],
-            "enumNames": ["Yes", "No"]
           }
         },
         "ui": {
-          "order": ["workHoursPerDay", "preferredWorkMode", "maxDistanceofDailyTravel", "monthlyInHandPreferred", "monthlyPerformanceVariable", "monthlyTravelAllowance", "monthlyPFHealthInsurance"],
+          "order": ["workHoursPerDay", "preferredWorkMode", "maxDistanceofDailyTravel", "monthlyInHandPreferred", "monthlyPerformanceVariable", "monthlyTravelAllowance"],
           "description": "Tell us about your salary expectations and work preferences"
         }
       }

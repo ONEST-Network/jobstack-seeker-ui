@@ -642,16 +642,6 @@
           "ui:placeholder": "Enter expected monthly OT earnings",
           "ui:currency": "₹",
           "ui:disabled": false
-        },
-        "monthlyPFESIC": {
-          "type": "string",
-          "title": "Monthly PF & Health Insurance - Important to have?",
-          "description": "Monthly PF & Health Insurance - Important to have?",
-          "enum": ["Yes", "No"],
-          "enumNames": ["Yes", "No"],
-          "ui:widget": "select",
-          "ui:placeholder": "Select PF & ESIC preference",
-          "ui:disabled": false
         }
       },
       "ui": {
@@ -659,8 +649,7 @@
           "workHoursPerDay",
           "preferredModeOfWork",
           "monthlyInHandPreferred",
-          "monthlyOTExpectation",
-          "monthlyPFESIC"
+          "monthlyOTExpectation"
         ],
         "description": "Tell us about your salary expectations and work preferences",
         "sections": [
@@ -670,7 +659,7 @@
           },
           {
             "title": "Salary Expectations",
-            "fields": ["monthlyInHandPreferred", "monthlyOTExpectation", "monthlyPFESIC"]
+            "fields": ["monthlyInHandPreferred", "monthlyOTExpectation"]
           }
         ]
       }

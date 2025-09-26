@@ -206,17 +206,6 @@
           "ui:currency": "₹",
           "ui:disabled": false
         },
-        "monthlyPFESIC": {
-          "type": "string",
-          "title": "Monthly PF & ESIC",
-          "description": "Do you want PF & ESIC deductions?",
-          "required": true,
-          "enum": ["Yes", "No"],
-          "enumNames": ["Yes", "No"],
-          "ui:widget": "select",
-          "ui:placeholder": "Select PF & ESIC preference",
-          "ui:disabled": false
-        },
         "stayPreferences": {
           "type": "string",
           "title": "Stay Preferences",
@@ -245,7 +234,6 @@
           "workHoursPerDay",
           "monthlyInHandPreferred",
           "monthlyOTExpectation",
-          "monthlyPFESIC",
           "stayPreferences",
           "maxCostPerSharingBed"
         ],
@@ -257,7 +245,7 @@
           },
           {
             "title": "Salary Expectations",
-            "fields": ["monthlyInHandPreferred", "monthlyOTExpectation", "monthlyPFESIC"]
+            "fields": ["monthlyInHandPreferred", "monthlyOTExpectation"]
           },
           {
             "title": "Accommodation Preferences",
