@@ -253,16 +253,6 @@
           "ui:placeholder": "Enter expected monthly salary",
           "ui:currency": "₹",
           "ui:disabled": false
-        },
-        "monthlyPFHealthInsurance": {
-          "type": "string",
-          "title": "Monthly PF & Health Insurance",
-          "description": "Do you want PF & Health Insurance benefits?",
-          "enum": ["Yes", "No"],
-          "enumNames": ["Yes", "No"],
-          "ui:widget": "select",
-          "ui:placeholder": "Select PF & Health Insurance preference",
-          "ui:disabled": false
         }
       },
       "ui": {
@@ -270,8 +260,7 @@
           "distanceRadiusRelocation",
           "workHoursPerDay",
           "preferredModeOfWork",
-          "monthlyInHandPreferred",
-          "monthlyPFHealthInsurance"
+          "monthlyInHandPreferred"
         ],
         "description": "Tell us about your salary expectations and work preferences",
         "sections": [
@@ -281,7 +270,7 @@
           },
           {
             "title": "Salary & Benefits",
-            "fields": ["monthlyInHandPreferred", "monthlyPFHealthInsurance"]
+            "fields": ["monthlyInHandPreferred"]
           }
         ]
       }
