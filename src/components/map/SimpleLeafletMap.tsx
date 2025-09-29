@@ -94,7 +94,7 @@ const createUserIcon = () => {
     className: 'user-marker',
     html: `
       <div style="
-        background-color: #dc2626;
+        background-color: #f97316;
         width: 20px;
         height: 20px;
         border-radius: 50%;
@@ -107,7 +107,7 @@ const createUserIcon = () => {
           top: -25px;
           left: 50%;
           transform: translateX(-50%);
-          background: #dc2626;
+          background: #f97316;
           color: white;
           padding: 2px 6px;
           border-radius: 4px;
