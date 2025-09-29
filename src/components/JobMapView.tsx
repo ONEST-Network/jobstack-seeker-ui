@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { ZoomIn, ZoomOut, Navigation, Search, CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+import { ZoomIn, ZoomOut, Navigation, Search, CheckCircle, XCircle, AlertCircle, X, MapPin, Filter, Settings, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SimpleLeafletMap from './map/SimpleLeafletMap';
@@ -11,11 +11,25 @@ import { useJobSearch, JobItem } from '@/hooks/useJobSearch';
 import { useJobSearchForMap } from '@/hooks/useJobSearchForMap';
 import { useJobApplication, JobApplicationData } from '@/hooks/useJobApplication';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface JobMapViewProps {
   searchQuery: string;
   onPromptLogin?: () => void;
-  hookData?: any; // Pass hook data from parent to avoid duplicate calls
+  hookData?: {
+    allJobs: JobItem[];
+    loading: boolean;
+    loadingState: any;
+    error: string | null;
+    totalJobsCount: number;
+    totalPages: number;
+    currentPagesFetched: number;
+    fetchProgress: number;
+    findProviderAndJobIds: (jobId: string) => { providerId: string; jobId: string } | null;
+    fetchScoresForJobs: (jobs: JobItem[]) => Promise<JobItem[]>;
+    scoresLoading: boolean;
+    retryCount: number;
+  }; // Pass hook data from parent to avoid duplicate calls
 }
 
 interface JobLocation {
@@ -62,7 +76,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
 
   const { user } = useAuth();
   // Use hookData if provided (from parent), otherwise call local hook (for standalone usage)
-  const localHookData = useJobSearchForMap({ autoFetch: !!hookData ? false : true });
+  const localHookData = useJobSearchForMap({ autoFetch: !hookData });
   const { 
     allJobs: jobs, 
     loading, 
@@ -78,6 +92,21 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
     retryCount
   } = hookData || localHookData;
   const { applyToJob, applying } = useJobApplication();
+
+  // Auto-request user location for better default map centering
+  const {
+    latitude,
+    longitude,
+    error: locationError,
+    loading: locationLoading,
+    permissionStatus,
+    getCurrentPosition
+  } = useGeolocation({
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 300000, // 5 minutes
+    autoRequest: true // Automatically request location on mount
+  });
 
   // Custom toast function for map container
   const showMapToast = (type: 'success' | 'error' | 'info', title: string, description?: string, duration = 4000) => {
@@ -97,6 +126,19 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
     setMapToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
+  // Auto-center map on user location when available
+  useEffect(() => {
+    if (latitude !== null && longitude !== null) {
+      const userLocation = { lat: latitude, lng: longitude };
+      setUserLocation(userLocation);
+      setMapCenter(userLocation);
+      setZoom(12); // Zoom to a good level for viewing local jobs
+      
+      // Optional: Show a subtle toast that location was detected
+      showMapToast('success', 'Location Detected', 'Map centered on your location', 2000);
+    }
+  }, [latitude, longitude]);
+
   // Geocoding function to convert location name to coordinates
   const geocodeLocation = async (locationName: string): Promise<LatLng | null> => {
     try {
@@ -112,8 +154,14 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
   // Handle location search
   const handleLocationSearch = async (searchQuery: string) => {
     if (!searchQuery.trim()) {
-      setMapCenter(DEFAULT_CENTER);
-      setZoom(5);
+      // If user location is available, return to user location, otherwise default to India view
+      if (userLocation) {
+        setMapCenter(userLocation);
+        setZoom(12);
+      } else {
+        setMapCenter(DEFAULT_CENTER);
+        setZoom(5);
+      }
       return;
     }
 
@@ -151,9 +199,17 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
   // Handle clear search
   const handleClearSearch = () => {
     setMapSearchQuery('');
-    setMapCenter(DEFAULT_CENTER);
-    setZoom(5);
-    showMapToast('info', 'Search Cleared', 'Reset to default view');
+    
+    // If user location is available, return to user location, otherwise default to India view
+    if (userLocation) {
+      setMapCenter(userLocation);
+      setZoom(12);
+      showMapToast('info', 'Search Cleared', 'Returned to your location');
+    } else {
+      setMapCenter(DEFAULT_CENTER);
+      setZoom(5);
+      showMapToast('info', 'Search Cleared', 'Reset to default view');
+    }
   };
 
   // Optimized job filtering with memoization
@@ -174,7 +230,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
         job.industry || '',
         job.description || '',
         job.jobDetails?.skills?.join(' ') || '',
-        job.tags?.jobNeeds?.hrWorkExperienceOther || ''
+        ((job.tags as Record<string, unknown>)?.jobNeeds as Record<string, unknown>)?.hrWorkExperienceOther as string || ''
       ].map(field => field.toLowerCase());
 
       // Check if all search terms are found in any of the searchable fields
@@ -356,28 +412,24 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
   //   }
   // };
 
+  
+
   // Find My Location handler
-  const handleFindMyLocation = () => {
+  const handleFindMyLocation = async () => {
     if (!navigator.geolocation) {
       showMapToast('error', 'Location Error', 'Geolocation is not supported by your browser.');
       return;
     }
+
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation({ lat: latitude, lng: longitude });
-        setMapCenter({ lat: latitude, lng: longitude });
-        setZoom(12); // Zoom in when user location is found
-        setLocating(false);
-        showMapToast('success', 'Location Found!', 'Your location has been detected successfully.');
-      },
-      (error) => {
-        setLocating(false);
-        showMapToast('error', 'Location Error', 'Unable to retrieve your location.');
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+    try {
+      await getCurrentPosition();
+      // The useEffect above will handle centering the map
+    } catch (error) {
+      showMapToast('error', 'Location Error', 'Unable to retrieve your location.');
+    } finally {
+      setLocating(false);
+    }
   };
 
   // Custom Toast Component
