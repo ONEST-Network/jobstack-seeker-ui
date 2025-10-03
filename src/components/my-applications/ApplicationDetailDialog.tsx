@@ -12,6 +12,7 @@ interface ApplicationDetailDialogProps {
   application: any; // raw application object from API
   isOpen: boolean;
   onClose: () => void;
+  status?: string; // processed status from the parent component
 }
 
 // Helper to convert camelCase / snake to Title Case
@@ -57,6 +58,7 @@ const ApplicationDetailDialog: React.FC<ApplicationDetailDialogProps> = ({
   application,
   isOpen,
   onClose,
+  status: processedStatus,
 }) => {
   if (!application) return null;
 
@@ -67,7 +69,8 @@ const ApplicationDetailDialog: React.FC<ApplicationDetailDialogProps> = ({
   const jobDetails = tag.jobDetails || {};
   const jobNeeds = tag.jobNeeds || {};
   const jobProviderLocation = tag.jobProviderLocation || {};
-  const status = application.status;
+  // Use the processed status if provided, otherwise fall back to the raw application status
+  const status = processedStatus || application.status;
 
   return (
     <Dialog open={isOpen} onOpenChange={(o) => (!o ? onClose() : undefined)}>

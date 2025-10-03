@@ -596,6 +596,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({
         application={application.raw ?? application}
         isOpen={dialogOpen}
         onClose={() => setDialogOpen(false)}
+        status={application.status}
       />
       <ApplicationViewModal
         isOpen={viewApplicationOpen}
