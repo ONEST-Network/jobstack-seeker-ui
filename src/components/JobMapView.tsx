@@ -70,6 +70,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
   const [locating, setLocating] = useState(false);
   const [zoom, setZoom] = useState(5);
   const [searchingLocation, setSearchingLocation] = useState(false);
+  const [showIndividualJobs, setShowIndividualJobs] = useState(false);
   
   // Custom map toast state
   const [mapToasts, setMapToasts] = useState<MapToast[]>([]);
@@ -350,6 +351,33 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
     setSelectedJob(job);
   }, [user, onPromptLogin]);
 
+  const handleToggleIndividualJobs = useCallback(() => {
+    setShowIndividualJobs(prev => {
+      const newValue = !prev;
+      showMapToast(
+        'info', 
+        newValue ? 'Individual Mode' : 'Clustered Mode',
+        newValue ? 'Showing exact job locations' : 'Showing grouped job locations',
+        2000
+      );
+      return newValue;
+    });
+  }, []);
+
+  const handleJobClick = useCallback((job: JobItem) => {
+    // Show job details when clicking on an individual job marker
+    setSelectedJobForDetails(job);
+    
+    // Fetch scores for the specific job if user is logged in
+    if (user) {
+      fetchScoresForJobs([job]).then(jobsWithScores => {
+        if (jobsWithScores.length > 0) {
+          setSelectedJobForDetails(jobsWithScores[0]);
+        }
+      });
+    }
+  }, [user, fetchScoresForJobs]);
+
   const handleJobApplicationSubmit = async (applicationData: JobApplicationData) => {
     if (!selectedJob) return;
 
@@ -612,6 +640,10 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
           onLocationSearch={handleLocationSearch}
           searchingLocation={searchingLocation}
           onClearSearch={handleClearSearch}
+          showIndividualJobs={showIndividualJobs}
+          onToggleIndividualJobs={handleToggleIndividualJobs}
+          allJobs={filteredJobs}
+          onJobClick={handleJobClick}
         />
 
         {/* Custom Toast Container - Inside Map Container */}

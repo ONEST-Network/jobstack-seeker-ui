@@ -302,6 +302,8 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
             contactPerson,
             jobProviderName: tags?.basicInfo?.jobProviderName || provider.descriptor?.name || 'Unknown Company',
             jobProviderLocation: jobProviderLocation,
+            locations: item.locations, // Preserve direct locations from API response
+            descriptor: item.descriptor, // Preserve descriptor for job title
             jobDetails,
             tags,
             media
