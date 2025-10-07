@@ -54,6 +54,10 @@ interface SimpleLeafletMapProps {
   onLocationSearch?: (searchQuery: string) => void;
   searchingLocation?: boolean;
   onClearSearch?: () => void;
+  showIndividualJobs?: boolean;
+  onToggleIndividualJobs?: () => void;
+  onJobClick?: (jobOrJobs: any | any[]) => void;
+  allJobs?: any[];
 }
 
 // Create custom icons for different job densities
@@ -88,6 +92,48 @@ const createCustomIcon = (density: 'high' | 'medium' | 'low', jobCount: number) 
   });
 };
 
+// Create individual job marker icon with briefcase and job count
+const createJobIcon = (jobCount: number = 1) => {
+  const size = jobCount > 1 ? 32 : 28; // Increased size for better visibility
+  const fontSize = jobCount > 1 ? '12px' : '10px';
+  const borderWidth = 3; // Thicker border for better contrast
+  
+  return L.divIcon({
+    className: 'individual-job-marker',
+    html: `
+      <div style="
+        background-color: #1d4ed8;
+        width: ${size}px;
+        height: ${size}px;
+        border-radius: 50%;
+        border: ${borderWidth}px solid white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        transition: all 0.2s ease;
+      ">
+        ${jobCount > 1 ? `
+          <span style="
+            color: white;
+            font-weight: bold;
+            font-size: ${fontSize};
+            line-height: 1;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+          ">${jobCount}</span>
+        ` : `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));">
+            <path d="M10 2v2H8v2H6v2H4v12h16V8h-2V6h-2V4h-2V2h-4zm2 2h2v2h2v2h2v10H6V8h2V6h2V4h2zm-2 4v2h4V8h-4zm0 4v2h4v-2h-4z"/>
+          </svg>
+        `}
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+};
 // Create user location icon - changed to red color
 const createUserIcon = () => {
   return L.divIcon({
@@ -188,13 +234,18 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
   loading = false,
   onLocationSearch,
   searchingLocation = false,
-  onClearSearch
+  onClearSearch,
+  showIndividualJobs = false,
+  onToggleIndividualJobs,
+  onJobClick,
+  allJobs = []
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
+  const jobMarkersRef = useRef<L.Marker[]>([]);
 
   // Initialize map
   useEffect(() => {
@@ -329,6 +380,161 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
       markersRef.current.push(marker);
     });
 
+    // Clear existing individual job markers
+    jobMarkersRef.current.forEach(marker => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.removeLayer(marker);
+      }
+    });
+    jobMarkersRef.current = [];
+
+    if (showIndividualJobs && allJobs.length > 0) {
+      // Show individual job markers without clustering
+      // Filter jobs that have GPS coordinates first
+      const jobsWithGPS = allJobs.filter(job => {
+        const gps = job.jobProviderLocation?.gps || 
+                   job.tags?.basicInfo?.jobProviderLocation?.gps ||
+                   job.locations?.gps; // Also check direct locations.gps from API
+        return gps && gps.lat && gps.lng;
+      });
+      
+      // Limit number of markers for performance at low zoom levels
+      const maxMarkers = zoom < 8 ? 200 : zoom < 12 ? 500 : jobsWithGPS.length;
+      const jobsToShow = jobsWithGPS.slice(0, maxMarkers);
+      
+      console.log(`🗺️ Individual mode: Showing ${jobsToShow.length} job markers from ${jobsWithGPS.length} jobs with GPS coordinates`);
+      
+      // Group jobs by location to handle multiple jobs at same coordinates
+      const jobsByLocation = new Map<string, any[]>();
+      
+      jobsToShow.forEach((job, index) => {
+        // Extract GPS coordinates from multiple possible locations in the job data
+        const gps = job.jobProviderLocation?.gps || 
+                   job.tags?.basicInfo?.jobProviderLocation?.gps ||
+                   job.locations?.gps; // Direct from API response locations
+        
+        if (!gps || !gps.lat || !gps.lng) {
+          console.warn('Job missing GPS coordinates:', job.id || job.descriptor?.name);
+          return; // Skip jobs without GPS coordinates
+        }
+        
+        // Ensure coordinates are numbers
+        const lat = parseFloat(gps.lat);
+        const lng = parseFloat(gps.lng);
+        
+        if (isNaN(lat) || isNaN(lng)) {
+          console.warn('Invalid GPS coordinates:', gps);
+          return;
+        }
+        
+        // Create location key for grouping (rounded to 4 decimal places for grouping nearby jobs)
+        const locationKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+        
+        if (!jobsByLocation.has(locationKey)) {
+          jobsByLocation.set(locationKey, []);
+        }
+        jobsByLocation.get(locationKey)!.push(job);
+      });
+
+      // Create markers for each location group
+      jobsByLocation.forEach((jobs, locationKey) => {
+        const [latStr, lngStr] = locationKey.split(',');
+        const lat = parseFloat(latStr);
+        const lng = parseFloat(lngStr);
+        const jobCount = jobs.length;
+        
+        // Log first few locations for verification
+        if (jobsByLocation.size <= 3) {
+          console.log(`📍 Location with ${jobCount} job(s) at GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          jobs.forEach((job, index) => {
+            console.log(`  - Job ${index + 1}: "${job.descriptor?.name || job.title}"`);
+          });
+        }
+
+        const marker = L.marker([lat, lng], {
+          icon: createJobIcon(jobCount)
+        });
+        
+        // Store additional data in marker object
+        (marker as any).jobCount = jobCount;
+        (marker as any).jobs = jobs;
+
+        // Add popup for location with job count
+        const firstJob = jobs[0];
+        const company = firstJob.company || firstJob.jobProviderName || 
+                       firstJob.tags?.basicInfo?.jobProviderName || 
+                       firstJob.descriptor?.name || 'Company';
+        const city = firstJob.jobProviderLocation?.city || 
+                    firstJob.tags?.basicInfo?.jobProviderLocation?.city ||
+                    firstJob.locations?.city || 'Unknown City';
+        const state = firstJob.jobProviderLocation?.state || 
+                     firstJob.tags?.basicInfo?.jobProviderLocation?.state ||
+                     firstJob.locations?.state || 'Unknown State';
+        
+        const popupContent = `
+          <div style="min-width: 200px; padding: 8px;">
+            <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">${company}</h3>
+            <p style="margin: 0 0 8px 0; color: #666; font-size: 12px;">${city}, ${state}</p>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-weight: bold; font-size: 13px;">${jobCount} job${jobCount !== 1 ? 's' : ''}</span>
+            </div>
+            <div style="font-size: 12px; color: #666;">
+              ${jobs.slice(0, 2).map((job, index) => 
+                `<div>• ${job.title || job.descriptor?.name || 'Job Position'}</div>`
+              ).join('')}
+              ${jobs.length > 2 ? `<div>• +${jobs.length - 2} more roles</div>` : ''}
+            </div>
+          </div>
+        `;
+        
+        marker.bindPopup(popupContent, {
+          closeOnClick: false,
+          autoClose: false
+        });
+
+        // Add click handler for job selection
+        marker.on('click', () => {
+          if (jobCount > 1) {
+            // Show job selection modal for multiple jobs
+            onJobClick?.(jobs); // Pass all jobs to parent component
+          } else {
+            // Single job - directly show job details
+            onJobClick?.(jobs[0]);
+          }
+        });
+
+        // Add hover effects for better interactivity
+        marker.on('mouseover', () => {
+          const icon = marker.getIcon() as L.DivIcon;
+          if (icon && icon.options && 'html' in icon.options && typeof icon.options.html === 'string') {
+            const currentHtml = icon.options.html;
+            const hoveredHtml = currentHtml.replace(
+              'box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);',
+              'box-shadow: 0 6px 16px rgba(0,0,0,0.5), 0 0 0 3px rgba(29, 78, 216, 0.5); transform: scale(1.1);'
+            );
+            icon.options.html = hoveredHtml;
+            marker.setIcon(icon);
+          }
+        });
+
+        marker.on('mouseout', () => {
+          const icon = marker.getIcon() as L.DivIcon;
+          if (icon && icon.options && 'html' in icon.options && typeof icon.options.html === 'string') {
+            const currentHtml = icon.options.html;
+            const normalHtml = currentHtml.replace(
+              'box-shadow: 0 6px 16px rgba(0,0,0,0.5), 0 0 0 3px rgba(29, 78, 216, 0.5); transform: scale(1.1);',
+              'box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);'
+            );
+            icon.options.html = normalHtml;
+            marker.setIcon(icon);
+          }
+        });
+
+        marker.addTo(mapInstanceRef.current);
+        jobMarkersRef.current.push(marker);
+      });
+    }
+
     // Add user location marker if available (outside cluster group)
     if (userLocation) {
       // Remove existing user marker if any
@@ -349,7 +555,7 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
       userMarker.addTo(mapInstanceRef.current);
       userMarkerRef.current = userMarker;
     }
-  }, [jobLocations, userLocation, onLocationClick]);
+  }, [jobLocations, userLocation, onLocationClick, showIndividualJobs, allJobs, onJobClick, zoom]);
 
   return (
     <div className={`relative ${className}`}>
@@ -463,6 +669,17 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
         >
           <Navigation className={zoom >= 10 ? 'h-3 w-3' : 'h-4 w-4'} />
         </Button>
+        <Button
+          variant="outline"
+          size={zoom >= 10 ? "sm" : "icon"}
+          className="bg-white shadow-lg"
+          onClick={onToggleIndividualJobs}
+          title={showIndividualJobs ? "Switch to Clustered View" : "Switch to Individual View"}
+        >
+          <svg className={zoom >= 10 ? 'h-3 w-3' : 'h-4 w-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </Button>
       </div>
       
       {/* Legend - Inside Map Container */}
@@ -476,40 +693,73 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
             zoom >= 10 ? 'text-xs' : 'text-sm'
           }`}>Job Density</h3>
           <div className={zoom >= 10 ? 'space-y-1' : 'space-y-2'}>
-            <div className="flex items-center gap-2">
-              <div className={`rounded-full bg-blue-800 ${
-                zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
-              }`}></div>
-              <span className={`text-gray-600 ${
-                zoom >= 10 ? 'text-xs' : 'text-xs'
-              }`}>High (10+ jobs)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`rounded-full bg-blue-600 ${
-                zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
-              }`}></div>
-              <span className={`text-gray-600 ${
-                zoom >= 10 ? 'text-xs' : 'text-xs'
-              }`}>Medium (3-9 jobs)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`rounded-full bg-blue-400 ${
-                zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
-              }`}></div>
-              <span className={`text-gray-600 ${
-                zoom >= 10 ? 'text-xs' : 'text-xs'
-              }`}>Low (1-2 jobs)</span>
-            </div>
-            <div className="pt-1 border-t border-gray-200">
-              <div className="flex items-center gap-2">
-                <div className={`rounded-full bg-blue-600 ${
-                  zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
-                }`} style={{ background: 'linear-gradient(45deg, #3b82f6, #1e3a8a)' }}></div>
-                <span className={`text-gray-600 ${
-                  zoom >= 10 ? 'text-xs' : 'text-xs'
-                }`}>Clusters (zoom out)</span>
-              </div>
-            </div>
+            {showIndividualJobs ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <div className={`rounded-full ${
+                    zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
+                  }`} style={{ backgroundColor: '#1d4ed8' }}></div>
+                  <span className={`text-gray-600 ${
+                    zoom >= 10 ? 'text-xs' : 'text-xs'
+                  }`}>Individual Job</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`rounded-full bg-orange-600 ${
+                    zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
+                  }`}></div>
+                  <span className={`text-gray-600 ${
+                    zoom >= 10 ? 'text-xs' : 'text-xs'
+                  }`}>Your Location</span>
+                </div>
+                <div className="pt-1 border-t border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <div className={`rounded-full bg-blue-600 ${
+                      zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
+                    }`} style={{ background: 'linear-gradient(45deg, #3b82f6, #1e3a8a)' }}></div>
+                    <span className={`text-gray-600 ${
+                      zoom >= 10 ? 'text-xs' : 'text-xs'
+                    }`}>Clusters (zoom out)</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <div className={`rounded-full bg-blue-800 ${
+                    zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
+                  }`}></div>
+                  <span className={`text-gray-600 ${
+                    zoom >= 10 ? 'text-xs' : 'text-xs'
+                  }`}>High (10+ jobs)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`rounded-full bg-blue-600 ${
+                    zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
+                  }`}></div>
+                  <span className={`text-gray-600 ${
+                    zoom >= 10 ? 'text-xs' : 'text-xs'
+                  }`}>Medium (3-9 jobs)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`rounded-full bg-blue-400 ${
+                    zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
+                  }`}></div>
+                  <span className={`text-gray-600 ${
+                    zoom >= 10 ? 'text-xs' : 'text-xs'
+                  }`}>Low (1-2 jobs)</span>
+                </div>
+                <div className="pt-1 border-t border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <div className={`rounded-full bg-orange-600 ${
+                      zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
+                    }`}></div>
+                    <span className={`text-gray-600 ${
+                      zoom >= 10 ? 'text-xs' : 'text-xs'
+                    }`}>Your Location</span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

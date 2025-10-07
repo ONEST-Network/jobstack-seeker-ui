@@ -70,6 +70,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
   const [locating, setLocating] = useState(false);
   const [zoom, setZoom] = useState(5);
   const [searchingLocation, setSearchingLocation] = useState(false);
+  const [showIndividualJobs, setShowIndividualJobs] = useState(true);
   
   // Custom map toast state
   const [mapToasts, setMapToasts] = useState<MapToast[]>([]);
@@ -350,6 +351,62 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
     setSelectedJob(job);
   }, [user, onPromptLogin]);
 
+  const handleToggleIndividualJobs = useCallback(() => {
+    setShowIndividualJobs(prev => {
+      const newValue = !prev;
+      showMapToast(
+        'info', 
+        newValue ? 'Individual Mode' : 'Clustered Mode',
+        newValue ? 'Showing exact job locations' : 'Showing grouped job locations',
+        2000
+      );
+      return newValue;
+    });
+  }, []);
+
+  const handleJobClick = useCallback((jobOrJobs: JobItem | JobItem[]) => {
+    if (!user) {
+      onPromptLogin?.();
+      return;
+    }
+
+    // Check if it's an array of jobs (multiple jobs at same location)
+    if (Array.isArray(jobOrJobs)) {
+      // Create a JobLocation object from the jobs array to use existing location card modal
+      const firstJob = jobOrJobs[0];
+      const gps = firstJob.jobProviderLocation?.gps || 
+                 firstJob.tags?.basicInfo?.jobProviderLocation?.gps;
+      
+      if (gps && gps.lat && gps.lng) {
+        const jobLocation: JobLocation = {
+          id: `individual-${gps.lat}-${gps.lng}`,
+          name: firstJob.jobProviderLocation?.city || 
+                firstJob.tags?.basicInfo?.jobProviderLocation?.city || 'Unknown City',
+          state: firstJob.jobProviderLocation?.state || 
+                 firstJob.tags?.basicInfo?.jobProviderLocation?.state || 'Unknown State',
+          lat: gps.lat,
+          lng: gps.lng,
+          jobs: jobOrJobs,
+          jobCount: jobOrJobs.length,
+          density: jobOrJobs.length >= 10 ? 'high' : jobOrJobs.length >= 3 ? 'medium' : 'low'
+        };
+        
+        setSelectedLocation(jobLocation);
+      }
+    } else {
+      // Single job - show job details directly
+      setSelectedJobForDetails(jobOrJobs);
+      
+      // Fetch scores for the job if user is logged in
+      if (user) {
+        fetchScoresForJobs([jobOrJobs]).then(jobsWithScores => {
+          if (jobsWithScores.length > 0) {
+            setSelectedJobForDetails(jobsWithScores[0]);
+          }
+        });
+      }
+    }
+  }, [user, onPromptLogin, fetchScoresForJobs]);
   const handleJobApplicationSubmit = async (applicationData: JobApplicationData) => {
     if (!selectedJob) return;
 
@@ -612,6 +669,10 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
           onLocationSearch={handleLocationSearch}
           searchingLocation={searchingLocation}
           onClearSearch={handleClearSearch}
+          showIndividualJobs={showIndividualJobs}
+          onToggleIndividualJobs={handleToggleIndividualJobs}
+          onJobClick={handleJobClick}
+          allJobs={filteredJobs}
         />
 
         {/* Custom Toast Container - Inside Map Container */}
@@ -644,6 +705,7 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
           />
         </div>
       )}
+
 
     </>
   );
