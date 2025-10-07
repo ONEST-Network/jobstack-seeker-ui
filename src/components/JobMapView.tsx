@@ -671,8 +671,8 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
           onClearSearch={handleClearSearch}
           showIndividualJobs={showIndividualJobs}
           onToggleIndividualJobs={handleToggleIndividualJobs}
-          onJobClick={handleJobClick}
           allJobs={filteredJobs}
+          onJobClick={handleJobClick}
         />
 
         {/* Custom Toast Container - Inside Map Container */}

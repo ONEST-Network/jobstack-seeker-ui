@@ -56,8 +56,8 @@ interface SimpleLeafletMapProps {
   onClearSearch?: () => void;
   showIndividualJobs?: boolean;
   onToggleIndividualJobs?: () => void;
-  onJobClick?: (jobOrJobs: any | any[]) => void;
-  allJobs?: any[];
+  allJobs?: any[]; // For individual job markers
+  onJobClick?: (job: any) => void;
 }
 
 // Create custom icons for different job densities
@@ -134,6 +134,7 @@ const createJobIcon = (jobCount: number = 1) => {
     iconAnchor: [size / 2, size / 2],
   });
 };
+
 // Create user location icon - changed to red color
 const createUserIcon = () => {
   return L.divIcon({
@@ -170,19 +171,35 @@ const createUserIcon = () => {
   });
 };
 
-// Custom cluster icon function
+// Custom cluster icon function - shows total job count
 const createClusterIcon = (cluster: any) => {
-  const count = cluster.getChildCount();
+  const childMarkers = cluster.getAllChildMarkers();
+  let totalJobs = 0;
+  
+  // Calculate total job count from all markers in cluster
+  childMarkers.forEach((marker: any) => {
+    // Get the job count from the marker's options
+    if (marker.options && marker.options.jobCount) {
+      totalJobs += marker.options.jobCount;
+    } else {
+      totalJobs += 1; // Default to 1 if jobCount not available
+    }
+  });
+  
   let size = 40;
   let color = '#3b82f6';
   
-  if (count >= 50) {
-    size = 60;
+  // Size and color based on job count (not marker count)
+  if (totalJobs >= 100) {
+    size = 65;
     color = '#1e3a8a';
-  } else if (count >= 20) {
+  } else if (totalJobs >= 50) {
+    size = 60;
+    color = '#1d4ed8';
+  } else if (totalJobs >= 20) {
     size = 50;
     color = '#2563eb';
-  } else if (count >= 10) {
+  } else if (totalJobs >= 10) {
     size = 45;
     color = '#1d4ed8';
   }
@@ -200,15 +217,30 @@ const createClusterIcon = (cluster: any) => {
         justify-content: center;
         font-weight: bold;
         color: white;
-        font-size: ${size > 45 ? '14px' : '12px'};
+        font-size: ${size > 50 ? '14px' : '12px'};
         box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        position: relative;
       ">
-        ${count}
+        ${totalJobs}
+        <div style="
+          position: absolute;
+          bottom: -20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0,0,0,0.7);
+          color: white;
+          padding: 1px 4px;
+          border-radius: 8px;
+          font-size: 9px;
+          white-space: nowrap;
+        ">
+          ${totalJobs} jobs
+        </div>
       </div>
     `,
     className: 'custom-cluster',
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+    iconSize: [size, size + 20], // Extra height for label
+    iconAnchor: [size / 2, (size + 20) / 2],
   });
 };
 
@@ -237,15 +269,15 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
   onClearSearch,
   showIndividualJobs = false,
   onToggleIndividualJobs,
-  onJobClick,
-  allJobs = []
+  allJobs = [],
+  onJobClick
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const jobMarkersRef = useRef<L.Marker[]>([]);
   const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
-  const jobMarkersRef = useRef<L.Marker[]>([]);
 
   // Initialize map
   useEffect(() => {
@@ -274,16 +306,19 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
       }).addTo(map);
     }
 
-    // Create marker cluster group
+    // Create marker cluster group with improved settings
+    // Note: Clustering will be conditionally disabled for individual job mode
     const clusterGroup = L.markerClusterGroup({
       chunkedLoading: true,
-      maxClusterRadius: 60,
+      maxClusterRadius: 80, // Increased for better grouping
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: true,
       zoomToBoundsOnClick: true,
       iconCreateFunction: createClusterIcon,
       animate: true,
       animateAddingMarkers: true,
+      spiderfyDistanceMultiplier: 1.5,
+      disableClusteringAtZoom: 15, // Disable clustering at high zoom levels
     });
 
     clusterGroupRef.current = clusterGroup;
@@ -310,81 +345,13 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
   useEffect(() => {
     if (!mapInstanceRef.current || !clusterGroupRef.current) return;
 
-    // Clear existing markers from cluster group
+    // Clear existing markers from cluster group and map
     clusterGroupRef.current.clearLayers();
     markersRef.current = [];
-
-    // Add job location markers to cluster group
-    jobLocations.forEach(location => {
-      const marker = L.marker([location.lat, location.lng], {
-        icon: createCustomIcon(location.density, location.jobCount)
-      });
-
-      // Add popup
-      const popupContent = `
-        <div style="padding: 8px; min-width: 200px; max-width: 280px;">
-          <h3 style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${location.name}</h3>
-          <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${location.state}</p>
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-            <span style="font-size: 14px; font-weight: 500;">${location.jobCount} job${location.jobCount !== 1 ? 's' : ''}</span>
-            <span style="font-size: 12px; padding: 2px 8px; border-radius: 4px; background-color: ${
-              location.density === 'high' ? '#dbeafe; color: #1e3a8a' :
-              location.density === 'medium' ? '#dbeafe; color: #2563eb' :
-              '#dbeafe; color: #3b82f6'
-            };">
-              ${location.density} density
-            </span>
-          </div>
-          <div style="font-size: 12px; color: #666; margin-bottom: 8px; max-height: 80px; overflow-y: auto;">
-            ${location.jobs.slice(0, 3).map(job => `• ${job.title} at ${job.company || job.jobProviderName || 'Company'}`).join('<br>')}
-            ${location.jobs.length > 3 ? `<br>• +${location.jobs.length - 3} more roles` : ''}
-          </div>
-          <div style="border-top: 1px solid #eee; padding-top: 8px;">
-            <a href="https://www.google.com/maps?q=${location.lat},${location.lng}" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               style="
-                 display: inline-flex;
-                 align-items: center;
-                 gap: 4px;
-                 color: #2563eb;
-                 text-decoration: none;
-                 font-size: 12px;
-                 font-weight: 500;
-                 padding: 4px 8px;
-                 border-radius: 4px;
-                 background-color: #eff6ff;
-                 border: 1px solid #dbeafe;
-                 transition: all 0.2s;
-               "
-               onmouseover="this.style.backgroundColor='#dbeafe'; this.style.borderColor='#93c5fd';"
-               onmouseout="this.style.backgroundColor='#eff6ff'; this.style.borderColor='#dbeafe';"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink: 0;">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-              </svg>
-              Open in Google Maps
-            </a>
-          </div>
-        </div>
-      `;
-
-      marker.bindPopup(popupContent);
-
-      // Add click handler
-      marker.on('click', () => {
-        onLocationClick?.(location);
-      });
-
-      clusterGroupRef.current.addLayer(marker);
-      markersRef.current.push(marker);
-    });
-
-    // Clear existing individual job markers
+    
+    // Clear individual job markers
     jobMarkersRef.current.forEach(marker => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.removeLayer(marker);
-      }
+      mapInstanceRef.current?.removeLayer(marker);
     });
     jobMarkersRef.current = [];
 
@@ -533,6 +500,75 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
         marker.addTo(mapInstanceRef.current);
         jobMarkersRef.current.push(marker);
       });
+    } else {
+      // Show clustered location markers (original behavior)
+      jobLocations.forEach(location => {
+        const marker = L.marker([location.lat, location.lng], {
+          icon: createCustomIcon(location.density, location.jobCount)
+        });
+        
+        // Store additional data in marker object for clustering calculation
+        (marker as any).jobCount = location.jobCount;
+
+        // Add popup
+        const popupContent = `
+          <div style="padding: 8px; min-width: 200px; max-width: 280px;">
+            <h3 style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${location.name}</h3>
+            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${location.state}</p>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 14px; font-weight: 500;">${location.jobCount} job${location.jobCount !== 1 ? 's' : ''}</span>
+              <span style="font-size: 12px; padding: 2px 8px; border-radius: 4px; background-color: ${
+                location.density === 'high' ? '#dbeafe; color: #1e3a8a' :
+                location.density === 'medium' ? '#dbeafe; color: #2563eb' :
+                '#dbeafe; color: #3b82f6'
+              };">
+                ${location.density} density
+              </span>
+            </div>
+            <div style="font-size: 12px; color: #666; margin-bottom: 8px; max-height: 80px; overflow-y: auto;">
+              ${location.jobs.slice(0, 3).map(job => `• ${job.title} at ${job.company || job.jobProviderName || 'Company'}`).join('<br>')}
+              ${location.jobs.length > 3 ? `<br>• +${location.jobs.length - 3} more roles` : ''}
+            </div>
+            <div style="border-top: 1px solid #eee; padding-top: 8px;">
+              <a href="https://www.google.com/maps?q=${location.lat},${location.lng}" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 style="
+                   display: inline-flex;
+                   align-items: center;
+                   gap: 4px;
+                   color: #2563eb;
+                   text-decoration: none;
+                   font-size: 12px;
+                   font-weight: 500;
+                   padding: 4px 8px;
+                   border-radius: 4px;
+                   background-color: #eff6ff;
+                   border: 1px solid #dbeafe;
+                   transition: all 0.2s;
+                 "
+                 onmouseover="this.style.backgroundColor='#dbeafe'; this.style.borderColor='#93c5fd';"
+                 onmouseout="this.style.backgroundColor='#eff6ff'; this.style.borderColor='#dbeafe';"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink: 0;">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                Open in Google Maps
+              </a>
+            </div>
+          </div>
+        `;
+
+        marker.bindPopup(popupContent);
+
+        // Add click handler
+        marker.on('click', () => {
+          onLocationClick?.(location);
+        });
+
+        clusterGroupRef.current!.addLayer(marker);
+        markersRef.current.push(marker);
+      });
     }
 
     // Add user location marker if available (outside cluster group)
@@ -555,7 +591,7 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
       userMarker.addTo(mapInstanceRef.current);
       userMarkerRef.current = userMarker;
     }
-  }, [jobLocations, userLocation, onLocationClick, showIndividualJobs, allJobs, onJobClick, zoom]);
+  }, [jobLocations, userLocation, onLocationClick, showIndividualJobs, allJobs, onJobClick]);
 
   return (
     <div className={`relative ${className}`}>
@@ -631,10 +667,40 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
           <div className={`mt-2 text-gray-600 ${
             zoom >= 10 ? 'text-xs' : 'text-xs'
           }`}>
-            {filteredJobLocations.length} location{filteredJobLocations.length !== 1 ? 's' : ''} • {' '}
-            {filteredJobLocations.reduce((sum, loc) => sum + loc.jobCount, 0)} job{filteredJobLocations.reduce((sum, loc) => sum + loc.jobCount, 0) !== 1 ? 's' : ''}
-            {zoom < 8 && (
-              <span className="text-blue-600 ml-1">• Zoom in to see individual locations</span>
+            {showIndividualJobs ? (
+              <>
+                {(() => {
+                  const totalJobs = allJobs?.length || 0;
+                  // Filter jobs with GPS coordinates
+                  const jobsWithGPS = allJobs?.filter(job => {
+                    const gps = job.jobProviderLocation?.gps || 
+                               job.tags?.basicInfo?.jobProviderLocation?.gps ||
+                               job.locations?.gps;
+                    return gps && gps.lat && gps.lng;
+                  }) || [];
+                  const maxMarkers = zoom < 8 ? 200 : zoom < 12 ? 500 : jobsWithGPS.length;
+                  const showingCount = Math.min(jobsWithGPS.length, maxMarkers);
+                  return (
+                    <>
+                      {showingCount} of {jobsWithGPS.length} jobs with GPS shown
+                      {totalJobs > jobsWithGPS.length && (
+                        <span className="text-amber-600 ml-1">• {totalJobs - jobsWithGPS.length} jobs missing GPS</span>
+                      )}
+                      {showingCount < jobsWithGPS.length && (
+                        <span className="text-green-600 ml-1">• Zoom in to see more</span>
+                      )}
+                    </>
+                  );
+                })()}
+              </>
+            ) : (
+              <>
+                {filteredJobLocations.length} location{filteredJobLocations.length !== 1 ? 's' : ''} • {' '}
+                {filteredJobLocations.reduce((sum, loc) => sum + loc.jobCount, 0)} job{filteredJobLocations.reduce((sum, loc) => sum + loc.jobCount, 0) !== 1 ? 's' : ''}
+                {zoom < 8 && (
+                  <span className="text-blue-600 ml-1">• Zoom in to see individual locations</span>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -669,17 +735,32 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
         >
           <Navigation className={zoom >= 10 ? 'h-3 w-3' : 'h-4 w-4'} />
         </Button>
-        <Button
-          variant="outline"
-          size={zoom >= 10 ? "sm" : "icon"}
-          className="bg-white shadow-lg"
-          onClick={onToggleIndividualJobs}
-          title={showIndividualJobs ? "Switch to Clustered View" : "Switch to Individual View"}
-        >
-          <svg className={zoom >= 10 ? 'h-3 w-3' : 'h-4 w-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-        </Button>
+        
+        {/* Individual Jobs Toggle */}
+        {onToggleIndividualJobs && (
+          <Button
+            variant={showIndividualJobs ? "default" : "outline"}
+            size={zoom >= 10 ? "sm" : "icon"}
+            className={`bg-white shadow-lg ${
+              showIndividualJobs 
+                ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' 
+                : ''
+            }`}
+            onClick={onToggleIndividualJobs}
+            title={showIndividualJobs ? 'Switch to clustered view' : 'Show individual job locations'}
+          >
+            {showIndividualJobs ? (
+              <svg className={zoom >= 10 ? 'h-3 w-3' : 'h-4 w-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V7.618a1 1 0 01.553-.894L9 4l6 3 6-3v13l-6 3-6-3z" />
+              </svg>
+            ) : (
+              <svg className={zoom >= 10 ? 'h-3 w-3' : 'h-4 w-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            )}
+          </Button>
+        )}
       </div>
       
       {/* Legend - Inside Map Container */}
@@ -691,7 +772,7 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
         }`}>
           <h3 className={`font-semibold mb-2 ${
             zoom >= 10 ? 'text-xs' : 'text-sm'
-          }`}>Job Density</h3>
+          }`}>{showIndividualJobs ? 'Individual Jobs' : 'Job Density'}</h3>
           <div className={zoom >= 10 ? 'space-y-1' : 'space-y-2'}>
             {showIndividualJobs ? (
               <>
@@ -711,15 +792,10 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
                     zoom >= 10 ? 'text-xs' : 'text-xs'
                   }`}>Your Location</span>
                 </div>
-                <div className="pt-1 border-t border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <div className={`rounded-full bg-blue-600 ${
-                      zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
-                    }`} style={{ background: 'linear-gradient(45deg, #3b82f6, #1e3a8a)' }}></div>
-                    <span className={`text-gray-600 ${
-                      zoom >= 10 ? 'text-xs' : 'text-xs'
-                    }`}>Clusters (zoom out)</span>
-                  </div>
+                <div className={`pt-1 border-t border-gray-200 ${
+                  zoom >= 10 ? 'text-xs' : 'text-xs'
+                }`}>
+                  <span className="text-gray-500 italic">Each marker = exact job location</span>
                 </div>
               </>
             ) : (
@@ -750,12 +826,12 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
                 </div>
                 <div className="pt-1 border-t border-gray-200">
                   <div className="flex items-center gap-2">
-                    <div className={`rounded-full bg-orange-600 ${
+                    <div className={`rounded-full bg-blue-600 ${
                       zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
-                    }`}></div>
+                    }`} style={{ background: 'linear-gradient(45deg, #3b82f6, #1e3a8a)' }}></div>
                     <span className={`text-gray-600 ${
                       zoom >= 10 ? 'text-xs' : 'text-xs'
-                    }`}>Your Location</span>
+                    }`}>Clusters (zoom out)</span>
                   </div>
                 </div>
               </>
