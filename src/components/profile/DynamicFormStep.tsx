@@ -91,6 +91,17 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const schema = getUnifiedSchemaStep(role, stepName);
 
   if (!schema) {
+    // If we're just imported from wallet, avoid flashing a red error and show a neutral loading state
+    if ((profile as any)?.importedFromWallet) {
+      return (
+        <div className="p-6 text-center">
+          <div className="inline-flex items-center gap-2 text-gray-600">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Preparing form for your imported role…</span>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="p-4 text-center">
         <div className="text-red-600 mb-2">Schema not found for step: {stepName}</div>
@@ -319,7 +330,11 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         // Merge the organized sections
         whoIAm: { ...prevProfile.whoIAm, ...data.whoIAm },
         whatIHave: { ...prevProfile.whatIHave, ...data.whatIHave },
-        whatIWant: { ...prevProfile.whatIWant, ...data.whatIWant }
+        whatIWant: { ...prevProfile.whatIWant, ...data.whatIWant },
+        // Also merge direct fields for backward compatibility
+        ...data.whoIAm,
+        ...data.whatIHave,
+        ...data.whatIWant
       };
 
       console.log('Updated profile with wallet data:', updatedProfile);
@@ -375,7 +390,9 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     const isWalletImported = profile.importedFromWallet && (
       (profile.whoIAm && profile.whoIAm[fieldName]) ||
       (profile.whatIHave && profile.whatIHave[fieldName]) ||
-      (profile.whatIWant && profile.whatIWant[fieldName])
+      (profile.whatIWant && profile.whatIWant[fieldName]) ||
+      // Also check direct profile fields for wallet-imported data
+      profile[fieldName]
     );
 
     // Always access search state to ensure consistent hook calls
@@ -656,7 +673,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               {isVerified && (
                 <div className="flex items-center gap-2 text-sm text-green-600">
                   <Shield className="h-4 w-4" />
-                  <span>{verificationMessage || `Verified via DigiLocker`}</span>
+                  <span>{verificationMessage || (profile.importedFromWallet ? `Imported from Wallet` : `Verified via DigiLocker`)}</span>
                 </div>
               )}
               
@@ -706,7 +723,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               {isVerified && (
                 <div className="flex items-center gap-2 text-sm text-green-600">
                   <Shield className="h-4 w-4" />
-                  <span>{verificationMessage || `Verified via DigiLocker`}</span>
+                  <span>{verificationMessage || (profile.importedFromWallet ? `Imported from Wallet` : `Verified via DigiLocker`)}</span>
                 </div>
               )}
               
@@ -743,7 +760,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || `Verified via DigiLocker`}
+                {verificationMessage || (profile.importedFromWallet ? `Imported from Wallet` : `Verified via DigiLocker`)}
               </p>
             )}
             {isWalletImported && !isVerified && (
@@ -813,7 +830,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || `Verified via DigiLocker`}
+                {verificationMessage || (profile.importedFromWallet ? `Imported from Wallet` : `Verified via DigiLocker`)}
               </p>
             )}
             {isWalletImported && !isVerified && (
@@ -860,7 +877,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || `Verified via DigiLocker`}
+                {verificationMessage || (profile.importedFromWallet ? `Imported from Wallet` : `Verified via DigiLocker`)}
               </p>
             )}
             {isWalletImported && !isVerified && (

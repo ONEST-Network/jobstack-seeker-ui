@@ -7,6 +7,7 @@ export interface WalletCredentialSubject {
   name?: string;
   email?: string;
   phone_number?: number;
+  phone?: number; // Alternative phone field name
   usn?: string;
   grade?: string;
   cert_id?: string;
@@ -16,6 +17,26 @@ export interface WalletCredentialSubject {
   issue_date?: string;
   start_date?: string;
   event?: string;
+  // ITI specific fields
+  trade?: string;
+  gender?: string;
+  session?: string;
+  iti_code?: string;
+  iti_name?: string;
+  date_of_birth?: string;
+  date_of_issue?: string;
+  name_of_issuer?: string;
+  place_of_issue?: string;
+  final_exam_year?: string;
+  name_of_attestor?: string;
+  final_exam_result?: string;
+  authority_of_issuer?: string;
+  date_of_attestation?: string;
+  registration_number?: string;
+  place_of_attestation?: string;
+  authority_of_attestor?: string;
+  organization_of_issuer?: string;
+  organization_of_attestor?: string;
   '@context'?: string;
   [key: string]: string | number | boolean | undefined; // Allow additional fields
 }
@@ -205,7 +226,7 @@ class WalletAPI {
       importedFromWallet: true
     };
 
-    // Who I Am section
+    // Who I Am section - Personal Information
     if (credentialSubject.name) {
       transformedData.whoIAm.name = credentialSubject.name;
       transformedData.whoIAm.isNameVerified = true;
@@ -216,28 +237,83 @@ class WalletAPI {
       transformedData.whoIAm.isEmailVerified = true;
     }
 
-    if (credentialSubject.phone_number) {
-      transformedData.whoIAm.phone = credentialSubject.phone_number.toString();
+    // Handle phone number (both phone_number and phone fields)
+    const phoneNumber = credentialSubject.phone_number || credentialSubject.phone;
+    if (phoneNumber) {
+      transformedData.whoIAm.phone = phoneNumber.toString();
       transformedData.whoIAm.isPhoneVerified = true;
     }
 
-    // Calculate age from dates if available
-    if (credentialSubject.start_date || credentialSubject.issue_date) {
-      const dateStr = credentialSubject.start_date || credentialSubject.issue_date;
-      if (dateStr) {
-        try {
-          const date = new Date(dateStr);
-          const today = new Date();
-          const age = today.getFullYear() - date.getFullYear();
+    // Handle gender
+    if (credentialSubject.gender) {
+      transformedData.whoIAm.gender = credentialSubject.gender.toLowerCase();
+      transformedData.whoIAm.isGenderVerified = true;
+    }
+
+    // Calculate age from date_of_birth
+    if (credentialSubject.date_of_birth) {
+      try {
+        const birthDate = new Date(credentialSubject.date_of_birth);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        // Adjust if birthday hasn't occurred this year
+        if (today.getMonth() < birthDate.getMonth() || 
+            (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) {
+          transformedData.whoIAm.age = age - 1;
+        } else {
           transformedData.whoIAm.age = age;
-          transformedData.whoIAm.isAgeVerified = true;
-        } catch (error) {
-          // Ignore date parsing errors
         }
+        transformedData.whoIAm.isAgeVerified = true;
+      } catch (error) {
+        console.warn('Error parsing date_of_birth:', error);
       }
     }
 
-    // What I Have section (Qualifications, Skills, Experience)
+    // What I Have section - Qualifications, Skills, Experience
+    // ITI Trade/Specialty mapping
+    if (credentialSubject.trade) {
+      transformedData.whatIHave.itiSpecialization = [credentialSubject.trade];
+      transformedData.whatIHave.interestedRole = credentialSubject.trade;
+    }
+
+    // ITI Institute name mapping
+    if (credentialSubject.iti_name) {
+      transformedData.whatIHave.itiInstitute = credentialSubject.iti_name;
+    }
+
+    // ITI Code mapping
+    if (credentialSubject.iti_code) {
+      transformedData.whatIHave.itiCode = credentialSubject.iti_code;
+    }
+
+    // Registration number to Roll number mapping
+    if (credentialSubject.registration_number) {
+      transformedData.whatIHave.rollNumber = credentialSubject.registration_number;
+    }
+
+    // Session to Training Duration mapping
+    if (credentialSubject.session) {
+      try {
+        const sessionYear = parseInt(credentialSubject.session);
+        if (!isNaN(sessionYear)) {
+          transformedData.whatIHave.trainingDuration = sessionYear;
+        }
+      } catch (error) {
+        console.warn('Error parsing session year:', error);
+      }
+    }
+
+    // Final exam result mapping
+    if (credentialSubject.final_exam_result) {
+      transformedData.whatIHave.finalExamResult = credentialSubject.final_exam_result;
+    }
+
+    // Final exam year mapping
+    if (credentialSubject.final_exam_year) {
+      transformedData.whatIHave.finalExamYear = credentialSubject.final_exam_year;
+    }
+
+    // Legacy certificate fields (for backward compatibility)
     if (credentialSubject.cert_name) {
       transformedData.whatIHave.certificationName = credentialSubject.cert_name;
     }
@@ -267,7 +343,7 @@ class WalletAPI {
       transformedData.whatIHave.educationCredential = credentialSubject.education_credential;
     }
 
-    // What I Want section (Salary expectations and work preferences)
+    // What I Want section - Salary expectations and work preferences
     // These would typically come from job-related credentials or user preferences
     // For now, we'll leave this section mostly empty as it's more user-specific
 
