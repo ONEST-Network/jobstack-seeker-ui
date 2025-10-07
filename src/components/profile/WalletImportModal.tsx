@@ -117,7 +117,7 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
     setStep('requestCode');
 
     try {
-      const response = await walletAPI.requestCode(identifier, type === 'email' ? 'email' : 'phoneNumber');
+      const response = await walletAPI.requestCode(identifier, type === 'email' ? 'email' : 'phone');
       
       // Treat any successful HTTP response as success to avoid false negatives
       toast({
