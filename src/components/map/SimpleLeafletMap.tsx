@@ -92,24 +92,46 @@ const createCustomIcon = (density: 'high' | 'medium' | 'low', jobCount: number) 
   });
 };
 
-// Create individual job marker icon
-const createJobIcon = () => {
+// Create individual job marker icon with briefcase and job count
+const createJobIcon = (jobCount: number = 1) => {
+  const size = jobCount > 1 ? 32 : 28; // Increased size for better visibility
+  const fontSize = jobCount > 1 ? '12px' : '10px';
+  const borderWidth = 3; // Thicker border for better contrast
+  
   return L.divIcon({
     className: 'individual-job-marker',
     html: `
       <div style="
-        background-color: #059669;
-        width: 16px;
-        height: 16px;
+        background-color: #1d4ed8;
+        width: ${size}px;
+        height: ${size}px;
         border-radius: 50%;
-        border: 2px solid white;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        border: ${borderWidth}px solid white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        transition: all 0.2s ease;
       ">
+        ${jobCount > 1 ? `
+          <span style="
+            color: white;
+            font-weight: bold;
+            font-size: ${fontSize};
+            line-height: 1;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+          ">${jobCount}</span>
+        ` : `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));">
+            <path d="M10 2v2H8v2H6v2H4v12h16V8h-2V6h-2V4h-2V2h-4zm2 2h2v2h2v2h2v10H6V8h2V6h2V4h2zm-2 4v2h4V8h-4zm0 4v2h4v-2h-4z"/>
+          </svg>
+        `}
       </div>
     `,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   });
 };
 
@@ -349,6 +371,9 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
       
       console.log(`🗺️ Individual mode: Showing ${jobsToShow.length} job markers from ${jobsWithGPS.length} jobs with GPS coordinates`);
       
+      // Group jobs by location to handle multiple jobs at same coordinates
+      const jobsByLocation = new Map<string, any[]>();
+      
       jobsToShow.forEach((job, index) => {
         // Extract GPS coordinates from multiple possible locations in the job data
         const gps = job.jobProviderLocation?.gps || 
@@ -369,91 +394,121 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
           return;
         }
         
-        // Log first few jobs for verification
-        if (index < 3) {
-          console.log(`📍 Job "${job.descriptor?.name || job.title}" at GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        // Create location key for grouping (rounded to 4 decimal places for grouping nearby jobs)
+        const locationKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+        
+        if (!jobsByLocation.has(locationKey)) {
+          jobsByLocation.set(locationKey, []);
+        }
+        jobsByLocation.get(locationKey)!.push(job);
+      });
+
+      // Create markers for each location group
+      jobsByLocation.forEach((jobs, locationKey) => {
+        const [latStr, lngStr] = locationKey.split(',');
+        const lat = parseFloat(latStr);
+        const lng = parseFloat(lngStr);
+        const jobCount = jobs.length;
+        
+        // Log first few locations for verification
+        if (jobsByLocation.size <= 3) {
+          console.log(`📍 Location with ${jobCount} job(s) at GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          jobs.forEach((job, index) => {
+            console.log(`  - Job ${index + 1}: "${job.descriptor?.name || job.title}"`);
+          });
         }
 
         const marker = L.marker([lat, lng], {
-          icon: createJobIcon()
+          icon: createJobIcon(jobCount)
         });
+        
+        // Store additional data in marker object
+        (marker as any).jobCount = jobCount;
+        (marker as any).jobs = jobs;
 
-        // Add popup for individual job
-        const company = job.company || job.jobProviderName || 
-                       job.tags?.basicInfo?.jobProviderName || 
-                       job.descriptor?.name || 'Company';
-        const city = job.jobProviderLocation?.city || 
-                    job.tags?.basicInfo?.jobProviderLocation?.city ||
-                    job.locations?.city || 'Unknown City';
-        const state = job.jobProviderLocation?.state || 
-                     job.tags?.basicInfo?.jobProviderLocation?.state ||
-                     job.locations?.state || 'Unknown State';
-        const jobTitle = job.title || job.descriptor?.name || 'Job Position';
-        const salary = job.salary || 
-                      (job.tags?.jobDetails?.minMonthlyInHand && job.tags?.jobDetails?.maxMonthlyInHand 
-                        ? `₹${job.tags.jobDetails.minMonthlyInHand} - ₹${job.tags.jobDetails.maxMonthlyInHand}` 
-                        : '');
-        const positions = job.tags?.jobDetails?.positions || 1;
+        // Add popup for location with job count
+        const firstJob = jobs[0];
+        const company = firstJob.company || firstJob.jobProviderName || 
+                       firstJob.tags?.basicInfo?.jobProviderName || 
+                       firstJob.descriptor?.name || 'Company';
+        const city = firstJob.jobProviderLocation?.city || 
+                    firstJob.tags?.basicInfo?.jobProviderLocation?.city ||
+                    firstJob.locations?.city || 'Unknown City';
+        const state = firstJob.jobProviderLocation?.state || 
+                     firstJob.tags?.basicInfo?.jobProviderLocation?.state ||
+                     firstJob.locations?.state || 'Unknown State';
         
         const popupContent = `
-          <div style="padding: 8px; min-width: 200px; max-width: 280px;">
-            <h3 style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${jobTitle}</h3>
-            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${company}</p>
-            <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
-              📍 ${city}, ${state}
+          <div style="min-width: 200px; padding: 8px;">
+            <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">${company}</h3>
+            <p style="margin: 0 0 8px 0; color: #666; font-size: 12px;">${city}, ${state}</p>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-weight: bold; font-size: 13px;">${jobCount} job${jobCount !== 1 ? 's' : ''}</span>
             </div>
-            ${salary ? `<div style="font-size: 12px; color: #059669; font-weight: 500; margin-bottom: 8px;">💰 ${salary}</div>` : ''}
-            ${positions > 1 ? `<div style="font-size: 12px; color: #2563eb; margin-bottom: 8px;">👥 ${positions} positions</div>` : ''}
-            <div style="font-size: 10px; color: #888; margin-bottom: 8px;">
-              GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}
-            </div>
-            <div style="border-top: 1px solid #eee; padding-top: 8px;">
-              <a href="https://www.google.com/maps?q=${lat},${lng}" 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 style="
-                   display: inline-flex;
-                   align-items: center;
-                   gap: 4px;
-                   color: #059669;
-                   text-decoration: none;
-                   font-size: 12px;
-                   font-weight: 500;
-                   padding: 4px 8px;
-                   border-radius: 4px;
-                   background-color: #ecfdf5;
-                   border: 1px solid #d1fae5;
-                   transition: all 0.2s;
-                 "
-                 onmouseover="this.style.backgroundColor='#d1fae5'; this.style.borderColor='#a7f3d0';"
-                 onmouseout="this.style.backgroundColor='#ecfdf5'; this.style.borderColor='#d1fae5';"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink: 0;">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-                Exact Location
-              </a>
+            <div style="font-size: 12px; color: #666;">
+              ${jobs.slice(0, 2).map((job, index) => 
+                `<div>• ${job.title || job.descriptor?.name || 'Job Position'}</div>`
+              ).join('')}
+              ${jobs.length > 2 ? `<div>• +${jobs.length - 2} more roles</div>` : ''}
             </div>
           </div>
         `;
-
-        marker.bindPopup(popupContent);
-
-        // Add click handler for individual jobs
-        marker.on('click', () => {
-          onJobClick?.(job);
+        
+        marker.bindPopup(popupContent, {
+          closeOnClick: false,
+          autoClose: false
         });
 
-        mapInstanceRef.current!.addLayer(marker);
+        // Add click handler for job selection
+        marker.on('click', () => {
+          if (jobCount > 1) {
+            // Show job selection modal for multiple jobs
+            onJobClick?.(jobs); // Pass all jobs to parent component
+          } else {
+            // Single job - directly show job details
+            onJobClick?.(jobs[0]);
+          }
+        });
+
+        // Add hover effects for better interactivity
+        marker.on('mouseover', () => {
+          const icon = marker.getIcon() as L.DivIcon;
+          if (icon && icon.options && 'html' in icon.options && typeof icon.options.html === 'string') {
+            const currentHtml = icon.options.html;
+            const hoveredHtml = currentHtml.replace(
+              'box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);',
+              'box-shadow: 0 6px 16px rgba(0,0,0,0.5), 0 0 0 3px rgba(29, 78, 216, 0.5); transform: scale(1.1);'
+            );
+            icon.options.html = hoveredHtml;
+            marker.setIcon(icon);
+          }
+        });
+
+        marker.on('mouseout', () => {
+          const icon = marker.getIcon() as L.DivIcon;
+          if (icon && icon.options && 'html' in icon.options && typeof icon.options.html === 'string') {
+            const currentHtml = icon.options.html;
+            const normalHtml = currentHtml.replace(
+              'box-shadow: 0 6px 16px rgba(0,0,0,0.5), 0 0 0 3px rgba(29, 78, 216, 0.5); transform: scale(1.1);',
+              'box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);'
+            );
+            icon.options.html = normalHtml;
+            marker.setIcon(icon);
+          }
+        });
+
+        marker.addTo(mapInstanceRef.current);
         jobMarkersRef.current.push(marker);
       });
     } else {
       // Show clustered location markers (original behavior)
       jobLocations.forEach(location => {
         const marker = L.marker([location.lat, location.lng], {
-          icon: createCustomIcon(location.density, location.jobCount),
-          jobCount: location.jobCount // Add jobCount to marker options for clustering calculation
+          icon: createCustomIcon(location.density, location.jobCount)
         });
+        
+        // Store additional data in marker object for clustering calculation
+        (marker as any).jobCount = location.jobCount;
 
         // Add popup
         const popupContent = `
@@ -722,9 +777,9 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
             {showIndividualJobs ? (
               <>
                 <div className="flex items-center gap-2">
-                  <div className={`rounded-full bg-green-600 ${
+                  <div className={`rounded-full ${
                     zoom >= 10 ? 'w-2 h-2' : 'w-3 h-3'
-                  }`}></div>
+                  }`} style={{ backgroundColor: '#1d4ed8' }}></div>
                   <span className={`text-gray-600 ${
                     zoom >= 10 ? 'text-xs' : 'text-xs'
                   }`}>Individual Job</span>
