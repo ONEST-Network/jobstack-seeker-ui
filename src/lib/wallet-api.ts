@@ -207,7 +207,8 @@ class WalletAPI {
    * @returns Promise with verified credentials
    */
   async getVerifiedCredentials(identifier: string, page: number = 1, limit: number = 50): Promise<WalletResponse> {
-    const endpoint = `/api/v1/verified-credentials?identifier=${identifier}&page=${page}&limit=${limit}`;
+    const encodedIdentifier = encodeURIComponent(identifier);
+    const endpoint = `/api/v1/verified-credentials?identifier=${encodedIdentifier}&page=${page}&limit=${limit}`;
     return this.request<WalletResponse>(endpoint, {
       method: 'GET',
     }, true, true); // Include API key and auth token for credential fetch
