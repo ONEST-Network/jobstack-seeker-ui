@@ -230,11 +230,13 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     if (fullName) {
       mappedData.name = fullName;
       verificationFlags.isNameVerified = true;
+      verificationFlags.nameImportSource = 'digilocker';
     }
 
     if (derivedAge !== undefined) {
       mappedData.age = derivedAge;
       verificationFlags.isAgeVerified = true;
+      verificationFlags.ageImportSource = 'digilocker';
     }
 
     if (data?.gender) {
@@ -242,17 +244,20 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
       const genderValue = data.gender as string;
       mappedData.gender = genderValue.charAt(0).toUpperCase() + genderValue.slice(1).toLowerCase();
       verificationFlags.isGenderVerified = true;
+      verificationFlags.genderImportSource = 'digilocker';
       console.log('DigiLocker gender mapping:', { original: genderValue, mapped: mappedData.gender });
     }
 
     if (data?.hometown) {
       mappedData.hometown = data.hometown as string;
       verificationFlags.isHometownVerified = true;
+      verificationFlags.hometownImportSource = 'digilocker';
     }
 
     if (data?.aadharNumber) {
       mappedData.aadharNumber = data.aadharNumber as string;
       verificationFlags.isAadharVerified = true;
+      verificationFlags.aadharNumberImportSource = 'digilocker';
     }
 
     // Update step data
@@ -381,7 +386,21 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     const hasLocationButton = fieldConfig['ui:hasLocationButton'];
     const currency = fieldConfig['ui:currency'];
 
-
+    // Helper function to get dynamic verification message
+    const getDynamicVerificationMessage = () => {
+      // Check stepName-specific import source first
+      const stepProfile = profile[stepName as keyof typeof profile] as any;
+      const importSource = stepProfile?.[`${fieldName}ImportSource`] || 
+                          profile.whoIAm?.[`${fieldName}ImportSource`] || 
+                          'digilocker';
+      
+      if (importSource === 'wallet') {
+        return '✓ Verified from Wallet';
+      } else if (importSource === 'digilocker') {
+        return '✓ Verified from DigiLocker';
+      }
+      return verificationMessage || '✓ Verified';
+    };
 
     // Check if field is verified from global profile state
     const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
@@ -673,7 +692,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               {isVerified && (
                 <div className="flex items-center gap-2 text-sm text-green-600">
                   <Shield className="h-4 w-4" />
-                  <span>{verificationMessage || (profile.importedFromWallet ? `Imported from Wallet` : `Verified via DigiLocker`)}</span>
+                  <span>{getDynamicVerificationMessage()}</span>
                 </div>
               )}
               
@@ -723,7 +742,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               {isVerified && (
                 <div className="flex items-center gap-2 text-sm text-green-600">
                   <Shield className="h-4 w-4" />
-                  <span>{verificationMessage || (profile.importedFromWallet ? `Imported from Wallet` : `Verified via DigiLocker`)}</span>
+                  <span>{getDynamicVerificationMessage()}</span>
                 </div>
               )}
               
@@ -760,7 +779,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || (profile.importedFromWallet ? `Imported from Wallet` : `Verified via DigiLocker`)}
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {isWalletImported && !isVerified && (
@@ -830,7 +849,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || (profile.importedFromWallet ? `Imported from Wallet` : `Verified via DigiLocker`)}
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {isWalletImported && !isVerified && (
@@ -877,7 +896,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || (profile.importedFromWallet ? `Imported from Wallet` : `Verified via DigiLocker`)}
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {isWalletImported && !isVerified && (
@@ -915,7 +934,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </RadioGroup>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || `Verified via DigiLocker`}
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {fieldConfig.description && (
@@ -950,7 +969,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || `Verified via DigiLocker`}
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {fieldConfig.description && (

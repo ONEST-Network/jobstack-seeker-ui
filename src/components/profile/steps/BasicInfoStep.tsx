@@ -8,6 +8,17 @@ import { useProfileForm } from '../ProfileFormProvider';
 const BasicInfoStep: React.FC = () => {
   const { profile, setProfile } = useProfileForm();
 
+  // Helper function to get dynamic verification message
+  const getVerificationMessage = (fieldName: string) => {
+    const importSource = profile.whoIAm?.[`${fieldName}ImportSource`] || 'digilocker';
+    if (importSource === 'wallet') {
+      return '✓ Verified from Wallet';
+    } else if (importSource === 'digilocker') {
+      return '✓ Verified from DigiLocker';
+    }
+    return '✓ Verified';
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Basic Information</h3>
@@ -31,7 +42,7 @@ const BasicInfoStep: React.FC = () => {
             )}
           </div>
           {profile.isNameVerified && (
-            <p className="text-xs text-green-600 mt-1">✓ Verified from DigiLocker</p>
+            <p className="text-xs text-green-600 mt-1">{getVerificationMessage('name')}</p>
           )}
         </div>
 

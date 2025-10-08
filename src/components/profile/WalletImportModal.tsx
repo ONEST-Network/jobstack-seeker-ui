@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface WalletImportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (data: Record<string, string | number | boolean | undefined>) => void;
+  onSuccess: (data: Record<string, any>) => void;
 }
 
 const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, onSuccess }) => {

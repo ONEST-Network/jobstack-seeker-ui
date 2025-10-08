@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Lock, Mic, MapPin, FileText, Wallet } from 'lucide-react';
@@ -31,21 +32,30 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
   const [showDigiLockerModal, setShowDigiLockerModal] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
 
-  // Get schema data
-  const schema = getSchema('whoIAm', profile.interestedRole);
-  const description = getSchemaDescription('whoIAm', profile.interestedRole);
+  // Get schema data with fallback logic
+  let schema = getSchema('whoIAm', profile.interestedRole);
+  let description = getSchemaDescription('whoIAm', profile.interestedRole);
 
   if (!schema) {
-    console.error('Schema not found for WhoIAm step with role:', profile.interestedRole);
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">
-            Schema not found for role: {profile.interestedRole || 'No role selected'}
-          </p>
+    console.warn('Schema not found for WhoIAm step with role:', profile.interestedRole);
+    // Try fallback to generic ITI schema if no specific schema found
+    schema = getSchema('whoIAm', 'ITI (Other)') || getSchema('whoIAm', 'Fitter');
+    description = getSchemaDescription('whoIAm', 'ITI (Other)') || getSchemaDescription('whoIAm', 'Fitter');
+    
+    if (!schema) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              Schema not found for role: {profile.interestedRole || 'No role selected'}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Please select a valid role to continue with profile creation.
+            </p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
 
@@ -119,8 +129,16 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
       ...prevProfile,
       whoIAm: {
         ...prevProfile.whoIAm,
-        ...(fullName ? { name: fullName, isNameVerified: true } : {}),
-        ...(derivedAge !== undefined ? { age: derivedAge, isAgeVerified: true } : {})
+        ...(fullName ? { 
+          name: fullName, 
+          isNameVerified: true,
+          nameImportSource: 'digilocker'
+        } : {}),
+        ...(derivedAge !== undefined ? { 
+          age: derivedAge, 
+          isAgeVerified: true,
+          ageImportSource: 'digilocker'
+        } : {})
       }
     }));
 
@@ -135,37 +153,67 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
     setShowWalletModal(true);
   };
 
-  const handleWalletSuccess = (data: Record<string, string | number | boolean | undefined>) => {
+  const handleWalletSuccess = (data: Record<string, any>) => {
     // Extract and map wallet data to the profile format
     const updatedProfile = { ...profile };
 
-    // Map common fields
-    if (data.name) {
-      updatedProfile.whoIAm = { ...updatedProfile.whoIAm, name: data.name as string };
-      updatedProfile.isNameVerified = true;
+    // Handle structured data from wallet import
+    if (data.whoIAm) {
+      updatedProfile.whoIAm = {
+        ...updatedProfile.whoIAm,
+        ...data.whoIAm
+      };
     }
 
-    if (data.email) {
-      updatedProfile.whoIAm = { ...updatedProfile.whoIAm, email: data.email as string };
-      updatedProfile.isEmailVerified = true;
+    if (data.whatIHave) {
+      updatedProfile.whatIHave = {
+        ...updatedProfile.whatIHave,
+        ...data.whatIHave
+      };
     }
 
-    if (data.phone) {
-      updatedProfile.whoIAm = { ...updatedProfile.whoIAm, phone: data.phone as string };
-      updatedProfile.isPhoneVerified = true;
+    if (data.whatIWant) {
+      updatedProfile.whatIWant = {
+        ...updatedProfile.whatIWant,
+        ...data.whatIWant
+      };
     }
 
-    if (data.age) {
-      updatedProfile.whoIAm = { ...updatedProfile.whoIAm, age: data.age as number };
-      updatedProfile.isAgeVerified = true;
+    // Set verification metadata from wallet
+    if (data.vcMetadata) {
+      updatedProfile.vcMetadata = data.vcMetadata;
     }
 
-    // Set additional verification flags
-    Object.keys(data).forEach(key => {
-      if (key.includes('Verified') && data[key]) {
-        (updatedProfile as any)[key] = data[key];
+    // Set imported from wallet flag
+    if (data.importedFromWallet) {
+      updatedProfile.importedFromWallet = data.importedFromWallet;
+    }
+
+    // Only auto-detect and set role if no role is currently selected
+    // This prevents overriding when user is already filling a specific role's profile
+    if (!updatedProfile.interestedRole && data.whatIHave?.itiSpecialization && Array.isArray(data.whatIHave.itiSpecialization) && data.whatIHave.itiSpecialization.length > 0) {
+      const detectedTrade = data.whatIHave.itiSpecialization[0].toLowerCase();
+      
+      // Map ITI trade to role name if needed - only if no role is currently set
+      if (detectedTrade.includes('fitter')) {
+        updatedProfile.interestedRole = 'Fitter';
+      } else if (detectedTrade.includes('mechanic')) {
+        updatedProfile.interestedRole = 'Mechanic';
+      } else if (detectedTrade.includes('electrician')) {
+        updatedProfile.interestedRole = 'Electrician';
+      } else if (detectedTrade.includes('welder')) {
+        updatedProfile.interestedRole = 'Welder';
+      } else if (detectedTrade.includes('machine operator')) {
+        updatedProfile.interestedRole = 'Machine Operator';
+      } else if (detectedTrade.includes('cnc operator')) {
+        updatedProfile.interestedRole = 'CNC Operator';
+      } else if (detectedTrade.includes('lathe operator')) {
+        updatedProfile.interestedRole = 'Lathe Operator';
+      } else {
+        // Use generic ITI for unknown trades - only if no current role
+        updatedProfile.interestedRole = 'ITI (Other)';
       }
-    });
+    }
 
     setProfile(updatedProfile);
     setShowWalletModal(false);
@@ -198,6 +246,19 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
     const value = profile.whoIAm?.[fieldName] || profile[fieldName as keyof typeof profile];
     const isVerified = profile.whoIAm?.[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified`] || 
                       profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
+    
+    // Get import source to determine correct verification message
+    const importSource = profile.whoIAm?.[`${fieldName}ImportSource`] || 'digilocker';
+    
+    // Create dynamic verification message
+    const getDynamicVerificationMessage = () => {
+      if (importSource === 'wallet') {
+        return '✓ Verified from Wallet';
+      } else if (importSource === 'digilocker') {
+        return '✓ Verified from DigiLocker';
+      }
+      return fieldConfig['ui:verificationMessage'] || '✓ Verified';
+    };
 
     // Type-safe value handling
     const getStringValue = () => {
@@ -232,7 +293,6 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
     const placeholder = fieldConfig['ui:placeholder'];
     const disabled = fieldConfig['ui:disabled'];
     const hasLocationButton = fieldConfig['ui:hasLocationButton'];
-    const verificationMessage = fieldConfig['ui:verificationMessage'];
     const isRequired = schema?.required?.includes(fieldName) || false;
 
     // Special handling for location field
@@ -262,7 +322,7 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
           {isVerified && (
             <div className="flex items-center gap-2 text-sm text-green-600">
               <Shield className="h-4 w-4" />
-              <span>{verificationMessage || `Verified via DigiLocker`}</span>
+              <span>{getDynamicVerificationMessage()}</span>
             </div>
           )}
           
@@ -281,7 +341,30 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
           {isRequired && <span className="text-red-500 ml-1">*</span>}
         </Label>
         <div className="relative">
-          {widget === 'select' ? (
+          {widget === 'radio' ? (
+            <RadioGroup 
+              value={getStringValue()}
+              onValueChange={handleChange}
+              disabled={disabled || isVerified}
+              className="flex flex-row gap-4"
+            >
+              {fieldConfig.enum?.map((option: string, index: number) => (
+                <div key={option} className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={option} 
+                    id={`${fieldName}-${option}`}
+                    disabled={disabled || isVerified}
+                  />
+                  <Label 
+                    htmlFor={`${fieldName}-${option}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {fieldConfig.enumNames?.[index] || option}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          ) : widget === 'select' ? (
             <Select 
               value={getStringValue()} 
               onValueChange={handleChange}
@@ -313,7 +396,7 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
           )}
 
           {/* Verification indicators */}
-          {isVerified && (
+          {isVerified && widget !== 'radio' && (
             <div className="absolute right-2 top-2 flex items-center gap-1">
               <Shield className="h-4 w-4 text-green-600" />
               <Lock className="h-4 w-4 text-muted-foreground" />
@@ -323,9 +406,10 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
 
         {/* Verification message */}
         {isVerified && (
-          <p className="text-xs text-green-600 mt-1">
-            {verificationMessage || `Verified via DigiLocker`}
-          </p>
+          <div className="flex items-center gap-2 text-xs text-green-600 mt-1">
+            <Shield className="h-3 w-3" />
+            <span>{getDynamicVerificationMessage()}</span>
+          </div>
         )}
         
         {fieldConfig.description && (

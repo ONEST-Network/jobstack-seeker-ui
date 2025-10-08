@@ -231,11 +231,13 @@ class WalletAPI {
     if (credentialSubject.name) {
       transformedData.whoIAm.name = credentialSubject.name;
       transformedData.whoIAm.isNameVerified = true;
+      transformedData.whoIAm.nameImportSource = 'wallet';
     }
 
     if (credentialSubject.email) {
       transformedData.whoIAm.email = credentialSubject.email;
       transformedData.whoIAm.isEmailVerified = true;
+      transformedData.whoIAm.emailImportSource = 'wallet';
     }
 
     // Handle phone number (both phone_number and phone fields)
@@ -243,12 +245,16 @@ class WalletAPI {
     if (phoneNumber) {
       transformedData.whoIAm.phone = phoneNumber.toString();
       transformedData.whoIAm.isPhoneVerified = true;
+      transformedData.whoIAm.phoneImportSource = 'wallet';
     }
 
     // Handle gender
     if (credentialSubject.gender) {
-      transformedData.whoIAm.gender = credentialSubject.gender.toLowerCase();
+      // Capitalize first letter to match enum values (Male, Female, Other)
+      const gender = credentialSubject.gender.charAt(0).toUpperCase() + credentialSubject.gender.slice(1).toLowerCase();
+      transformedData.whoIAm.gender = gender;
       transformedData.whoIAm.isGenderVerified = true;
+      transformedData.whoIAm.genderImportSource = 'wallet';
     }
 
     // Calculate age from date_of_birth
@@ -265,6 +271,7 @@ class WalletAPI {
           transformedData.whoIAm.age = age;
         }
         transformedData.whoIAm.isAgeVerified = true;
+        transformedData.whoIAm.ageImportSource = 'wallet';
       } catch (error) {
         console.warn('Error parsing date_of_birth:', error);
       }
@@ -273,8 +280,15 @@ class WalletAPI {
     // What I Have section - Qualifications, Skills, Experience
     // ITI Trade/Specialty mapping
     if (credentialSubject.trade) {
-      transformedData.whatIHave.itiSpecialization = [credentialSubject.trade];
-      transformedData.whatIHave.interestedRole = credentialSubject.trade;
+      let normalizedTrade = credentialSubject.trade;
+      
+      // Normalize trade names - remove "ITI" prefix if present and trim
+      if (normalizedTrade.toLowerCase().startsWith('iti ')) {
+        normalizedTrade = normalizedTrade.substring(4).trim();
+      }
+      
+      transformedData.whatIHave.itiSpecialization = [normalizedTrade];
+      // Don't set interestedRole here - let the component decide based on current context
     }
 
     // ITI Institute name mapping
