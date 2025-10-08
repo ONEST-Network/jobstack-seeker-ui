@@ -288,22 +288,26 @@ class WalletAPI {
       }
       
       transformedData.whatIHave.itiSpecialization = [normalizedTrade];
+      transformedData.whatIHave.itiSpecializationImportSource = 'wallet';
       // Don't set interestedRole here - let the component decide based on current context
     }
 
     // ITI Institute name mapping
     if (credentialSubject.iti_name) {
       transformedData.whatIHave.itiInstitute = credentialSubject.iti_name;
+      transformedData.whatIHave.itiInstituteImportSource = 'wallet';
     }
 
     // ITI Code mapping
     if (credentialSubject.iti_code) {
       transformedData.whatIHave.itiCode = credentialSubject.iti_code;
+      transformedData.whatIHave.itiCodeImportSource = 'wallet';
     }
 
     // Registration number to Roll number mapping
     if (credentialSubject.registration_number) {
       transformedData.whatIHave.rollNumber = credentialSubject.registration_number;
+      transformedData.whatIHave.rollNumberImportSource = 'wallet';
     }
 
     // Session to Training Duration mapping
@@ -312,6 +316,7 @@ class WalletAPI {
         const sessionYear = parseInt(credentialSubject.session);
         if (!isNaN(sessionYear)) {
           transformedData.whatIHave.trainingDuration = sessionYear;
+          transformedData.whatIHave.trainingDurationImportSource = 'wallet';
         }
       } catch (error) {
         console.warn('Error parsing session year:', error);
@@ -321,41 +326,50 @@ class WalletAPI {
     // Final exam result mapping
     if (credentialSubject.final_exam_result) {
       transformedData.whatIHave.finalExamResult = credentialSubject.final_exam_result;
+      transformedData.whatIHave.finalExamResultImportSource = 'wallet';
     }
 
     // Final exam year mapping
     if (credentialSubject.final_exam_year) {
       transformedData.whatIHave.finalExamYear = credentialSubject.final_exam_year;
+      transformedData.whatIHave.finalExamYearImportSource = 'wallet';
     }
 
     // Legacy certificate fields (for backward compatibility)
     if (credentialSubject.cert_name) {
       transformedData.whatIHave.certificationName = credentialSubject.cert_name;
+      transformedData.whatIHave.certificationNameImportSource = 'wallet';
     }
 
     if (credentialSubject.cert_id) {
       transformedData.whatIHave.certificationId = credentialSubject.cert_id;
+      transformedData.whatIHave.certificationIdImportSource = 'wallet';
     }
 
     if (credentialSubject.grade) {
       transformedData.whatIHave.grade = credentialSubject.grade;
+      transformedData.whatIHave.gradeImportSource = 'wallet';
     }
 
     if (credentialSubject.usn) {
       transformedData.whatIHave.universitySerialNumber = credentialSubject.usn;
+      transformedData.whatIHave.universitySerialNumberImportSource = 'wallet';
     }
 
     if (credentialSubject.duration) {
       transformedData.whatIHave.courseDuration = credentialSubject.duration;
+      transformedData.whatIHave.courseDurationImportSource = 'wallet';
     }
 
     if (credentialSubject.event) {
       transformedData.whatIHave.event = credentialSubject.event;
+      transformedData.whatIHave.eventImportSource = 'wallet';
     }
 
     // Map education credential if available
     if (credentialSubject.education_credential) {
       transformedData.whatIHave.educationCredential = credentialSubject.education_credential;
+      transformedData.whatIHave.educationCredentialImportSource = 'wallet';
     }
 
     // What I Want section - Salary expectations and work preferences

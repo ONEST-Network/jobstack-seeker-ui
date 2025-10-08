@@ -328,14 +328,60 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
     // Update global profile state with verification flags and wallet data
     setProfile(prevProfile => {
+      // First, clear previous wallet-imported data by removing fields that have ImportSource = 'wallet'
+      const clearedProfile = { ...prevProfile };
+      
+      // Clear wallet-imported fields from whoIAm section
+      if (clearedProfile.whoIAm) {
+        Object.keys(clearedProfile.whoIAm).forEach(key => {
+          if (clearedProfile.whoIAm[key + 'ImportSource'] === 'wallet') {
+            delete clearedProfile.whoIAm[key];
+            delete clearedProfile.whoIAm[key + 'ImportSource'];
+            delete clearedProfile.whoIAm['is' + key.charAt(0).toUpperCase() + key.slice(1) + 'Verified'];
+          }
+        });
+      }
+      
+      // Clear wallet-imported fields from whatIHave section
+      if (clearedProfile.whatIHave) {
+        Object.keys(clearedProfile.whatIHave).forEach(key => {
+          if (clearedProfile.whatIHave[key + 'ImportSource'] === 'wallet') {
+            delete clearedProfile.whatIHave[key];
+            delete clearedProfile.whatIHave[key + 'ImportSource'];
+            delete clearedProfile.whatIHave['is' + key.charAt(0).toUpperCase() + key.slice(1) + 'Verified'];
+          }
+        });
+      }
+      
+      // Clear wallet-imported fields from whatIWant section
+      if (clearedProfile.whatIWant) {
+        Object.keys(clearedProfile.whatIWant).forEach(key => {
+          if (clearedProfile.whatIWant[key + 'ImportSource'] === 'wallet') {
+            delete clearedProfile.whatIWant[key];
+            delete clearedProfile.whatIWant[key + 'ImportSource'];
+            delete clearedProfile.whatIWant['is' + key.charAt(0).toUpperCase() + key.slice(1) + 'Verified'];
+          }
+        });
+      }
+      
+      // Clear direct wallet-imported fields from profile root
+      Object.keys(clearedProfile).forEach(key => {
+        if (clearedProfile[key + 'ImportSource'] === 'wallet') {
+          delete clearedProfile[key];
+          delete clearedProfile[key + 'ImportSource'];
+          delete clearedProfile['is' + key.charAt(0).toUpperCase() + key.slice(1) + 'Verified'];
+        }
+      });
+
+      // Now apply the new wallet data
       const updatedProfile = {
-        ...prevProfile,
+        ...clearedProfile,
         ...mappedData,
         ...verificationFlags,
         // Merge the organized sections
-        whoIAm: { ...prevProfile.whoIAm, ...data.whoIAm },
-        whatIHave: { ...prevProfile.whatIHave, ...data.whatIHave },
-        whatIWant: { ...prevProfile.whatIWant, ...data.whatIWant },
+        whoIAm: { ...clearedProfile.whoIAm, ...data.whoIAm },
+        whatIHave: { ...clearedProfile.whatIHave, ...data.whatIHave },
+        whatIWant: { ...clearedProfile.whatIWant, ...data.whatIWant },
         // Also merge direct fields for backward compatibility
         ...data.whoIAm,
         ...data.whatIHave,
@@ -406,12 +452,19 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
     
     // Check if field is imported from wallet and should be non-editable
-    const isWalletImported = profile.importedFromWallet && (
-      (profile.whoIAm && profile.whoIAm[fieldName]) ||
-      (profile.whatIHave && profile.whatIHave[fieldName]) ||
-      (profile.whatIWant && profile.whatIWant[fieldName]) ||
-      // Also check direct profile fields for wallet-imported data
-      profile[fieldName]
+    // Only consider a field as wallet-imported if it has explicit import source metadata
+    const stepProfile = profile[stepName as keyof typeof profile] as Record<string, unknown> | undefined;
+    const isWalletImported = (
+      // Check stepName-specific import source first
+      stepProfile?.[`${fieldName}ImportSource`] === 'wallet' ||
+      // Check whoIAm section import source
+      profile.whoIAm?.[`${fieldName}ImportSource`] === 'wallet' ||
+      // Check whatIHave section import source  
+      profile.whatIHave?.[`${fieldName}ImportSource`] === 'wallet' ||
+      // Check whatIWant section import source
+      profile.whatIWant?.[`${fieldName}ImportSource`] === 'wallet' ||
+      // Check direct profile field import source
+      profile[`${fieldName}ImportSource` as keyof typeof profile] === 'wallet'
     );
 
     // Always access search state to ensure consistent hook calls
@@ -783,8 +836,8 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               </p>
             )}
             {isWalletImported && !isVerified && (
-              <p className="text-xs text-blue-600">
-                Imported from verified credential - {profile.vcMetadata?.orgName}
+              <p className="text-xs text-green-600">
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {fieldConfig.description && (
@@ -853,8 +906,8 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               </p>
             )}
             {isWalletImported && !isVerified && (
-              <p className="text-xs text-blue-600">
-                Imported from verified credential - {profile.vcMetadata?.orgName}
+              <p className="text-xs text-green-600">
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {fieldConfig.description && (
@@ -900,8 +953,8 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               </p>
             )}
             {isWalletImported && !isVerified && (
-              <p className="text-xs text-blue-600">
-                Imported from verified credential - {profile.vcMetadata?.orgName}
+              <p className="text-xs text-green-600">
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {fieldConfig.description && (

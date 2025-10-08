@@ -485,6 +485,12 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
         );
 
       case 'selectVC':
+        // If walletResponse is null, go back to initial step
+        if (!walletResponse) {
+          setStep('initial');
+          return null;
+        }
+        
         return (
           <div className="space-y-4">
             <div className="text-center">
@@ -638,7 +644,7 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
                   <h4 className="text-sm font-medium text-green-700 mb-1">Personal Information:</h4>
                   <div className="grid grid-cols-1 gap-1 text-sm">
                     {Object.entries(importedData.whoIAm)
-                      .filter(([key, value]) => value && !key.includes('Verified'))
+                      .filter(([key, value]) => value && !key.includes('Verified') && !key.includes('ImportSource'))
                       .map(([key, value]) => (
                         <div key={key} className="flex justify-between">
                           <span className="text-green-700 capitalize">
@@ -658,7 +664,7 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
                   <h4 className="text-sm font-medium text-green-700 mb-1">Qualifications & Skills:</h4>
                   <div className="grid grid-cols-1 gap-1 text-sm">
                     {Object.entries(importedData.whatIHave)
-                      .filter(([key, value]) => value)
+                      .filter(([key, value]) => value && !key.includes('ImportSource'))
                       .map(([key, value]) => (
                         <div key={key} className="flex justify-between">
                           <span className="text-green-700 capitalize">
@@ -678,7 +684,7 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
                   <h4 className="text-sm font-medium text-green-700 mb-1">Preferences:</h4>
                   <div className="grid grid-cols-1 gap-1 text-sm">
                     {Object.entries(importedData.whatIWant)
-                      .filter(([key, value]) => value)
+                      .filter(([key, value]) => value && !key.includes('ImportSource'))
                       .map(([key, value]) => (
                         <div key={key} className="flex justify-between">
                           <span className="text-green-700 capitalize">
@@ -701,11 +707,47 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setStep('selectVC')} className="flex-1">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  // Reset the selected VC and imported data but keep walletResponse
+                  setSelectedVC(null);
+                  setImportedData({});
+                  setStep('selectVC');
+                }} 
+                className="flex-1"
+              >
                 Select Different VC
               </Button>
               <Button onClick={handleConfirmImport} className="flex-1">
                 Apply to Profile
+              </Button>
+            </div>
+            
+            <div className="flex justify-center mt-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  // Reset everything and start over
+                  setStep('initial');
+                  setSelectedIdentifier('');
+                  setSelectedIdentifierType('email');
+                  setVerificationCode('');
+                  setIdentifierOptions([]);
+                  setWalletResponse(null);
+                  setSelectedVC(null);
+                  setImportedData({});
+                  setIsLoading(false);
+                  
+                  // Clear auth token
+                  if (walletAPI) {
+                    walletAPI.clearAuthToken();
+                  }
+                }}
+                className="text-xs text-muted-foreground"
+              >
+                Start Over
               </Button>
             </div>
           </div>
