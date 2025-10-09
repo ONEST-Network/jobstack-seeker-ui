@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -93,10 +93,13 @@ const createCustomIcon = (density: 'high' | 'medium' | 'low', jobCount: number) 
 };
 
 // Create individual job marker icon with briefcase and job count
-const createJobIcon = (jobCount: number = 1) => {
-  const size = jobCount > 1 ? 32 : 28; // Increased size for better visibility
-  const fontSize = jobCount > 1 ? '12px' : '10px';
-  const borderWidth = 3; // Thicker border for better contrast
+const createJobIcon = (jobCount: number = 1, isMobile: boolean = false) => {
+  // Increase size for mobile devices for better touch interaction
+  const baseSize = isMobile ? (jobCount > 1 ? 40 : 36) : (jobCount > 1 ? 32 : 28);
+  const size = baseSize;
+  const fontSize = jobCount > 1 ? (isMobile ? '14px' : '12px') : (isMobile ? '12px' : '10px');
+  const borderWidth = isMobile ? 4 : 3; // Thicker border for mobile
+  const touchPadding = isMobile ? 8 : 4; // Extra padding for touch targets
   
   return L.divIcon({
     className: 'individual-job-marker',
@@ -114,6 +117,13 @@ const createJobIcon = (jobCount: number = 1) => {
         justify-content: center;
         position: relative;
         transition: all 0.2s ease;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        ${isMobile ? 'animation: pulse 2s infinite;' : ''}
       ">
         ${jobCount > 1 ? `
           <span style="
@@ -122,16 +132,17 @@ const createJobIcon = (jobCount: number = 1) => {
             font-size: ${fontSize};
             line-height: 1;
             text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            pointer-events: none;
           ">${jobCount}</span>
         ` : `
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));">
+          <svg width="${isMobile ? '16' : '14'}" height="${isMobile ? '16' : '14'}" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); pointer-events: none;">
             <path d="M10 2v2H8v2H6v2H4v12h16V8h-2V6h-2V4h-2V2h-4zm2 2h2v2h2v2h2v10H6V8h2V6h2V4h2zm-2 4v2h4V8h-4zm0 4v2h4v-2h-4z"/>
           </svg>
         `}
       </div>
     `,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+    iconSize: [size + touchPadding, size + touchPadding],
+    iconAnchor: [(size + touchPadding) / 2, (size + touchPadding) / 2],
   });
 };
 
@@ -272,6 +283,20 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
   allJobs = [],
   onJobClick
 }) => {
+  // Mobile detection for better touch handling
+  const [isMobile, setIsMobile] = useState(false);
+  const lastClickTimeRef = useRef(0);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -283,9 +308,30 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    // Create map instance
+    // Create map instance with mobile-optimized settings
     const map = L.map(mapRef.current, {
-      zoomControl: false
+      zoomControl: false,
+      attributionControl: false,
+      dragging: true,
+      touchZoom: true,
+      doubleClickZoom: true,
+      scrollWheelZoom: true,
+      boxZoom: true,
+      keyboard: true,
+      tapTolerance: isMobile ? 20 : 15, // Larger tolerance for mobile
+      preferCanvas: true, // Use canvas for better performance
+      fadeAnimation: true,
+      zoomAnimation: true,
+      markerZoomAnimation: true,
+      // Mobile-specific settings
+      ...(isMobile && {
+        zoomSnap: 0.5,
+        zoomDelta: 0.5,
+        wheelPxPerZoomLevel: 120,
+        // Disable some interactions that might interfere with touch
+        tap: false,
+        bounceAtZoomLimits: false
+      })
     }).setView([mapCenter.lat, mapCenter.lng], zoom);
 
     // Add conditional tile layer based on environment
@@ -351,6 +397,10 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
     
     // Clear individual job markers
     jobMarkersRef.current.forEach(marker => {
+      // Clean up touch event listeners if they exist
+      if ((marker as any).cleanupTouchEvents) {
+        (marker as any).cleanupTouchEvents();
+      }
       mapInstanceRef.current?.removeLayer(marker);
     });
     jobMarkersRef.current = [];
@@ -419,8 +469,9 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
         }
 
         const marker = L.marker([lat, lng], {
-          icon: createJobIcon(jobCount)
+          icon: createJobIcon(jobCount, isMobile)
         });
+        
         
         // Store additional data in marker object
         (marker as any).jobCount = jobCount;
@@ -456,19 +507,128 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
         
         marker.bindPopup(popupContent, {
           closeOnClick: false,
-          autoClose: false
+          autoClose: false,
+          closeButton: true,
+          autoPan: true,
+          keepInView: true,
+          className: isMobile ? 'mobile-popup' : '',
+          maxWidth: isMobile ? 280 : 300,
+          offset: isMobile ? [0, -10] : [0, -5]
         });
 
-        // Add click handler for job selection
-        marker.on('click', () => {
-          if (jobCount > 1) {
-            // Show job selection modal for multiple jobs
-            onJobClick?.(jobs); // Pass all jobs to parent component
-          } else {
-            // Single job - directly show job details
-            onJobClick?.(jobs[0]);
+        // Add click handler for job selection with debouncing
+        const handleJobSelection = (e: L.LeafletMouseEvent) => {
+          e.originalEvent?.stopPropagation();
+          e.originalEvent?.preventDefault();
+          
+          // Debounce rapid clicks (especially important for mobile)
+          const now = Date.now();
+          if (now - lastClickTimeRef.current < 300) {
+            return;
           }
-        });
+          lastClickTimeRef.current = now;
+          
+          // Close any existing popups to prevent conflicts
+          mapInstanceRef.current?.closePopup();
+          
+          // Small delay to ensure popup is closed before opening modal
+          setTimeout(() => {
+            if (jobCount > 1) {
+              // Show job selection modal for multiple jobs
+              onJobClick?.(jobs); // Pass all jobs to parent component
+            } else {
+              // Single job - directly show job details
+              onJobClick?.(jobs[0]);
+            }
+          }, 50);
+        };
+
+        // Add click handler for all devices
+        marker.on('click', handleJobSelection);
+        
+        // Add a simple fallback for mobile devices using mousedown/mouseup
+        if (isMobile) {
+          marker.on('mousedown', (e: L.LeafletMouseEvent) => {
+            e.originalEvent?.stopPropagation();
+            e.originalEvent?.preventDefault();
+          });
+          
+          marker.on('mouseup', (e: L.LeafletMouseEvent) => {
+            e.originalEvent?.stopPropagation();
+            e.originalEvent?.preventDefault();
+            handleJobSelection(e);
+          });
+        }
+        
+        // For mobile devices, also add touch events directly to the marker element
+        if (isMobile) {
+          // Get the marker element and add touch events directly
+          marker.on('add', () => {
+            const markerElement = marker.getElement();
+            if (markerElement) {
+              const handleTouchStart = (e: TouchEvent) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                // Add visual feedback for touch
+                const icon = marker.getIcon() as L.DivIcon;
+                if (icon && icon.options && 'html' in icon.options && typeof icon.options.html === 'string') {
+                  const currentHtml = icon.options.html;
+                  const touchedHtml = currentHtml.replace(
+                    'box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);',
+                    'box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 0 4px rgba(29, 78, 216, 0.6); transform: scale(0.95);'
+                  );
+                  icon.options.html = touchedHtml;
+                  marker.setIcon(icon);
+                }
+                
+                // Fallback: trigger job selection on touchstart if touchend doesn't work
+                setTimeout(() => {
+                  handleJobSelection(e as any);
+                }, 100);
+              };
+              
+              const handleTouchEnd = (e: TouchEvent) => {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                // Restore visual state
+                const icon = marker.getIcon() as L.DivIcon;
+                if (icon && icon.options && 'html' in icon.options && typeof icon.options.html === 'string') {
+                  const currentHtml = icon.options.html;
+                  const normalHtml = currentHtml.replace(
+                    'box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 0 4px rgba(29, 78, 216, 0.6); transform: scale(0.95);',
+                    'box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);'
+                  );
+                  icon.options.html = normalHtml;
+                  marker.setIcon(icon);
+                }
+                
+                // Trigger job selection
+                handleJobSelection(e as any);
+              };
+              
+              markerElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+              markerElement.addEventListener('touchend', handleTouchEnd, { passive: false });
+              
+              // Add a simple click fallback for mobile
+              const handleClick = (e: MouseEvent) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleJobSelection(e as any);
+              };
+              
+              markerElement.addEventListener('click', handleClick, { passive: false });
+              
+              // Store cleanup function
+              (marker as any).cleanupTouchEvents = () => {
+                markerElement.removeEventListener('touchstart', handleTouchStart);
+                markerElement.removeEventListener('touchend', handleTouchEnd);
+                markerElement.removeEventListener('click', handleClick);
+              };
+            }
+          });
+        }
 
         // Add hover effects for better interactivity
         marker.on('mouseover', () => {

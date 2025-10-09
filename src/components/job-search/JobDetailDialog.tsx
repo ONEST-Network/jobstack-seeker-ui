@@ -364,9 +364,9 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 sm:p-6">
-        <DialogHeader className="p-4 sm:p-6 pb-0">
-          <DialogTitle className="text-xl font-bold overflow-hidden text-ellipsis whitespace-nowrap">
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto p-0 sm:p-6 w-[95vw] sm:w-full">
+        <DialogHeader className="p-4 sm:p-6 pb-0 sticky top-0 bg-background z-10 border-b">
+          <DialogTitle className="text-lg sm:text-xl font-bold overflow-hidden text-ellipsis whitespace-nowrap">
             {job.title}
             {job.openings && job.openings > 0 && (
               <span className="text-muted-foreground font-normal"> ({job.openings})</span>
@@ -512,7 +512,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t mt-6">
+          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t mt-6 sticky bottom-0 bg-background pb-4">
             <Button 
               onClick={() => onApply(job)}
               className="flex-1 bg-primary hover:bg-primary/90 h-12 text-base font-medium"
