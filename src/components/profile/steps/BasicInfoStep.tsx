@@ -12,7 +12,7 @@ const BasicInfoStep: React.FC = () => {
   const getVerificationMessage = (fieldName: string) => {
     const importSource = profile.whoIAm?.[`${fieldName}ImportSource`] || 'digilocker';
     if (importSource === 'wallet') {
-      return '✓ Verified from Wallet';
+      return '✓ Verified from Dhiway Wallet';
     } else if (importSource === 'digilocker') {
       return '✓ Verified from DigiLocker';
     }

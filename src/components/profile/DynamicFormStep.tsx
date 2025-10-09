@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { MapPin, Upload, QrCode, Shield, Lock, Loader2 } from 'lucide-react';
-import DigiLockerModal from './DigiLockerModal';
 import WalletImportModal from './WalletImportModal';
 import QRCodeScannerDialog from './QRCodeScannerDialog';
 import { FileUploadField } from '@/components/ui/file-upload-field';
@@ -32,7 +31,6 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  const [showDigiLocker, setShowDigiLocker] = React.useState(false);
   const [showWallet, setShowWallet] = React.useState(false);
   const [showQRScanner, setShowQRScanner] = React.useState(false);
   const [qrFieldName, setQrFieldName] = React.useState<string>('');
@@ -199,85 +197,6 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     }
   };
 
-  const handleDigiLockerSuccess = (data: Record<string, unknown>) => {
-    // Extract only the properties we care about from the DigiLocker response
-    // Prefer common naming variations if they exist
-    const fullName: string | undefined =
-      (data?.name as string) || (data?.fullName as string) || [data?.firstName, data?.lastName].filter(Boolean).join(' ').trim();
-
-    // Calculate age more accurately from date of birth
-    let derivedAge: number | undefined;
-    const dob: string | undefined = (data?.dateOfBirth as string) || (data?.dob as string) || (data?.birthDate as string);
-
-    if (dob) {
-      const birthDate = new Date(dob);
-      const today = new Date();
-      derivedAge = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        derivedAge--;
-      }
-    } else if (typeof data?.age === 'number') {
-      derivedAge = data.age;
-    }
-
-
-
-    // Update both the step data and the global profile state
-    const mappedData: Record<string, unknown> = {};
-    const verificationFlags: Record<string, unknown> = {};
-
-    if (fullName) {
-      mappedData.name = fullName;
-      verificationFlags.isNameVerified = true;
-      verificationFlags.nameImportSource = 'digilocker';
-    }
-
-    if (derivedAge !== undefined) {
-      mappedData.age = derivedAge;
-      verificationFlags.isAgeVerified = true;
-      verificationFlags.ageImportSource = 'digilocker';
-    }
-
-    if (data?.gender) {
-      // Ensure gender is properly capitalized to match schema expectations
-      const genderValue = data.gender as string;
-      mappedData.gender = genderValue.charAt(0).toUpperCase() + genderValue.slice(1).toLowerCase();
-      verificationFlags.isGenderVerified = true;
-      verificationFlags.genderImportSource = 'digilocker';
-      console.log('DigiLocker gender mapping:', { original: genderValue, mapped: mappedData.gender });
-    }
-
-    if (data?.hometown) {
-      mappedData.hometown = data.hometown as string;
-      verificationFlags.isHometownVerified = true;
-      verificationFlags.hometownImportSource = 'digilocker';
-    }
-
-    if (data?.aadharNumber) {
-      mappedData.aadharNumber = data.aadharNumber as string;
-      verificationFlags.isAadharVerified = true;
-      verificationFlags.aadharNumberImportSource = 'digilocker';
-    }
-
-    // Update step data
-    console.log('Setting step data with mapped data:', mappedData);
-    setStepData(mappedData);
-
-    // Update global profile state with verification flags
-    setProfile(prevProfile => {
-      const updatedProfile = {
-        ...prevProfile,
-        ...mappedData,
-        ...verificationFlags
-      };
-
-      console.log('Updated profile:', updatedProfile);
-      return updatedProfile;
-    });
-
-    setShowDigiLocker(false);
-  };
 
   const handleWalletSuccess = (data: Record<string, any>) => {
     // Handle the new wallet data structure with organized sections
@@ -441,7 +360,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                           'digilocker';
       
       if (importSource === 'wallet') {
-        return '✓ Verified from Wallet';
+        return '✓ Verified from Dhiway Wallet';
       } else if (importSource === 'digilocker') {
         return '✓ Verified from DigiLocker';
       }
@@ -1444,42 +1363,16 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
 
 
-      {/* DigiLocker Integration */}
-      {schema.ui?.showDigiLocker && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium text-blue-800">
-                {schema.ui.digiLockerConfig?.title}
-              </h4>
-              <p className="text-sm text-blue-700 mt-1">
-                {schema.ui.digiLockerConfig?.description}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowDigiLocker(true)}
-              className="text-blue-700 border-blue-300 hover:bg-blue-100"
-            >
-              {schema.ui.digiLockerConfig?.buttonText}
-            </Button>
-          </div>
-          <p className="text-xs text-blue-600 mt-2">
-            {schema.ui.digiLockerConfig?.footerText}
-          </p>
-        </div>
-      )}
-
       {/* Wallet Import Integration */}
       {schema.ui?.showWallet && (
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-medium text-purple-800">
-                {schema.ui.walletConfig?.title || "Import from Wallet"}
+                Import from Wallets
               </h4>
               <p className="text-sm text-purple-700 mt-1">
-                {schema.ui.walletConfig?.description || "Import verified credentials from your digital wallet"}
+                Import verified credentials from supported digital wallets
               </p>
             </div>
             <Button
@@ -1487,11 +1380,11 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               onClick={() => setShowWallet(true)}
               className="text-purple-700 border-purple-300 hover:bg-purple-100"
             >
-              {schema.ui.walletConfig?.buttonText || "Import from Wallet"}
+              Import from Wallets
             </Button>
           </div>
           <p className="text-xs text-purple-600 mt-2">
-            {schema.ui.walletConfig?.footerText || "This will import your verified credentials, certificates, and personal details"}
+            This will import your verified credentials, certificates, and personal details from Dhiway Wallet and DigiLocker
           </p>
         </div>
       )}
@@ -1504,13 +1397,6 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
           return renderField(fieldName, fieldConfig);
         })}
       </div>
-
-      {/* DigiLocker Modal */}
-      <DigiLockerModal
-        isOpen={showDigiLocker}
-        onClose={() => setShowDigiLocker(false)}
-        onSuccess={handleDigiLockerSuccess}
-      />
 
       {/* Wallet Import Modal */}
       <WalletImportModal

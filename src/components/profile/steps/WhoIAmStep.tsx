@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Lock, Mic, MapPin, FileText, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useProfileForm } from '../ProfileFormProvider';
-import DigiLockerModal from '../DigiLockerModal';
 import WalletImportModal from '../WalletImportModal';
 import { getSchema, getFieldConfig, getFieldUI, getSchemaDescription } from '@/schemas';
 import { getCurrentLocation, formatLocationForDisplay } from '@/lib/utils';
@@ -29,7 +28,6 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
   const {
     toast
   } = useToast();
-  const [showDigiLockerModal, setShowDigiLockerModal] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
 
   // Get schema data with fallback logic
@@ -96,58 +94,6 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
     }
   };
 
-  const handleDigiLockerImport = () => {
-    setShowDigiLockerModal(true);
-  };
-
-  const handleDigiLockerSuccess = (data: any) => {
-    // Extract only the properties we care about from the DigiLocker response
-    // Prefer common naming variations if they exist
-    const fullName: string | undefined =
-      data?.name || data?.fullName || [data?.firstName, data?.lastName].filter(Boolean).join(' ').trim();
-
-    // Calculate age more accurately from date of birth
-    let derivedAge: number | undefined;
-    const dob: string | undefined = data?.dateOfBirth || data?.dob || data?.birthDate;
-
-    if (dob) {
-      const birthDate = new Date(dob);
-      const today = new Date();
-      derivedAge = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        derivedAge--;
-      }
-    } else if (typeof data?.age === 'number') {
-      derivedAge = data.age;
-    }
-
-
-
-    // Update both name (in WhoIAm) and age (in WhatIHave) and mark them verified
-    setProfile(prevProfile => ({
-      ...prevProfile,
-      whoIAm: {
-        ...prevProfile.whoIAm,
-        ...(fullName ? { 
-          name: fullName, 
-          isNameVerified: true,
-          nameImportSource: 'digilocker'
-        } : {}),
-        ...(derivedAge !== undefined ? { 
-          age: derivedAge, 
-          isAgeVerified: true,
-          ageImportSource: 'digilocker'
-        } : {})
-      }
-    }));
-
-    setShowDigiLockerModal(false);
-  };
-
-  const handleDigiLockerClose = () => {
-    setShowDigiLockerModal(false);
-  };
 
   const handleWalletImport = () => {
     setShowWalletModal(true);
@@ -253,7 +199,7 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
     // Create dynamic verification message
     const getDynamicVerificationMessage = () => {
       if (importSource === 'wallet') {
-        return '✓ Verified from Wallet';
+        return '✓ Verified from Dhiway Wallet';
       } else if (importSource === 'digilocker') {
         return '✓ Verified from DigiLocker';
       }
@@ -431,45 +377,6 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
         </p>
       </div>
 
-      {/* DigiLocker Import */}
-      {schema.ui?.showDigiLocker && (
-        <Card className="border-dashed border-2 border-blue-200 bg-blue-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-blue-700">
-              <FileText className="h-4 w-4" />
-              {schema.ui?.digiLockerConfig?.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-3">
-              {schema.ui?.digiLockerConfig?.description}
-            </p>
-            <Button onClick={handleDigiLockerImport} className="w-full">
-              {schema.ui?.digiLockerConfig?.buttonText}
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2">
-              {schema.ui?.digiLockerConfig?.footerText}
-            </p>
-            
-            {/* Test button for development */}
-            {process.env.NODE_ENV === 'development' && (
-              <Button 
-                onClick={() => handleDigiLockerSuccess({
-                  name: 'John Doe',
-                  dateOfBirth: '1990-05-15',
-                  age: 33,
-                  gender: 'male',
-                  hometown: 'Mumbai, Maharashtra'
-                })} 
-                variant="outline" 
-                className="w-full mt-2"
-              >
-                Test DigiLocker Import
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
       
       {/* Wallet Import */}
       {schema.ui?.showWallet && (
@@ -477,18 +384,18 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 text-purple-700">
               <Wallet className="h-4 w-4" />
-              {schema.ui?.walletConfig?.title}
+              Import from Wallets
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-3">
-              {schema.ui?.walletConfig?.description}
+              Import verified credentials from supported digital wallets
             </p>
             <Button onClick={handleWalletImport} className="w-full">
-              {schema.ui?.walletConfig?.buttonText}
+              Import from Wallets
             </Button>
             <p className="text-xs text-muted-foreground mt-2">
-              {schema.ui?.walletConfig?.footerText}
+              This will import your verified credentials, certificates, and personal details from Dhiway Wallet and DigiLocker
             </p>
             
             {/* Test button for development */}
@@ -601,13 +508,6 @@ const WhoIAmStep: React.FC<WhoIAmStepProps> = ({
           </div>
         )}
       </div>
-
-      {/* DigiLocker Modal */}
-      <DigiLockerModal
-        isOpen={showDigiLockerModal}
-        onClose={handleDigiLockerClose}
-        onSuccess={handleDigiLockerSuccess}
-      />
 
       {/* Wallet Import Modal */}
       <WalletImportModal

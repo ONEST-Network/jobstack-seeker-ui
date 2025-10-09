@@ -55,20 +55,13 @@
       "required": ["name", "location", "phone"],
       "ui": {
         "order": ["name", "location", "phone", "age"],
-        "description": "Enter your basic details or import from DigiLocker/Wallet for quick setup",
-        "showDigiLocker": true,
-        "digiLockerConfig": {
-          "title": "Quick Import from DigiLocker",
-          "description": "Import verified documents to auto-fill your profile information",
-          "buttonText": "Import from DigiLocker",
-          "footerText": "This will import your AADHAAR, name, date of birth and other verified details"
-        },
+        "description": "Enter your basic details or import from supported wallets for quick setup",
         "showWallet": true,
         "walletConfig": {
-          "title": "Import from Wallet",
-          "description": "Import verified credentials from your digital wallet",
-          "buttonText": "Import from Wallet",
-          "footerText": "This will import your verified credentials, certificates, and personal details"
+          "title": "Import from Wallets",
+          "description": "Import verified credentials from supported digital wallets",
+          "buttonText": "Import from Wallets",
+          "footerText": "This will import your verified credentials, certificates, and personal details from Dhiway Wallet and DigiLocker"
         }
       }
     },

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Wallet, CheckCircle, AlertCircle, User, Phone, Mail, Shield, Building, Calendar, Award } from 'lucide-react';
+import { Loader2, Wallet, CheckCircle, AlertCircle, User, Phone, Mail, Shield, Building, Calendar, Award, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -18,6 +18,7 @@ import {
   type SelectedVC
 } from '@/lib/wallet-api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import DigiLockerModal from './DigiLockerModal';
 
 interface WalletImportModalProps {
   isOpen: boolean;
@@ -27,7 +28,8 @@ interface WalletImportModalProps {
 
 const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState<'initial' | 'selectIdentifier' | 'requestCode' | 'verifyCode' | 'selectVC' | 'processing' | 'success'>('initial');
+  const [step, setStep] = useState<'initial' | 'selectWallet' | 'selectIdentifier' | 'requestCode' | 'verifyCode' | 'selectVC' | 'processing' | 'success'>('initial');
+  const [selectedWallet, setSelectedWallet] = useState<'dhiway' | 'digilocker'>('dhiway');
   const [identifierOptions, setIdentifierOptions] = useState<IdentifierOption[]>([]);
   const [selectedIdentifier, setSelectedIdentifier] = useState<string>('');
   const [selectedIdentifierType, setSelectedIdentifierType] = useState<'email' | 'phone'>('email');
@@ -35,6 +37,7 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
   const [walletResponse, setWalletResponse] = useState<WalletResponse | null>(null);
   const [selectedVC, setSelectedVC] = useState<SelectedVC | null>(null);
   const [importedData, setImportedData] = useState<Record<string, any>>({});
+  const [isDigiLockerModalOpen, setIsDigiLockerModalOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -60,7 +63,17 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
     return options;
   };
 
-  const handleWalletImport = async () => {
+  const handleWalletSelection = (wallet: 'dhiway' | 'digilocker') => {
+    setSelectedWallet(wallet);
+    
+    if (wallet === 'digilocker') {
+      setIsDigiLockerModalOpen(true);
+    } else if (wallet === 'dhiway') {
+      handleDhiwayWalletImport();
+    }
+  };
+
+  const handleDhiwayWalletImport = async () => {
     if (!isWalletConfigured() || !walletAPI) {
       toast({
         title: "Configuration Error",
@@ -285,6 +298,7 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
 
   const handleClose = () => {
     setStep('initial');
+    setSelectedWallet('dhiway');
     setSelectedIdentifier('');
     setSelectedIdentifierType('email');
     setVerificationCode('');
@@ -293,6 +307,7 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
     setSelectedVC(null);
     setImportedData({});
     setIsLoading(false);
+    setIsDigiLockerModalOpen(false);
     
     // Clear auth token when closing
     if (walletAPI) {
@@ -300,6 +315,18 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
     }
     
     onClose();
+  };
+
+  const handleDigiLockerSuccess = (data: any) => {
+    setIsDigiLockerModalOpen(false);
+    onSuccess(data);
+    onClose();
+  };
+
+  const handleDigiLockerClose = () => {
+    setIsDigiLockerModalOpen(false);
+    setStep('initial');
+    setSelectedWallet('dhiway');
   };
 
   const renderContent = () => {
@@ -311,28 +338,83 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
               <Wallet className="w-8 h-8 text-purple-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Import from Wallet</h3>
+              <h3 className="text-lg font-semibold">Import from Wallets</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Import your verified credentials from your digital wallet to auto-fill your profile.
+                Import your verified credentials from supported digital wallets to auto-fill your profile.
               </p>
             </div>
             
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm">
-              <p className="font-medium text-purple-800">What will be imported:</p>
-              <ul className="text-purple-700 mt-1 space-y-1">
-                <li>• Full Name</li>
-                <li>• Email Address</li>
-                <li>• Phone Number</li>
-                <li>• Certification Details</li>
-                <li>• Educational Credentials</li>
-              </ul>
+              <p className="font-medium text-purple-800 mb-3">Available Wallets:</p>
+              <div className="flex justify-center space-x-4">
+                <div 
+                  className={`flex flex-col items-center space-y-1 p-2 rounded-lg cursor-pointer transition-colors ${
+                    selectedWallet === 'dhiway' 
+                      ? 'bg-purple-100 border-2 border-purple-300' 
+                      : 'bg-white border border-purple-200 hover:bg-purple-50'
+                  }`}
+                  onClick={() => setSelectedWallet('dhiway')}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${
+                    selectedWallet === 'dhiway' ? 'bg-purple-200' : 'bg-purple-100'
+                  }`}>
+                    <img 
+                      src="/images/dhiway-wallet.webp" 
+                      alt="Dhiway Wallet" 
+                      className="w-6 h-6 object-contain"
+                    />
+                  </div>
+                  <p className={`text-xs font-medium ${selectedWallet === 'dhiway' ? 'text-purple-800' : 'text-purple-700'}`}>
+                    Dhiway
+                  </p>
+                </div>
+                <div 
+                  className={`flex flex-col items-center space-y-1 p-2 rounded-lg cursor-pointer transition-colors ${
+                    selectedWallet === 'digilocker' 
+                      ? 'bg-blue-100 border-2 border-blue-300' 
+                      : 'bg-white border border-blue-200 hover:bg-blue-50'
+                  }`}
+                  onClick={() => setSelectedWallet('digilocker')}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    selectedWallet === 'digilocker' ? 'bg-blue-200' : 'bg-blue-100'
+                  }`}>
+                    <FileText className={`w-4 h-4 ${selectedWallet === 'digilocker' ? 'text-blue-700' : 'text-blue-600'}`} />
+                  </div>
+                  <p className={`text-xs font-medium ${selectedWallet === 'digilocker' ? 'text-blue-800' : 'text-blue-700'}`}>
+                    DigiLocker
+                  </p>
+                </div>
+              </div>
             </div>
             
-            {!isWalletConfigured() && (
+            <Button 
+              onClick={() => handleWalletSelection(selectedWallet)} 
+              disabled={isLoading || (selectedWallet === 'dhiway' && !isWalletConfigured())}
+              className="w-full"
+            >
+              {selectedWallet === 'dhiway' ? (
+                <>
+                  <img 
+                    src="/images/dhiway-wallet.webp" 
+                    alt="Dhiway Wallet" 
+                    className="w-4 h-4 mr-2 object-contain"
+                  />
+                  Import from Dhiway Wallet
+                </>
+              ) : (
+                <>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Import from DigiLocker
+                </>
+              )}
+            </Button>
+            
+            {selectedWallet === 'dhiway' && !isWalletConfigured() && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
                 <p className="font-medium text-red-800">Configuration Required</p>
                 <p className="text-red-700 mt-1">
-                  Wallet integration requires proper API configuration. Please contact your administrator.
+                  Dhiway Wallet integration requires proper API configuration. Please contact your administrator.
                 </p>
                 <div className="mt-2 pt-2 border-t border-red-300">
                   <p className="text-xs text-red-600">
@@ -341,24 +423,6 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
                 </div>
               </div>
             )}
-            
-            <Button 
-              onClick={handleWalletImport} 
-              disabled={isLoading || !isWalletConfigured()}
-              className="w-full"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Connecting to Wallet...
-                </>
-              ) : (
-                <>
-                  <Wallet className="w-4 h-4 mr-2" />
-                  Import from Wallet
-                </>
-              )}
-            </Button>
           </div>
         );
 
