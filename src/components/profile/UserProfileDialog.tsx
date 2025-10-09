@@ -236,6 +236,36 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
         missingFields.push("Current Location");
       }
       
+      // Check age in both legacy and unified schema structures
+      const age = profile.age || profile.whoIAm?.age;
+      if (!age || age < 18 || age > 65) {
+        missingFields.push("Age");
+      }
+      
+      // Check highest education qualification in both legacy and unified schema structures
+      // Only validate education if the schema for the current role has education fields
+      const currentRole = profile.interestedRole || profile.role;
+      if (currentRole) {
+        try {
+          const schema = getUnifiedSchema(currentRole);
+          const hasEducationField = schema?.properties?.whatIHave?.properties && (
+            schema.properties.whatIHave.properties.highestQualification ||
+            schema.properties.whatIHave.properties.highestEducation ||
+            schema.properties.whatIHave.properties.highestEducationalQualification
+          );
+          
+          if (hasEducationField) {
+            const highestEducation = profile.highestQualification || profile.highestEducation || profile.highestEducationalQualification || profile.whatIHave?.highestQualification || profile.whatIHave?.highestEducation || profile.whatIHave?.highestEducationalQualification;
+            if (!highestEducation || (Array.isArray(highestEducation) && highestEducation.length === 0)) {
+              missingFields.push("Highest Educational Qualification");
+            }
+          }
+        } catch (error) {
+          // If schema doesn't exist or can't be loaded, skip education validation
+          console.warn(`Schema not found for role: ${currentRole}`);
+        }
+      }
+      
       // If there are missing fields, show a user-friendly message and stop
       if (missingFields.length > 0) {
         const fieldList = missingFields.length === 1 
