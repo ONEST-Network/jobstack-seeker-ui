@@ -318,8 +318,25 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
   };
 
   const handleDigiLockerSuccess = (data: any) => {
+    // console.log('DigiLocker success data:', data);
     setIsDigiLockerModalOpen(false);
-    onSuccess(data);
+    
+    // Transform DigiLocker data to match expected structure
+    const transformedData = {
+      whoIAm: {
+        ...data,
+        // Add import source metadata
+        nameImportSource: 'digilocker',
+        dateOfBirthImportSource: 'digilocker',
+        ageImportSource: 'digilocker',
+        genderImportSource: 'digilocker',
+        hometownImportSource: 'digilocker',
+        aadharNumberImportSource: 'digilocker'
+      }
+    };
+    
+    // console.log('Transformed DigiLocker data:', transformedData);
+    onSuccess(transformedData);
     onClose();
   };
 
@@ -823,17 +840,25 @@ const WalletImportModal: React.FC<WalletImportModalProps> = ({ isOpen, onClose, 
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-purple-600" />
-            Wallet Integration
-          </DialogTitle>
-        </DialogHeader>
-        {renderContent()}
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-purple-600" />
+              Wallet Integration
+            </DialogTitle>
+          </DialogHeader>
+          {renderContent()}
+        </DialogContent>
+      </Dialog>
+      
+      <DigiLockerModal
+        isOpen={isDigiLockerModalOpen}
+        onClose={handleDigiLockerClose}
+        onSuccess={handleDigiLockerSuccess}
+      />
+    </>
   );
 };
 
