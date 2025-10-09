@@ -681,29 +681,25 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
 
       {/* Job Detail Dialog - Rendered outside map container with highest z-index */}
       {selectedJobForDetails && (
-        <div className="fixed inset-0 z-[999999]">
-          <JobDetailDialog
-            job={selectedJobForDetails}
-            isOpen={true}
-            onClose={() => setSelectedJobForDetails(null)}
-            onApply={handleApplyFromDetails}
-          />
-        </div>
+        <JobDetailDialog
+          job={selectedJobForDetails}
+          isOpen={true}
+          onClose={() => setSelectedJobForDetails(null)}
+          onApply={handleApplyFromDetails}
+        />
       )}
 
       {/* Job Application Dialog - Rendered outside map container with highest z-index */}
       {selectedJob && (
-        <div className="fixed inset-0 z-[999999]">
-          <JobApplicationDialog 
-            job={selectedJob}
-            isOpen={true}
-            onClose={() => setSelectedJob(null)}
-            onSubmit={handleJobApplicationSubmit}
-            // onSaveDraft={handleSaveDraft} // Disabled save draft functionality
-            applying={applying}
-            // savingDraft={savingDraft} // Disabled save draft functionality
-          />
-        </div>
+        <JobApplicationDialog 
+          job={selectedJob}
+          isOpen={true}
+          onClose={() => setSelectedJob(null)}
+          onSubmit={handleJobApplicationSubmit}
+          // onSaveDraft={handleSaveDraft} // Disabled save draft functionality
+          applying={applying}
+          // savingDraft={savingDraft} // Disabled save draft functionality
+        />
       )}
 
 
