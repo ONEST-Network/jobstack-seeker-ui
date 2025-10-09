@@ -259,3 +259,150 @@ div[role="alertdialog"],
   /* Allow the inline background-color to work for user marker */
   border: none !important;
 }
+
+/* Individual job marker styles for better mobile touch interaction */
+.individual-job-marker {
+  background: transparent !important;
+  border: none !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+.individual-job-marker div {
+  border: none !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Improve touch interaction on mobile devices */
+@media (max-width: 768px) {
+  .individual-job-marker {
+    cursor: pointer !important;
+  }
+  
+  .individual-job-marker div {
+    cursor: pointer !important;
+    min-width: 44px !important; /* iOS minimum touch target */
+    min-height: 44px !important;
+  }
+  
+  /* Prevent text selection on touch devices */
+  .leaflet-container {
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -khtml-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+  }
+  
+  /* Improve popup touch interaction */
+  .leaflet-popup-content-wrapper {
+    touch-action: manipulation !important;
+  }
+  
+  .leaflet-popup-content {
+    touch-action: manipulation !important;
+  }
+  
+  /* Mobile-specific popup styles */
+  .mobile-popup .leaflet-popup-content-wrapper {
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+    padding: 0 !important;
+  }
+  
+  .mobile-popup .leaflet-popup-content {
+    margin: 12px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .mobile-popup .leaflet-popup-close-button {
+    font-size: 18px !important;
+    padding: 8px !important;
+    color: #666 !important;
+  }
+  
+  /* Prevent map from interfering with touch events */
+  .leaflet-container {
+    touch-action: pan-x pan-y !important;
+  }
+  
+  /* Improve marker interaction on mobile */
+  .leaflet-marker-icon {
+    touch-action: manipulation !important;
+  }
+  
+  /* Pulse animation for mobile markers */
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);
+    }
+    50% {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 4px rgba(29, 78, 216, 0.6);
+    }
+    100% {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);
+    }
+  }
+  
+  /* Fix dialog modal issues on mobile */
+  [data-radix-dialog-content] {
+    max-height: 95vh !important;
+    overflow-y: auto !important;
+    margin: 1rem !important;
+    width: calc(100vw - 2rem) !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+  
+  /* Ensure dialog overlay is above everything */
+  [data-radix-dialog-overlay] {
+    z-index: 999998 !important;
+  }
+  
+  [data-radix-dialog-content] {
+    z-index: 999999 !important;
+  }
+  
+  /* Prevent body scroll when modal is open */
+  body:has([data-radix-dialog-content]) {
+    overflow: hidden !important;
+  }
+  
+  /* Improve touch interaction in dialogs */
+  [data-radix-dialog-content] * {
+    touch-action: manipulation !important;
+  }
+  
+  /* Prevent map interactions when modal is open */
+  body:has([data-radix-dialog-content]) .leaflet-container {
+    pointer-events: none !important;
+  }
+  
+  /* Ensure modal content is always interactive */
+  [data-radix-dialog-content] {
+    pointer-events: auto !important;
+  }
+  
+  /* Fix modal positioning on mobile devices */
+  @media (max-width: 768px) {
+    [data-radix-dialog-content] {
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      margin: 0 !important;
+      width: calc(100vw - 2rem) !important;
+      max-width: calc(100vw - 2rem) !important;
+      max-height: calc(100vh - 2rem) !important;
+    }
+  }
+}
