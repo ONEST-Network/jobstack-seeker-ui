@@ -49,7 +49,7 @@
             "ui:disabled": false
           }
         },
-        "required": ["name", "location", "phone"],
+        "required": ["name", "location", "phone", "age"],
         "ui": {
           "order": ["name", "location", "phone", "age"],
           "description": "Enter your basic details or import from supported wallets for quick setup",
@@ -244,6 +244,16 @@
             "ui:disabled": false,
             "ui:hasOther": true
           },
+          "workExperience": {
+            "type": "string",
+            "title": "Work Experience",
+            "description": "What is your work experience level?",
+            "enum": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
+            "enumNames": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
+            "ui:widget": "select",
+            "ui:placeholder": "Select your work experience",
+            "ui:disabled": false
+          },
           "digitalToolsKnown": {
             "type": "array",
             "title": "Digital Tools Known",
@@ -330,6 +340,7 @@
             "householdIncomePerAnnum",
             "languagesKnown",
             "highestQualification",
+            "workExperience",
             "digitalToolsKnown",
             "communicationSkillsScore",
             "domainKnowledge",
@@ -340,7 +351,8 @@
             "scanQRCode"
           ],
           "description": "Tell us about your technical setup, qualifications, skills, and experience"
-        }
+        },
+        "required": ["highestQualification"]
       },
       "whatIWant": {
         "type": "object",

@@ -52,7 +52,7 @@
             "ui:disabled": false
           }
         },
-        "required": ["name", "location", "phone"],
+        "required": ["name", "location", "phone", "age"],
         "ui": {
           "order": ["name", "location", "phone", "age"],
           "description": "Enter your basic details or import from supported wallets for quick setup",
@@ -140,6 +140,16 @@
             "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
             "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"]
           },
+          "workExperience": {
+            "type": "string",
+            "title": "Work Experience",
+            "description": "What is your work experience level?",
+            "enum": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
+            "enumNames": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
+            "ui:widget": "select",
+            "ui:placeholder": "Select your work experience",
+            "ui:disabled": false
+          },
           "communicationSkillsScore": {
             "type": "string",
             "title": "Communication Skills Score",
@@ -178,9 +188,10 @@
           }
         },
         "ui": {
-          "order": ["languagesKnown", "highestEducation", "communicationSkillsScore", "domainKnowledge", "taskVideo", "scanQRCode"],
+          "order": ["languagesKnown", "highestEducation", "workExperience", "communicationSkillsScore", "domainKnowledge", "taskVideo", "scanQRCode"],
           "description": "Tell us about your qualifications, skills, and experience"
-        }
+        },
+        "required": ["highestEducation"]
       },
       "whatIWant": {
         "type": "object",
