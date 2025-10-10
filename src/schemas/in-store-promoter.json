@@ -52,7 +52,7 @@
             "ui:disabled": false
           }
         },
-        "required": ["name", "location", "phone"],
+        "required": ["name", "location", "phone", "age"],
         "ui": {
           "order": ["name", "location", "phone", "age"],
           "description": "Enter your basic details or import from DigiLocker/Wallet for quick setup",
@@ -147,6 +147,16 @@
             "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
             "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"]
           },
+          "workExperience": {
+            "type": "string",
+            "title": "Work Experience",
+            "description": "What is your work experience level?",
+            "enum": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
+            "enumNames": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
+            "ui:widget": "select",
+            "ui:placeholder": "Select your work experience",
+            "ui:disabled": false
+          },
           "presentabilityScore": {
             "type": "string",
             "title": "Presentability Score",
@@ -192,8 +202,9 @@
             "ui:placeholder": "Scan QR code"
           }
         },
+        "required": ["highestEducation"],
         "ui": {
-          "order": ["languagesKnown", "highestEducation","presentabilityScore", "communicationSkillsScore", "domainKnowledge", "taskVideo", "scanQRCode"],
+          "order": ["languagesKnown", "highestEducation","workExperience", "presentabilityScore", "communicationSkillsScore", "domainKnowledge", "taskVideo", "scanQRCode"],
           "description": "Tell us about your qualifications, skills, and experience"
         }
       },

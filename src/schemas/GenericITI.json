@@ -65,7 +65,7 @@
             "ui:disabled": false
           }
         },
-        "required": ["name", "location", "phone"],
+        "required": ["name", "location", "phone", "age"],
         "ui": {
           "order": ["name", "gender", "location", "phone", "age"],
           "description": "Enter your basic details or import from DigiLocker/Wallet for quick setup",
@@ -477,6 +477,16 @@
             "ui:placeholder": "Enter your training duration in years",
             "ui:disabled": false
           },
+          "workExperience": {
+            "type": "string",
+            "title": "Work Experience",
+            "description": "What is your work experience level?",
+            "enum": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
+            "enumNames": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
+            "ui:widget": "select",
+            "ui:placeholder": "Select your work experience",
+            "ui:disabled": false
+          },
           "languageSpoken": {
             "type": "array",
             "title": "Language Spoken",
@@ -540,7 +550,7 @@
           },
   
             "ui": {
-              "order": ["highestQualification", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "languageSpoken", "taskVideo", "qrCodeScan"],
+              "order": ["highestQualification", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "workExperience", "languageSpoken", "taskVideo", "qrCodeScan"],
               "description": "Assessment for ITI"
             }
           ,
@@ -593,7 +603,8 @@
               "fields": ["qrCodeScan"]
             }
           ]
-        }
+        },
+        "required": ["highestQualification"]
       },
       "whatIWant": {
         "type": "object",
