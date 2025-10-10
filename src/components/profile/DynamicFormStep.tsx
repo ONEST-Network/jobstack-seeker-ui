@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { MapPin, Upload, QrCode, Shield, Lock, Loader2 } from 'lucide-react';
-import DigiLockerModal from './DigiLockerModal';
 import WalletImportModal from './WalletImportModal';
 import QRCodeScannerDialog from './QRCodeScannerDialog';
 import { FileUploadField } from '@/components/ui/file-upload-field';
@@ -32,7 +31,6 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  const [showDigiLocker, setShowDigiLocker] = React.useState(false);
   const [showWallet, setShowWallet] = React.useState(false);
   const [showQRScanner, setShowQRScanner] = React.useState(false);
   const [qrFieldName, setQrFieldName] = React.useState<string>('');
@@ -91,6 +89,17 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const schema = getUnifiedSchemaStep(role, stepName);
 
   if (!schema) {
+    // If we're just imported from wallet, avoid flashing a red error and show a neutral loading state
+    if ((profile as any)?.importedFromWallet) {
+      return (
+        <div className="p-6 text-center">
+          <div className="inline-flex items-center gap-2 text-gray-600">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Preparing form for your imported role…</span>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="p-4 text-center">
         <div className="text-red-600 mb-2">Schema not found for step: {stepName}</div>
@@ -188,142 +197,114 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     }
   };
 
-  const handleDigiLockerSuccess = (data: Record<string, unknown>) => {
-    // Extract only the properties we care about from the DigiLocker response
-    // Prefer common naming variations if they exist
-    const fullName: string | undefined =
-      (data?.name as string) || (data?.fullName as string) || [data?.firstName, data?.lastName].filter(Boolean).join(' ').trim();
 
-    // Calculate age more accurately from date of birth
-    let derivedAge: number | undefined;
-    const dob: string | undefined = (data?.dateOfBirth as string) || (data?.dob as string) || (data?.birthDate as string);
-
-    if (dob) {
-      const birthDate = new Date(dob);
-      const today = new Date();
-      derivedAge = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        derivedAge--;
-      }
-    } else if (typeof data?.age === 'number') {
-      derivedAge = data.age;
-    }
-
-
-
-    // Update both the step data and the global profile state
+  const handleWalletSuccess = (data: Record<string, any>) => {
+    // Handle the new wallet data structure with organized sections
     const mappedData: Record<string, unknown> = {};
     const verificationFlags: Record<string, unknown> = {};
 
-    if (fullName) {
-      mappedData.name = fullName;
-      verificationFlags.isNameVerified = true;
+    // Handle whoIAm section
+    if (data.whoIAm) {
+      Object.keys(data.whoIAm).forEach(key => {
+        if (data.whoIAm[key]) {
+          mappedData[key] = data.whoIAm[key];
+          if (key.includes('Verified')) {
+            verificationFlags[key] = data.whoIAm[key];
+          }
+        }
+      });
     }
 
-    if (derivedAge !== undefined) {
-      mappedData.age = derivedAge;
-      verificationFlags.isAgeVerified = true;
+    // Handle whatIHave section
+    if (data.whatIHave) {
+      Object.keys(data.whatIHave).forEach(key => {
+        if (data.whatIHave[key]) {
+          mappedData[key] = data.whatIHave[key];
+        }
+      });
     }
 
-    if (data?.gender) {
-      // Ensure gender is properly capitalized to match schema expectations
-      const genderValue = data.gender as string;
-      mappedData.gender = genderValue.charAt(0).toUpperCase() + genderValue.slice(1).toLowerCase();
-      verificationFlags.isGenderVerified = true;
-      console.log('DigiLocker gender mapping:', { original: genderValue, mapped: mappedData.gender });
+    // Handle whatIWant section
+    if (data.whatIWant) {
+      Object.keys(data.whatIWant).forEach(key => {
+        if (data.whatIWant[key]) {
+          mappedData[key] = data.whatIWant[key];
+        }
+      });
     }
 
-    if (data?.hometown) {
-      mappedData.hometown = data.hometown as string;
-      verificationFlags.isHometownVerified = true;
+    // Add wallet import metadata
+    if (data.vcMetadata) {
+      mappedData.vcMetadata = data.vcMetadata;
     }
 
-    if (data?.aadharNumber) {
-      mappedData.aadharNumber = data.aadharNumber as string;
-      verificationFlags.isAadharVerified = true;
-    }
-
-    // Update step data
-    console.log('Setting step data with mapped data:', mappedData);
-    setStepData(mappedData);
-
-    // Update global profile state with verification flags
-    setProfile(prevProfile => {
-      const updatedProfile = {
-        ...prevProfile,
-        ...mappedData,
-        ...verificationFlags
-      };
-
-      console.log('Updated profile:', updatedProfile);
-      return updatedProfile;
-    });
-
-    setShowDigiLocker(false);
-  };
-
-  const handleWalletSuccess = (data: Record<string, string | number | boolean | undefined>) => {
-    // Transform wallet data to match profile format
-    const mappedData: Record<string, unknown> = {};
-    const verificationFlags: Record<string, unknown> = {};
-
-    // Map common fields from wallet credentials
-    if (data.name) {
-      mappedData.name = data.name as string;
-      verificationFlags.isNameVerified = true;
-    }
-
-    if (data.email) {
-      mappedData.email = data.email as string;
-      verificationFlags.isEmailVerified = true;
-    }
-
-    if (data.phone) {
-      mappedData.phone = data.phone as string;
-      verificationFlags.isPhoneVerified = true;
-    }
-
-    if (data.age) {
-      mappedData.age = data.age as number;
-      verificationFlags.isAgeVerified = true;
-    }
-
-    // Map certification fields
-    if (data.certificationName) {
-      mappedData.certificationName = data.certificationName as string;
-    }
-
-    if (data.certificationId) {
-      mappedData.certificationId = data.certificationId as string;
-    }
-
-    if (data.grade) {
-      mappedData.grade = data.grade as string;
-    }
-
-    if (data.universitySerialNumber) {
-      mappedData.usn = data.universitySerialNumber as string;
-    }
-
-    if (data.courseDuration) {
-      mappedData.courseDuration = data.courseDuration as string;
-    }
-
-    if (data.event) {
-      mappedData.event = data.event as string;
-    }
+    // Mark as imported from wallet
+    mappedData.importedFromWallet = true;
 
     // Update step data
     console.log('Setting step data with wallet mapped data:', mappedData);
     setStepData(mappedData);
 
-    // Update global profile state with verification flags
+    // Update global profile state with verification flags and wallet data
     setProfile(prevProfile => {
+      // First, clear previous wallet-imported data by removing fields that have ImportSource = 'wallet'
+      const clearedProfile = { ...prevProfile };
+      
+      // Clear wallet-imported fields from whoIAm section
+      if (clearedProfile.whoIAm) {
+        Object.keys(clearedProfile.whoIAm).forEach(key => {
+          if (clearedProfile.whoIAm[key + 'ImportSource'] === 'wallet') {
+            delete clearedProfile.whoIAm[key];
+            delete clearedProfile.whoIAm[key + 'ImportSource'];
+            delete clearedProfile.whoIAm['is' + key.charAt(0).toUpperCase() + key.slice(1) + 'Verified'];
+          }
+        });
+      }
+      
+      // Clear wallet-imported fields from whatIHave section
+      if (clearedProfile.whatIHave) {
+        Object.keys(clearedProfile.whatIHave).forEach(key => {
+          if (clearedProfile.whatIHave[key + 'ImportSource'] === 'wallet') {
+            delete clearedProfile.whatIHave[key];
+            delete clearedProfile.whatIHave[key + 'ImportSource'];
+            delete clearedProfile.whatIHave['is' + key.charAt(0).toUpperCase() + key.slice(1) + 'Verified'];
+          }
+        });
+      }
+      
+      // Clear wallet-imported fields from whatIWant section
+      if (clearedProfile.whatIWant) {
+        Object.keys(clearedProfile.whatIWant).forEach(key => {
+          if (clearedProfile.whatIWant[key + 'ImportSource'] === 'wallet') {
+            delete clearedProfile.whatIWant[key];
+            delete clearedProfile.whatIWant[key + 'ImportSource'];
+            delete clearedProfile.whatIWant['is' + key.charAt(0).toUpperCase() + key.slice(1) + 'Verified'];
+          }
+        });
+      }
+      
+      // Clear direct wallet-imported fields from profile root
+      Object.keys(clearedProfile).forEach(key => {
+        if (clearedProfile[key + 'ImportSource'] === 'wallet') {
+          delete clearedProfile[key];
+          delete clearedProfile[key + 'ImportSource'];
+          delete clearedProfile['is' + key.charAt(0).toUpperCase() + key.slice(1) + 'Verified'];
+        }
+      });
+
+      // Now apply the new wallet data
       const updatedProfile = {
-        ...prevProfile,
+        ...clearedProfile,
         ...mappedData,
-        ...verificationFlags
+        ...verificationFlags,
+        // Merge the organized sections
+        whoIAm: { ...clearedProfile.whoIAm, ...data.whoIAm },
+        whatIHave: { ...clearedProfile.whatIHave, ...data.whatIHave },
+        whatIWant: { ...clearedProfile.whatIWant, ...data.whatIWant },
+        // Also merge direct fields for backward compatibility
+        ...data.whoIAm,
+        ...data.whatIHave,
+        ...data.whatIWant
       };
 
       console.log('Updated profile with wallet data:', updatedProfile);
@@ -370,10 +351,40 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     const hasLocationButton = fieldConfig['ui:hasLocationButton'];
     const currency = fieldConfig['ui:currency'];
 
-
+    // Helper function to get dynamic verification message
+    const getDynamicVerificationMessage = () => {
+      // Check stepName-specific import source first
+      const stepProfile = profile[stepName as keyof typeof profile] as any;
+      const importSource = stepProfile?.[`${fieldName}ImportSource`] || 
+                          profile.whoIAm?.[`${fieldName}ImportSource`] || 
+                          'digilocker';
+      
+      if (importSource === 'wallet') {
+        return '✓ Verified from Dhiway Wallet';
+      } else if (importSource === 'digilocker') {
+        return '✓ Verified from DigiLocker';
+      }
+      return verificationMessage || '✓ Verified';
+    };
 
     // Check if field is verified from global profile state
     const isVerified = profile[`is${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Verified` as keyof typeof profile];
+    
+    // Check if field is imported from wallet and should be non-editable
+    // Only consider a field as wallet-imported if it has explicit import source metadata
+    const stepProfile = profile[stepName as keyof typeof profile] as Record<string, unknown> | undefined;
+    const isWalletImported = (
+      // Check stepName-specific import source first
+      stepProfile?.[`${fieldName}ImportSource`] === 'wallet' ||
+      // Check whoIAm section import source
+      profile.whoIAm?.[`${fieldName}ImportSource`] === 'wallet' ||
+      // Check whatIHave section import source  
+      profile.whatIHave?.[`${fieldName}ImportSource`] === 'wallet' ||
+      // Check whatIWant section import source
+      profile.whatIWant?.[`${fieldName}ImportSource`] === 'wallet' ||
+      // Check direct profile field import source
+      profile[`${fieldName}ImportSource` as keyof typeof profile] === 'wallet'
+    );
 
     // Always access search state to ensure consistent hook calls
     const searchQuery = searchQueries[fieldName] || '';
@@ -653,7 +664,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               {isVerified && (
                 <div className="flex items-center gap-2 text-sm text-green-600">
                   <Shield className="h-4 w-4" />
-                  <span>{verificationMessage || `Verified via DigiLocker`}</span>
+                  <span>{getDynamicVerificationMessage()}</span>
                 </div>
               )}
               
@@ -703,7 +714,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               {isVerified && (
                 <div className="flex items-center gap-2 text-sm text-green-600">
                   <Shield className="h-4 w-4" />
-                  <span>{verificationMessage || `Verified via DigiLocker`}</span>
+                  <span>{getDynamicVerificationMessage()}</span>
                 </div>
               )}
               
@@ -728,10 +739,10 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 value={value || ''}
                 onChange={(e) => handleFieldChange(fieldName, e.target.value)}
                 placeholder={placeholder}
-                disabled={disabled || isVerified}
-                className={isVerified ? 'border-green-500' : ''}
+                disabled={disabled || isVerified || isWalletImported}
+                className={isVerified || isWalletImported ? 'border-green-500' : ''}
               />
-              {isVerified && (
+              {(isVerified || isWalletImported) && (
                 <div className="absolute right-2 top-2 flex items-center gap-1">
                   <Shield className="h-4 w-4 text-green-600" />
                   <Lock className="h-4 w-4 text-muted-foreground" />
@@ -740,7 +751,12 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || `Verified via DigiLocker`}
+                {getDynamicVerificationMessage()}
+              </p>
+            )}
+            {isWalletImported && !isVerified && (
+              <p className="text-xs text-green-600">
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {fieldConfig.description && (
@@ -786,17 +802,17 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 value={value || ''}
                 onChange={(e) => handleFieldChange(fieldName, parseInt(e.target.value) || 0)}
                 placeholder={placeholder}
-                disabled={disabled || isVerified}
+                disabled={disabled || isVerified || isWalletImported}
                 min={fieldConfig.minimum}
                 max={fieldConfig.maximum}
-                className={`${isVerified ? 'border-green-500' : ''} ${currency ? 'pl-8' : ''}`}
+                className={`${isVerified || isWalletImported ? 'border-green-500' : ''} ${currency ? 'pl-8' : ''}`}
               />
               {currency && (
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
                   {currency}
                 </span>
               )}
-              {isVerified && (
+              {(isVerified || isWalletImported) && (
                 <div className="absolute right-2 top-2 flex items-center gap-1">
                   <Shield className="h-4 w-4 text-green-600" />
                   <Lock className="h-4 w-4 text-muted-foreground" />
@@ -805,7 +821,12 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || `Verified via DigiLocker`}
+                {getDynamicVerificationMessage()}
+              </p>
+            )}
+            {isWalletImported && !isVerified && (
+              <p className="text-xs text-green-600">
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {fieldConfig.description && (
@@ -825,9 +846,9 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               <Select
                 value={value || ''}
                 onValueChange={(val) => handleFieldChange(fieldName, val)}
-                disabled={disabled || isVerified}
+                disabled={disabled || isVerified || isWalletImported}
               >
-                <SelectTrigger className={isVerified ? 'border-green-500' : ''}>
+                <SelectTrigger className={isVerified || isWalletImported ? 'border-green-500' : ''}>
                   <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent>
@@ -838,7 +859,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                   ))}
                 </SelectContent>
               </Select>
-              {isVerified && (
+              {(isVerified || isWalletImported) && (
                 <div className="absolute right-2 top-2 flex items-center gap-1">
                   <Shield className="h-4 w-4 text-green-600" />
                   <Lock className="h-4 w-4 text-muted-foreground" />
@@ -847,7 +868,12 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || `Verified via DigiLocker`}
+                {getDynamicVerificationMessage()}
+              </p>
+            )}
+            {isWalletImported && !isVerified && (
+              <p className="text-xs text-green-600">
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {fieldConfig.description && (
@@ -880,7 +906,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </RadioGroup>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || `Verified via DigiLocker`}
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {fieldConfig.description && (
@@ -915,7 +941,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </div>
             {isVerified && (
               <p className="text-xs text-green-600">
-                {verificationMessage || `Verified via DigiLocker`}
+                {getDynamicVerificationMessage()}
               </p>
             )}
             {fieldConfig.description && (
@@ -1337,42 +1363,16 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
 
 
 
-      {/* DigiLocker Integration */}
-      {schema.ui?.showDigiLocker && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium text-blue-800">
-                {schema.ui.digiLockerConfig?.title}
-              </h4>
-              <p className="text-sm text-blue-700 mt-1">
-                {schema.ui.digiLockerConfig?.description}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowDigiLocker(true)}
-              className="text-blue-700 border-blue-300 hover:bg-blue-100"
-            >
-              {schema.ui.digiLockerConfig?.buttonText}
-            </Button>
-          </div>
-          <p className="text-xs text-blue-600 mt-2">
-            {schema.ui.digiLockerConfig?.footerText}
-          </p>
-        </div>
-      )}
-
       {/* Wallet Import Integration */}
       {schema.ui?.showWallet && (
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-medium text-purple-800">
-                {schema.ui.walletConfig?.title || "Import from Wallet"}
+                Import from Wallets
               </h4>
               <p className="text-sm text-purple-700 mt-1">
-                {schema.ui.walletConfig?.description || "Import verified credentials from your digital wallet"}
+                Import verified credentials from supported digital wallets
               </p>
             </div>
             <Button
@@ -1380,11 +1380,11 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               onClick={() => setShowWallet(true)}
               className="text-purple-700 border-purple-300 hover:bg-purple-100"
             >
-              {schema.ui.walletConfig?.buttonText || "Import from Wallet"}
+              Import from Wallets
             </Button>
           </div>
           <p className="text-xs text-purple-600 mt-2">
-            {schema.ui.walletConfig?.footerText || "This will import your verified credentials, certificates, and personal details"}
+            This will import your verified credentials, certificates, and personal details from Dhiway Wallet and DigiLocker
           </p>
         </div>
       )}
@@ -1397,13 +1397,6 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
           return renderField(fieldName, fieldConfig);
         })}
       </div>
-
-      {/* DigiLocker Modal */}
-      <DigiLockerModal
-        isOpen={showDigiLocker}
-        onClose={() => setShowDigiLocker(false)}
-        onSuccess={handleDigiLockerSuccess}
-      />
 
       {/* Wallet Import Modal */}
       <WalletImportModal

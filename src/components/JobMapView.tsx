@@ -407,7 +407,6 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
       }
     }
   }, [user, onPromptLogin, fetchScoresForJobs]);
-
   const handleJobApplicationSubmit = async (applicationData: JobApplicationData) => {
     if (!selectedJob) return;
 

@@ -491,11 +491,11 @@ const JobListView: React.FC<JobListViewProps> = ({
 
             {/* Show existing jobs if available during refresh (not page change) */}
             {!isInitialLoad && jobs.length > 0 && (
-              <div className="mb-4">
+              <div className="mb-6">
                 <p className="text-sm text-muted-foreground mb-3">
                   Showing cached results while refreshing...
                 </p>
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {finalDisplayJobs.map(job => (
                     <JobCard 
                       key={job.id} 
@@ -510,7 +510,7 @@ const JobListView: React.FC<JobListViewProps> = ({
 
             {/* Loading skeletons for initial load */}
             {isInitialLoad && (
-              <div className="space-y-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Array.from({ length: 3 }, (_, i) => (
                   <JobCardSkeleton key={i} />
                 ))}
@@ -522,7 +522,7 @@ const JobListView: React.FC<JobListViewProps> = ({
         {/* Jobs List - Only show when not loading and not changing pages */}
         {!loading && !isPageChanging && !error && (
           <>
-            <div ref={jobsListRef} className="space-y-4">
+            <div ref={jobsListRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {finalDisplayJobs.length > 0 ? (
                 finalDisplayJobs.map(job => (
                   <JobCard 

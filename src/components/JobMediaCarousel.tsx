@@ -143,7 +143,7 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
 
   if (!media || media.length === 0) {
     return (
-      <div className={`w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center text-2xl ${className}`}>
+      <div className={`w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center text-4xl ${className}`}>
         🏢
       </div>
     );
@@ -151,7 +151,7 @@ const JobMediaCarousel: React.FC<JobMediaCarouselProps> = ({ media, title, class
 
   if (validMedia.length === 0) {
     return (
-      <div className={`w-16 h-16 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg flex items-center justify-center text-2xl ${className}`}>
+      <div className={`w-full h-48 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg flex items-center justify-center text-4xl ${className}`}>
         ⚠️
       </div>
     );

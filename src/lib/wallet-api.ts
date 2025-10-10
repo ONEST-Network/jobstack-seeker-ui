@@ -1,11 +1,13 @@
 // Wallet VC API utilities
 const VC_WALLET_URL = import.meta.env.VITE_VC_WALLET_URL;
+const VC_WALLET_API_KEY = import.meta.env.VITE_VC_WALLET_API_KEY;
 
 export interface WalletCredentialSubject {
   id?: string;
   name?: string;
   email?: string;
   phone_number?: number;
+  phone?: number; // Alternative phone field name
   usn?: string;
   grade?: string;
   cert_id?: string;
@@ -15,6 +17,26 @@ export interface WalletCredentialSubject {
   issue_date?: string;
   start_date?: string;
   event?: string;
+  // ITI specific fields
+  trade?: string;
+  gender?: string;
+  session?: string;
+  iti_code?: string;
+  iti_name?: string;
+  date_of_birth?: string;
+  date_of_issue?: string;
+  name_of_issuer?: string;
+  place_of_issue?: string;
+  final_exam_year?: string;
+  name_of_attestor?: string;
+  final_exam_result?: string;
+  authority_of_issuer?: string;
+  date_of_attestation?: string;
+  registration_number?: string;
+  place_of_attestation?: string;
+  authority_of_attestor?: string;
+  organization_of_issuer?: string;
+  organization_of_attestor?: string;
   '@context'?: string;
   [key: string]: string | number | boolean | undefined; // Allow additional fields
 }
@@ -25,19 +47,22 @@ export interface WalletCredential {
   proof: Record<string, unknown>[];
   issuer: string;
   '@context': string[];
-  metadata: {
-    pdf?: string;
-    iKey?: string;
-    verify?: string;
-    publicId?: string;
-    templateId?: string;
-  };
+  metadata: Record<string, unknown>;
   validFrom: string;
   validUntil: string;
   issuanceDate: string;
   credentialHash: string;
-  expirationDate: string;
-  credentialSchema: Record<string, { type: string }>;
+  expirationDate?: string;
+  credentialSchema: {
+    $id: string;
+    type: string;
+    title: string;
+    $schema: string;
+    required?: string[];
+    properties: Record<string, { type: string }>;
+    description?: string;
+    additionalProperties: boolean;
+  };
   credentialSubject: WalletCredentialSubject;
 }
 
@@ -51,6 +76,13 @@ export interface WalletCredentialData {
   };
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SelectedVC {
+  credentialData: WalletCredentialData;
+  credential: WalletCredential;
+  orgName: string;
+  issuedBy: string;
 }
 
 export interface WalletResponse {
@@ -69,25 +101,58 @@ export interface IdentifierOption {
   type: 'email' | 'phone';
 }
 
+export interface RequestCodeResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface VerifyCodeResponse {
+  message: string;
+  token?: string;
+}
+
 class WalletAPI {
   private baseUrl: string;
+  private authToken: string | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
+  setAuthToken(token: string) {
+    this.authToken = token;
+  }
+
+  clearAuthToken() {
+    this.authToken = null;
+  }
+
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    includeApiKey: boolean = false,
+    includeAuthToken: boolean = false
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...options.headers as Record<string, string>,
+    };
+
+    // Add API key header if required and available
+    if (includeApiKey && VC_WALLET_API_KEY) {
+      headers['x-api-key'] = VC_WALLET_API_KEY;
+    }
+
+    // Add Authorization header if required and token is available
+    if (includeAuthToken && this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
+    
     const config: RequestInit = {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers as Record<string, string>,
-      },
+      headers,
     };
 
     const response = await fetch(url, config);
@@ -101,84 +166,215 @@ class WalletAPI {
   }
 
   /**
+   * Request authentication code for wallet access
+   * @param identifier - Email or phone number
+   * @param type - Type of identifier ('email' or 'phoneNumber')
+   * @returns Promise with request response
+   */
+  async requestCode(identifier: string, type: 'email' | 'phone'): Promise<RequestCodeResponse> {
+    const endpoint = '/api/v1/auth/request-code';
+    return this.request<RequestCodeResponse>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        identifier,
+        type
+      }),
+    });
+  }
+
+  /**
+   * Verify authentication code for wallet access
+   * @param identifier - Email or phone number
+   * @param code - Verification code
+   * @returns Promise with verification response
+   */
+  async verifyCode(identifier: string, code: string): Promise<VerifyCodeResponse> {
+    const endpoint = '/api/v1/auth/verify-code';
+    return this.request<VerifyCodeResponse>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        identifier,
+        code
+      }),
+    });
+  }
+
+  /**
    * Fetch verified credentials from wallet
    * @param identifier - Email or phone number
    * @param page - Page number (default: 1)
-   * @param limit - Number of items per page (default: 5)
+   * @param limit - Number of items per page (default: 50)
    * @returns Promise with verified credentials
    */
-  async getVerifiedCredentials(identifier: string, page: number = 1, limit: number = 5): Promise<WalletResponse> {
-    const endpoint = `/api/v1/verified-credentials?identifier=${identifier}&page=${page}&limit=${limit}`;
+  async getVerifiedCredentials(identifier: string, page: number = 1, limit: number = 50): Promise<WalletResponse> {
+    const encodedIdentifier = encodeURIComponent(identifier);
+    const endpoint = `/api/v1/verified-credentials?identifier=${encodedIdentifier}&page=${page}&limit=${limit}`;
     return this.request<WalletResponse>(endpoint, {
       method: 'GET',
-    });
+    }, true, true); // Include API key and auth token for credential fetch
   }
 
   /**
    * Transform wallet credential data to profile format
    * @param credentialSubject - Raw credential data from wallet
-   * @returns Transformed profile data
+   * @returns Transformed profile data organized by sections
    */
   transformCredentialData(credentialSubject: WalletCredentialSubject) {
-    const transformedData: Record<string, string | number | boolean | undefined> = {};
+    const transformedData: Record<string, any> = {
+      whoIAm: {},
+      whatIHave: {},
+      whatIWant: {},
+      importedFromWallet: true
+    };
 
-    // Map common fields
+    // Who I Am section - Personal Information
     if (credentialSubject.name) {
-      transformedData.name = credentialSubject.name;
+      transformedData.whoIAm.name = credentialSubject.name;
+      transformedData.whoIAm.isNameVerified = true;
+      transformedData.whoIAm.nameImportSource = 'wallet';
     }
 
     if (credentialSubject.email) {
-      transformedData.email = credentialSubject.email;
+      transformedData.whoIAm.email = credentialSubject.email;
+      transformedData.whoIAm.isEmailVerified = true;
+      transformedData.whoIAm.emailImportSource = 'wallet';
     }
 
-    if (credentialSubject.phone_number) {
-      transformedData.phone = credentialSubject.phone_number.toString();
+    // Handle phone number (both phone_number and phone fields)
+    const phoneNumber = credentialSubject.phone_number || credentialSubject.phone;
+    if (phoneNumber) {
+      transformedData.whoIAm.phone = phoneNumber.toString();
+      transformedData.whoIAm.isPhoneVerified = true;
+      transformedData.whoIAm.phoneImportSource = 'wallet';
     }
 
-    // Calculate age from dates if available
-    if (credentialSubject.start_date || credentialSubject.issue_date) {
-      const dateStr = credentialSubject.start_date || credentialSubject.issue_date;
-      if (dateStr) {
-        try {
-          const date = new Date(dateStr);
-          const today = new Date();
-          const age = today.getFullYear() - date.getFullYear();
-          transformedData.age = age;
-        } catch (error) {
-          // Ignore date parsing errors
+    // Handle gender
+    if (credentialSubject.gender) {
+      // Capitalize first letter to match enum values (Male, Female, Other)
+      const gender = credentialSubject.gender.charAt(0).toUpperCase() + credentialSubject.gender.slice(1).toLowerCase();
+      transformedData.whoIAm.gender = gender;
+      transformedData.whoIAm.isGenderVerified = true;
+      transformedData.whoIAm.genderImportSource = 'wallet';
+    }
+
+    // Calculate age from date_of_birth
+    if (credentialSubject.date_of_birth) {
+      try {
+        const birthDate = new Date(credentialSubject.date_of_birth);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        // Adjust if birthday hasn't occurred this year
+        if (today.getMonth() < birthDate.getMonth() || 
+            (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) {
+          transformedData.whoIAm.age = age - 1;
+        } else {
+          transformedData.whoIAm.age = age;
         }
+        transformedData.whoIAm.isAgeVerified = true;
+        transformedData.whoIAm.ageImportSource = 'wallet';
+      } catch (error) {
+        console.warn('Error parsing date_of_birth:', error);
       }
     }
 
-    // Map certificate-related fields
+    // What I Have section - Qualifications, Skills, Experience
+    // ITI Trade/Specialty mapping
+    if (credentialSubject.trade) {
+      let normalizedTrade = credentialSubject.trade;
+      
+      // Normalize trade names - remove "ITI" prefix if present and trim
+      if (normalizedTrade.toLowerCase().startsWith('iti ')) {
+        normalizedTrade = normalizedTrade.substring(4).trim();
+      }
+      
+      transformedData.whatIHave.itiSpecialization = [normalizedTrade];
+      transformedData.whatIHave.itiSpecializationImportSource = 'wallet';
+      // Don't set interestedRole here - let the component decide based on current context
+    }
+
+    // ITI Institute name mapping
+    if (credentialSubject.iti_name) {
+      transformedData.whatIHave.itiInstitute = credentialSubject.iti_name;
+      transformedData.whatIHave.itiInstituteImportSource = 'wallet';
+    }
+
+    // ITI Code mapping
+    if (credentialSubject.iti_code) {
+      transformedData.whatIHave.itiCode = credentialSubject.iti_code;
+      transformedData.whatIHave.itiCodeImportSource = 'wallet';
+    }
+
+    // Registration number to Roll number mapping
+    if (credentialSubject.registration_number) {
+      transformedData.whatIHave.rollNumber = credentialSubject.registration_number;
+      transformedData.whatIHave.rollNumberImportSource = 'wallet';
+    }
+
+    // Session to Training Duration mapping
+    if (credentialSubject.session) {
+      try {
+        const sessionYear = parseInt(credentialSubject.session);
+        if (!isNaN(sessionYear)) {
+          transformedData.whatIHave.trainingDuration = sessionYear;
+          transformedData.whatIHave.trainingDurationImportSource = 'wallet';
+        }
+      } catch (error) {
+        console.warn('Error parsing session year:', error);
+      }
+    }
+
+    // Final exam result mapping
+    if (credentialSubject.final_exam_result) {
+      transformedData.whatIHave.finalExamResult = credentialSubject.final_exam_result;
+      transformedData.whatIHave.finalExamResultImportSource = 'wallet';
+    }
+
+    // Final exam year mapping
+    if (credentialSubject.final_exam_year) {
+      transformedData.whatIHave.finalExamYear = credentialSubject.final_exam_year;
+      transformedData.whatIHave.finalExamYearImportSource = 'wallet';
+    }
+
+    // Legacy certificate fields (for backward compatibility)
     if (credentialSubject.cert_name) {
-      transformedData.certificationName = credentialSubject.cert_name;
+      transformedData.whatIHave.certificationName = credentialSubject.cert_name;
+      transformedData.whatIHave.certificationNameImportSource = 'wallet';
     }
 
     if (credentialSubject.cert_id) {
-      transformedData.certificationId = credentialSubject.cert_id;
+      transformedData.whatIHave.certificationId = credentialSubject.cert_id;
+      transformedData.whatIHave.certificationIdImportSource = 'wallet';
     }
 
     if (credentialSubject.grade) {
-      transformedData.grade = credentialSubject.grade;
+      transformedData.whatIHave.grade = credentialSubject.grade;
+      transformedData.whatIHave.gradeImportSource = 'wallet';
     }
 
     if (credentialSubject.usn) {
-      transformedData.universitySerialNumber = credentialSubject.usn;
+      transformedData.whatIHave.universitySerialNumber = credentialSubject.usn;
+      transformedData.whatIHave.universitySerialNumberImportSource = 'wallet';
     }
 
     if (credentialSubject.duration) {
-      transformedData.courseDuration = credentialSubject.duration;
+      transformedData.whatIHave.courseDuration = credentialSubject.duration;
+      transformedData.whatIHave.courseDurationImportSource = 'wallet';
     }
 
     if (credentialSubject.event) {
-      transformedData.event = credentialSubject.event;
+      transformedData.whatIHave.event = credentialSubject.event;
+      transformedData.whatIHave.eventImportSource = 'wallet';
     }
 
-    // Add verification flags
-    transformedData.isNameVerified = !!credentialSubject.name;
-    transformedData.isEmailVerified = !!credentialSubject.email;
-    transformedData.isPhoneVerified = !!credentialSubject.phone_number;
+    // Map education credential if available
+    if (credentialSubject.education_credential) {
+      transformedData.whatIHave.educationCredential = credentialSubject.education_credential;
+      transformedData.whatIHave.educationCredentialImportSource = 'wallet';
+    }
+
+    // What I Want section - Salary expectations and work preferences
+    // These would typically come from job-related credentials or user preferences
+    // For now, we'll leave this section mostly empty as it's more user-specific
 
     return transformedData;
   }
@@ -186,34 +382,67 @@ class WalletAPI {
   /**
    * Extract all unique data from multiple credentials
    */
-  extractAllCredentialData(credentials: WalletCredentialData[]): Record<string, string | number | boolean | undefined> {
-    const allData: Record<string, string | number | boolean | undefined> = {};
-    const verificationFlags: Record<string, boolean> = {};
+  extractAllCredentialData(credentials: WalletCredentialData[]): Record<string, any> {
+    const allData: Record<string, any> = {
+      whoIAm: {},
+      whatIHave: {},
+      whatIWant: {},
+      importedFromWallet: true
+    };
 
     credentials.forEach(credentialData => {
       credentialData.credentials.forEach(credential => {
         const transformedData = this.transformCredentialData(credential.credentialSubject);
         
-        // Merge data, giving preference to non-empty values
-        Object.keys(transformedData).forEach(key => {
-          if (transformedData[key] && (!allData[key] || allData[key] === '')) {
-            allData[key] = transformedData[key];
-          }
-          
-          // Track verification flags
-          if (key.includes('Verified') && typeof transformedData[key] === 'boolean') {
-            verificationFlags[key] = verificationFlags[key] || (transformedData[key] as boolean);
-          }
-        });
+        // Merge whoIAm data
+        if (transformedData.whoIAm) {
+          Object.keys(transformedData.whoIAm).forEach(key => {
+            if (transformedData.whoIAm[key] && (!allData.whoIAm[key] || allData.whoIAm[key] === '')) {
+              allData.whoIAm[key] = transformedData.whoIAm[key];
+            }
+          });
+        }
+
+        // Merge whatIHave data
+        if (transformedData.whatIHave) {
+          Object.keys(transformedData.whatIHave).forEach(key => {
+            if (transformedData.whatIHave[key] && (!allData.whatIHave[key] || allData.whatIHave[key] === '')) {
+              allData.whatIHave[key] = transformedData.whatIHave[key];
+            }
+          });
+        }
+
+        // Merge whatIWant data
+        if (transformedData.whatIWant) {
+          Object.keys(transformedData.whatIWant).forEach(key => {
+            if (transformedData.whatIWant[key] && (!allData.whatIWant[key] || allData.whatIWant[key] === '')) {
+              allData.whatIWant[key] = transformedData.whatIWant[key];
+            }
+          });
+        }
       });
     });
 
-    // Apply verification flags
-    Object.keys(verificationFlags).forEach(key => {
-      allData[key] = verificationFlags[key];
-    });
-
     return allData;
+  }
+
+  /**
+   * Transform a single selected VC to profile format
+   */
+  transformSelectedVC(selectedVC: SelectedVC): Record<string, any> {
+    const transformedData = this.transformCredentialData(selectedVC.credential.credentialSubject);
+    
+    // Add metadata about the VC
+    transformedData.vcMetadata = {
+      orgName: selectedVC.orgName,
+      issuedBy: selectedVC.issuedBy,
+      credentialId: selectedVC.credential.id,
+      issuanceDate: selectedVC.credential.issuanceDate,
+      validUntil: selectedVC.credential.validUntil,
+      schemaTitle: selectedVC.credential.credentialSchema.title
+    };
+
+    return transformedData;
   }
 }
 
@@ -227,7 +456,7 @@ export { WalletAPI };
 
 // Utility function to check if Wallet is configured
 export const isWalletConfigured = (): boolean => {
-  return !!VC_WALLET_URL;
+  return !!VC_WALLET_URL && !!VC_WALLET_API_KEY;
 };
 
 // Error types for better error handling
