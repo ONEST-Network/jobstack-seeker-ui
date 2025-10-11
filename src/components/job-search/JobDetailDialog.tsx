@@ -21,10 +21,14 @@ import {
   ChevronRight,
   Play,
   Image as ImageIcon,
-  Video as VideoIcon
+  Video as VideoIcon,
+  Copy,
+  Share2
 } from 'lucide-react';
 import { JobItem } from '@/hooks/useJobSearch';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { useParams } from 'react-router-dom';
 import JobMediaCarousel from '../JobMediaCarousel';
 
 interface JobDetailDialogProps {
@@ -43,6 +47,8 @@ interface SubsectionData {
 const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose, onApply }) => {
   const [expandedSubsections, setExpandedSubsections] = useState<Set<string>>(new Set());
   const { user } = useAuth();
+  const { toast } = useToast();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
   
   if (!job) return null;
 
@@ -217,6 +223,66 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
   // Get display scores - show 0 if user not logged in, real scores if logged in
   const displayTrustScore = shouldShowRealScores ? job.trustScore : 0;
   const displayMatchScore = shouldShowRealScores ? job.matchScore : 0;
+
+  // Helper function to get provider and job IDs for sharing
+  const getShareableLink = () => {
+    // Try to find provider and job IDs from the job data
+    // This assumes the job data contains the necessary IDs from the search API
+    const providerId = job.providerId;
+    const jobId = job.id;
+    
+    if (providerId && jobId) {
+      // Use the new route structure with organization slug
+      return `${window.location.origin}/${orgSlug || '0'}/${providerId}/${jobId}`;
+    }
+    
+    return null;
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const shareUrl = getShareableLink();
+    
+    if (!shareUrl) {
+      toast({
+        title: "Share Unavailable",
+        description: "This job cannot be shared at the moment.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Always copy to clipboard first
+      await navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Link Copied!",
+        description: "Job link has been copied to clipboard. You can now share it manually.",
+      });
+
+      // Then try native sharing if available (mobile devices)
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: job.title,
+            text: `Check out this job opportunity: ${job.title}`,
+            url: shareUrl
+          });
+        } catch (shareError) {
+          // If native sharing fails, that's okay - we already copied to clipboard
+          console.log('Native sharing cancelled or failed, but link was copied to clipboard');
+        }
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast({
+        title: "Share Failed",
+        description: "Failed to copy job link. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Render job details that were shown on the card
   const renderJobDetails = () => {
@@ -511,6 +577,14 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               className="flex-1 bg-primary hover:bg-primary/90 h-12 text-base font-medium"
             >
               Apply Now
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleShare}
+              className="h-12 px-4"
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Share Job
             </Button>
             <Button 
               variant="outline" 
