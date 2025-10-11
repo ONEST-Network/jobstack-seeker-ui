@@ -12,7 +12,6 @@ export interface JobItem {
   salary: string;
   workingHours?: string;
   monthlyInHand?: string;
-  monthlyPfEsic?: string;
   monthlyOvertime?: string;
   costPerSharingBed?: string;
   stayProvided?: boolean;
@@ -538,9 +537,6 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
           const monthlyInHand = jobDetails.monthlyInHand ? 
             `₹${jobDetails.monthlyInHand.toLocaleString()}` : 
             'Not specified';
-          const monthlyPfEsic = jobDetails.monthlyPfEsicBenefits ? 
-            `₹${jobDetails.monthlyPfEsicBenefits.toLocaleString()}` : 
-            'Not specified';
           const monthlyOvertime = jobDetails.monthlyAverageOT || jobDetails.monthlyAverageOt ? 
             `₹${(jobDetails.monthlyAverageOT || jobDetails.monthlyAverageOt).toLocaleString()}` : 
             'Not specified';
@@ -721,7 +717,6 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
             salary,
             workingHours,
             monthlyInHand,
-            monthlyPfEsic,
             monthlyOvertime,
             costPerSharingBed,
             stayProvided,

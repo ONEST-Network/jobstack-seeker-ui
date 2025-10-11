@@ -230,13 +230,6 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
       });
     }
 
-    if (job.monthlyPfEsic && job.monthlyPfEsic !== 'Included') {
-      details.push({
-        label: 'PF & ESIC',
-        value: job.monthlyPfEsic,
-        icon: <Users className="h-4 w-4" />
-      });
-    }
 
     if (job.monthlyOvertime && job.monthlyOvertime !== 'Not specified') {
       details.push({

@@ -202,11 +202,6 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
         key: 'salaryRange'
       },
       {
-        label: 'Monthly PF & ESIC',
-        value: job.tags?.jobDetails?.monthlyPfEsicBenefits || job.jobDetails?.monthlyPfEsicBenefits || 'Not specified',
-        key: 'pfEsic'
-      },
-      {
         label: 'Monthly Avg. Overtime (OT)',
         value: job.tags?.jobDetails?.monthlyAverageOT || job.jobDetails?.monthlyAverageOT || 'Not specified',
         key: 'overtime'
