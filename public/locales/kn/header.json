@@ -1,0 +1,62 @@
+{
+  "header": {
+    "navigation": {
+      "home": "ಮನೆ",
+      "jobs": "ಉದ್ಯೋಗಗಳು",
+      "candidates": "ಅಭ್ಯರ್ಥಿಗಳು",
+      "employers": "ನೌಕರಿದಾರರು",
+      "applications": "ಅರ್ಜಿಗಳು",
+      "profile": "ಪ್ರೊಫೈಲ್",
+      "dashboard": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+      "settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+      "help": "ಸಹಾಯ",
+      "about": "ಬಗ್ಗೆ",
+      "contact": "ಸಂಪರ್ಕ"
+    },
+    "userMenu": {
+      "login": "ಲಾಗ್ ಇನ್",
+      "logout": "ಲಾಗ್ ಔಟ್",
+      "loggingOut": "ಲಾಗ್ ಔಟ್ ಆಗುತ್ತಿದೆ...",
+      "completeProfile": "ಪ್ರೊಫೈಲ್ ಪೂರ್ಣಗೊಳಿಸಿ",
+      "myApplications": "ನನ್ನ ಅರ್ಜಿಗಳು",
+      "viewAllProfiles": "ಎಲ್ಲಾ ಪ್ರೊಫೈಲ್‌ಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+      "manageEmployers": "ನೌಕರಿದಾರರನ್ನು ನಿರ್ವಹಿಸಿ",
+      "manageCandidates": "ಅಭ್ಯರ್ಥಿಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
+      "adminDashboard": "ಅಡ್ಮಿನ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+      "accountSettings": "ಖಾತೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+      "user": "ಬಳಕೆದಾರ",
+      "contactInfo": "ಸಂಪರ್ಕ ಮಾಹಿತಿ",
+      "email": "ಇಮೇಲ್",
+      "phone": "ಫೋನ್"
+    },
+    "languageSelector": {
+      "title": "ಭಾಷೆ",
+      "english": "ಇಂಗ್ಲಿಷ್",
+      "hindi": "ಹಿಂದಿ",
+      "marathi": "ಮರಾಠಿ",
+      "gujarati": "ಗುಜರಾತಿ",
+      "tamil": "ತಮಿಳು",
+      "telugu": "ತೆಲುಗು",
+      "kannada": "ಕನ್ನಡ",
+      "malayalam": "ಮಲಯಾಳಂ",
+      "bengali": "ಬಂಗಾಳಿ",
+      "punjabi": "ಪಂಜಾಬಿ",
+      "urdu": "ಉರ್ದು",
+      "odia": "ಒಡಿಯಾ",
+      "assamese": "ಅಸ್ಸಾಮಿ",
+      "nepali": "ನೇಪಾಳಿ"
+    },
+    "candidateSelector": {
+      "title": "ಅಭ್ಯರ್ಥಿಗಳು",
+      "addCandidate": "ಅಭ್ಯರ್ಥಿಯನ್ನು ಸೇರಿಸಿ",
+      "selectCandidate": "ಅಭ್ಯರ್ಥಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+      "noCandidates": "ಯಾವುದೇ ಅಭ್ಯರ್ಥಿಗಳು ಲಭ್ಯವಿಲ್ಲ",
+      "manageCandidates": "ಅಭ್ಯರ್ಥಿಗಳನ್ನು ನಿರ್ವಹಿಸಿ"
+    },
+    "headerActions": {
+      "createProfile": "ಪ್ರೊಫೈಲ್ ರಚಿಸಿ",
+      "create": "ರಚಿಸಿ",
+      "mumbai": "ಮುಂಬೈ"
+    }
+  }
+}

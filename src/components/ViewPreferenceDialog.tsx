@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useViewPreference, ViewType } from '@/hooks/useViewPreference';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface ViewPreferenceDialogProps {
   children?: React.ReactNode;
@@ -17,6 +18,7 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children, o
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedView, setSelectedView] = React.useState<ViewType>('map');
   const isMobile = useIsMobile();
+  const t = useTranslation('settings');
   const {
     preferences,
     setDefaultView,
@@ -52,7 +54,7 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children, o
       className="h-touch flex items-center gap-2"
     >
       <Settings className="h-4 w-4" />
-      <span className="hidden sm:inline">Settings</span>
+      <span className="hidden sm:inline">{t('viewPreferences.settings', 'Settings')}</span>
     </Button>
   );
 
@@ -65,7 +67,7 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children, o
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            View Preferences
+{t('viewPreferences.title', 'View Preferences')}
           </DialogTitle>
         </DialogHeader>
         
@@ -73,9 +75,9 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children, o
           {/* Default View Selection */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Default View</CardTitle>
+              <CardTitle className="text-base">{t('viewPreferences.defaultView', 'Default View')}</CardTitle>
               <CardDescription className="text-sm">
-                Choose which view to show when you first visit the jobs page
+                {t('viewPreferences.defaultViewDescription', 'Choose which view to show when you first visit the jobs page')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -89,9 +91,9 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children, o
                   <Label htmlFor="map" className="flex items-center gap-2 flex-1 cursor-pointer">
                     <Map className="h-4 w-4 text-blue-600" />
                     <div>
-                      <div className="font-medium">Map View</div>
+                      <div className="font-medium">{t('viewPreferences.mapView', 'Map View')}</div>
                       <div className="text-sm text-muted-foreground">
-                        See jobs on an interactive map
+                        {t('viewPreferences.mapViewDescription', 'See jobs on an interactive map')}
                       </div>
                     </div>
                   </Label>
@@ -102,9 +104,9 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children, o
                   <Label htmlFor="list" className="flex items-center gap-2 flex-1 cursor-pointer">
                     <List className="h-4 w-4 text-green-600" />
                     <div>
-                      <div className="font-medium">List View</div>
+                      <div className="font-medium">{t('viewPreferences.listView', 'List View')}</div>
                       <div className="text-sm text-muted-foreground">
-                        Browse jobs in a detailed list
+                        {t('viewPreferences.listViewDescription', 'Browse jobs in a detailed list')}
                       </div>
                     </div>
                   </Label>
@@ -122,13 +124,13 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children, o
               className="flex items-center gap-2"
             >
               <RotateCcw className="h-4 w-4" />
-              Reset to Default
+              {t('viewPreferences.resetToDefault', 'Reset to Default')}
             </Button>
             <Button
               onClick={handleApply}
               className="flex items-center gap-2"
             >
-              Apply
+{t('viewPreferences.apply', 'Apply')}
             </Button>
           </div>
         </div>

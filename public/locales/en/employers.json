@@ -311,6 +311,10 @@
       "addLocation": "Add Location",
       "editLocation": "Edit Location",
       "deleteLocation": "Delete Location"
+    },
+    "employerManagement": {
+      "cannotDeleteDefault": "Cannot delete the default employer profile. This represents your organization.",
+      "confirmDelete": "Are you sure you want to delete this employer profile?"
     }
   }
 }

@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
+import { useTranslation } from '@/hooks/useI18n';
 
 const Jobs = () => {
   const { user } = useAuth();
@@ -17,6 +18,7 @@ const Jobs = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const isMobile = useIsMobile();
+  const t = useTranslation('pages');
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -51,8 +53,8 @@ const Jobs = () => {
         return (
           <div className={`${isMobile ? 'px-4 py-4' : 'container mx-auto px-4 py-6'}`}>
             <div className={`${isMobile ? 'mb-4' : 'mb-6'}`}>
-              <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>My Applications</h1>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground`}>Track and manage your job applications</p>
+              <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>{t('jobs.myApplications', 'My Applications')}</h1>
+              <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground`}>{t('jobs.trackApplications', 'Track and manage your job applications')}</p>
             </div>
             <MyApplications key={refreshKey} />
           </div>

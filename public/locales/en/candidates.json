@@ -76,7 +76,7 @@
       "profileIncomplete": "Please complete your profile to continue",
       "verificationRequired": "Please complete verification to continue",
       "stepCompleted": "Step completed successfully",
-      "profileIncomplete": "Please complete all required fields"
+      "profileValidationFailed": "Please complete all required fields"
     },
     "selectionMode": {
       "title": "Selection Mode",
@@ -184,7 +184,7 @@
       "enterEducation": "Enter education details",
       "enterWorkExperience": "Enter work experience details"
     },
-    "profileActions": {
+    "profileActionsExtended": {
       "viewProfile": "View Profile",
       "editProfile": "Edit Profile",
       "deleteProfile": "Delete Profile",
@@ -195,7 +195,7 @@
       "shareProfile": "Share Profile",
       "printProfile": "Print Profile"
     },
-    "profileMessages": {
+    "profileMessagesExtended": {
       "profileCreated": "Profile created successfully",
       "profileUpdated": "Profile updated successfully",
       "profileDeleted": "Profile deleted successfully",
@@ -275,6 +275,63 @@
       "profileSync": "Profile Sync",
       "profileExport": "Profile Export",
       "profileImport": "Profile Import"
-    }
+    },
+    "candidateCard": {
+      "active": "Active",
+      "default": "Default",
+      "created": "Created",
+      "skills": "Skills",
+      "more": "more",
+      "selected": "Selected",
+      "select": "Select",
+      "experienceLevels": {
+        "fresher": "Fresher",
+        "entryLevel": "Entry Level",
+        "midLevel": "Mid Level",
+        "seniorLevel": "Senior Level"
+      }
+    },
+    "candidateManagement": {
+      "title": "Candidate Profiles",
+      "subtitle": "Manage your different job seeker profiles for various opportunities",
+      "addNewProfile": "Add New Profile",
+      "searchPlaceholder": "Search profiles by name, role, or nickname...",
+      "onlyForIndividuals": "Candidate management is only available for individual users.",
+      "totalProfiles": "Total Profiles",
+      "activeProfile": "Active Profile",
+      "withExperience": "With Experience",
+      "withTargetRole": "With Target Role",
+      "noProfilesFound": "No profiles found",
+      "noProfilesMatch": "No profiles match your search criteria.",
+      "createFirstProfile": "Create your first candidate profile to get started.",
+      "createProfile": "Create Profile",
+      "toastMessages": {
+        "profileSelected": "Profile Selected",
+        "profileSelectedDesc": "Switched to the selected candidate profile.",
+        "cannotDelete": "Cannot Delete",
+        "cannotDeleteDesc": "The default profile cannot be deleted.",
+        "profileDeleted": "Profile Deleted",
+        "profileDeletedDesc": "The candidate profile has been deleted.",
+        "deleteFailed": "Delete Failed",
+        "deleteFailedDesc": "Failed to delete the profile. Please try again."
+      }
+    },
+    "profileDeletion": {
+      "confirmDelete": "Are you sure you want to delete this profile? This action cannot be undone.",
+      "failedToDelete": "Failed to delete profile. Please try again.",
+      "failedToDeleteSome": "Failed to delete some profiles. Please try again."
+    },
+    "selectProfile": "Select Profile",
+    "switchProfile": "Switch Profile",
+    "select": "Select",
+    "cancel": "Cancel",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "noRoleSpecified": "No role specified",
+    "active": "Active",
+    "deleteProfiles": "Delete {{count}} Profile(s)",
+    "deleteProfilesTitle": "Delete Profiles",
+    "deleteProfilesDescription": "Are you sure you want to delete {{count}} profile(s)? This action cannot be undone.",
+    "delete": "Delete"
   }
 }

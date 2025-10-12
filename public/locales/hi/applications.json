@@ -1,0 +1,80 @@
+{
+  "applications": {
+    "title": "आवेदन",
+    "subtitle": "अपने आवेदनों को प्रबंधित करें",
+    "filters": {
+      "all": "सभी",
+      "active": "सक्रिय",
+      "completed": "पूर्ण",
+      "draft": "ड्राफ्ट",
+      "status": "स्थिति",
+      "date": "तिथि",
+      "company": "कंपनी",
+      "location": "स्थान"
+    },
+    "sorting": {
+      "newest": "नवीनतम",
+      "oldest": "सबसे पुराना",
+      "company": "कंपनी",
+      "status": "स्थिति"
+    },
+    "actions": {
+      "view": "देखें",
+      "edit": "संपादित करें",
+      "delete": "हटाएं",
+      "withdraw": "वापस लें",
+      "duplicate": "डुप्लिकेट करें"
+    },
+    "messages": {
+      "applicationSubmitted": "आवेदन सफलतापूर्वक जमा किया गया",
+      "applicationWithdrawn": "आवेदन सफलतापूर्वक वापस लिया गया",
+      "applicationDeleted": "आवेदन सफलतापूर्वक हटाया गया",
+      "applicationUpdated": "आवेदन सफलतापूर्वक अपडेट किया गया",
+      "draftSaved": "ड्राफ्ट सफलतापूर्वक सहेजा गया",
+      "noApplications": "कोई आवेदन नहीं मिला",
+      "noDrafts": "कोई ड्राफ्ट नहीं मिला",
+      "loading": "आवेदन लोड हो रहे हैं...",
+      "error": "आवेदन लोड करने में त्रुटि"
+    },
+    "stats": {
+      "totalApplications": "कुल आवेदन",
+      "activeApplications": "सक्रिय आवेदन",
+      "completedApplications": "पूर्ण आवेदन",
+      "draftApplications": "ड्राफ्ट आवेदन",
+      "successRate": "सफलता दर",
+      "averageResponseTime": "औसत प्रतिक्रिया समय"
+    },
+    "applicationTabs": {
+      "noActiveApplications": "कोई सक्रिय आवेदन नहीं मिला",
+      "noCompletedApplications": "कोई पूर्ण आवेदन नहीं मिला",
+      "noDraftApplications": "कोई ड्राफ्ट आवेदन नहीं मिला",
+      "keepDraftsUpdated": "अपने ड्राफ्ट को अपने नवीनतम प्रोफाइल परिवर्तनों के साथ अप-टू-डेट रखें"
+    },
+    "myApplications": {
+      "loadingApplications": "आवेदन लोड हो रहे हैं...",
+      "updatingStatuses": "आवेदन स्थितियां अपडेट हो रही हैं...",
+      "refreshStatus": "स्थिति रिफ्रेश करें",
+      "updating": "अपडेट हो रहा है...",
+      "noApplicationsFound": "कोई आवेदन नहीं मिला",
+      "noApplicationsWithProfile": "आपने प्रोफाइल के साथ कोई नौकरी के लिए आवेदन नहीं किया है",
+      "noApplicationsYet": "आपने अभी तक कोई नौकरी के लिए आवेदन नहीं किया है।",
+      "switchProfileHint": "अपने आवेदन यहां देखने के लिए किसी अलग प्रोफाइल पर स्विच करें या नौकरियों के लिए आवेदन करें।",
+      "perMonth": "प्रति माह"
+    },
+    "toastMessages": {
+      "authenticationRequired": "प्रमाणीकरण आवश्यक",
+      "loginToSyncDrafts": "ड्राफ्ट सिंक करने के लिए कृपया लॉग इन करें।",
+      "noProfileSelected": "कोई प्रोफाइल चयनित नहीं",
+      "selectProfileToSync": "ड्राफ्ट सिंक करने के लिए कृपया एक प्रोफाइल चुनें।",
+      "error": "त्रुटि",
+      "unexpectedError": "अप्रत्याशित त्रुटि हुई। कृपया पुनः प्रयास करें।",
+      "networkError": "नेटवर्क त्रुटि। कृपया अपना इंटरनेट कनेक्शन जांचें।",
+      "success": "सफलता",
+      "operationSuccessful": "ऑपरेशन सफलतापूर्वक पूर्ण हुआ।",
+      "warning": "चेतावनी",
+      "attentionRequired": "ध्यान आवश्यक",
+      "info": "जानकारी",
+      "additionalInformation": "अतिरिक्त जानकारी"
+    }
+  }
+}

@@ -15,6 +15,7 @@ import { useJobApplication, JobApplicationData } from '@/hooks/useJobApplication
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface JobListViewProps {
   searchQuery: string;
@@ -29,6 +30,7 @@ const JobListView: React.FC<JobListViewProps> = ({
   onClearSearch,
   hookData
 }) => {
+  const t = useTranslation('jobs');
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
   const [detailJob, setDetailJob] = useState<JobItem | null>(null);
   const [jobsWithScores, setJobsWithScores] = useState<JobItem[]>([]);
@@ -386,13 +388,13 @@ const JobListView: React.FC<JobListViewProps> = ({
       <div className="space-y-4">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-2xl font-bold text-foreground">Jobs for You</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t('jobListView.title', 'Jobs for You')}</h2>
             {!loading && jobs.length > 0 && (
               <div className="flex items-center gap-2">
                 {scoresLoading && (
                   <div className="flex items-center gap-2 text-sm text-blue-600">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                    Calculating trust & match scores...
+                    {t('jobListView.calculatingScores', 'Calculating trust & match scores...')}
                   </div>
                 )}
                 <Button
@@ -402,11 +404,11 @@ const JobListView: React.FC<JobListViewProps> = ({
                   className="text-muted-foreground hover:text-foreground"
                 >
                   <RefreshCw className="h-4 w-4 mr-1" />
-                  Refresh
+                  {t('jobListView.refresh', 'Refresh')}
                 </Button>
                 {lastFetchTime && (
                   <span className="text-xs text-muted-foreground">
-                    Last updated: {formatLastFetchTime()}
+                    {t('jobListView.lastUpdated', 'Last updated: {{time}}', { time: formatLastFetchTime() })}
                   </span>
                 )}
               </div>
@@ -417,9 +419,13 @@ const JobListView: React.FC<JobListViewProps> = ({
               {(() => {
                 // Determine actual job count - if jobs array is empty but pagination shows count, trust the jobs array
                 const actualJobCount = jobs.length === 0 ? 0 : (pagination.totalCount || jobs.length);
-                return `${actualJobCount} job${actualJobCount !== 1 ? 's' : ''} found`;
-              })()} 
-              {currentSearchQuery && currentSearchQuery.trim() && ` for "${currentSearchQuery.trim()}"`}
+                const searchQueryText = currentSearchQuery && currentSearchQuery.trim() ? ` for "${currentSearchQuery.trim()}"` : '';
+                return t('jobListView.jobsFound', '{{count}} job{{plural}} found{{query}}', { 
+                  count: actualJobCount, 
+                  plural: actualJobCount !== 1 ? 's' : '',
+                  query: searchQueryText
+                });
+              })()}
             </p>
           )}
         </div>
@@ -448,7 +454,7 @@ const JobListView: React.FC<JobListViewProps> = ({
                   className="ml-4"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Retry
+                  {t('jobListView.retry', 'Retry')}
                 </Button>
               )}
             </AlertDescription>
@@ -462,11 +468,11 @@ const JobListView: React.FC<JobListViewProps> = ({
               <div className="flex items-center justify-center gap-3 mb-4">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 <p className="text-lg font-medium text-foreground">
-                  Loading page {pendingScrollPage || currentPage}...
+                  {t('jobListView.loadingPage', 'Loading page {{page}}...', { page: pendingScrollPage || currentPage })}
                 </p>
               </div>
               <p className="text-sm text-muted-foreground">
-                Please wait while we fetch the jobs
+                {t('jobListView.pleaseWait', 'Please wait while we fetch the jobs')}
               </p>
             </div>
             
@@ -536,25 +542,25 @@ const JobListView: React.FC<JobListViewProps> = ({
                 <EmptyState
                   title={
                     currentSearchQuery 
-                      ? `No jobs found for "${currentSearchQuery}"`
+                      ? t('jobListView.noJobsFoundForQuery', 'No jobs found for "{{query}}"', { query: currentSearchQuery })
                       : jobs.length === 0 
                         ? error 
                           ? retryCount >= 3
-                            ? 'No jobs available currently'
-                            : 'Unable to load jobs'
-                          : 'No jobs available'
-                        : 'No matching jobs'
+                            ? t('jobListView.noJobsAvailableCurrently', 'No jobs available currently')
+                            : t('jobListView.unableToLoadJobs', 'Unable to load jobs')
+                          : t('jobListView.noJobsAvailable', 'No jobs available')
+                        : t('jobListView.noMatchingJobs', 'No matching jobs')
                   }
                   description={
                     currentSearchQuery 
-                      ? 'Try adjusting your search terms or browse all available jobs.'
+                      ? t('jobListView.tryAdjustingSearch', 'Try adjusting your search terms or browse all available jobs.')
                       : jobs.length === 0 
                         ? error
                           ? retryCount >= 3
-                            ? 'We tried to fetch jobs but none are currently available. Please check back later.'
-                            : 'There was an issue connecting to the job database. Please try again.'
-                          : 'No jobs are currently available. Please check back later.'
-                        : 'No jobs match your current search criteria.'
+                            ? t('jobListView.triedToFetchJobs', 'We tried to fetch jobs but none are currently available. Please check back later.')
+                            : t('jobListView.issueConnecting', 'There was an issue connecting to the job database. Please try again.')
+                          : t('jobListView.noJobsCurrentlyAvailable', 'No jobs are currently available. Please check back later.')
+                        : t('jobListView.noJobsMatchCriteria', 'No jobs match your current search criteria.')
                   }
                   icon={
                     jobs.length === 0 ? (
@@ -573,10 +579,10 @@ const JobListView: React.FC<JobListViewProps> = ({
                   }
                   action={
                     jobs.length === 0 && error && retryCount < 3 ? {
-                      label: 'Try again',
+                      label: t('jobListView.tryAgain', 'Try again'),
                       onClick: handleRetry
                     } : currentSearchQuery && onClearSearch ? {
-                      label: 'Clear search',
+                      label: t('jobListView.clearSearch', 'Clear search'),
                       onClick: onClearSearch
                     } : undefined
                   }
@@ -594,7 +600,9 @@ const JobListView: React.FC<JobListViewProps> = ({
                         onClick={() => handlePageChange(Math.max(1, currentPage - 1))} 
                         className={cn(
                           (currentPage === 1 || isPageChanging) ? "pointer-events-none opacity-50" : "cursor-pointer"
-                        )} 
+                        )}
+                        previousText={t('pagination.previous', 'Previous')}
+                        previousPageText={t('pagination.previousPage', 'Previous page')}
                       />
                     </PaginationItem>
                     
@@ -623,7 +631,9 @@ const JobListView: React.FC<JobListViewProps> = ({
                         onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))} 
                         className={cn(
                           (currentPage === totalPages || isPageChanging) ? "pointer-events-none opacity-50" : "cursor-pointer"
-                        )} 
+                        )}
+                        nextText={t('pagination.next', 'Next')}
+                        nextPageText={t('pagination.nextPage', 'Next page')}
                       />
                     </PaginationItem>
                   </PaginationContent>

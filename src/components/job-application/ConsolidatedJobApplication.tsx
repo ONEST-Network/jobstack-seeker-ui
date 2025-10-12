@@ -10,6 +10,7 @@ import { useProfileForm, ProfileFormProvider } from '@/components/profile/Profil
 import DynamicFormStep from '@/components/profile/DynamicFormStep';
 import { JobApplicationData } from '@/hooks/useJobApplication';
 import { getUnifiedSchema } from '@/schemas';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface ConsolidatedJobApplicationProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
   const { user } = useAuth();
   const { profile, setProfile } = useProfileForm();
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const t = useTranslation('jobApplication');
 
   // Helper function to map job title to role name
   const getRoleFromJobTitle = (jobTitle: string): string => {
@@ -401,7 +403,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
               className="flex-1 h-12 text-base font-medium"
               disabled={applying || savingDraft || !canSubmit()}
             >
-              {applying ? 'Submitting...' : 'Submit Application'}
+              {applying ? t('actions.submitting', 'Submitting...') : t('actions.submit', 'Submit Application')}
             </Button>
             {/* Save Draft button disabled
             {onSaveDraft && (
@@ -421,7 +423,7 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
               className="h-12 px-8 text-base"
               disabled={applying || savingDraft}
             >
-              Cancel
+              {t('actions.cancel', 'Cancel')}
             </Button>
           </div>
         </div>

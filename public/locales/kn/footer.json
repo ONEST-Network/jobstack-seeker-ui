@@ -1,0 +1,67 @@
+{
+  "footer": {
+    "companyInfo": {
+      "name": "JobBridge",
+      "description": "ಭಾರತದಾದ್ಯಂತ ಪ್ರತಿಭೆಯನ್ನು ಅವಕಾಶಗಳೊಂದಿಗೆ ಸಂಪರ್ಕಿಸುವುದು. MSME ಮತ್ತು ನೀಲಿ-ಕಾಲರ್ ಕಾರ್ಯಪಡೆಗಾಗಿ AI-ಚಾಲಿತ ಹೊಂದಾಣಿಕೆ ಮತ್ತು ಸ್ಥಳೀಯ ಭಾಷಾ ಬೆಂಬಲದೊಂದಿಗೆ ನಿರ್ಮಿಸಲಾಗಿದೆ.",
+      "tagline": "ಭಾರತದಾದ್ಯಂತ ಪ್ರತಿಭೆಯನ್ನು ಅವಕಾಶಗಳೊಂದಿಗೆ ಸಂಪರ್ಕಿಸುವುದು"
+    },
+    "sections": {
+      "platform": {
+        "title": "ಪ್ಲಾಟ್‌ಫಾರ್ಮ್",
+        "links": {
+          "findJobs": "ಉದ್ಯೋಗಗಳನ್ನು ಹುಡುಕಿ",
+          "postJob": "ಉದ್ಯೋಗ ಪೋಸ್ಟ್ ಮಾಡಿ",
+          "issueCertificates": "ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ನೀಡಿ",
+          "publicDashboard": "ಸಾರ್ವಜನಿಕ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+          "mobileApp": "ಮೊಬೈಲ್ ಅಪ್ಲಿಕೇಶನ್"
+        }
+      },
+      "resources": {
+        "title": "ಸಂಪನ್ಮೂಲಗಳು",
+        "links": {
+          "helpCenter": "ಸಹಾಯ ಕೇಂದ್ರ",
+          "careerGuides": "ವೃತ್ತಿಜೀವನ ಮಾರ್ಗದರ್ಶಿಗಳು",
+          "skillDevelopment": "ಕೌಶಲ್ಯ ಅಭಿವೃದ್ಧಿ",
+          "interviewTips": "ಸಂದರ್ಶನ ಸಲಹೆಗಳು",
+          "resumeBuilder": "ರೆಸ್ಯೂಮ್ ಬಿಲ್ಡರ್"
+        }
+      },
+      "company": {
+        "title": "ಕಂಪನಿ",
+        "links": {
+          "aboutUs": "ನಮ್ಮ ಬಗ್ಗೆ",
+          "career": "ವೃತ್ತಿಜೀವನ",
+          "press": "ಪತ್ರಿಕೆ",
+          "partnerWithUs": "ನಮ್ಮೊಂದಿಗೆ ಪಾಲುದಾರಿಕೆ ಮಾಡಿ",
+          "investorRelations": "ಹೂಡಿಕೆದಾರ ಸಂಬಂಧಗಳು"
+        }
+      },
+      "legal": {
+        "title": "ಕಾನೂನು",
+        "links": {
+          "termsConditions": "ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು",
+          "privacyPolicy": "ಗೌಪ್ಯತೆ ನೀತಿ",
+          "cookiePolicy": "ಕುಕಿ ನೀತಿ",
+          "dataProtection": "ಡೇಟಾ ರಕ್ಷಣೆ",
+          "accessibility": "ಪ್ರವೇಶಶೀಲತೆ"
+        }
+      }
+    },
+    "social": {
+      "linkedin": "ಲಿಂಕ್ಡ್‌ಇನ್",
+      "twitter": "ಟ್ವಿಟರ್",
+      "facebook": "ಫೇಸ್‌ಬುಕ್",
+      "instagram": "ಇನ್‌ಸ್ಟಾಗ್ರಾಮ್",
+      "youtube": "ಯೂಟ್ಯೂಬ್"
+    },
+    "copyright": "© 2024 JobBridge. ಎಲ್ಲಾ ಹಕ್ಕುಗಳು ಕಾಯ್ದಿರಿಸಲಾಗಿವೆ.",
+    "bottomFooter": {
+      "madeInIndia": "🇮🇳 ಭಾರತದಲ್ಲಿ ತಯಾರಿಸಲಾಗಿದೆ",
+      "securePlatform": "🔒 ಸುರಕ್ಷಿತ ಪ್ಲಾಟ್‌ಫಾರ್ಮ್",
+      "mobileFirst": "📱 ಮೊಬೈಲ್ ಮೊದಲ",
+      "languages": "🌐 15+ ಭಾಷೆಗಳು",
+      "contact": "ಸಂಪರ್ಕ:",
+      "supportEmail": "support@jobbridge.in"
+    }
+  }
+}

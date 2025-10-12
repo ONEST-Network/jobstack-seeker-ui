@@ -50,6 +50,17 @@
       "Machine Operator",
       "Factory Worker",
       "Sales Representative"
-    ]
+    ],
+    "searchForm": {
+      "selectLocation": "Select Location",
+      "selectRole": "Select Role",
+      "findJobs": "Find Jobs"
+    },
+    "stats": {
+      "activeJobs": "Active Jobs",
+      "jobSeekers": "Job Seekers",
+      "companies": "Companies",
+      "languages": "Languages"
+    }
   }
 }

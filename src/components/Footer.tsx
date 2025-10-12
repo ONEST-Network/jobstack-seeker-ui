@@ -2,9 +2,11 @@
 import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/hooks/useI18n';
 
 const Footer = () => {
   const navigate = useNavigate();
+  const t = useTranslation('footer');
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -75,7 +77,7 @@ const Footer = () => {
               <span className="text-xl font-bold text-foreground">JobBridge</span>
             </div>
             <p className="text-muted-foreground text-sm mb-4">
-              Connecting talent with opportunities across India. Built for MSME and blue-collar workforce with AI-powered matching and local language support.
+              {t('companyInfo.description', 'Connecting talent with opportunities across India. Built for MSME and blue-collar workforce with AI-powered matching and local language support.')}
             </p>
             <div className="flex space-x-3">
               {socialLinks.map((social) => (
@@ -117,19 +119,19 @@ const Footer = () => {
         {/* Bottom Footer */}
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="text-sm text-muted-foreground">
-            © 2024 JobBridge. All rights reserved.
+            {t('copyright', '© 2024 JobBridge. All rights reserved.')}
           </div>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-            <span>🇮🇳 Made in India</span>
-            <span>🔒 Secure Platform</span>
-            <span>📱 Mobile First</span>
-            <span>🌐 15+ Languages</span>
+            <span>{t('bottomFooter.madeInIndia', '🇮🇳 Made in India')}</span>
+            <span>{t('bottomFooter.securePlatform', '🔒 Secure Platform')}</span>
+            <span>{t('bottomFooter.mobileFirst', '📱 Mobile First')}</span>
+            <span>{t('bottomFooter.languages', '🌐 15+ Languages')}</span>
           </div>
           
           <div className="text-sm text-muted-foreground">
-            Contact: <a href="mailto:support@jobbridge.in" className="text-primary hover:underline">
-              support@jobbridge.in
+            {t('bottomFooter.contact', 'Contact:')} <a href="mailto:support@jobbridge.in" className="text-primary hover:underline">
+              {t('bottomFooter.supportEmail', 'support@jobbridge.in')}
             </a>
           </div>
         </div>

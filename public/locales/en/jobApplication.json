@@ -215,7 +215,7 @@
       "submissionSuccess": "Your application has been submitted successfully",
       "submissionFailed": "Failed to submit application. Please try again.",
       "draftSavedSuccess": "Draft saved successfully. You can continue later.",
-      "draftSaveFailed": "Failed to save draft. Please try again."
+      "draftSaveFailedRetry": "Failed to save draft. Please try again."
     },
     "validation": {
       "required": "This field is required",
@@ -326,6 +326,48 @@
         "withdrawApplication": "Withdraw Application",
         "updateApplication": "Update Application"
       }
+    },
+    "profileSelectionModal": {
+      "title": "Select Profile for",
+      "chooseProfile": "Choose a profile to apply with:",
+      "chooseProfileToApply": "Choose a profile to apply with:",
+      "switchProfile": "Switch Profile",
+      "selected": "Selected",
+      "selectProfile": "Select Profile",
+      "noRoleSpecified": "No role specified",
+      "noProfilesFound": "No profiles found. Create your first profile:",
+      "noProfilesAvailable": "No profiles available",
+      "createProfile": "Create Profile",
+      "addNewProfile": "Add New Profile",
+      "continueWithSelectedProfile": "Continue with Selected Profile",
+      "selectProfileFor": "Select Profile for {{jobTitle}}"
+    },
+    "otpVerification": {
+      "title": "Verify Your",
+      "email": "Email",
+      "phone": "Phone",
+      "organization": "Organization:"
+    },
+    "toastMessages": {
+      "profileCreatedSuccessfully": "Profile Created Successfully!",
+      "profileCreatedDesc": "Your profile has been created successfully.",
+      "applicationSubmitted": "Application Submitted!",
+      "applicationSubmittedDesc": "Your draft has been successfully converted to an active application.",
+      "submissionFailed": "Submission Failed",
+      "submissionFailedDesc": "Failed to submit application. Please try again.",
+      "profileUpdated": "Profile Updated!",
+      "profileUpdatedDesc": "Your profile has been updated successfully. Use the 'Sync Drafts' button to update your draft applications.",
+      "updateFailed": "Update Failed",
+      "updateFailedDesc": "Failed to update profile. Please try again.",
+      "missingRequiredFields": "Missing Required Fields",
+      "completeFields": "Please complete the following fields:",
+      "error": "Error",
+      "unableToSubmitDraft": "Unable to submit application. Draft data not found.",
+      "unableToSubmitData": "Unable to submit application. Application data not found.",
+      "unableToSubmitMissing": "Unable to submit application. Missing:",
+      "providerId": "Provider ID",
+      "jobId": "Job ID",
+      "checkConsole": "Check console for data structure."
     }
   }
 }

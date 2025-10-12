@@ -30,6 +30,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'react-router-dom';
 import JobMediaCarousel from '../JobMediaCarousel';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface JobDetailDialogProps {
   job: JobItem;
@@ -48,6 +49,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
   const [expandedSubsections, setExpandedSubsections] = useState<Set<string>>(new Set());
   const { user } = useAuth();
   const { toast } = useToast();
+  const t = useTranslation('jobs');
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   
   if (!job) return null;
@@ -576,7 +578,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               onClick={() => onApply(job)}
               className="flex-1 bg-primary hover:bg-primary/90 h-12 text-base font-medium"
             >
-              Apply Now
+              {t('actions.applyNow', 'Apply Now')}
             </Button>
             <Button
               variant="outline"
@@ -584,14 +586,14 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               className="h-12 px-4"
             >
               <Copy className="h-4 w-4 mr-2" />
-              Share Job
+              {t('actions.shareJob', 'Share Job')}
             </Button>
             <Button 
               variant="outline" 
               onClick={onClose}
               className="h-12"
             >
-              Close
+              {t('actions.close', 'Close')}
             </Button>
           </div>
         </div>

@@ -1,331 +1,162 @@
 {
   "score": {
     "title": "Score & Assessment",
-    "subtitle": "Track your skills and improve your profile score",
-    "overallScore": "Overall Score",
+    "subtitle": "Track your profile score and skill assessments",
     "profileScore": "Profile Score",
     "skillScore": "Skill Score",
-    "experienceScore": "Experience Score",
+    "overallScore": "Overall Score",
+    "assessmentScore": "Assessment Score",
     "verificationScore": "Verification Score",
+    "experienceScore": "Experience Score",
+    "educationScore": "Education Score",
+    "skillsScore": "Skills Score",
+    "certificationScore": "Certification Score",
     "completionScore": "Completion Score",
+    "matchScore": "Match Score",
+    "jobMatchScore": "Job Match Score",
+    "employerMatchScore": "Employer Match Score",
+    "skillMatchScore": "Skill Match Score",
+    "locationMatchScore": "Location Match Score",
+    "salaryMatchScore": "Salary Match Score",
+    "experienceMatchScore": "Experience Match Score",
+    "educationMatchScore": "Education Match Score",
     "scoreBreakdown": "Score Breakdown",
     "scoreHistory": "Score History",
     "scoreTrend": "Score Trend",
     "scoreImprovement": "Score Improvement",
-    "scoreComparison": "Score Comparison",
-    "scoreRanking": "Score Ranking",
-    "scorePercentile": "Score Percentile",
-    "scoreGrade": "Score Grade",
-    "scoreStatus": "Score Status",
+    "scoreRecommendations": "Score Recommendations",
+    "scoreTips": "Score Tips",
     "scoreActions": {
       "viewDetails": "View Details",
-      "exportScore": "Export Score",
-      "shareScore": "Share Score",
-      "printScore": "Print Score",
-      "downloadScore": "Download Score",
-      "emailScore": "Email Score",
-      "refreshScore": "Refresh Score",
-      "recalculateScore": "Recalculate Score"
+      "improveScore": "Improve Score",
+      "takeAssessment": "Take Assessment",
+      "completeProfile": "Complete Profile",
+      "verifyDocuments": "Verify Documents",
+      "addSkills": "Add Skills",
+      "addExperience": "Add Experience",
+      "addEducation": "Add Education",
+      "addCertifications": "Add Certifications"
+    },
+    "scoreLevels": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "average": "Average",
+      "belowAverage": "Below Average",
+      "poor": "Poor"
+    },
+    "scoreRanges": {
+      "excellent": "90-100",
+      "good": "80-89",
+      "average": "70-79",
+      "belowAverage": "60-69",
+      "poor": "0-59"
     },
     "scoreMessages": {
       "scoreUpdated": "Score updated successfully",
       "scoreCalculated": "Score calculated successfully",
-      "scoreRefreshFailed": "Failed to refresh score",
-      "scoreCalculationFailed": "Failed to calculate score",
-      "scoreExported": "Score exported successfully",
-      "scoreShared": "Score shared successfully",
-      "scorePrinted": "Score printed successfully",
-      "scoreDownloaded": "Score downloaded successfully",
-      "scoreEmailed": "Score emailed successfully"
+      "scoreImproved": "Your score has improved!",
+      "scoreDecreased": "Your score has decreased",
+      "scoreStable": "Your score remains stable",
+      "assessmentCompleted": "Assessment completed successfully",
+      "assessmentFailed": "Assessment failed. Please try again.",
+      "profileIncomplete": "Complete your profile to improve your score",
+      "verificationPending": "Verify your documents to improve your score",
+      "skillsMissing": "Add more skills to improve your score",
+      "experienceMissing": "Add work experience to improve your score",
+      "educationMissing": "Add education details to improve your score"
     },
-    "assessment": {
-      "title": "Skill Assessment",
-      "subtitle": "Take assessments to improve your score",
+    "assessments": {
+      "title": "Skill Assessments",
+      "subtitle": "Take assessments to validate your skills",
       "availableAssessments": "Available Assessments",
       "completedAssessments": "Completed Assessments",
       "pendingAssessments": "Pending Assessments",
-      "expiredAssessments": "Expired Assessments",
+      "assessmentResults": "Assessment Results",
+      "takeAssessment": "Take Assessment",
+      "retakeAssessment": "Retake Assessment",
+      "viewResults": "View Results",
+      "assessmentHistory": "Assessment History",
       "assessmentTypes": {
-        "skillTest": "Skill Test",
-        "personalityTest": "Personality Test",
-        "aptitudeTest": "Aptitude Test",
-        "technicalTest": "Technical Test",
-        "practicalTest": "Practical Test",
-        "writtenTest": "Written Test",
-        "oralTest": "Oral Test",
-        "videoTest": "Video Test"
+        "technical": "Technical Assessment",
+        "softSkills": "Soft Skills Assessment",
+        "language": "Language Assessment",
+        "domain": "Domain Assessment",
+        "general": "General Assessment"
       },
       "assessmentStatus": {
         "notStarted": "Not Started",
         "inProgress": "In Progress",
         "completed": "Completed",
-        "expired": "Expired",
-        "failed": "Failed",
         "passed": "Passed",
-        "pending": "Pending",
-        "underReview": "Under Review"
-      },
-      "assessmentActions": {
-        "startAssessment": "Start Assessment",
-        "continueAssessment": "Continue Assessment",
-        "submitAssessment": "Submit Assessment",
-        "retakeAssessment": "Retake Assessment",
-        "viewResults": "View Results",
-        "downloadCertificate": "Download Certificate",
-        "shareResults": "Share Results",
-        "bookmarkAssessment": "Bookmark Assessment"
-      },
-      "assessmentMessages": {
-        "assessmentStarted": "Assessment started successfully",
-        "assessmentContinued": "Assessment continued successfully",
-        "assessmentSubmitted": "Assessment submitted successfully",
-        "assessmentRetaken": "Assessment retaken successfully",
-        "assessmentCompleted": "Assessment completed successfully",
-        "assessmentExpired": "Assessment has expired",
-        "assessmentFailed": "Assessment failed",
-        "assessmentPassed": "Assessment passed successfully"
+        "failed": "Failed",
+        "expired": "Expired"
       }
     },
-    "skillAssessment": {
-      "title": "Skill Assessment",
-      "subtitle": "Test your skills in various areas",
-      "skillCategories": {
-        "technical": "Technical Skills",
-        "soft": "Soft Skills",
-        "language": "Language Skills",
-        "computer": "Computer Skills",
-        "communication": "Communication Skills",
-        "leadership": "Leadership Skills",
-        "problemSolving": "Problem Solving Skills",
-        "teamwork": "Teamwork Skills"
-      },
-      "skillLevels": {
-        "beginner": "Beginner",
-        "intermediate": "Intermediate",
-        "advanced": "Advanced",
-        "expert": "Expert",
-        "master": "Master"
-      },
-      "skillTests": {
-        "machineOperation": "Machine Operation",
-        "qualityControl": "Quality Control",
-        "safetyProcedures": "Safety Procedures",
-        "maintenance": "Maintenance",
-        "troubleshooting": "Troubleshooting",
-        "documentation": "Documentation",
-        "communication": "Communication",
-        "teamwork": "Teamwork"
-      },
-      "skillValidation": {
-        "practicalTest": "Practical Test",
-        "writtenTest": "Written Test",
-        "oralTest": "Oral Test",
-        "videoTest": "Video Test",
-        "certification": "Certification",
-        "workSample": "Work Sample",
-        "referenceCheck": "Reference Check",
-        "backgroundVerification": "Background Verification"
-      }
+    "recommendations": {
+      "title": "Score Recommendations",
+      "subtitle": "Get personalized recommendations to improve your score",
+      "profileRecommendations": "Profile Recommendations",
+      "skillRecommendations": "Skill Recommendations",
+      "experienceRecommendations": "Experience Recommendations",
+      "educationRecommendations": "Education Recommendations",
+      "certificationRecommendations": "Certification Recommendations",
+      "jobRecommendations": "Job Recommendations",
+      "careerRecommendations": "Career Recommendations",
+      "improvementPlan": "Improvement Plan",
+      "actionItems": "Action Items",
+      "priority": "Priority",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "estimatedImpact": "Estimated Impact",
+      "timeRequired": "Time Required",
+      "difficulty": "Difficulty",
+      "easy": "Easy",
+      "moderate": "Moderate",
+      "hard": "Hard"
     },
-    "documentImport": {
-      "title": "Document Import",
-      "subtitle": "Import documents to improve your score",
-      "supportedFormats": "Supported Formats",
-      "documentTypes": {
-        "resume": "Resume/CV",
-        "certificate": "Certificate",
-        "diploma": "Diploma",
-        "degree": "Degree",
-        "idProof": "ID Proof",
-        "addressProof": "Address Proof",
-        "experienceLetter": "Experience Letter",
-        "salarySlip": "Salary Slip",
-        "bankStatement": "Bank Statement",
-        "other": "Other Documents"
-      },
-      "importActions": {
-        "uploadDocument": "Upload Document",
-        "scanDocument": "Scan Document",
-        "importFromDigiLocker": "Import from DigiLocker",
-        "importFromDrive": "Import from Google Drive",
-        "importFromDropbox": "Import from Dropbox",
-        "importFromOneDrive": "Import from OneDrive",
-        "importFromEmail": "Import from Email"
-      },
-      "importMessages": {
-        "documentUploaded": "Document uploaded successfully",
-        "documentImported": "Document imported successfully",
-        "documentProcessed": "Document processed successfully",
-        "documentVerified": "Document verified successfully",
-        "documentRejected": "Document rejected",
-        "documentExpired": "Document expired",
-        "documentInvalid": "Document is invalid",
-        "importFailed": "Import failed"
-      }
-    },
-    "scoreImprovement": {
-      "title": "Score Improvement",
-      "subtitle": "Tips and suggestions to improve your score",
-      "improvementAreas": {
-        "profileCompletion": "Profile Completion",
-        "skillVerification": "Skill Verification",
-        "experienceValidation": "Experience Validation",
-        "documentVerification": "Document Verification",
-        "assessmentCompletion": "Assessment Completion",
-        "referenceVerification": "Reference Verification",
-        "backgroundCheck": "Background Check",
-        "certification": "Certification"
-      },
-      "improvementTips": {
-        "completeProfile": "Complete all profile sections",
-        "verifySkills": "Verify your skills through assessments",
-        "validateExperience": "Validate your work experience",
-        "uploadDocuments": "Upload relevant documents",
-        "takeAssessments": "Take skill assessments",
-        "getReferences": "Get references from previous employers",
-        "backgroundCheck": "Complete background verification",
-        "getCertified": "Obtain relevant certifications"
-      },
-      "improvementActions": {
-        "viewProfile": "View Profile",
-        "editProfile": "Edit Profile",
-        "takeAssessment": "Take Assessment",
-        "uploadDocument": "Upload Document",
-        "verifySkills": "Verify Skills",
-        "validateExperience": "Validate Experience",
-        "getReference": "Get Reference",
-        "applyCertification": "Apply for Certification"
-      }
-    },
-    "scoreAnalytics": {
+    "analytics": {
       "title": "Score Analytics",
-      "subtitle": "Detailed analysis of your score performance",
+      "subtitle": "Analyze your score trends and performance",
       "scoreTrends": "Score Trends",
       "scoreComparison": "Score Comparison",
       "scoreDistribution": "Score Distribution",
-      "scorePercentiles": "Score Percentiles",
-      "scoreRankings": "Score Rankings",
-      "scoreBreakdown": "Score Breakdown",
-      "scoreHistory": "Score History",
-      "scoreProjections": "Score Projections",
-      "analyticsActions": {
-        "viewTrends": "View Trends",
-        "compareScores": "Compare Scores",
-        "viewDistribution": "View Distribution",
-        "viewPercentiles": "View Percentiles",
-        "viewRankings": "View Rankings",
-        "viewBreakdown": "View Breakdown",
-        "viewHistory": "View History",
-        "viewProjections": "View Projections"
-      }
+      "scoreCorrelation": "Score Correlation",
+      "performanceMetrics": "Performance Metrics",
+      "improvementRate": "Improvement Rate",
+      "consistencyScore": "Consistency Score",
+      "growthRate": "Growth Rate",
+      "peakScore": "Peak Score",
+      "averageScore": "Average Score",
+      "lowestScore": "Lowest Score",
+      "scoreVolatility": "Score Volatility",
+      "scoreStability": "Score Stability",
+      "scorePredictability": "Score Predictability"
     },
-    "scoreSettings": {
-      "title": "Score Settings",
-      "subtitle": "Configure your score preferences",
-      "scoreVisibility": "Score Visibility",
-      "scoreSharing": "Score Sharing",
-      "scoreNotifications": "Score Notifications",
-      "scoreUpdates": "Score Updates",
-      "scorePrivacy": "Score Privacy",
-      "scoreExport": "Score Export",
-      "scoreSync": "Score Sync",
-      "scoreBackup": "Score Backup",
-      "settingsActions": {
-        "saveSettings": "Save Settings",
-        "resetSettings": "Reset to Default",
-        "exportSettings": "Export Settings",
-        "importSettings": "Import Settings",
-        "backupSettings": "Backup Settings",
-        "restoreSettings": "Restore Settings"
-      }
+    "leaderboard": {
+      "title": "Score Leaderboard",
+      "subtitle": "Compare your scores with others",
+      "globalRanking": "Global Ranking",
+      "localRanking": "Local Ranking",
+      "categoryRanking": "Category Ranking",
+      "skillRanking": "Skill Ranking",
+      "experienceRanking": "Experience Ranking",
+      "educationRanking": "Education Ranking",
+      "yourRank": "Your Rank",
+      "totalParticipants": "Total Participants",
+      "rankChange": "Rank Change",
+      "rankImproved": "Rank Improved",
+      "rankDecreased": "Rank Decreased",
+      "rankStable": "Rank Stable",
+      "topPerformers": "Top Performers",
+      "risingStars": "Rising Stars",
+      "mostImproved": "Most Improved"
     },
-    "scoreNotifications": {
-      "title": "Score Notifications",
-      "subtitle": "Stay updated with your score changes",
-      "notificationTypes": {
-        "scoreUpdate": "Score Update",
-        "assessmentAvailable": "Assessment Available",
-        "assessmentReminder": "Assessment Reminder",
-        "assessmentExpiry": "Assessment Expiry",
-        "documentVerification": "Document Verification",
-        "skillVerification": "Skill Verification",
-        "experienceValidation": "Experience Validation",
-        "referenceVerification": "Reference Verification"
-      },
-      "notificationChannels": {
-        "email": "Email",
-        "sms": "SMS",
-        "push": "Push Notification",
-        "inApp": "In-App Notification",
-        "browser": "Browser Notification"
-      },
-      "notificationSettings": {
-        "enableNotifications": "Enable Notifications",
-        "disableNotifications": "Disable Notifications",
-        "notificationFrequency": "Notification Frequency",
-        "quietHours": "Quiet Hours",
-        "notificationSound": "Notification Sound",
-        "notificationVibration": "Notification Vibration"
-      }
-    },
-    "scoreExport": {
-      "title": "Score Export",
-      "subtitle": "Export your score data in various formats",
-      "exportFormats": {
-        "pdf": "PDF",
-        "excel": "Excel",
-        "csv": "CSV",
-        "json": "JSON",
-        "xml": "XML",
-        "html": "HTML",
-        "text": "Text"
-      },
-      "exportOptions": {
-        "includeHistory": "Include Score History",
-        "includeBreakdown": "Include Score Breakdown",
-        "includeAssessments": "Include Assessments",
-        "includeDocuments": "Include Documents",
-        "includeAnalytics": "Include Analytics",
-        "includeCharts": "Include Charts",
-        "includeTables": "Include Tables"
-      },
-      "exportActions": {
-        "exportScore": "Export Score",
-        "exportHistory": "Export History",
-        "exportBreakdown": "Export Breakdown",
-        "exportAssessments": "Export Assessments",
-        "exportDocuments": "Export Documents",
-        "exportAnalytics": "Export Analytics",
-        "exportAll": "Export All Data"
-      }
-    },
-    "scoreSharing": {
-      "title": "Score Sharing",
-      "subtitle": "Share your score with employers and recruiters",
-      "sharingOptions": {
-        "public": "Public",
-        "private": "Private",
-        "employers": "Employers Only",
-        "recruiters": "Recruiters Only",
-        "specificUsers": "Specific Users",
-        "passwordProtected": "Password Protected"
-      },
-      "sharingChannels": {
-        "email": "Email",
-        "link": "Share Link",
-        "socialMedia": "Social Media",
-        "messaging": "Messaging Apps",
-        "qrCode": "QR Code",
-        "embed": "Embed Code"
-      },
-      "sharingActions": {
-        "shareScore": "Share Score",
-        "generateLink": "Generate Link",
-        "createQRCode": "Create QR Code",
-        "embedScore": "Embed Score",
-        "setPrivacy": "Set Privacy",
-        "revokeAccess": "Revoke Access"
-      }
+    "toastMessages": {
+      "documentsImportedSuccessfully": "Documents Imported Successfully",
+      "documentsImportedDesc": "Your trust score has been updated with verified documents.",
+      "uploadFeature": "Upload Feature",
+      "uploadFeatureDesc": "Manual upload will be available in the next version."
     }
   }
 }

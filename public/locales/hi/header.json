@@ -1,0 +1,62 @@
+{
+  "header": {
+    "navigation": {
+      "home": "होम",
+      "jobs": "नौकरियां",
+      "candidates": "उम्मीदवार",
+      "employers": "नियोक्ता",
+      "applications": "आवेदन",
+      "profile": "प्रोफाइल",
+      "dashboard": "डैशबोर्ड",
+      "settings": "सेटिंग्स",
+      "help": "सहायता",
+      "about": "के बारे में",
+      "contact": "संपर्क"
+    },
+    "userMenu": {
+      "login": "लॉगिन",
+      "logout": "लॉगआउट",
+      "loggingOut": "लॉगआउट हो रहे हैं...",
+      "completeProfile": "प्रोफाइल पूरा करें",
+      "myApplications": "मेरे आवेदन",
+      "viewAllProfiles": "सभी प्रोफाइल देखें",
+      "manageEmployers": "नियोक्ताओं का प्रबंधन",
+      "manageCandidates": "उम्मीदवारों का प्रबंधन",
+      "adminDashboard": "एडमिन डैशबोर्ड",
+      "accountSettings": "खाता सेटिंग्स",
+      "user": "उपयोगकर्ता",
+      "contactInfo": "संपर्क जानकारी",
+      "email": "ईमेल",
+      "phone": "फोन"
+    },
+    "languageSelector": {
+      "title": "भाषा",
+      "english": "अंग्रेजी",
+      "hindi": "हिंदी",
+      "marathi": "मराठी",
+      "gujarati": "गुजराती",
+      "tamil": "तमिल",
+      "telugu": "तेलुगु",
+      "kannada": "कन्नड़",
+      "malayalam": "मलयालम",
+      "bengali": "बंगाली",
+      "punjabi": "पंजाबी",
+      "urdu": "उर्दू",
+      "odia": "ओडिया",
+      "assamese": "असमिया",
+      "nepali": "नेपाली"
+    },
+    "candidateSelector": {
+      "title": "उम्मीदवार",
+      "addCandidate": "उम्मीदवार जोड़ें",
+      "selectCandidate": "उम्मीदवार चुनें",
+      "noCandidates": "कोई उम्मीदवार उपलब्ध नहीं",
+      "manageCandidates": "उम्मीदवारों का प्रबंधन"
+    },
+    "headerActions": {
+      "createProfile": "प्रोफाइल बनाएं",
+      "create": "बनाएं",
+      "mumbai": "मुंबई"
+    }
+  }
+}

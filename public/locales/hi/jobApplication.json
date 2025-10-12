@@ -1,0 +1,373 @@
+{
+  "jobApplication": {
+    "title": "नौकरी आवेदन",
+    "subtitle": "इस पद के लिए आवेदन करें",
+    "steps": {
+      "profileSelection": "प्रोफाइल चयन",
+      "basicInfo": "मूल जानकारी",
+      "applicationQuestions": "आवेदन प्रश्न",
+      "consent": "सहमति और समझौता",
+      "summary": "आवेदन सारांश"
+    },
+    "stepTitles": {
+      "profileSelection": "प्रोफाइल चुनें",
+      "basicInfo": "मूल जानकारी",
+      "applicationQuestions": "आवेदन प्रश्न",
+      "consent": "सहमति और समझौता",
+      "summary": "आवेदन सारांश"
+    },
+    "stepDescriptions": {
+      "profileSelection": "इस आवेदन के लिए उपयोग करने के लिए एक प्रोफाइल चुनें",
+      "basicInfo": "अपनी मूल संपर्क जानकारी दर्ज करें",
+      "applicationQuestions": "नौकरी-विशिष्ट प्रश्नों के उत्तर दें",
+      "consent": "नियमों की समीक्षा करें और सहमति दें",
+      "summary": "जमा करने से पहले अपने आवेदन की समीक्षा करें"
+    },
+    "profileSelection": {
+      "title": "प्रोफाइल चुनें",
+      "subtitle": "इस आवेदन के लिए उपयोग करने के लिए एक प्रोफाइल चुनें",
+      "existingProfiles": "मौजूदा प्रोफाइल",
+      "createNewProfile": "नया प्रोफाइल बनाएं",
+      "selectProfile": "प्रोफाइल चुनें",
+      "profileName": "प्रोफाइल नाम",
+      "profileRole": "प्रोफाइल भूमिका",
+      "profileLocation": "प्रोफाइल स्थान",
+      "profileExperience": "प्रोफाइल अनुभव",
+      "profileSkills": "प्रोफाइल कौशल",
+      "profileVerification": "प्रोफाइल सत्यापन",
+      "profileCompletion": "प्रोफाइल पूर्णता",
+      "noProfiles": "कोई प्रोफाइल नहीं मिला",
+      "createProfileFirst": "कृपया पहले एक प्रोफाइल बनाएं",
+      "profileActions": {
+        "select": "चुनें",
+        "edit": "संपादित करें",
+        "duplicate": "डुप्लिकेट करें",
+        "delete": "हटाएं",
+        "setDefault": "डिफ़ॉल्ट के रूप में सेट करें"
+      },
+      "profileMessages": {
+        "profileSelected": "प्रोफाइल सफलतापूर्वक चुना गया",
+        "profileNotFound": "प्रोफाइल नहीं मिला",
+        "profileAccessDenied": "इस प्रोफाइल तक पहुंच नकार दी गई",
+        "profileIncomplete": "प्रोफाइल अपूर्ण है",
+        "verificationRequired": "प्रोफाइल सत्यापन आवश्यक"
+      }
+    },
+    "basicInfo": {
+      "title": "मूल जानकारी",
+      "subtitle": "अपनी मूल संपर्क जानकारी दर्ज करें",
+      "name": "पूरा नाम",
+      "email": "ईमेल पता",
+      "phone": "फोन नंबर",
+      "location": "स्थान",
+      "address": "पता",
+      "city": "शहर",
+      "state": "राज्य",
+      "country": "देश",
+      "pincode": "पिनकोड",
+      "dateOfBirth": "जन्म तिथि",
+      "age": "आयु",
+      "gender": "लिंग",
+      "validation": {
+        "nameRequired": "पूरा नाम आवश्यक है",
+        "emailRequired": "ईमेल पता आवश्यक है",
+        "phoneRequired": "फोन नंबर आवश्यक है",
+        "locationRequired": "स्थान आवश्यक है",
+        "invalidEmail": "कृपया एक वैध ईमेल पता दर्ज करें",
+        "invalidPhone": "कृपया एक वैध फोन नंबर दर्ज करें",
+        "invalidDate": "कृपया एक वैध तिथि दर्ज करें",
+        "invalidAge": "कृपया एक वैध आयु दर्ज करें",
+        "nameTooShort": "नाम कम से कम 2 अक्षर का होना चाहिए",
+        "nameTooLong": "नाम 50 अक्षरों से अधिक नहीं होना चाहिए",
+        "phoneTooShort": "फोन नंबर कम से कम 10 अंकों का होना चाहिए",
+        "phoneTooLong": "फोन नंबर 15 अंकों से अधिक नहीं होना चाहिए"
+      },
+      "placeholders": {
+        "enterName": "अपना पूरा नाम दर्ज करें",
+        "enterEmail": "your@email.com",
+        "enterPhone": "+91 9876543210",
+        "enterLocation": "अपना स्थान दर्ज करें",
+        "enterAddress": "अपना पूरा पता दर्ज करें",
+        "enterCity": "शहर का नाम दर्ज करें",
+        "enterState": "राज्य का नाम दर्ज करें",
+        "enterPincode": "पिनकोड दर्ज करें",
+        "enterDateOfBirth": "DD/MM/YYYY",
+        "enterAge": "अपनी आयु दर्ज करें"
+      },
+      "genderOptions": {
+        "male": "पुरुष",
+        "female": "महिला",
+        "other": "अन्य",
+        "preferNotToSay": "कहना पसंद नहीं"
+      }
+    },
+    "applicationQuestions": {
+      "title": "आवेदन प्रश्न",
+      "subtitle": "नौकरी-विशिष्ट प्रश्नों के उत्तर दें",
+      "experience": "कार्य अनुभव",
+      "whyJoin": "आप इस कंपनी में क्यों शामिल होना चाहते हैं?",
+      "previousWork": "अपने पिछले कार्य अनुभव का वर्णन करें",
+      "taskVideo": "कार्य वीडियो",
+      "voiceInput": "आवाज इनपुट",
+      "startRecording": "रिकॉर्डिंग शुरू करें",
+      "stopRecording": "रिकॉर्डिंग रोकें",
+      "recording": "रिकॉर्डिंग...",
+      "recorded": "रिकॉर्ड किया गया",
+      "playRecording": "रिकॉर्डिंग चलाएं",
+      "deleteRecording": "रिकॉर्डिंग हटाएं",
+      "reRecord": "फिर से रिकॉर्ड करें",
+      "validation": {
+        "experienceRequired": "कृपया अपने कार्य अनुभव का वर्णन करें",
+        "whyJoinRequired": "कृपया बताएं कि आप क्यों शामिल होना चाहते हैं",
+        "previousWorkRequired": "कृपया अपने पिछले कार्य का वर्णन करें",
+        "recordingRequired": "कृपया अपना उत्तर रिकॉर्ड करें"
+      },
+      "placeholders": {
+        "enterExperience": "अपने कार्य अनुभव का वर्णन करें...",
+        "enterWhyJoin": "बताएं कि आप इस कंपनी में क्यों शामिल होना चाहते हैं...",
+        "enterPreviousWork": "अपने पिछले कार्य अनुभव का वर्णन करें...",
+        "recordingInstructions": "अपना उत्तर रिकॉर्ड करने के लिए शुरू पर क्लिक करें"
+      },
+      "voiceInputInstructions": "अपना उत्तर रिकॉर्ड करने के लिए माइक्रोफोन पर क्लिक करें",
+      "voiceInputSuccess": "आवाज इनपुट सफलतापूर्वक रिकॉर्ड किया गया",
+      "voiceInputFailed": "आवाज इनपुट रिकॉर्ड करने में विफल",
+      "voiceInputProcessing": "आवाज इनपुट प्रोसेसिंग...",
+      "voiceInputProcessed": "आवाज इनपुट सफलतापूर्वक प्रोसेस किया गया"
+    },
+    "consent": {
+      "title": "सहमति और समझौता",
+      "subtitle": "नियमों की समीक्षा करें और सहमति दें",
+      "termsAndConditions": "मैं नियम और शर्तों से सहमत हूं",
+      "privacyPolicy": "मैं गोपनीयता नीति से सहमत हूं",
+      "dataSharing": "मैं संभावित नियोक्ताओं के साथ अपना डेटा साझा करने की सहमति देता हूं",
+      "communication": "मैं अपने आवेदन के बारे में संचार प्राप्त करने की सहमति देता हूं",
+      "backgroundCheck": "आवश्यक होने पर मैं पृष्ठभूमि सत्यापन की सहमति देता हूं",
+      "documentVerification": "मैं दस्तावेज सत्यापन की सहमति देता हूं",
+      "skillAssessment": "मैं कौशल मूल्यांकन में भाग लेने की सहमति देता हूं",
+      "interviewConsent": "मैं साक्षात्कार में भाग लेने की सहमति देता हूं",
+      "validation": {
+        "termsRequired": "आपको नियम और शर्तों से सहमत होना चाहिए",
+        "privacyRequired": "आपको गोपनीयता नीति से सहमत होना चाहिए",
+        "dataSharingRequired": "आपको डेटा साझाकरण की सहमति देनी चाहिए",
+        "communicationRequired": "आपको संचार की सहमति देनी चाहिए"
+      },
+      "consentMessages": {
+        "allConsentsGiven": "सभी आवश्यक सहमतियां दी गई हैं",
+        "consentsRequired": "कृपया सभी आवश्यक सहमतियां दें",
+        "consentUpdated": "सहमति प्राथमिकताएं अपडेट की गईं"
+      }
+    },
+    "summary": {
+      "title": "आवेदन सारांश",
+      "subtitle": "जमा करने से पहले अपने आवेदन की समीक्षा करें",
+      "personalInfo": "व्यक्तिगत जानकारी",
+      "profileInfo": "प्रोफाइल जानकारी",
+      "applicationAnswers": "आवेदन उत्तर",
+      "consents": "दी गई सहमतियां",
+      "reviewApplication": "आवेदन की समीक्षा करें",
+      "submitApplication": "आवेदन जमा करें",
+      "saveDraft": "ड्राफ्ट के रूप में सहेजें",
+      "editApplication": "आवेदन संपादित करें",
+      "validation": {
+        "applicationIncomplete": "आवेदन अपूर्ण है",
+        "requiredFieldsMissing": "आवश्यक फ़ील्ड गायब हैं",
+        "consentsMissing": "आवश्यक सहमतियां गायब हैं",
+        "profileIncomplete": "चयनित प्रोफाइल अपूर्ण है"
+      },
+      "summaryMessages": {
+        "applicationReady": "आवेदन जमा करने के लिए तैयार है",
+        "applicationIncomplete": "कृपया सभी आवश्यक फ़ील्ड पूर्ण करें",
+        "reviewRequired": "कृपया अपने आवेदन की समीक्षा करें"
+      }
+    },
+    "actions": {
+      "next": "अगला",
+      "previous": "पिछला",
+      "submit": "आवेदन जमा करें",
+      "submitting": "जमा किया जा रहा है...",
+      "saveDraft": "ड्राफ्ट के रूप में सहेजें",
+      "savingDraft": "ड्राफ्ट सहेजा जा रहा है...",
+      "cancel": "रद्द करें",
+      "close": "बंद करें",
+      "edit": "संपादित करें",
+      "delete": "हटाएं",
+      "duplicate": "डुप्लिकेट करें",
+      "preview": "पूर्वावलोकन",
+      "backToEdit": "संपादन पर वापस जाएं"
+    },
+    "messages": {
+      "applicationSubmitted": "आवेदन सफलतापूर्वक जमा किया गया",
+      "applicationSubmitFailed": "आवेदन जमा करने में विफल",
+      "draftSaved": "ड्राफ्ट सफलतापूर्वक सहेजा गया",
+      "draftSaveFailed": "ड्राफ्ट सहेजने में विफल",
+      "applicationUpdated": "आवेदन सफलतापूर्वक अपडेट किया गया",
+      "applicationUpdateFailed": "आवेदन अपडेट करने में विफल",
+      "applicationDeleted": "आवेदन सफलतापूर्वक हटाया गया",
+      "applicationDeleteFailed": "आवेदन हटाने में विफल",
+      "applicationDuplicated": "आवेदन सफलतापूर्वक डुप्लिकेट किया गया",
+      "applicationDuplicateFailed": "आवेदन डुप्लिकेट करने में विफल",
+      "validationFailed": "कृपया सभी आवश्यक फ़ील्ड पूर्ण करें",
+      "stepCompleted": "चरण सफलतापूर्वक पूर्ण किया गया",
+      "stepValidationFailed": "आगे बढ़ने से पहले कृपया इस चरण को पूर्ण करें",
+      "profileRequired": "कृपया एक प्रोफाइल चुनें",
+      "consentRequired": "कृपया सभी आवश्यक सहमतियां दें",
+      "applicationIncomplete": "आवेदन अपूर्ण है",
+      "submissionSuccess": "आपका आवेदन सफलतापूर्वक जमा किया गया है",
+      "submissionFailed": "आवेदन जमा करने में विफल। कृपया पुनः प्रयास करें।",
+      "draftSavedSuccess": "ड्राफ्ट सफलतापूर्वक सहेजा गया। आप बाद में जारी रख सकते हैं।",
+      "draftSaveFailedRetry": "ड्राफ्ट सहेजने में विफल। कृपया पुनः प्रयास करें।"
+    },
+    "validation": {
+      "required": "यह फ़ील्ड आवश्यक है",
+      "invalidEmail": "कृपया एक वैध ईमेल पता दर्ज करें",
+      "invalidPhone": "कृपया एक वैध फोन नंबर दर्ज करें",
+      "invalidNumber": "कृपया एक वैध संख्या दर्ज करें",
+      "invalidDate": "कृपया एक वैध तिथि दर्ज करें",
+      "fieldRequired": "{{field}} आवश्यक है",
+      "fieldInvalid": "{{field}} अमान्य है",
+      "minLength": "कम से कम {{min}} अक्षर आवश्यक",
+      "maxLength": "अधिकतम {{max}} अक्षर अनुमत",
+      "minValue": "न्यूनतम मान {{min}} है",
+      "maxValue": "अधिकतम मान {{max}} है"
+    },
+    "status": {
+      "draft": "ड्राफ्ट",
+      "submitted": "जमा किया गया",
+      "underReview": "समीक्षा के तहत",
+      "shortlisted": "शॉर्टलिस्ट",
+      "interview": "साक्षात्कार",
+      "hired": "नियुक्त",
+      "rejected": "अस्वीकृत",
+      "withdrawn": "वापस लिया गया"
+    },
+    "applicationTypes": {
+      "new": "नया आवेदन",
+      "update": "आवेदन अपडेट करें",
+      "duplicate": "आवेदन डुप्लिकेट करें",
+      "draft": "ड्राफ्ट आवेदन"
+    },
+    "applicationModes": {
+      "profileBased": "प्रोफाइल आधारित",
+      "manualEntry": "मैनुअल एंट्री",
+      "hybrid": "हाइब्रिड"
+    },
+    "profileMatching": {
+      "exactMatch": "सटीक मैच",
+      "goodMatch": "अच्छा मैच",
+      "partialMatch": "आंशिक मैच",
+      "noMatch": "कोई मैच नहीं"
+    },
+    "verificationStatus": {
+      "verified": "सत्यापित",
+      "unverified": "असत्यापित",
+      "pending": "लंबित",
+      "failed": "विफल"
+    },
+    "applicationPriority": {
+      "high": "उच्च",
+      "medium": "मध्यम",
+      "low": "निम्न"
+    },
+    "applicationSource": {
+      "direct": "प्रत्यक्ष आवेदन",
+      "referral": "रेफरल",
+      "jobBoard": "नौकरी बोर्ड",
+      "socialMedia": "सोशल मीडिया",
+      "companyWebsite": "कंपनी वेबसाइट"
+    },
+    "applicationChannels": {
+      "web": "वेब",
+      "mobile": "मोबाइल",
+      "api": "API",
+      "email": "ईमेल",
+      "phone": "फोन"
+    },
+    "applicationTiming": {
+      "immediate": "तत्काल",
+      "scheduled": "निर्धारित",
+      "delayed": "विलंबित"
+    },
+    "applicationConfirmation": {
+      "title": "आवेदन पुष्टि",
+      "subtitle": "आपका आवेदन सफलतापूर्वक जमा किया गया है",
+      "applicationId": "आवेदन ID",
+      "submissionDate": "जमा करने की तिथि",
+      "nextSteps": "अगले कदम",
+      "estimatedResponse": "अनुमानित प्रतिक्रिया समय",
+      "contactInfo": "संपर्क जानकारी",
+      "applicationStatus": "आवेदन स्थिति",
+      "trackingUrl": "ट्रैकिंग URL",
+      "confirmationMessage": "आपके आवेदन के लिए धन्यवाद। हम इसकी समीक्षा करेंगे और जल्द ही आपसे संपर्क करेंगे।",
+      "confirmationActions": {
+        "viewApplication": "आवेदन देखें",
+        "trackApplication": "आवेदन ट्रैक करें",
+        "applyToMoreJobs": "अधिक नौकरियों के लिए आवेदन करें",
+        "updateProfile": "प्रोफाइल अपडेट करें",
+        "downloadReceipt": "रसीद डाउनलोड करें"
+      }
+    },
+    "applicationTracking": {
+      "title": "आवेदन ट्रैकिंग",
+      "subtitle": "अपने आवेदन की स्थिति ट्रैक करें",
+      "applicationId": "आवेदन ID",
+      "jobTitle": "नौकरी शीर्षक",
+      "companyName": "कंपनी नाम",
+      "applicationDate": "आवेदन तिथि",
+      "lastUpdated": "अंतिम अपडेट",
+      "currentStatus": "वर्तमान स्थिति",
+      "statusHistory": "स्थिति इतिहास",
+      "timeline": "समयरेखा",
+      "nextMilestone": "अगला माइलस्टोन",
+      "estimatedCompletion": "अनुमानित पूर्णता",
+      "trackingActions": {
+        "refreshStatus": "स्थिति रिफ्रेश करें",
+        "viewDetails": "विवरण देखें",
+        "contactRecruiter": "भर्तीकर्ता से संपर्क करें",
+        "withdrawApplication": "आवेदन वापस लें",
+        "updateApplication": "आवेदन अपडेट करें"
+      }
+    },
+    "profileSelectionModal": {
+      "title": "के लिए प्रोफाइल चुनें",
+      "chooseProfile": "आवेदन करने के लिए एक प्रोफाइल चुनें:",
+      "chooseProfileToApply": "आवेदन करने के लिए एक प्रोफाइल चुनें:",
+      "switchProfile": "प्रोफाइल बदलें",
+      "selected": "चयनित",
+      "selectProfile": "प्रोफाइल चुनें",
+      "noRoleSpecified": "कोई भूमिका निर्दिष्ट नहीं",
+      "noProfilesFound": "कोई प्रोफाइल नहीं मिला। अपना पहला प्रोफाइल बनाएं:",
+      "noProfilesAvailable": "कोई प्रोफाइल उपलब्ध नहीं",
+      "createProfile": "प्रोफाइल बनाएं",
+      "addNewProfile": "नया प्रोफाइल जोड़ें",
+      "continueWithSelectedProfile": "चयनित प्रोफाइल के साथ जारी रखें",
+      "selectProfileFor": "{{jobTitle}} के लिए प्रोफाइल चुनें"
+    },
+    "otpVerification": {
+      "title": "अपना सत्यापित करें",
+      "email": "ईमेल",
+      "phone": "फोन",
+      "organization": "संगठन:"
+    },
+    "toastMessages": {
+      "profileCreatedSuccessfully": "प्रोफाइल सफलतापूर्वक बनाया गया!",
+      "profileCreatedDesc": "आपका प्रोफाइल सफलतापूर्वक बनाया गया है।",
+      "applicationSubmitted": "आवेदन जमा किया गया!",
+      "applicationSubmittedDesc": "आपका ड्राफ्ट सफलतापूर्वक एक सक्रिय आवेदन में परिवर्तित किया गया है।",
+      "submissionFailed": "जमा करना विफल",
+      "submissionFailedDesc": "आवेदन जमा करने में विफल। कृपया पुनः प्रयास करें।",
+      "profileUpdated": "प्रोफाइल अपडेट किया गया!",
+      "profileUpdatedDesc": "आपका प्रोफाइल सफलतापूर्वक अपडेट किया गया है। अपने ड्राफ्ट आवेदनों को अपडेट करने के लिए 'ड्राफ्ट सिंक' बटन का उपयोग करें।",
+      "updateFailed": "अपडेट विफल",
+      "updateFailedDesc": "प्रोफाइल अपडेट करने में विफल। कृपया पुनः प्रयास करें।",
+      "missingRequiredFields": "आवश्यक फ़ील्ड गायब",
+      "completeFields": "कृपया निम्नलिखित फ़ील्ड पूर्ण करें:",
+      "error": "त्रुटि",
+      "unableToSubmitDraft": "आवेदन जमा करने में असमर्थ। ड्राफ्ट डेटा नहीं मिला।",
+      "unableToSubmitData": "आवेदन जमा करने में असमर्थ। आवेदन डेटा नहीं मिला।",
+      "unableToSubmitMissing": "आवेदन जमा करने में असमर्थ। गायब:",
+      "providerId": "प्रदाता ID",
+      "jobId": "नौकरी ID",
+      "checkConsole": "डेटा संरचना के लिए कंसोल जांचें।"
+    }
+  }
+}

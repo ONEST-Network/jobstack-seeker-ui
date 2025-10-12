@@ -18,10 +18,12 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from '@/hooks/useI18n';
 import { useProfileRestrictions } from '@/hooks/useProfileRestrictions';
 import { getAllAvailableRoles } from '@/constants/sectors';
 
 const JobFilters = () => {
+  const t = useTranslation('jobs');
   const [salaryRange, setSalaryRange] = useState([15000, 50000]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -153,7 +155,7 @@ const JobFilters = () => {
                 Only showing roles available for this organization
               </div>
             )}
-            <Input placeholder="Search roles..." className="text-sm" />
+            <Input placeholder={t('jobFilters.searchRoles', 'Search roles...')} className="text-sm" />
             {restrictionsLoading ? (
               <div className="text-sm text-muted-foreground py-4 text-center">
                 Loading available roles...

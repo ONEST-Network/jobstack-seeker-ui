@@ -6,6 +6,7 @@ import { User } from 'lucide-react'; // Added User icon import
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface JobApplication {
   id: string;
@@ -68,6 +69,7 @@ const MyApplications = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statusLoading, setStatusLoading] = useState<boolean>(false);
   const isMobile = useIsMobile();
+  const t = useTranslation('applications');
   
   // Add refs to track if we're already fetching to prevent duplicate calls
   const isFetchingRef = useRef(false);
@@ -776,22 +778,22 @@ const MyApplications = () => {
           
           {statusLoading ? (
             <div className="text-center py-4">
-              <p className="text-muted-foreground text-sm">Updating application statuses...</p>
+              <p className="text-muted-foreground text-sm">{t('myApplications.updatingStatuses', 'Updating application statuses...')}</p>
             </div>
           ) : applications.length === 0 ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <User className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium mb-2">No applications found</h3>
+              <h3 className="text-lg font-medium mb-2">{t('myApplications.noApplicationsFound', 'No applications found')}</h3>
               <p className="text-muted-foreground mb-4">
                 {selectedCandidate 
-                  ? `You haven't applied to any jobs with the profile "${selectedCandidate.nickname || selectedCandidate.name}" yet.`
-                  : "You haven't applied to any jobs yet."
+                  ? `${t('myApplications.noApplicationsWithProfile', 'You haven\'t applied to any jobs with the profile')} "${selectedCandidate.nickname || selectedCandidate.name}" ${t('common.yet', 'yet')}.`
+                  : t('myApplications.noApplicationsYet', 'You haven\'t applied to any jobs yet.')
                 }
               </p>
               <p className="text-sm text-muted-foreground mb-4">
-                Switch to a different profile or apply to jobs to see your applications here.
+                {t('myApplications.switchProfileHint', 'Switch to a different profile or apply to jobs to see your applications here.')}
               </p>
               <Button 
                 onClick={() => {
@@ -803,7 +805,7 @@ const MyApplications = () => {
                 className="flex items-center gap-2"
               >
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                {isLoading ? 'Refreshing...' : 'Refresh Applications'}
+                {isLoading ? t('myApplications.updating', 'Refreshing...') : t('myApplications.refreshStatus', 'Refresh Applications')}
               </Button>
             </div>
           ) : (

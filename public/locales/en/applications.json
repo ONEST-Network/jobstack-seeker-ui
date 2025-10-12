@@ -83,6 +83,40 @@
       "draftApplications": "Draft Applications",
       "successRate": "Success Rate",
       "averageResponseTime": "Average Response Time"
+    },
+    "applicationTabs": {
+      "noActiveApplications": "No active applications found",
+      "noCompletedApplications": "No completed applications found",
+      "noDraftApplications": "No draft applications found",
+      "keepDraftsUpdated": "Keep your drafts up-to-date with your latest profile changes"
+    },
+    "myApplications": {
+      "loadingApplications": "Loading applications...",
+      "updatingStatuses": "Updating application statuses...",
+      "refreshStatus": "Refresh Status",
+      "updating": "Updating...",
+      "noApplicationsFound": "No applications found",
+      "noApplicationsWithProfile": "You haven't applied to any jobs with the profile",
+      "noApplicationsYet": "You haven't applied to any jobs yet.",
+      "switchProfileHint": "Switch to a different profile or apply to jobs to see your applications here.",
+      "perMonth": "per month"
+    },
+    "toastMessages": {
+      "authenticationRequired": "Authentication Required",
+      "loginToSyncDrafts": "Please log in to sync drafts.",
+      "noProfileSelected": "No Profile Selected",
+      "selectProfileToSync": "Please select a profile to sync drafts with.",
+      "error": "Error",
+      "profileIdNotFound": "Profile ID not found",
+      "noDraftsFound": "No Drafts Found",
+      "noDraftsToSync": "You don't have any draft applications to sync.",
+      "draftsSyncedSuccessfully": "Drafts Synced Successfully",
+      "draftsUpdated": "draft application updated with your latest profile information.",
+      "draftsUpdatedPlural": "draft applications updated with your latest profile information.",
+      "partialSuccess": "Partial Success",
+      "updatedDraftsButFailed": "Updated drafts, but failed. Check console for details.",
+      "syncFailed": "Sync Failed",
+      "syncFailedDesc": "Failed to sync drafts with your profile. Please try again."
     }
   }
 }

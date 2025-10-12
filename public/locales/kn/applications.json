@@ -1,0 +1,80 @@
+{
+  "applications": {
+    "title": "ಅರ್ಜಿಗಳು",
+    "subtitle": "ನಿಮ್ಮ ಅರ್ಜಿಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
+    "filters": {
+      "all": "ಎಲ್ಲಾ",
+      "active": "ಸಕ್ರಿಯ",
+      "completed": "ಪೂರ್ಣಗೊಂಡ",
+      "draft": "ಡ್ರಾಫ್ಟ್",
+      "status": "ಸ್ಥಿತಿ",
+      "date": "ದಿನಾಂಕ",
+      "company": "ಕಂಪನಿ",
+      "location": "ಸ್ಥಳ"
+    },
+    "sorting": {
+      "newest": "ಅತ್ಯಂತ ಹೊಸದು",
+      "oldest": "ಅತ್ಯಂತ ಹಳೆಯದು",
+      "company": "ಕಂಪನಿ",
+      "status": "ಸ್ಥಿತಿ"
+    },
+    "actions": {
+      "view": "ವೀಕ್ಷಿಸಿ",
+      "edit": "ಸಂಪಾದಿಸಿ",
+      "delete": "ಅಳಿಸಿ",
+      "withdraw": "ಹಿಂತೆಗೆದುಕೊಳ್ಳಿ",
+      "duplicate": "ನಕಲು ಮಾಡಿ"
+    },
+    "messages": {
+      "applicationSubmitted": "ಅರ್ಜಿ ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ",
+      "applicationWithdrawn": "ಅರ್ಜಿ ಯಶಸ್ವಿಯಾಗಿ ಹಿಂತೆಗೆದುಕೊಳ್ಳಲಾಗಿದೆ",
+      "applicationDeleted": "ಅರ್ಜಿ ಯಶಸ್ವಿಯಾಗಿ ಅಳಿಸಲಾಗಿದೆ",
+      "applicationUpdated": "ಅರ್ಜಿ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ",
+      "draftSaved": "ಡ್ರಾಫ್ಟ್ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ",
+      "noApplications": "ಯಾವುದೇ ಅರ್ಜಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+      "noDrafts": "ಯಾವುದೇ ಡ್ರಾಫ್ಟ್‌ಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+      "loading": "ಅರ್ಜಿಗಳು ಲೋಡ್ ಆಗುತ್ತಿವೆ...",
+      "error": "ಅರ್ಜಿಗಳನ್ನು ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ"
+    },
+    "stats": {
+      "totalApplications": "ಒಟ್ಟು ಅರ್ಜಿಗಳು",
+      "activeApplications": "ಸಕ್ರಿಯ ಅರ್ಜಿಗಳು",
+      "completedApplications": "ಪೂರ್ಣಗೊಂಡ ಅರ್ಜಿಗಳು",
+      "draftApplications": "ಡ್ರಾಫ್ಟ್ ಅರ್ಜಿಗಳು",
+      "successRate": "ಯಶಸ್ಸಿನ ದರ",
+      "averageResponseTime": "ಸರಾಸರಿ ಪ್ರತಿಕ್ರಿಯೆ ಸಮಯ"
+    },
+    "applicationTabs": {
+      "noActiveApplications": "ಯಾವುದೇ ಸಕ್ರಿಯ ಅರ್ಜಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+      "noCompletedApplications": "ಯಾವುದೇ ಪೂರ್ಣಗೊಂಡ ಅರ್ಜಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+      "noDraftApplications": "ಯಾವುದೇ ಡ್ರಾಫ್ಟ್ ಅರ್ಜಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+      "keepDraftsUpdated": "ನಿಮ್ಮ ಡ್ರಾಫ್ಟ್‌ಗಳನ್ನು ನಿಮ್ಮ ನವೀನತಮ ಪ್ರೊಫೈಲ್ ಬದಲಾವಣೆಗಳೊಂದಿಗೆ ಅಪ್-ಟು-ಡೇಟ್ ಇರಿಸಿ"
+    },
+    "myApplications": {
+      "loadingApplications": "ಅರ್ಜಿಗಳು ಲೋಡ್ ಆಗುತ್ತಿವೆ...",
+      "updatingStatuses": "ಅರ್ಜಿ ಸ್ಥಿತಿಗಳು ನವೀಕರಿಸಲಾಗುತ್ತಿವೆ...",
+      "refreshStatus": "ಸ್ಥಿತಿ ರಿಫ್ರೆಶ್ ಮಾಡಿ",
+      "updating": "ನವೀಕರಿಸಲಾಗುತ್ತಿದೆ...",
+      "noApplicationsFound": "ಯಾವುದೇ ಅರ್ಜಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+      "noApplicationsWithProfile": "ನೀವು ಪ್ರೊಫೈಲ್‌ನೊಂದಿಗೆ ಯಾವುದೇ ಉದ್ಯೋಗಗಳಿಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸಿಲ್ಲ",
+      "noApplicationsYet": "ನೀವು ಇನ್ನೂ ಯಾವುದೇ ಉದ್ಯೋಗಗಳಿಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸಿಲ್ಲ.",
+      "switchProfileHint": "ನಿಮ್ಮ ಅರ್ಜಿಗಳನ್ನು ಇಲ್ಲಿ ನೋಡಲು ವಿಭಿನ್ನ ಪ್ರೊಫೈಲ್‌ಗೆ ಬದಲಾಯಿಸಿ ಅಥವಾ ಉದ್ಯೋಗಗಳಿಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸಿ.",
+      "perMonth": "ತಿಂಗಳಿಗೆ"
+    },
+    "toastMessages": {
+      "authenticationRequired": "ದೃಢೀಕರಣ ಅಗತ್ಯ",
+      "loginToSyncDrafts": "ಡ್ರಾಫ್ಟ್‌ಗಳನ್ನು ಸಿಂಕ್ ಮಾಡಲು ದಯವಿಟ್ಟು ಲಾಗ್ ಇನ್ ಮಾಡಿ.",
+      "noProfileSelected": "ಯಾವುದೇ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಲಾಗಿಲ್ಲ",
+      "selectProfileToSync": "ಡ್ರಾಫ್ಟ್‌ಗಳನ್ನು ಸಿಂಕ್ ಮಾಡಲು ದಯವಿಟ್ಟು ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ.",
+      "error": "ದೋಷ",
+      "unexpectedError": "ಅನಿರೀಕ್ಷಿತ ದೋಷ ಸಂಭವಿಸಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+      "networkError": "ನೆಟ್‌ವರ್ಕ್ ದೋಷ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ.",
+      "success": "ಯಶಸ್ಸು",
+      "operationSuccessful": "ಕಾರ್ಯಾಚರಣೆ ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಂಡಿದೆ.",
+      "warning": "ಎಚ್ಚರಿಕೆ",
+      "attentionRequired": "ಗಮನ ಅಗತ್ಯ",
+      "info": "ಮಾಹಿತಿ",
+      "additionalInformation": "ಹೆಚ್ಚುವರಿ ಮಾಹಿತಿ"
+    }
+  }
+}

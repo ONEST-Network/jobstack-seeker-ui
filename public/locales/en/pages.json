@@ -1,0 +1,29 @@
+{
+  "pages": {
+    "index": {
+      "title": "Ready to Find Your Next Job?",
+      "startJobDiscovery": "Start Job Discovery"
+    },
+    "notFound": {
+      "title": "404",
+      "subtitle": "Oops! Page not found",
+      "returnHome": "Return to Home"
+    },
+    "emailVerification": {
+      "resendEmail": "Would you like us to send you a new verification email?",
+      "sending": "Sending...",
+      "resendVerificationEmail": "Resend Verification Email",
+      "note": "Note: If you don't receive the email, please try logging in again.",
+      "emailVerified": "Your email is already verified. You can now log in to your account.",
+      "goToLogin": "Go to Login",
+      "noAccountFound": "No account found with this email address. Please check your email or create a new account."
+    },
+    "jobs": {
+      "myApplications": "My Applications",
+      "trackApplications": "Track and manage your job applications"
+    },
+    "sharedJob": {
+      "locationNotSpecified": "Location not specified"
+    }
+  }
+}

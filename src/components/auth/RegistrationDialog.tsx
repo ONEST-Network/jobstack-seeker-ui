@@ -11,6 +11,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import OTPVerificationDialog from './OTPVerificationDialog';
 import UserProfileDialog from '@/components/profile/UserProfileDialog';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface RegistrationDialogProps {
   isOpen: boolean;
@@ -51,6 +52,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   const location = useLocation();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { data: orgDetails } = useOrgDetails(orgSlug || null);
+  const t = useTranslation('auth');
 
   // Always set role to individual - organization registration is disabled
   useEffect(() => {
@@ -247,69 +249,69 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
       <Dialog open={isOpen && step !== 'otp-verification'} onOpenChange={handleClose}>
         <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Create Account</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">{t('register.title', 'Create Account')}</DialogTitle>
           </DialogHeader>
 
           {step === 'register' && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Full Name *</Label>
+                <Label htmlFor="name">{t('register.nameLabel', 'Full Name')} *</Label>
                 <Input
                   id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your full name"
+                  placeholder={t('register.namePlaceholder', 'Enter your full name')}
                 />
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">{t('register.emailLabel', 'Email Address')}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
+                    placeholder={t('register.emailPlaceholder', 'your@email.com')}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">{t('register.phoneLabel', 'Phone Number')}</Label>
                   <Input
                     ref={phoneInputRef}
                     id="phone"
                     type="tel"
                     value={formattedPhone || phone}
                     onChange={(e) => handlePhoneChange(e.target.value)}
-                    placeholder="+91 98765 43210"
+                    placeholder={t('register.phonePlaceholder', '+91 98765 43210')}
                   />
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  * Please provide at least one contact method (email or phone)
+                  * {t('register.contactMethodNote', 'Please provide at least one contact method (email or phone)')}
                 </p>
               </div>
 
               <div className="space-y-4">
-                <Label>Account Type</Label>
+                <Label>{t('register.accountType', 'Account Type')}</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
                     variant={role === 'individual' ? 'default' : 'outline'}
                     onClick={() => setRole('individual')}
                     className="h-16 sm:h-20 flex flex-col"
                   >
-                    <span className="font-medium text-sm sm:text-base">Individual</span>
-                    <span className="text-xs text-muted-foreground">Job seeker</span>
+                    <span className="font-medium text-sm sm:text-base">{t('register.individual', 'Individual')}</span>
+                    <span className="text-xs text-muted-foreground">{t('register.individualDesc', 'Job seeker')}</span>
                   </Button>
                   <Button
                     variant="outline"
                     disabled={true}
                     className="h-16 sm:h-20 flex flex-col opacity-50 cursor-not-allowed"
                   >
-                    <span className="font-medium text-sm sm:text-base">Organization</span>
-                    <span className="text-xs text-muted-foreground">Coming soon</span>
+                    <span className="font-medium text-sm sm:text-base">{t('register.organization', 'Organization')}</span>
+                    <span className="text-xs text-muted-foreground">{t('register.organizationDesc', 'Coming soon')}</span>
                   </Button>
                 </div>
               </div>
@@ -323,7 +325,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     className="mt-0.5"
                   />
                   <Label htmlFor="terms" className="text-sm leading-relaxed">
-                    I accept the <span className="text-primary cursor-pointer underline">Terms and Conditions</span>
+                    {t('register.termsAndConditions', 'I accept the Terms and Conditions')}
                   </Label>
                 </div>
                 
@@ -335,7 +337,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     className="mt-0.5"
                   />
                   <Label htmlFor="privacy" className="text-sm leading-relaxed">
-                    I consent to <span className="text-primary cursor-pointer underline">Data Privacy Policy</span>
+                    {t('register.privacyPolicy', 'I consent to Data Privacy Policy')}
                   </Label>
                 </div>
               </div>
@@ -345,7 +347,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                 disabled={isLoading || !canSubmit()}
                 className="w-full"
               >
-                {isLoading ? 'Sending OTP...' : 'Send OTP'}
+                {isLoading ? t('register.sendingOTP', 'Sending OTP...') : t('register.sendOTP', 'Send OTP')}
               </Button>
             </div>
           )}
@@ -369,8 +371,8 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
           setShowProfileDialog(false);
           handleClose();
           toast({
-            title: "Profile Created",
-            description: "Welcome! Your profile has been created successfully."
+            title: t('register.success.profileCreated', 'Profile Created'),
+            description: t('register.success.profileCreatedDesc', 'Welcome! Your profile has been created successfully.')
           });
         }}
         mode="user"
