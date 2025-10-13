@@ -264,6 +264,7 @@ div[role="alertdialog"],
 .individual-job-marker {
   background: transparent !important;
   border: none !important;
+  outline: none !important;
   touch-action: manipulation !important;
   -webkit-tap-highlight-color: transparent !important;
   user-select: none !important;
@@ -274,12 +275,27 @@ div[role="alertdialog"],
 
 .individual-job-marker div {
   border: none !important;
+  outline: none !important;
   touch-action: manipulation !important;
   -webkit-tap-highlight-color: transparent !important;
   user-select: none !important;
   -webkit-user-select: none !important;
   -moz-user-select: none !important;
   -ms-user-select: none !important;
+}
+
+.individual-job-marker *:focus,
+.individual-job-marker div:focus {
+  outline: none !important;
+  border: none !important;
+}
+
+/* Only apply hover on non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .individual-job-marker div:hover {
+    transform: scale(1.1);
+    filter: brightness(1.1);
+  }
 }
 
 /* Improve touch interaction on mobile devices */
@@ -290,8 +306,8 @@ div[role="alertdialog"],
   
   .individual-job-marker div {
     cursor: pointer !important;
-    min-width: 44px !important; /* iOS minimum touch target */
-    min-height: 44px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
   }
   
   /* Prevent text selection on touch devices */

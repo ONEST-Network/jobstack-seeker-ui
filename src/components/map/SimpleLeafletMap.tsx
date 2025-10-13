@@ -94,27 +94,20 @@ const createCustomIcon = (density: 'high' | 'medium' | 'low', jobCount: number) 
 
 // Create individual job marker icon with briefcase and job count
 const createJobIcon = (jobCount: number = 1, isMobile: boolean = false) => {
-  // Increase size for mobile devices for better touch interaction
-  const baseSize = isMobile ? (jobCount > 1 ? 40 : 36) : (jobCount > 1 ? 32 : 28);
-  const size = baseSize;
-  const fontSize = jobCount > 1 ? (isMobile ? '14px' : '12px') : (isMobile ? '12px' : '10px');
-  const borderWidth = isMobile ? 4 : 3; // Thicker border for mobile
-  const touchPadding = isMobile ? 8 : 4; // Extra padding for touch targets
+  // Larger sizes for better touch interaction
+  const baseSize = isMobile ? 56 : 48;
+  const touchPadding = isMobile ? 12 : 40;
   
   return L.divIcon({
     className: 'individual-job-marker',
     html: `
       <div style="
-        background-color: #1d4ed8;
-        width: ${size}px;
-        height: ${size}px;
-        border-radius: 50%;
-        border: ${borderWidth}px solid white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);
+        background-image: url('/images/briefcase-icon.png');
+        background-size: cover;
+        background-position: center;
+        width: ${baseSize}px;
+        height: ${baseSize}px;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         position: relative;
         transition: all 0.2s ease;
         touch-action: manipulation;
@@ -123,26 +116,32 @@ const createJobIcon = (jobCount: number = 1, isMobile: boolean = false) => {
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
-        ${isMobile ? 'animation: pulse 2s infinite;' : ''}
+        outline: none;
       ">
         ${jobCount > 1 ? `
           <span style="
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background-color: #ef4444;
             color: white;
             font-weight: bold;
-            font-size: ${fontSize};
-            line-height: 1;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            font-size: ${isMobile ? '13px' : '11px'};
+            border-radius: 50%;
+            width: ${isMobile ? '24px' : '20px'};
+            height: ${isMobile ? '24px' : '20px'};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
             pointer-events: none;
           ">${jobCount}</span>
-        ` : `
-          <svg width="${isMobile ? '16' : '14'}" height="${isMobile ? '16' : '14'}" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); pointer-events: none;">
-            <path d="M10 2v2H8v2H6v2H4v12h16V8h-2V6h-2V4h-2V2h-4zm2 2h2v2h2v2h2v10H6V8h2V6h2V4h2zm-2 4v2h4V8h-4zm0 4v2h4v-2h-4z"/>
-          </svg>
-        `}
+        ` : ''}
       </div>
     `,
-    iconSize: [size + touchPadding, size + touchPadding],
-    iconAnchor: [(size + touchPadding) / 2, (size + touchPadding) / 2],
+    iconSize: [baseSize + touchPadding, baseSize + touchPadding],
+    iconAnchor: [(baseSize + touchPadding) / 2, (baseSize + touchPadding) / 2],
   });
 };
 
