@@ -64,16 +64,6 @@ const JobCardSkeleton: React.FC = () => (
         </div>
       </div>
 
-      {/* Two Column Layout: Monthly PF & ESIC */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-4">
-        <div>
-          <Skeleton className="h-4 w-20 mb-1" />
-          <Skeleton className="h-3 w-24" />
-        </div>
-        <div>
-          {/* Right column empty as requested */}
-        </div>
-      </div>
 
       {/* Trust Score & Match Score */}
       <div className="flex gap-2 sm:gap-4">
