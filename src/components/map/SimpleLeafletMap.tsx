@@ -92,29 +92,27 @@ const createCustomIcon = (density: 'high' | 'medium' | 'low', jobCount: number) 
   });
 };
 
-// Create individual job marker icon with briefcase and job count
-const createJobIcon = (jobCount: number = 1, isMobile: boolean = false) => {
-  // Increase size for mobile devices for better touch interaction
-  const baseSize = isMobile ? (jobCount > 1 ? 40 : 36) : (jobCount > 1 ? 32 : 28);
-  const size = baseSize;
-  const fontSize = jobCount > 1 ? (isMobile ? '14px' : '12px') : (isMobile ? '12px' : '10px');
-  const borderWidth = isMobile ? 4 : 3; // Thicker border for mobile
-  const touchPadding = isMobile ? 8 : 4; // Extra padding for touch targets
+// Create individual job marker icon with briefcase and openings count
+const createJobIcon = (openingsCount: number = 1, isMobile: boolean = false) => {
+  // Keep original mobile sizes but improve desktop click area
+  const baseSize = isMobile ? 56 : 48;
+  const touchPadding = isMobile ? 12 : 8; // Minimal padding change for desktop only
+  
+  // Always show openings count badge (even for single openings)
+  const badgeSize = isMobile ? 24 : 20;
+  const badgeFontSize = isMobile ? '12px' : '10px';
   
   return L.divIcon({
     className: 'individual-job-marker',
     html: `
       <div style="
-        background-color: #1d4ed8;
-        width: ${size}px;
-        height: ${size}px;
-        border-radius: 50%;
-        border: ${borderWidth}px solid white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);
+        background-image: url('/images/briefcase-icon.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        width: ${baseSize}px;
+        height: ${baseSize}px;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         position: relative;
         transition: all 0.2s ease;
         touch-action: manipulation;
@@ -123,26 +121,39 @@ const createJobIcon = (jobCount: number = 1, isMobile: boolean = false) => {
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
-        ${isMobile ? 'animation: pulse 2s infinite;' : ''}
+        outline: none;
+        pointer-events: auto;
       ">
-        ${jobCount > 1 ? `
-          <span style="
-            color: white;
-            font-weight: bold;
-            font-size: ${fontSize};
-            line-height: 1;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            pointer-events: none;
-          ">${jobCount}</span>
-        ` : `
-          <svg width="${isMobile ? '16' : '14'}" height="${isMobile ? '16' : '14'}" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); pointer-events: none;">
-            <path d="M10 2v2H8v2H6v2H4v12h16V8h-2V6h-2V4h-2V2h-4zm2 2h2v2h2v2h2v10H6V8h2V6h2V4h2zm-2 4v2h4V8h-4zm0 4v2h4v-2h-4z"/>
-          </svg>
-        `}
+        <span style="
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          background-color: ${openingsCount === 1 ? '#10b981' : openingsCount < 5 ? '#f59e0b' : '#ef4444'};
+          color: white;
+          font-weight: bold;
+          font-size: ${badgeFontSize};
+          border-radius: 50%;
+          width: ${badgeSize}px;
+          height: ${badgeSize}px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid white;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+          pointer-events: none;
+          z-index: 10;
+          min-width: ${badgeSize}px;
+          ${openingsCount > 99 ? `
+            width: auto;
+            min-width: ${badgeSize + 8}px;
+            padding: 0 4px;
+            border-radius: 12px;
+          ` : ''}
+        ">${openingsCount > 999 ? '999+' : openingsCount}</span>
       </div>
     `,
-    iconSize: [size + touchPadding, size + touchPadding],
-    iconAnchor: [(size + touchPadding) / 2, (size + touchPadding) / 2],
+    iconSize: [baseSize + touchPadding, baseSize + touchPadding],
+    iconAnchor: [(baseSize + touchPadding) / 2, (baseSize + touchPadding) / 2],
   });
 };
 
@@ -182,35 +193,37 @@ const createUserIcon = () => {
   });
 };
 
-// Custom cluster icon function - shows total job count
+// Custom cluster icon function - shows total openings count
 const createClusterIcon = (cluster: any) => {
   const childMarkers = cluster.getAllChildMarkers();
-  let totalJobs = 0;
+  let totalOpenings = 0;
   
-  // Calculate total job count from all markers in cluster
+  // Calculate total openings count from all markers in cluster
   childMarkers.forEach((marker: any) => {
-    // Get the job count from the marker's options
-    if (marker.options && marker.options.jobCount) {
-      totalJobs += marker.options.jobCount;
+    // Get the openings count from the marker's custom properties
+    if (marker.totalOpenings) {
+      totalOpenings += marker.totalOpenings;
+    } else if (marker.options && marker.options.jobCount) {
+      totalOpenings += marker.options.jobCount; // Fallback to job count
     } else {
-      totalJobs += 1; // Default to 1 if jobCount not available
+      totalOpenings += 1; // Default to 1 if nothing available
     }
   });
   
   let size = 40;
   let color = '#3b82f6';
   
-  // Size and color based on job count (not marker count)
-  if (totalJobs >= 100) {
+  // Size and color based on openings count
+  if (totalOpenings >= 100) {
     size = 65;
     color = '#1e3a8a';
-  } else if (totalJobs >= 50) {
+  } else if (totalOpenings >= 50) {
     size = 60;
     color = '#1d4ed8';
-  } else if (totalJobs >= 20) {
+  } else if (totalOpenings >= 20) {
     size = 50;
     color = '#2563eb';
-  } else if (totalJobs >= 10) {
+  } else if (totalOpenings >= 10) {
     size = 45;
     color = '#1d4ed8';
   }
@@ -232,7 +245,7 @@ const createClusterIcon = (cluster: any) => {
         box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         position: relative;
       ">
-        ${totalJobs}
+        ${totalOpenings > 999 ? '999+' : totalOpenings}
         <div style="
           position: absolute;
           bottom: -20px;
@@ -245,7 +258,7 @@ const createClusterIcon = (cluster: any) => {
           font-size: 9px;
           white-space: nowrap;
         ">
-          ${totalJobs} jobs
+          ${totalOpenings > 999 ? '999+' : totalOpenings} openings
         </div>
       </div>
     `,
@@ -468,13 +481,20 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
           });
         }
 
+        // Calculate total openings for all jobs at this location
+        const totalOpenings = jobs.reduce((sum, job) => {
+          const openings = job.openings || job.positions || 1;
+          return sum + openings;
+        }, 0);
+
         const marker = L.marker([lat, lng], {
-          icon: createJobIcon(jobCount, isMobile)
+          icon: createJobIcon(totalOpenings, isMobile)
         });
         
         
         // Store additional data in marker object
         (marker as any).jobCount = jobCount;
+        (marker as any).totalOpenings = totalOpenings;
         (marker as any).jobs = jobs;
 
         // Add popup for location with job count
@@ -494,12 +514,14 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
             <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">${company}</h3>
             <p style="margin: 0 0 8px 0; color: #666; font-size: 12px;">${city}, ${state}</p>
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-              <span style="font-weight: bold; font-size: 13px;">${jobCount} job${jobCount !== 1 ? 's' : ''}</span>
+              <span style="font-weight: bold; font-size: 13px; color: #10b981;">${totalOpenings} opening${totalOpenings !== 1 ? 's' : ''}</span>
+              <span style="font-size: 11px; color: #666;">${jobCount} role${jobCount !== 1 ? 's' : ''}</span>
             </div>
             <div style="font-size: 12px; color: #666;">
-              ${jobs.slice(0, 2).map((job, index) => 
-                `<div>• ${job.title || job.descriptor?.name || 'Job Position'}</div>`
-              ).join('')}
+              ${jobs.slice(0, 2).map((job, index) => {
+                const jobOpenings = job.openings || job.positions || 1;
+                return `<div>• ${job.title || job.descriptor?.name || 'Job Position'} (${jobOpenings} opening${jobOpenings !== 1 ? 's' : ''})</div>`;
+              }).join('')}
               ${jobs.length > 2 ? `<div>• +${jobs.length - 2} more roles</div>` : ''}
             </div>
           </div>
@@ -518,8 +540,10 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
 
         // Add click handler for job selection with debouncing
         const handleJobSelection = (e: L.LeafletMouseEvent) => {
-          e.originalEvent?.stopPropagation();
-          e.originalEvent?.preventDefault();
+          if (e.originalEvent) {
+            e.originalEvent.stopPropagation();
+            e.originalEvent.preventDefault();
+          }
           
           // Debounce rapid clicks (especially important for mobile)
           const now = Date.now();
@@ -543,8 +567,13 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
           }, 50);
         };
 
-        // Add click handler for all devices
+        // Add multiple event handlers for better click detection
         marker.on('click', handleJobSelection);
+        marker.on('mousedown', (e: L.LeafletMouseEvent) => {
+          if (e.originalEvent) {
+            e.originalEvent.stopPropagation();
+          }
+        });
         
         // Add a simple fallback for mobile devices using mousedown/mouseup
         if (isMobile) {
@@ -630,30 +659,21 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
           });
         }
 
-        // Add hover effects for better interactivity
+        // Add hover effects for better interactivity (hover styling is now handled by CSS)
         marker.on('mouseover', () => {
-          const icon = marker.getIcon() as L.DivIcon;
-          if (icon && icon.options && 'html' in icon.options && typeof icon.options.html === 'string') {
-            const currentHtml = icon.options.html;
-            const hoveredHtml = currentHtml.replace(
-              'box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);',
-              'box-shadow: 0 6px 16px rgba(0,0,0,0.5), 0 0 0 3px rgba(29, 78, 216, 0.5); transform: scale(1.1);'
-            );
-            icon.options.html = hoveredHtml;
-            marker.setIcon(icon);
+          // CSS handles the hover effect now via .individual-job-marker:hover
+          // Just ensure the marker is focused for accessibility
+          const markerElement = marker.getElement();
+          if (markerElement) {
+            markerElement.style.zIndex = '1000';
           }
         });
 
         marker.on('mouseout', () => {
-          const icon = marker.getIcon() as L.DivIcon;
-          if (icon && icon.options && 'html' in icon.options && typeof icon.options.html === 'string') {
-            const currentHtml = icon.options.html;
-            const normalHtml = currentHtml.replace(
-              'box-shadow: 0 6px 16px rgba(0,0,0,0.5), 0 0 0 3px rgba(29, 78, 216, 0.5); transform: scale(1.1);',
-              'box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(29, 78, 216, 0.3);'
-            );
-            icon.options.html = normalHtml;
-            marker.setIcon(icon);
+          // Reset z-index
+          const markerElement = marker.getElement();
+          if (markerElement) {
+            markerElement.style.zIndex = '100';
           }
         });
 
@@ -1072,10 +1092,23 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
                         </svg>
                         <span className="text-xl font-bold text-white">
-                          {locationCardData.jobCount}
+                          {(() => {
+                            // Calculate total openings from all jobs in this location
+                            const totalOpenings = locationCardData.jobs.reduce((sum, job) => {
+                              const openings = job.openings || job.positions || 1;
+                              return sum + openings;
+                            }, 0);
+                            return totalOpenings;
+                          })()}
                         </span>
                       </div>
-                      <p className="text-blue-100 text-xs">Job{locationCardData.jobCount !== 1 ? 's' : ''}</p>
+                      <p className="text-blue-100 text-xs">Opening{(() => {
+                        const totalOpenings = locationCardData.jobs.reduce((sum, job) => {
+                          const openings = job.openings || job.positions || 1;
+                          return sum + openings;
+                        }, 0);
+                        return totalOpenings !== 1 ? 's' : '';
+                      })()}</p>
                     </div>
                   </div>
                 </div>

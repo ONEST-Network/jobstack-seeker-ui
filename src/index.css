@@ -264,6 +264,7 @@ div[role="alertdialog"],
 .individual-job-marker {
   background: transparent !important;
   border: none !important;
+  outline: none !important;
   touch-action: manipulation !important;
   -webkit-tap-highlight-color: transparent !important;
   user-select: none !important;
@@ -274,12 +275,27 @@ div[role="alertdialog"],
 
 .individual-job-marker div {
   border: none !important;
+  outline: none !important;
   touch-action: manipulation !important;
   -webkit-tap-highlight-color: transparent !important;
   user-select: none !important;
   -webkit-user-select: none !important;
   -moz-user-select: none !important;
   -ms-user-select: none !important;
+}
+
+.individual-job-marker *:focus,
+.individual-job-marker div:focus {
+  outline: none !important;
+  border: none !important;
+}
+
+/* Only apply hover on non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .individual-job-marker div:hover {
+    transform: scale(1.1);
+    filter: brightness(1.1);
+  }
 }
 
 /* Improve touch interaction on mobile devices */
@@ -290,8 +306,8 @@ div[role="alertdialog"],
   
   .individual-job-marker div {
     cursor: pointer !important;
-    min-width: 44px !important; /* iOS minimum touch target */
-    min-height: 44px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
   }
   
   /* Prevent text selection on touch devices */
@@ -404,5 +420,52 @@ div[role="alertdialog"],
       max-width: calc(100vw - 2rem) !important;
       max-height: calc(100vh - 2rem) !important;
     }
+  }
+
+  /* Improved map marker styles with openings badge */
+  .individual-job-marker {
+    cursor: pointer !important;
+  }
+
+  /* Desktop-only hover effect - don't change mobile behavior */
+  @media (min-width: 769px) {
+    .individual-job-marker:hover {
+      transform: scale(1.05) !important;
+      transition: transform 0.2s ease !important;
+    }
+  }
+
+  /* Ensure marker click area works properly */
+  .individual-job-marker > div {
+    pointer-events: auto !important;
+  }
+
+  /* Mobile-specific improvements for openings badge visibility */
+  @media (max-width: 768px) {
+    .individual-job-marker {
+      /* Ensure touch targets are large enough */
+      min-width: 44px !important;
+      min-height: 44px !important;
+    }
+    
+    /* Improve badge contrast on mobile */
+    .individual-job-marker span {
+      box-shadow: 0 3px 8px rgba(0,0,0,0.5) !important;
+      font-weight: 700 !important;
+    }
+  }
+
+  /* Fix leaflet marker z-index issues */
+  .leaflet-marker-pane .individual-job-marker {
+    z-index: 100 !important;
+  }
+
+  /* Ensure popups don't interfere with marker clicks */
+  .leaflet-popup-pane {
+    pointer-events: none !important;
+  }
+
+  .leaflet-popup {
+    pointer-events: auto !important;
   }
 }
