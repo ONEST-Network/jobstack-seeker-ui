@@ -838,15 +838,51 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
                                job.locations?.gps;
                     return gps && gps.lat && gps.lng;
                   }) || [];
-                  const maxMarkers = zoom < 8 ? 200 : zoom < 12 ? 500 : jobsWithGPS.length;
-                  const showingCount = Math.min(jobsWithGPS.length, maxMarkers);
+                  
+                  // If there's a map search query, filter jobs by location
+                  let jobsToShow = jobsWithGPS;
+                  if (mapSearchQuery && mapSearchQuery.trim()) {
+                    jobsToShow = jobsWithGPS.filter(job => {
+                      const city = job.jobProviderLocation?.city || job.tags?.basicInfo?.jobProviderLocation?.city || '';
+                      const state = job.jobProviderLocation?.state || job.tags?.basicInfo?.jobProviderLocation?.state || '';
+                      const searchTerm = mapSearchQuery.toLowerCase();
+                      return city.toLowerCase().includes(searchTerm) || state.toLowerCase().includes(searchTerm);
+                    });
+                  }
+                  
+                  // Calculate total openings from filtered jobs
+                  const totalOpenings = jobsToShow.reduce((sum, job) => {
+                    const openings = job.openings || job.positions || 1;
+                    return sum + openings;
+                  }, 0);
+                  
+                  const maxMarkers = zoom < 8 ? 200 : zoom < 12 ? 500 : jobsToShow.length;
+                  const showingCount = Math.min(jobsToShow.length, maxMarkers);
+                  
+                  // Calculate openings for jobs being shown
+                  const showingOpenings = jobsToShow.slice(0, showingCount).reduce((sum, job) => {
+                    const openings = job.openings || job.positions || 1;
+                    return sum + openings;
+                  }, 0);
+                  
                   return (
                     <>
-                      {showingCount} of {jobsWithGPS.length} jobs with GPS shown
-                      {totalJobs > jobsWithGPS.length && (
-                        <span className="text-amber-600 ml-1">• {totalJobs - jobsWithGPS.length} jobs missing GPS</span>
+                      {mapSearchQuery && mapSearchQuery.trim() ? (
+                        <>
+                          {showingOpenings} of {totalOpenings} openings in "{mapSearchQuery}"
+                          {jobsToShow.length < jobsWithGPS.length && (
+                            <span className="text-blue-600 ml-1">• {jobsWithGPS.length - jobsToShow.length} jobs in other locations</span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {showingOpenings} of {totalOpenings} total openings shown
+                          {totalJobs > jobsWithGPS.length && (
+                            <span className="text-amber-600 ml-1">• {totalJobs - jobsWithGPS.length} jobs missing GPS</span>
+                          )}
+                        </>
                       )}
-                      {showingCount < jobsWithGPS.length && (
+                      {showingCount < jobsToShow.length && (
                         <span className="text-green-600 ml-1">• Zoom in to see more</span>
                       )}
                     </>
