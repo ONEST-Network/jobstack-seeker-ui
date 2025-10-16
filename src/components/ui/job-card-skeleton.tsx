@@ -40,7 +40,7 @@ const JobCardSkeleton: React.FC = () => (
         </div>
       </div>
 
-      {/* Two Column Layout: Monthly In-hand & Stay Provided */}
+      {/* Two Column Layout: Monthly In-hand & Travel Provided */}
       <div className="grid grid-cols-2 gap-2 sm:gap-4">
         <div>
           <Skeleton className="h-4 w-24 mb-1" />

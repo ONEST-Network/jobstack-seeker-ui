@@ -153,7 +153,7 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
             `₹${jobDetails.costPerSharingBed}` : 
             'Not specified';
 
-          const stayProvided = jobDetails.stayProvided === 'yes-free' || jobDetails.stayProvided === 'yes-paid';
+          const travelProvided = jobDetails.travelProvided === 'yes-free' || jobDetails.travelProvided === 'yes-paid';
           const trustScore = tags?.assessment?.trustScore || 0;
           const matchScore = tags?.assessment?.matchScore || 0;
           const positions = jobDetails.positions || 1;
@@ -288,7 +288,7 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
             monthlyPfEsic,
             monthlyOvertime,
             costPerSharingBed,
-            stayProvided,
+            travelProvided,
             trustScore,
             matchScore,
             verified: true,

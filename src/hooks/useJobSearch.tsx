@@ -10,11 +10,12 @@ export interface JobItem {
   company: string;
   location: string;
   salary: string;
-  workingHours?: string;
-  monthlyInHand?: string;
-  monthlyOvertime?: string;
-  costPerSharingBed?: string;
-  stayProvided?: boolean;
+  workingHours: string;
+  monthlyInHand: string;
+  monthlyPfEsic?: string;
+  monthlyOvertime: string;
+  costPerSharingBed: string;
+  travelProvided?: boolean;
   trustScore?: number;
   matchScore?: number;
   verified?: boolean;
@@ -544,8 +545,8 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
             `₹${jobDetails.costPerSharingBed}` : 
             'Not specified';
 
-          // Extract stay provided
-          const stayProvided = jobDetails.stayProvided === 'yes-free' || jobDetails.stayProvided === 'yes-paid';
+          // Extract travel provided
+          const travelProvided = jobDetails.travelProvided === 'yes-free' || jobDetails.travelProvided === 'yes-paid';
 
           // Extract trust score
           const trustScore = tags?.assessment?.trustScore || 0;
@@ -719,7 +720,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
             monthlyInHand,
             monthlyOvertime,
             costPerSharingBed,
-            stayProvided,
+            travelProvided,
             trustScore,
             matchScore,
             verified: true, // Assume verified for now
