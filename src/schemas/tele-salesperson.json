@@ -223,8 +223,8 @@
             "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select work modes",
             "ui:hasOther": true,
-            "enum": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling"],
-            "enumNames": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling"]
+            "enum": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling", "Apprenticeship"],
+            "enumNames": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling", "Apprenticeship"]
           },
           "monthlyInHandPreferred": {
             "type": "integer",

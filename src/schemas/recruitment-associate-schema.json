@@ -245,14 +245,16 @@
             "On-site-shifts", 
             "Remote", 
             "Hybrid", 
-            "Travelling"
+            "Travelling",
+            "Apprenticeship"
           ],
           "enumNames": [
             "On-site-no shift",
             "On-site-shifts", 
             "Remote", 
             "Hybrid", 
-            "Travelling"
+            "Travelling",
+            "Apprenticeship"
           ],
           "ui:widget": "select",
           "ui:placeholder": "Select work mode preference",

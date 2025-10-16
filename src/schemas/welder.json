@@ -622,8 +622,8 @@
             "items": {
               "type": "string"
             },
-            "enum": ["Full-time", "Contract", "On-site-no shift", "On-site-shift", "Remote","Hybrid", "Travelling", "Okay to re-locate"],
-            "enumNames": ["Full-time", "Contract", "On-site-no shift", "On-site-shift", "Remote","Hybrid", "Travelling", "Okay to re-locate"],
+            "enum": ["Full-time", "Contract", "On-site-no shift", "On-site-shift", "Remote","Hybrid", "Travelling", "Apprenticeship", "Okay to re-locate"],
+            "enumNames": ["Full-time", "Contract", "On-site-no shift", "On-site-shift", "Remote","Hybrid", "Travelling", "Apprenticeship", "Okay to re-locate"],
             "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select preferred mode of work(s)",
             "ui:disabled": false,
