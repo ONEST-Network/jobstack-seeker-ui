@@ -81,6 +81,14 @@
           "ui:disabled": false,
           "ui:hasOther": true
         },
+        "collegeName": {
+          "type": "string",
+          "title": "College Name",
+          "description": "Enter your college or institution name",
+          "ui:widget": "text",
+          "ui:placeholder": "Enter college name",
+          "ui:disabled": false
+        },
         "workExperience": {
           "type": "string",
           "title": "Work Experience",
@@ -161,6 +169,7 @@
       "ui": {
         "order": [
           "highestEducationalQualification",
+          "collegeName",
           "workExperience",
           "hrKnowledge",
           "hrWorkExperience",
