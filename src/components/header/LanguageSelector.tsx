@@ -26,12 +26,12 @@ const LanguageSelector = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 hidden xs:flex">
+        <Button variant="ghost" size="sm" className="gap-2 flex">
           <Globe className="h-4 w-4" />
           <span className="hidden sm:inline">
             {currentLanguage?.name}
           </span>
-          <span className="xs:hidden">
+          <span className="hidden xs:inline sm:hidden">
             {currentLanguage?.name.split(' ')[0]}
           </span>
           <ChevronDown className="h-3 w-3" />
