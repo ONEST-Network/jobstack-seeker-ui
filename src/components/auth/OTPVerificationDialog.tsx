@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'react-router-dom';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface OTPVerificationDialogProps {
   isOpen: boolean;
@@ -36,12 +37,13 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
   const { toast } = useToast();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { data: orgDetails } = useOrgDetails(orgSlug || null);
+  const t = useTranslation('auth');
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
       toast({
-        title: "Error",
-        description: "Please enter the complete 6-digit OTP.",
+        title: t('toastMessages.error', 'Error'),
+        description: t('toastMessages.completeOTP', 'Please enter the complete 6-digit OTP.'),
         variant: "destructive"
       });
       return;
@@ -75,13 +77,13 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
       
       // Show success toast
       toast({
-        title: "Success",
-        description: "OTP verified successfully!"
+        title: t('toastMessages.success', 'Success'),
+        description: t('toastMessages.otpVerifiedSuccessfully', 'OTP verified successfully!')
       });
     } catch (error: unknown) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Invalid OTP. Please try again.",
+        title: t('toastMessages.error', 'Error'),
+        description: error instanceof Error ? error.message : t('toastMessages.invalidOTP', 'Invalid OTP. Please try again.'),
         variant: "destructive"
       });
     }
@@ -147,21 +149,21 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Verify Your {method === 'email' ? 'Email' : 'Phone'}</DialogTitle>
+          <DialogTitle>{t('otpVerification.title', 'Verify Your')} {method === 'email' ? t('otpVerification.email', 'Email') : t('otpVerification.phone', 'Phone')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 text-center">
           <p className="text-muted-foreground">
-            We've sent a 6-digit verification code to{' '}
+            {t('otpVerification.subtitle', 'We\'ve sent a 6-digit verification code to')}{' '}
             <span className="font-medium">{contactMethod}</span>
           </p>
 
           {orgDetails?.data && orgSlug && orgSlug !== '0' && (
             <div className="p-3 bg-muted rounded-lg text-left">
-              <h4 className="font-medium text-sm">Organization:</h4>
+              <h4 className="font-medium text-sm">{t('otpVerification.organization', 'Organization:')}</h4>
               <p className="text-sm font-medium">{orgDetails.data.name}</p>
               <p className="text-xs text-muted-foreground">
-                Signing up for {orgDetails.data.name}
+                {t('otpVerification.signingUpFor', 'Signing up for')} {orgDetails.data.name}
               </p>
             </div>
           )}
@@ -185,7 +187,7 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
               disabled={isLoading || otp.length !== 6}
               className="w-full"
             >
-              {isLoading ? 'Verifying...' : 'Verify OTP'}
+              {isLoading ? t('otpVerification.verifying', 'Verifying...') : t('otpVerification.verify', 'Verify OTP')}
             </Button>
 
             <Button 
@@ -195,10 +197,10 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
               disabled={resendCountdown > 0 || isResending}
             >
               {isResending 
-                ? 'Sending...' 
+                ? t('otpVerification.resending', 'Sending...') 
                 : resendCountdown > 0 
-                  ? `Resend Code in ${resendCountdown}s`
-                  : 'Resend Code'
+                  ? t('otpVerification.resendCountdown', 'Resend Code in {{count}}s', { count: resendCountdown })
+                  : t('otpVerification.resend', 'Resend Code')
               }
             </Button>
           </div>

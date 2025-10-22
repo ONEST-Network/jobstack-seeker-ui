@@ -7,6 +7,7 @@ import { ChevronDown, Plus, User, Edit, Trash2, CheckSquare, Square } from 'luci
 import { useAuth } from '@/contexts/AuthContext';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface CandidateSelectorProps {
   onAddCandidate: () => void;
@@ -20,6 +21,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedProfiles, setSelectedProfiles] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const t = useTranslation('candidates');
 
   if (!user || user.role !== 'individual' || user.managedCandidates.length === 0) {
     return null;
@@ -111,7 +113,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
           <Button variant="outline" className="gap-2 min-w-0 flex-1 sm:flex-none">
             <User className="h-4 w-4 flex-shrink-0" />
             <span className="font-medium truncate">
-              {selectedCandidate?.nickname || selectedCandidate?.name || 'Select Profile'}
+              {selectedCandidate?.nickname || selectedCandidate?.name || t('selectProfile', 'Select Profile')}
             </span>
             <ChevronDown className="h-4 w-4 flex-shrink-0" />
           </Button>
@@ -126,14 +128,14 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
             {/* Header */}
             <div className="p-2 border-b">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-muted-foreground">Switch Profile</div>
+                <div className="text-sm font-medium text-muted-foreground">{t('switchProfile', 'Switch Profile')}</div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={toggleSelectionMode}
                   className="h-6 px-2 text-xs"
                 >
-                  {isSelectionMode ? 'Cancel' : 'Select'}
+                  {isSelectionMode ? t('cancel', 'Cancel') : t('select', 'Select')}
                 </Button>
               </div>
             </div>
@@ -151,7 +153,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
                     onClick={handleSelectAllProfiles}
                     className="h-5 px-2 text-xs"
                   >
-                    {selectedProfiles.size === user.managedCandidates.length ? 'Deselect All' : 'Select All'}
+                    {selectedProfiles.size === user.managedCandidates.length ? t('deselectAll', 'Deselect All') : t('selectAll', 'Select All')}
                   </Button>
                 </div>
               </div>
@@ -200,12 +202,12 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
                           {candidate.nickname || candidate.name}
                         </span>
                         <span className="text-xs text-muted-foreground truncate">
-                          {candidate.interestedRole || 'No role specified'}
+                          {candidate.interestedRole || t('noRoleSpecified', 'No role specified')}
                         </span>
                       </div>
                       {selectedCandidate?.id === candidate.id && !isSelectionMode && (
                         <Badge variant="secondary" className="text-xs ml-2 flex-shrink-0">
-                          Active
+                          {t('active', 'Active')}
                         </Badge>
                       )}
                     </DropdownMenuItem>
@@ -237,7 +239,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
                   className="gap-2 p-2 cursor-pointer hover:bg-red-50 text-red-600 rounded-none"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Delete {selectedProfiles.size} Profile(s)
+                  {t('deleteProfiles', 'Delete {{count}} Profile(s)', { count: selectedProfiles.size })}
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem 
@@ -245,7 +247,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
                   className="gap-2 p-2 cursor-pointer hover:bg-muted rounded-none"
                 >
                   <Plus className="h-4 w-4" />
-                  Add New Profile
+                  {t('addNewProfile', 'Add New Profile')}
                 </DropdownMenuItem>
               )}
             </div>
@@ -271,10 +273,10 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleBulkDeleteProfiles}
-        title="Delete Profiles"
-        description={`Are you sure you want to delete ${selectedProfiles.size} profile(s)? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('deleteProfilesTitle', 'Delete Profiles')}
+        description={t('deleteProfilesDescription', 'Are you sure you want to delete {{count}} profile(s)? This action cannot be undone.', { count: selectedProfiles.size })}
+        confirmText={t('delete', 'Delete')}
+        cancelText={t('cancel', 'Cancel')}
         variant="destructive"
       />
     </>

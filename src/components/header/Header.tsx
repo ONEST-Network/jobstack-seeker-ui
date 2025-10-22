@@ -10,12 +10,14 @@ import LanguageSelector from './LanguageSelector';
 import UserMenu from './UserMenu';
 import HeaderDialogs from './HeaderDialogs';
 import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface HeaderProps {
   orgSlug?: string | null;
 }
 
 const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
+  const t = useTranslation('header');
   const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showOrgProfile, setShowOrgProfile] = useState(false);
@@ -110,8 +112,8 @@ const Header: React.FC<HeaderProps> = ({ orgSlug }) => {
                 title="Create your first profile to start applying for jobs"
               >
                 <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Create Profile</span>
-                <span className="sm:hidden">Create</span>
+                <span className="hidden sm:inline">{t('headerActions.createProfile', 'Create Profile')}</span>
+                <span className="sm:hidden">{t('headerActions.create', 'Create')}</span>
               </Button>
             )}
 

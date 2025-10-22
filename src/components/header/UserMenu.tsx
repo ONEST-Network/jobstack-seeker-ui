@@ -7,12 +7,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
 import ViewAllProfiles from '@/components/ViewAllProfiles';
 import { apiClient, ProfileResponse, ProfilesResponse } from '@/lib/api';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface UserMenuProps {
   onShowLogin: () => void;
 }
 
 const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
+  const t = useTranslation('header');
   const navigate = useNavigate();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { user, logout, getSelectedCandidate, refreshProfileData, cleanupIncompleteProfiles, hasAdminRole, isLoading } = useAuth();
@@ -72,14 +74,14 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           <User className="h-4 w-4" />
         )}
         <span className="hidden sm:inline">
-          {isLoading ? 'Loading...' : 'Login'}
+          {isLoading ? t('common.loading', 'Loading...') : t('userMenu.login', 'Login')}
         </span>
       </Button>
     );
   }
 
   // Always show user name from session, fallback to email if no name
-  const displayName = user.name || user.email || user.phone || 'User';
+  const displayName = user.name || user.email || user.phone || t('userMenu.user', 'User');
   
   // Debug logging to verify user data
   console.log('UserMenu - User object:', user);
@@ -132,18 +134,18 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
             <>
               <DropdownMenuItem onClick={handleMyApplications}>
                 <FileText className="h-4 w-4 mr-2" />
-                My Applications
+                {t('userMenu.myApplications', 'My Applications')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleViewAllProfiles}>
                 <Eye className="h-4 w-4 mr-2" />
-                View All Profiles
+                {t('userMenu.viewAllProfiles', 'View All Profiles')}
               </DropdownMenuItem>
             </>
           )}
           {user.role === 'organization' && (
             <DropdownMenuItem onClick={handleManageEmployers}>
               <Building2 className="h-4 w-4 mr-2" />
-              Manage Employers
+              {t('userMenu.manageEmployers', 'Manage Employers')}
             </DropdownMenuItem>
           )}
           
@@ -151,7 +153,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           {hasAdminRole() && (
             <DropdownMenuItem onClick={handleAdminDashboard}>
               <Settings className="h-4 w-4 mr-2" />
-              Admin Dashboard
+              {t('userMenu.adminDashboard', 'Admin Dashboard')}
             </DropdownMenuItem>
           )}
           
@@ -160,7 +162,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
           </DropdownMenuItem> */}
           <DropdownMenuItem onClick={logout} disabled={isLoading}>
             <LogOut className="h-4 w-4 mr-2" />
-            {isLoading ? 'Logging out...' : 'Logout'}
+            {isLoading ? t('userMenu.loggingOut', 'Logging out...') : t('userMenu.logout', 'Logout')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

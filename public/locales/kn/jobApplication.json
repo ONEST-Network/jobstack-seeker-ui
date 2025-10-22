@@ -1,0 +1,373 @@
+{
+  "jobApplication": {
+    "title": "ಉದ್ಯೋಗ ಅರ್ಜಿ",
+    "subtitle": "ಈ ಸ್ಥಾನಕ್ಕೆ ಅರ್ಜಿ ಸಲ್ಲಿಸಿ",
+    "steps": {
+      "profileSelection": "ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ",
+      "basicInfo": "ಮೂಲ ಮಾಹಿತಿ",
+      "applicationQuestions": "ಅರ್ಜಿ ಪ್ರಶ್ನೆಗಳು",
+      "consent": "ಸಮ್ಮತಿ ಮತ್ತು ಒಪ್ಪಂದ",
+      "summary": "ಅರ್ಜಿ ಸಾರಾಂಶ"
+    },
+    "stepTitles": {
+      "profileSelection": "ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ",
+      "basicInfo": "ಮೂಲ ಮಾಹಿತಿ",
+      "applicationQuestions": "ಅರ್ಜಿ ಪ್ರಶ್ನೆಗಳು",
+      "consent": "ಸಮ್ಮತಿ ಮತ್ತು ಒಪ್ಪಂದ",
+      "summary": "ಅರ್ಜಿ ಸಾರಾಂಶ"
+    },
+    "stepDescriptions": {
+      "profileSelection": "ಈ ಅರ್ಜಿಗಾಗಿ ಬಳಸಲು ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ",
+      "basicInfo": "ನಿಮ್ಮ ಮೂಲ ಸಂಪರ್ಕ ಮಾಹಿತಿಯನ್ನು ನಮೂದಿಸಿ",
+      "applicationQuestions": "ಉದ್ಯೋಗ-ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ",
+      "consent": "ನಿಯಮಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಸಮ್ಮತಿಸಿ",
+      "summary": "ಸಲ್ಲಿಸುವ ಮೊದಲು ನಿಮ್ಮ ಅರ್ಜಿಯನ್ನು ಪರಿಶೀಲಿಸಿ"
+    },
+    "profileSelection": {
+      "title": "ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ",
+      "subtitle": "ಈ ಅರ್ಜಿಗಾಗಿ ಬಳಸಲು ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ",
+      "existingProfiles": "ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ಪ್ರೊಫೈಲ್‌ಗಳು",
+      "createNewProfile": "ಹೊಸ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ",
+      "selectProfile": "ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ",
+      "profileName": "ಪ್ರೊಫೈಲ್ ಹೆಸರು",
+      "profileRole": "ಪ್ರೊಫೈಲ್ ಪಾತ್ರ",
+      "profileLocation": "ಪ್ರೊಫೈಲ್ ಸ್ಥಳ",
+      "profileExperience": "ಪ್ರೊಫೈಲ್ ಅನುಭವ",
+      "profileSkills": "ಪ್ರೊಫೈಲ್ ಕೌಶಲ್ಯಗಳು",
+      "profileVerification": "ಪ್ರೊಫೈಲ್ ಪರಿಶೀಲನೆ",
+      "profileCompletion": "ಪ್ರೊಫೈಲ್ ಪೂರ್ಣಗೊಳಿಸುವಿಕೆ",
+      "noProfiles": "ಯಾವುದೇ ಪ್ರೊಫೈಲ್‌ಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+      "createProfileFirst": "ದಯವಿಟ್ಟು ಮೊದಲು ಪ್ರೊಫೈಲ್ ರಚಿಸಿ",
+      "profileActions": {
+        "select": "ಆಯ್ಕೆ ಮಾಡಿ",
+        "edit": "ಸಂಪಾದಿಸಿ",
+        "duplicate": "ನಕಲು ಮಾಡಿ",
+        "delete": "ಅಳಿಸಿ",
+        "setDefault": "ಡೀಫಾಲ್ಟ್ ಆಗಿ ಹೊಂದಿಸಿ"
+      },
+      "profileMessages": {
+        "profileSelected": "ಪ್ರೊಫೈಲ್ ಯಶಸ್ವಿಯಾಗಿ ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ",
+        "profileNotFound": "ಪ್ರೊಫೈಲ್ ಕಂಡುಬಂದಿಲ್ಲ",
+        "profileAccessDenied": "ಈ ಪ್ರೊಫೈಲ್‌ಗೆ ಪ್ರವೇಶ ನಿರಾಕರಿಸಲಾಗಿದೆ",
+        "profileIncomplete": "ಪ್ರೊಫೈಲ್ ಅಪೂರ್ಣವಾಗಿದೆ",
+        "verificationRequired": "ಪ್ರೊಫೈಲ್ ಪರಿಶೀಲನೆ ಅಗತ್ಯ"
+      }
+    },
+    "basicInfo": {
+      "title": "ಮೂಲ ಮಾಹಿತಿ",
+      "subtitle": "ನಿಮ್ಮ ಮೂಲ ಸಂಪರ್ಕ ಮಾಹಿತಿಯನ್ನು ನಮೂದಿಸಿ",
+      "name": "ಪೂರ್ಣ ಹೆಸರು",
+      "email": "ಇಮೇಲ್ ವಿಳಾಸ",
+      "phone": "ಫೋನ್ ಸಂಖ್ಯೆ",
+      "location": "ಸ್ಥಳ",
+      "address": "ವಿಳಾಸ",
+      "city": "ನಗರ",
+      "state": "ರಾಜ್ಯ",
+      "country": "ದೇಶ",
+      "pincode": "ಪಿನ್‌ಕೋಡ್",
+      "dateOfBirth": "ಜನ್ಮ ದಿನಾಂಕ",
+      "age": "ವಯಸ್ಸು",
+      "gender": "ಲಿಂಗ",
+      "validation": {
+        "nameRequired": "ಪೂರ್ಣ ಹೆಸರು ಅಗತ್ಯ",
+        "emailRequired": "ಇಮೇಲ್ ವಿಳಾಸ ಅಗತ್ಯ",
+        "phoneRequired": "ಫೋನ್ ಸಂಖ್ಯೆ ಅಗತ್ಯ",
+        "locationRequired": "ಸ್ಥಳ ಅಗತ್ಯ",
+        "invalidEmail": "ದಯವಿಟ್ಟು ಮಾನ್ಯ ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ",
+        "invalidPhone": "ದಯವಿಟ್ಟು ಮಾನ್ಯ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",
+        "invalidDate": "ದಯವಿಟ್ಟು ಮಾನ್ಯ ದಿನಾಂಕವನ್ನು ನಮೂದಿಸಿ",
+        "invalidAge": "ದಯವಿಟ್ಟು ಮಾನ್ಯ ವಯಸ್ಸನ್ನು ನಮೂದಿಸಿ",
+        "nameTooShort": "ಹೆಸರು ಕನಿಷ್ಠ 2 ಅಕ್ಷರಗಳಾಗಿರಬೇಕು",
+        "nameTooLong": "ಹೆಸರು 50 ಅಕ್ಷರಗಳನ್ನು ಮೀರಬಾರದು",
+        "phoneTooShort": "ಫೋನ್ ಸಂಖ್ಯೆ ಕನಿಷ್ಠ 10 ಅಂಕೆಗಳಾಗಿರಬೇಕು",
+        "phoneTooLong": "ಫೋನ್ ಸಂಖ್ಯೆ 15 ಅಂಕೆಗಳನ್ನು ಮೀರಬಾರದು"
+      },
+      "placeholders": {
+        "enterName": "ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+        "enterEmail": "your@email.com",
+        "enterPhone": "+91 9876543210",
+        "enterLocation": "ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ನಮೂದಿಸಿ",
+        "enterAddress": "ನಿಮ್ಮ ಪೂರ್ಣ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ",
+        "enterCity": "ನಗರದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+        "enterState": "ರಾಜ್ಯದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+        "enterPincode": "ಪಿನ್‌ಕೋಡ್ ನಮೂದಿಸಿ",
+        "enterDateOfBirth": "DD/MM/YYYY",
+        "enterAge": "ನಿಮ್ಮ ವಯಸ್ಸನ್ನು ನಮೂದಿಸಿ"
+      },
+      "genderOptions": {
+        "male": "ಪುರುಷ",
+        "female": "ಮಹಿಳೆ",
+        "other": "ಇತರೆ",
+        "preferNotToSay": "ಹೇಳಲು ಇಷ್ಟವಿಲ್ಲ"
+      }
+    },
+    "applicationQuestions": {
+      "title": "ಅರ್ಜಿ ಪ್ರಶ್ನೆಗಳು",
+      "subtitle": "ಉದ್ಯೋಗ-ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ",
+      "experience": "ಕೆಲಸದ ಅನುಭವ",
+      "whyJoin": "ನೀವು ಈ ಕಂಪನಿಯಲ್ಲಿ ಏಕೆ ಸೇರಲು ಬಯಸುತ್ತೀರಿ?",
+      "previousWork": "ನಿಮ್ಮ ಹಿಂದಿನ ಕೆಲಸದ ಅನುಭವವನ್ನು ವಿವರಿಸಿ",
+      "taskVideo": "ಕಾರ್ಯ ವೀಡಿಯೊ",
+      "voiceInput": "ಧ್ವನಿ ಇನ್‌ಪುಟ್",
+      "startRecording": "ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ",
+      "stopRecording": "ರೆಕಾರ್ಡಿಂಗ್ ನಿಲ್ಲಿಸಿ",
+      "recording": "ರೆಕಾರ್ಡಿಂಗ್...",
+      "recorded": "ರೆಕಾರ್ಡ್ ಮಾಡಲಾಗಿದೆ",
+      "playRecording": "ರೆಕಾರ್ಡಿಂಗ್ ಪ್ಲೇ ಮಾಡಿ",
+      "deleteRecording": "ರೆಕಾರ್ಡಿಂಗ್ ಅಳಿಸಿ",
+      "reRecord": "ಮತ್ತೆ ರೆಕಾರ್ಡ್ ಮಾಡಿ",
+      "validation": {
+        "experienceRequired": "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಕೆಲಸದ ಅನುಭವವನ್ನು ವಿವರಿಸಿ",
+        "whyJoinRequired": "ದಯವಿಟ್ಟು ನೀವು ಏಕೆ ಸೇರಲು ಬಯಸುತ್ತೀರಿ ಎಂದು ವಿವರಿಸಿ",
+        "previousWorkRequired": "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹಿಂದಿನ ಕೆಲಸವನ್ನು ವಿವರಿಸಿ",
+        "recordingRequired": "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಉತ್ತರವನ್ನು ರೆಕಾರ್ಡ್ ಮಾಡಿ"
+      },
+      "placeholders": {
+        "enterExperience": "ನಿಮ್ಮ ಕೆಲಸದ ಅನುಭವವನ್ನು ವಿವರಿಸಿ...",
+        "enterWhyJoin": "ನೀವು ಈ ಕಂಪನಿಯಲ್ಲಿ ಏಕೆ ಸೇರಲು ಬಯಸುತ್ತೀರಿ ಎಂದು ವಿವರಿಸಿ...",
+        "enterPreviousWork": "ನಿಮ್ಮ ಹಿಂದಿನ ಕೆಲಸದ ಅನುಭವವನ್ನು ವಿವರಿಸಿ...",
+        "recordingInstructions": "ನಿಮ್ಮ ಉತ್ತರವನ್ನು ರೆಕಾರ್ಡ್ ಮಾಡಲು ಪ್ರಾರಂಭಿಸಿ ಕ್ಲಿಕ್ ಮಾಡಿ"
+      },
+      "voiceInputInstructions": "ನಿಮ್ಮ ಉತ್ತರವನ್ನು ರೆಕಾರ್ಡ್ ಮಾಡಲು ಮೈಕ್ರೋಫೋನ್ ಕ್ಲಿಕ್ ಮಾಡಿ",
+      "voiceInputSuccess": "ಧ್ವನಿ ಇನ್‌ಪುಟ್ ಯಶಸ್ವಿಯಾಗಿ ರೆಕಾರ್ಡ್ ಮಾಡಲಾಗಿದೆ",
+      "voiceInputFailed": "ಧ್ವನಿ ಇನ್‌ಪುಟ್ ರೆಕಾರ್ಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ",
+      "voiceInputProcessing": "ಧ್ವನಿ ಇನ್‌ಪುಟ್ ಪ್ರೊಸೆಸ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+      "voiceInputProcessed": "ಧ್ವನಿ ಇನ್‌ಪುಟ್ ಯಶಸ್ವಿಯಾಗಿ ಪ್ರೊಸೆಸ್ ಮಾಡಲಾಗಿದೆ"
+    },
+    "consent": {
+      "title": "ಸಮ್ಮತಿ ಮತ್ತು ಒಪ್ಪಂದ",
+      "subtitle": "ನಿಯಮಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಸಮ್ಮತಿಸಿ",
+      "termsAndConditions": "ನಾನು ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳಿಗೆ ಸಮ್ಮತಿಸುತ್ತೇನೆ",
+      "privacyPolicy": "ನಾನು ಗೌಪ್ಯತೆ ನೀತಿಗೆ ಸಮ್ಮತಿಸುತ್ತೇನೆ",
+      "dataSharing": "ನಾನು ಸಂಭಾವ್ಯ ನೌಕರಿದಾರರೊಂದಿಗೆ ನನ್ನ ಡೇಟಾವನ್ನು ಹಂಚಿಕೊಳ್ಳಲು ಸಮ್ಮತಿಸುತ್ತೇನೆ",
+      "communication": "ನಾನು ನನ್ನ ಅರ್ಜಿಯ ಬಗ್ಗೆ ಸಂವಹನಗಳನ್ನು ಸ್ವೀಕರಿಸಲು ಸಮ್ಮತಿಸುತ್ತೇನೆ",
+      "backgroundCheck": "ಅಗತ್ಯವಿದ್ದರೆ ನಾನು ಹಿನ್ನೆಲೆ ಪರಿಶೀಲನೆಗೆ ಸಮ್ಮತಿಸುತ್ತೇನೆ",
+      "documentVerification": "ನಾನು ದಾಖಲೆ ಪರಿಶೀಲನೆಗೆ ಸಮ್ಮತಿಸುತ್ತೇನೆ",
+      "skillAssessment": "ನಾನು ಕೌಶಲ್ಯ ಮೌಲ್ಯಮಾಪನದಲ್ಲಿ ಭಾಗವಹಿಸಲು ಸಮ್ಮತಿಸುತ್ತೇನೆ",
+      "interviewConsent": "ನಾನು ಸಂದರ್ಶನಗಳಲ್ಲಿ ಭಾಗವಹಿಸಲು ಸಮ್ಮತಿಸುತ್ತೇನೆ",
+      "validation": {
+        "termsRequired": "ನೀವು ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳಿಗೆ ಸಮ್ಮತಿಸಬೇಕು",
+        "privacyRequired": "ನೀವು ಗೌಪ್ಯತೆ ನೀತಿಗೆ ಸಮ್ಮತಿಸಬೇಕು",
+        "dataSharingRequired": "ನೀವು ಡೇಟಾ ಹಂಚಿಕೆಗೆ ಸಮ್ಮತಿಸಬೇಕು",
+        "communicationRequired": "ನೀವು ಸಂವಹನಗಳಿಗೆ ಸಮ್ಮತಿಸಬೇಕು"
+      },
+      "consentMessages": {
+        "allConsentsGiven": "ಎಲ್ಲಾ ಅಗತ್ಯ ಸಮ್ಮತಿಗಳನ್ನು ನೀಡಲಾಗಿದೆ",
+        "consentsRequired": "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಅಗತ್ಯ ಸಮ್ಮತಿಗಳನ್ನು ನೀಡಿ",
+        "consentUpdated": "ಸಮ್ಮತಿ ಆದ್ಯತೆಗಳನ್ನು ನವೀಕರಿಸಲಾಗಿದೆ"
+      }
+    },
+    "summary": {
+      "title": "ಅರ್ಜಿ ಸಾರಾಂಶ",
+      "subtitle": "ಸಲ್ಲಿಸುವ ಮೊದಲು ನಿಮ್ಮ ಅರ್ಜಿಯನ್ನು ಪರಿಶೀಲಿಸಿ",
+      "personalInfo": "ವೈಯಕ್ತಿಕ ಮಾಹಿತಿ",
+      "profileInfo": "ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿ",
+      "applicationAnswers": "ಅರ್ಜಿ ಉತ್ತರಗಳು",
+      "consents": "ನೀಡಲಾದ ಸಮ್ಮತಿಗಳು",
+      "reviewApplication": "ಅರ್ಜಿಯನ್ನು ಪರಿಶೀಲಿಸಿ",
+      "submitApplication": "ಅರ್ಜಿ ಸಲ್ಲಿಸಿ",
+      "saveDraft": "ಡ್ರಾಫ್ಟ್ ಆಗಿ ಉಳಿಸಿ",
+      "editApplication": "ಅರ್ಜಿ ಸಂಪಾದಿಸಿ",
+      "validation": {
+        "applicationIncomplete": "ಅರ್ಜಿ ಅಪೂರ್ಣವಾಗಿದೆ",
+        "requiredFieldsMissing": "ಅಗತ್ಯ ಕ್ಷೇತ್ರಗಳು ಕಾಣೆಯಾಗಿವೆ",
+        "consentsMissing": "ಅಗತ್ಯ ಸಮ್ಮತಿಗಳು ಕಾಣೆಯಾಗಿವೆ",
+        "profileIncomplete": "ಆಯ್ಕೆ ಮಾಡಿದ ಪ್ರೊಫೈಲ್ ಅಪೂರ್ಣವಾಗಿದೆ"
+      },
+      "summaryMessages": {
+        "applicationReady": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ಸಿದ್ಧವಾಗಿದೆ",
+        "applicationIncomplete": "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಅಗತ್ಯ ಕ್ಷೇತ್ರಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ",
+        "reviewRequired": "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಅರ್ಜಿಯನ್ನು ಪರಿಶೀಲಿಸಿ"
+      }
+    },
+    "actions": {
+      "next": "ಮುಂದೆ",
+      "previous": "ಹಿಂದೆ",
+      "submit": "ಅರ್ಜಿ ಸಲ್ಲಿಸಿ",
+      "submitting": "ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...",
+      "saveDraft": "ಡ್ರಾಫ್ಟ್ ಆಗಿ ಉಳಿಸಿ",
+      "savingDraft": "ಡ್ರಾಫ್ಟ್ ಉಳಿಸಲಾಗುತ್ತಿದೆ...",
+      "cancel": "ರದ್ದು ಮಾಡಿ",
+      "close": "ಮುಚ್ಚಿ",
+      "edit": "ಸಂಪಾದಿಸಿ",
+      "delete": "ಅಳಿಸಿ",
+      "duplicate": "ನಕಲು ಮಾಡಿ",
+      "preview": "ಪೂರ್ವವೀಕ್ಷಣೆ",
+      "backToEdit": "ಸಂಪಾದನೆಗೆ ಹಿಂತಿರುಗಿ"
+    },
+    "messages": {
+      "applicationSubmitted": "ಅರ್ಜಿ ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ",
+      "applicationSubmitFailed": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ವಿಫಲವಾಗಿದೆ",
+      "draftSaved": "ಡ್ರಾಫ್ಟ್ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ",
+      "draftSaveFailed": "ಡ್ರಾಫ್ಟ್ ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ",
+      "applicationUpdated": "ಅರ್ಜಿ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ",
+      "applicationUpdateFailed": "ಅರ್ಜಿ ನವೀಕರಿಸಲು ವಿಫಲವಾಗಿದೆ",
+      "applicationDeleted": "ಅರ್ಜಿ ಯಶಸ್ವಿಯಾಗಿ ಅಳಿಸಲಾಗಿದೆ",
+      "applicationDeleteFailed": "ಅರ್ಜಿ ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ",
+      "applicationDuplicated": "ಅರ್ಜಿ ಯಶಸ್ವಿಯಾಗಿ ನಕಲು ಮಾಡಲಾಗಿದೆ",
+      "applicationDuplicateFailed": "ಅರ್ಜಿ ನಕಲು ಮಾಡಲು ವಿಫಲವಾಗಿದೆ",
+      "validationFailed": "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಅಗತ್ಯ ಕ್ಷೇತ್ರಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ",
+      "stepCompleted": "ಹಂತ ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಂಡಿದೆ",
+      "stepValidationFailed": "ಮುಂದುವರೆಯುವ ಮೊದಲು ದಯವಿಟ್ಟು ಈ ಹಂತವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ",
+      "profileRequired": "ದಯವಿಟ್ಟು ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ",
+      "consentRequired": "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಅಗತ್ಯ ಸಮ್ಮತಿಗಳನ್ನು ನೀಡಿ",
+      "applicationIncomplete": "ಅರ್ಜಿ ಅಪೂರ್ಣವಾಗಿದೆ",
+      "submissionSuccess": "ನಿಮ್ಮ ಅರ್ಜಿ ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ",
+      "submissionFailed": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+      "draftSavedSuccess": "ಡ್ರಾಫ್ಟ್ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ. ನೀವು ನಂತರ ಮುಂದುವರಿಸಬಹುದು.",
+      "draftSaveFailedRetry": "ಡ್ರಾಫ್ಟ್ ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+    },
+    "validation": {
+      "required": "ಈ ಕ್ಷೇತ್ರ ಅಗತ್ಯ",
+      "invalidEmail": "ದಯವಿಟ್ಟು ಮಾನ್ಯ ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ",
+      "invalidPhone": "ದಯವಿಟ್ಟು ಮಾನ್ಯ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",
+      "invalidNumber": "ದಯವಿಟ್ಟು ಮಾನ್ಯ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",
+      "invalidDate": "ದಯವಿಟ್ಟು ಮಾನ್ಯ ದಿನಾಂಕವನ್ನು ನಮೂದಿಸಿ",
+      "fieldRequired": "{{field}} ಅಗತ್ಯ",
+      "fieldInvalid": "{{field}} ಅಮಾನ್ಯ",
+      "minLength": "ಕನಿಷ್ಠ {{min}} ಅಕ್ಷರಗಳು ಅಗತ್ಯ",
+      "maxLength": "ಗರಿಷ್ಠ {{max}} ಅಕ್ಷರಗಳು ಅನುಮತಿಸಲಾಗಿದೆ",
+      "minValue": "ಕನಿಷ್ಠ ಮೌಲ್ಯ {{min}}",
+      "maxValue": "ಗರಿಷ್ಠ ಮೌಲ್ಯ {{max}}"
+    },
+    "status": {
+      "draft": "ಡ್ರಾಫ್ಟ್",
+      "submitted": "ಸಲ್ಲಿಸಲಾಗಿದೆ",
+      "underReview": "ಪರಿಶೀಲನೆಯಲ್ಲಿದೆ",
+      "shortlisted": "ಶಾರ್ಟ್‌ಲಿಸ್ಟ್",
+      "interview": "ಸಂದರ್ಶನ",
+      "hired": "ನೇಮಕ",
+      "rejected": "ತಿರಸ್ಕರಿಸಲಾಗಿದೆ",
+      "withdrawn": "ಹಿಂತೆಗೆದುಕೊಳ್ಳಲಾಗಿದೆ"
+    },
+    "applicationTypes": {
+      "new": "ಹೊಸ ಅರ್ಜಿ",
+      "update": "ಅರ್ಜಿ ನವೀಕರಿಸಿ",
+      "duplicate": "ಅರ್ಜಿ ನಕಲು ಮಾಡಿ",
+      "draft": "ಡ್ರಾಫ್ಟ್ ಅರ್ಜಿ"
+    },
+    "applicationModes": {
+      "profileBased": "ಪ್ರೊಫೈಲ್ ಆಧಾರಿತ",
+      "manualEntry": "ಕೈಯಾರೆ ನಮೂದು",
+      "hybrid": "ಹೈಬ್ರಿಡ್"
+    },
+    "profileMatching": {
+      "exactMatch": "ನಿಖರ ಹೊಂದಾಣಿಕೆ",
+      "goodMatch": "ಉತ್ತಮ ಹೊಂದಾಣಿಕೆ",
+      "partialMatch": "ಆಂಶಿಕ ಹೊಂದಾಣಿಕೆ",
+      "noMatch": "ಹೊಂದಾಣಿಕೆ ಇಲ್ಲ"
+    },
+    "verificationStatus": {
+      "verified": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+      "unverified": "ಪರಿಶೀಲಿಸಲಾಗಿಲ್ಲ",
+      "pending": "ಬಾಕಿ",
+      "failed": "ವಿಫಲವಾಗಿದೆ"
+    },
+    "applicationPriority": {
+      "high": "ಉನ್ನತ",
+      "medium": "ಮಧ್ಯಮ",
+      "low": "ಕಡಿಮೆ"
+    },
+    "applicationSource": {
+      "direct": "ನೇರ ಅರ್ಜಿ",
+      "referral": "ಉಲ್ಲೇಖ",
+      "jobBoard": "ಉದ್ಯೋಗ ಬೋರ್ಡ್",
+      "socialMedia": "ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ",
+      "companyWebsite": "ಕಂಪನಿ ವೆಬ್‌ಸೈಟ್"
+    },
+    "applicationChannels": {
+      "web": "ವೆಬ್",
+      "mobile": "ಮೊಬೈಲ್",
+      "api": "API",
+      "email": "ಇಮೇಲ್",
+      "phone": "ಫೋನ್"
+    },
+    "applicationTiming": {
+      "immediate": "ತಕ್ಷಣ",
+      "scheduled": "ನಿಗದಿಪಡಿಸಲಾಗಿದೆ",
+      "delayed": "ವಿಳಂಬ"
+    },
+    "applicationConfirmation": {
+      "title": "ಅರ್ಜಿ ದೃಢೀಕರಣ",
+      "subtitle": "ನಿಮ್ಮ ಅರ್ಜಿ ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ",
+      "applicationId": "ಅರ್ಜಿ ID",
+      "submissionDate": "ಸಲ್ಲಿಕೆ ದಿನಾಂಕ",
+      "nextSteps": "ಮುಂದಿನ ಹಂತಗಳು",
+      "estimatedResponse": "ಅಂದಾಜು ಪ್ರತಿಕ್ರಿಯೆ ಸಮಯ",
+      "contactInfo": "ಸಂಪರ್ಕ ಮಾಹಿತಿ",
+      "applicationStatus": "ಅರ್ಜಿ ಸ್ಥಿತಿ",
+      "trackingUrl": "ಟ್ರ್ಯಾಕಿಂಗ್ URL",
+      "confirmationMessage": "ನಿಮ್ಮ ಅರ್ಜಿಗಾಗಿ ಧನ್ಯವಾದಗಳು. ನಾವು ಅದನ್ನು ಪರಿಶೀಲಿಸುತ್ತೇವೆ ಮತ್ತು ಶೀಘ್ರದಲ್ಲೇ ನಿಮ್ಮೊಂದಿಗೆ ಸಂಪರ್ಕ ಕಲ್ಪಿಸುತ್ತೇವೆ.",
+      "confirmationActions": {
+        "viewApplication": "ಅರ್ಜಿ ವೀಕ್ಷಿಸಿ",
+        "trackApplication": "ಅರ್ಜಿ ಟ್ರ್ಯಾಕ್ ಮಾಡಿ",
+        "applyToMoreJobs": "ಹೆಚ್ಚು ಉದ್ಯೋಗಗಳಿಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸಿ",
+        "updateProfile": "ಪ್ರೊಫೈಲ್ ನವೀಕರಿಸಿ",
+        "downloadReceipt": "ರಶೀದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ"
+      }
+    },
+    "applicationTracking": {
+      "title": "ಅರ್ಜಿ ಟ್ರ್ಯಾಕಿಂಗ್",
+      "subtitle": "ನಿಮ್ಮ ಅರ್ಜಿಯ ಸ್ಥಿತಿಯನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ",
+      "applicationId": "ಅರ್ಜಿ ID",
+      "jobTitle": "ಉದ್ಯೋಗ ಶೀರ್ಷಿಕೆ",
+      "companyName": "ಕಂಪನಿ ಹೆಸರು",
+      "applicationDate": "ಅರ್ಜಿ ದಿನಾಂಕ",
+      "lastUpdated": "ಕೊನೆಯ ನವೀಕರಣ",
+      "currentStatus": "ಪ್ರಸ್ತುತ ಸ್ಥಿತಿ",
+      "statusHistory": "ಸ್ಥಿತಿ ಇತಿಹಾಸ",
+      "timeline": "ಸಮಯರೇಖೆ",
+      "nextMilestone": "ಮುಂದಿನ ಮೈಲುಗಲ್ಲು",
+      "estimatedCompletion": "ಅಂದಾಜು ಪೂರ್ಣಗೊಳಿಸುವಿಕೆ",
+      "trackingActions": {
+        "refreshStatus": "ಸ್ಥಿತಿ ರಿಫ್ರೆಶ್ ಮಾಡಿ",
+        "viewDetails": "ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+        "contactRecruiter": "ನೇಮಕಾತಿ ಮಾಡುವವರನ್ನು ಸಂಪರ್ಕಿಸಿ",
+        "withdrawApplication": "ಅರ್ಜಿ ಹಿಂತೆಗೆದುಕೊಳ್ಳಿ",
+        "updateApplication": "ಅರ್ಜಿ ನವೀಕರಿಸಿ"
+      }
+    },
+    "profileSelectionModal": {
+      "title": "ಗಾಗಿ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ",
+      "chooseProfile": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ:",
+      "chooseProfileToApply": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ:",
+      "switchProfile": "ಪ್ರೊಫೈಲ್ ಬದಲಾಯಿಸಿ",
+      "selected": "ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ",
+      "selectProfile": "ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ",
+      "noRoleSpecified": "ಯಾವುದೇ ಪಾತ್ರ ನಿರ್ದಿಷ್ಟಪಡಿಸಲಾಗಿಲ್ಲ",
+      "noProfilesFound": "ಯಾವುದೇ ಪ್ರೊಫೈಲ್‌ಗಳು ಕಂಡುಬಂದಿಲ್ಲ. ನಿಮ್ಮ ಮೊದಲ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ:",
+      "noProfilesAvailable": "ಯಾವುದೇ ಪ್ರೊಫೈಲ್‌ಗಳು ಲಭ್ಯವಿಲ್ಲ",
+      "createProfile": "ಪ್ರೊಫೈಲ್ ರಚಿಸಿ",
+      "addNewProfile": "ಹೊಸ ಪ್ರೊಫೈಲ್ ಸೇರಿಸಿ",
+      "continueWithSelectedProfile": "ಆಯ್ಕೆ ಮಾಡಿದ ಪ್ರೊಫೈಲ್‌ನೊಂದಿಗೆ ಮುಂದುವರಿಸಿ",
+      "selectProfileFor": "{{jobTitle}} ಗಾಗಿ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ"
+    },
+    "otpVerification": {
+      "title": "ನಿಮ್ಮನ್ನು ಪರಿಶೀಲಿಸಿ",
+      "email": "ಇಮೇಲ್",
+      "phone": "ಫೋನ್",
+      "organization": "ಸಂಸ್ಥೆ:"
+    },
+    "toastMessages": {
+      "profileCreatedSuccessfully": "ಪ್ರೊಫೈಲ್ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ!",
+      "profileCreatedDesc": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ.",
+      "applicationSubmitted": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!",
+      "applicationSubmittedDesc": "ನಿಮ್ಮ ಡ್ರಾಫ್ಟ್ ಯಶಸ್ವಿಯಾಗಿ ಸಕ್ರಿಯ ಅರ್ಜಿಯಾಗಿ ಪರಿವರ್ತನೆಗೊಂಡಿದೆ.",
+      "submissionFailed": "ಸಲ್ಲಿಕೆ ವಿಫಲವಾಗಿದೆ",
+      "submissionFailedDesc": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+      "profileUpdated": "ಪ್ರೊಫೈಲ್ ನವೀಕರಿಸಲಾಗಿದೆ!",
+      "profileUpdatedDesc": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ. ನಿಮ್ಮ ಡ್ರಾಫ್ಟ್ ಅರ್ಜಿಗಳನ್ನು ನವೀಕರಿಸಲು 'ಡ್ರಾಫ್ಟ್ ಸಿಂಕ್' ಬಟನ್ ಬಳಸಿ.",
+      "updateFailed": "ನವೀಕರಣ ವಿಫಲವಾಗಿದೆ",
+      "updateFailedDesc": "ಪ್ರೊಫೈಲ್ ನವೀಕರಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+      "missingRequiredFields": "ಅಗತ್ಯ ಕ್ಷೇತ್ರಗಳು ಕಾಣೆಯಾಗಿವೆ",
+      "completeFields": "ದಯವಿಟ್ಟು ಈ ಕೆಳಗಿನ ಕ್ಷೇತ್ರಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ:",
+      "error": "ದೋಷ",
+      "unableToSubmitDraft": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ. ಡ್ರಾಫ್ಟ್ ಡೇಟಾ ಕಂಡುಬಂದಿಲ್ಲ.",
+      "unableToSubmitData": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ. ಅರ್ಜಿ ಡೇಟಾ ಕಂಡುಬಂದಿಲ್ಲ.",
+      "unableToSubmitMissing": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ. ಕಾಣೆಯಾಗಿದೆ:",
+      "providerId": "ಪ್ರದಾತ ID",
+      "jobId": "ಉದ್ಯೋಗ ID",
+      "checkConsole": "ಡೇಟಾ ರಚನೆಗಾಗಿ ಕನ್‌ಸೋಲ್ ಪರಿಶೀಲಿಸಿ."
+    }
+  }
+}

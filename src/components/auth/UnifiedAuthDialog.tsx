@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiClient, RequestOTPResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from '@/hooks/useI18n';
 import OTPVerificationDialog from './OTPVerificationDialog';
 import RegistrationDialog from './RegistrationDialog';
 
@@ -37,6 +38,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   const { verifyOTP } = useAuth();
   const { toast } = useToast();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
+  const t = useTranslation('auth');
 
   // Debounced contact type detection
   useEffect(() => {
@@ -138,10 +140,10 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   const handleContinue = async () => {
     if (!validateInput()) {
       toast({
-        title: "Invalid Input",
+        title: t('toastMessages.error', 'Error'),
         description: contactType === 'email' 
-          ? "Please enter a valid email address" 
-          : "Please enter a valid phone number",
+          ? t('toastMessages.invalidEmail', 'Please enter a valid email address')
+          : t('toastMessages.invalidPhone', 'Please enter a valid phone number'),
         variant: "destructive"
       });
       return;
@@ -171,8 +173,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           setShowOTPDialog(true);
         } else {
           toast({
-            title: "Error",
-            description: "Failed to send OTP. Please try again.",
+            title: t('toastMessages.error', 'Error'),
+            description: t('toastMessages.otpSendFailed', 'Failed to send OTP. Please try again.'),
             variant: "destructive"
           });
           setStep('initial');
@@ -184,8 +186,10 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
         
         // Show toast first
         toast({
-          title: "Account Not Found",
-          description: `No account found with ${contactType === 'email' ? 'email' : 'phone number'} ${contactInput}. Please create a new account.`,
+          title: t('toastMessages.accountNotFound', 'Account Not Found'),
+          description: contactType === 'email' 
+            ? t('toastMessages.accountNotFoundEmail', `No account found with email ${contactInput}. Please create a new account.`)
+            : t('toastMessages.accountNotFoundPhone', `No account found with phone number ${contactInput}. Please create a new account.`),
         });
         
         // Small delay before showing registration dialog to ensure toast is properly established
@@ -196,8 +200,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     } catch (error) {
       console.error('Error checking user:', error);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: t('toastMessages.error', 'Error'),
+        description: t('toastMessages.genericError', 'Something went wrong. Please try again.'),
         variant: "destructive"
       });
       setStep('initial');
@@ -210,8 +214,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     setShowOTPDialog(false);
     onClose();
     toast({
-      title: "Success",
-      description: "Successfully signed in!",
+      title: t('toastMessages.success', 'Success'),
+      description: t('toastMessages.signInSuccess', 'Successfully signed in!'),
     });
   };
 
@@ -219,8 +223,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     setShowRegisterDialog(false);
     onClose();
     toast({
-      title: "Success",
-      description: "Account created successfully!",
+      title: t('toastMessages.success', 'Success'),
+      description: t('toastMessages.accountCreatedSuccess', 'Account created successfully!'),
     });
   };
 
@@ -270,9 +274,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
 
   const getPlaceholder = () => {
     if (contactType === 'phone') {
-      return "Enter your phone number";
+      return t('unifiedAuth.placeholders.phone', 'Enter your phone number');
     }
-    return "Enter your phone number or email";
+    return t('unifiedAuth.placeholders.emailOrPhone', 'Enter your phone number or email');
   };
 
   const getDisplayValue = () => {
@@ -288,7 +292,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-semibold">
-              Sign in or create account
+              {t('unifiedAuth.title', 'Sign in or create account')}
             </DialogTitle>
           </DialogHeader>
           
@@ -296,7 +300,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
             {/* Contact Input */}
             <div className="space-y-2">
               <Label htmlFor="contact" className="text-sm font-medium">
-                Enter mobile number or email
+                {t('unifiedAuth.labels.contact', 'Enter mobile number or email')}
               </Label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
@@ -316,12 +320,15 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
               {contactInput && (
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
-                    {contactType === 'phone' ? 'Phone Number' : 'Email Address'}
+                    {contactType === 'phone' 
+                      ? t('unifiedAuth.badges.phoneNumber', 'Phone Number') 
+                      : t('unifiedAuth.badges.emailAddress', 'Email Address')
+                    }
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     {contactType === 'phone' 
-                      ? 'We\'ll send you an SMS with a verification code' 
-                      : 'We\'ll send you a verification code via email'
+                      ? t('unifiedAuth.descriptions.smsCode', 'We\'ll send you an SMS with a verification code')
+                      : t('unifiedAuth.descriptions.emailCode', 'We\'ll send you a verification code via email')
                     }
                   </span>
                 </div>
@@ -337,11 +344,11 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Checking...
+                  {t('unifiedAuth.buttons.checking', 'Checking...')}
                 </>
               ) : (
                 <>
-                  Continue
+                  {t('unifiedAuth.buttons.continue', 'Continue')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -353,10 +360,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
                 <div className="flex items-start gap-3">
                   <User className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div className="space-y-1">
-                    <p className="text-sm font-medium">How it works</p>
+                    <p className="text-sm font-medium">{t('unifiedAuth.infoCard.title', 'How it works')}</p>
                     <p className="text-xs text-muted-foreground">
-                      Enter your email or phone number. If you have an account, we'll send you a verification code. 
-                      If not, we'll help you create a new account.
+                      {t('unifiedAuth.infoCard.description', 'Enter your email or phone number. If you have an account, we\'ll send you a verification code. If not, we\'ll help you create a new account.')}
                     </p>
                   </div>
                 </div>

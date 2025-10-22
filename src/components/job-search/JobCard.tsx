@@ -8,6 +8,7 @@ import JobMediaCarousel from '../JobMediaCarousel';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface JobCardProps {
   job: JobItem;
@@ -20,6 +21,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
   const { toast } = useToast();
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   const [showAllDetails, setShowAllDetails] = useState(false);
+  const t = useTranslation('jobs');
 
   // Helper function to get provider and job IDs for sharing
   const getShareableLink = () => {
@@ -84,7 +86,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
   // Helper function to format location display from BAP API response
   const formatLocation = (location: string | { city?: string; state?: string } | null | undefined): string => {
     if (!location) {
-      return 'Location not specified';
+      return t('card.locationNotSpecified', 'Location not specified');
     }
 
     // Handle the new BAP API location format
@@ -95,7 +97,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
     // Handle string location (fallback)
     if (typeof location === 'string') {
       if (location === 'Location not specified') {
-        return 'Location not specified';
+        return t('card.locationNotSpecified', 'Location not specified');
       }
       
       // If it's a full address with commas, extract city and state
@@ -110,17 +112,17 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
       return location;
     }
 
-    return 'Location not specified';
+    return t('card.locationNotSpecified', 'Location not specified');
   };
 
   // Helper function to format field values for better display
   const formatFieldValue = (value: string | number | boolean | null | undefined): string => {
     if (value === null || value === undefined || value === '') {
-      return 'Not specified';
+      return t('card.notSpecified', 'Not specified');
     }
     
     if (typeof value === 'boolean') {
-      return value ? 'Yes' : 'No';
+      return value ? t('card.yes', 'Yes') : t('card.no', 'No');
     }
     
     if (typeof value === 'number') {
@@ -172,38 +174,38 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
     // Define structured job details in the required order
     const structuredDetails = [
       {
-        label: 'Role Name',
+        label: t('card.roleName', 'Role Name'),
         value: job.title, // Using title as role name
         key: 'roleName'
       },
       {
-        label: 'Openings',
+        label: t('card.openings', 'Openings'),
         value: job.tags?.jobDetails?.positions || job.positions || job.openings || 1,
         key: 'openings'
       },
       {
-        label: 'Role Details',
+        label: t('card.roleDetails', 'Role Details'),
         value: '', // Empty for now as requested
         key: 'roleDetails'
       },
       {
-        label: 'Location',
+        label: t('card.location', 'Location'),
         value: getJobLocation(),
         key: 'location'
       },
       {
-        label: 'Work Timings',
-        value: job.tags?.jobDetails?.workingHoursPerDay || job.jobDetails?.workingHoursPerDay || 'Not specified',
+        label: t('card.workTimings', 'Work Timings'),
+        value: job.tags?.jobDetails?.workingHoursPerDay || job.jobDetails?.workingHoursPerDay || t('card.notSpecified', 'Not specified'),
         key: 'workTimings'
       },
       {
-        label: 'Monthly Salary Range',
+        label: t('card.salaryRange', 'Monthly Salary Range'),
         value: getSalaryRange(),
         key: 'salaryRange'
       },
       {
-        label: 'Monthly Avg. Overtime (OT)',
-        value: job.tags?.jobDetails?.monthlyAverageOT || job.jobDetails?.monthlyAverageOT || 'Not specified',
+        label: t('card.overtime', 'Monthly Avg. Overtime (OT)'),
+        value: job.tags?.jobDetails?.monthlyAverageOT || job.jobDetails?.monthlyAverageOT || t('card.notSpecified', 'Not specified'),
         key: 'overtime'
       },
       {
@@ -212,8 +214,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
         key: 'travelProvided'
       },
       {
-        label: 'Minimum Age',
-        value: job.tags?.jobNeeds?.ageAllowedLowerLimit || job.jobDetails?.ageAllowedLowerLimit || 'Not specified',
+        label: t('card.minimumAge', 'Minimum Age'),
+        value: job.tags?.jobNeeds?.ageAllowedLowerLimit || job.jobDetails?.ageAllowedLowerLimit || t('card.notSpecified', 'Not specified'),
         key: 'minimumAge'
       }
     ];
@@ -244,7 +246,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
 
     return (
       <div className="space-y-3">
-        <h4 className="text-sm font-semibold text-foreground">Job Details</h4>
+        <h4 className="text-sm font-semibold text-foreground">{t('card.jobDetails', 'Job Details')}</h4>
         <div className="border rounded-lg overflow-hidden">
           <table className="w-full">
             <tbody>
@@ -284,12 +286,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
             {showAllDetails ? (
               <>
                 <ChevronUp className="h-3 w-3 mr-1" />
-                Show Less
+                {t('card.showLess', 'Show Less')}
               </>
             ) : (
               <>
                 <ChevronDown className="h-3 w-3 mr-1" />
-                View More ({displayDetails.length - maxItems} more)
+                {t('card.viewMore', 'View More ({{count}} more)', { count: displayDetails.length - maxItems })}
               </>
             )}
           </Button>
@@ -361,19 +363,19 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
         {/* Trust Score & Match Score */}
         <div className="flex gap-2 sm:gap-4">
           <div className="bg-blue-50 rounded-lg p-2 sm:p-3 flex-1 text-center">
-            <div className="text-xs text-blue-600">Trust Score</div>
+            <div className="text-xs text-blue-600">{t('card.trustScore', 'Trust Score')}</div>
             <div className="text-sm sm:text-base font-bold text-blue-700">
               {shouldShowRealScores ? `${displayTrustScore}/10` : '0/10'}
             </div>
             {!shouldShowRealScores && (
-              <div className="text-xs text-blue-500 mt-1">Login to see</div>
+              <div className="text-xs text-blue-500 mt-1">{t('card.loginToSee', 'Login to see')}</div>
             )}
           </div>
           <div className="bg-green-50 rounded-lg p-2 sm:p-3 flex-1 text-center">
-            <div className="text-xs text-green-600">Match Score</div>
+            <div className="text-xs text-green-600">{t('card.matchScore', 'Match Score')}</div>
             <div className="text-sm sm:text-base font-bold text-green-700">{displayMatchScore}/10</div>
             {!shouldShowRealScores && (
-              <div className="text-xs text-green-500 mt-1">Login to see</div>
+              <div className="text-xs text-green-500 mt-1">{t('card.loginToSee', 'Login to see')}</div>
             )}
           </div>
         </div>
@@ -386,7 +388,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
             onApply(job);
           }}
         >
-          Apply Now
+          {t('card.applyNow', 'Apply Now')}
         </Button>
 
         {/* Share Button */}
@@ -397,7 +399,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
           className="w-full text-xs text-muted-foreground hover:text-foreground"
         >
           <Copy className="h-3 w-3 mr-1" />
-          Share Job
+          {t('card.shareJob', 'Share Job')}
         </Button>
       </CardContent>
     </Card>

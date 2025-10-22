@@ -54,6 +54,14 @@
       "instagram": "Instagram",
       "youtube": "YouTube"
     },
-    "copyright": "© 2024 JobBridge. All rights reserved."
+    "copyright": "© 2024 JobBridge. All rights reserved.",
+    "bottomFooter": {
+      "madeInIndia": "🇮🇳 Made in India",
+      "securePlatform": "🔒 Secure Platform",
+      "mobileFirst": "📱 Mobile First",
+      "languages": "🌐 15+ Languages",
+      "contact": "Contact:",
+      "supportEmail": "support@jobbridge.in"
+    }
   }
 }

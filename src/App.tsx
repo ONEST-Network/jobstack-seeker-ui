@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { I18nProvider } from "@/hooks/useI18n";
 import Jobs from "./pages/Jobs";
 import Provider from "./pages/Provider";
 import NotFound from "./pages/NotFound";
@@ -128,9 +129,11 @@ const AppContent = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </I18nProvider>
   </QueryClientProvider>
 );
 

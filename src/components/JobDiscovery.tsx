@@ -13,6 +13,7 @@ import ViewPreferenceDialog from './ViewPreferenceDialog';
 import { useJobSearch } from '@/hooks/useJobSearch';
 import { useJobSearchForMap } from '@/hooks/useJobSearchForMap';
 import { useViewPreference } from '@/hooks/useViewPreference';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface JobDiscoveryProps {
   onPromptLogin?: () => void;
@@ -20,6 +21,7 @@ interface JobDiscoveryProps {
 
 const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   const [activeView, setActiveView] = useState('list');
+  const t = useTranslation('jobs');
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
@@ -274,7 +276,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
             <div className="relative flex-1 max-w-sm">
               <Input
                 ref={inputRef}
-                placeholder={loading ? "Loading jobs..." : "Search jobs by role..."}
+                placeholder={loading ? t('jobListView.pleaseWait', 'Loading jobs...') : t('search.searchJobsByRole', 'Search jobs by role...')}
                 value={searchQuery}
                 onChange={handleInputChange}
                 onKeyDown={handleInputKeyDown}
@@ -322,14 +324,14 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
               <TabsList className="grid grid-cols-2 h-touch">
                 <TabsTrigger value="list" className="flex items-center gap-1 px-2 text-sm">
                   <List className="h-4 w-4" />
-                  <span className="hidden sm:inline">List</span>
+                  <span className="hidden sm:inline">{t('jobDiscovery.listView', 'List')}</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="map" 
                   className="flex items-center gap-1 px-2 text-sm"
                 >
                   <Map className="h-4 w-4" />
-                  <span className="hidden sm:inline">Map</span>
+                  <span className="hidden sm:inline">{t('jobDiscovery.mapView', 'Map')}</span>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -342,7 +344,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
                 className="h-touch flex items-center gap-2"
               >
                 <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Settings</span>
+                <span className="hidden sm:inline">{t('jobDiscovery.settings', 'Settings')}</span>
               </Button>
             </ViewPreferenceDialog>
           </div>
@@ -354,21 +356,21 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
                 <Loader2 className="h-3 w-3 animate-spin" />
                 <span>
                   {/* List view loading states */}
-                  {activeView === 'list' && loadingState === 'initial' && 'Loading jobs...'}
-                  {activeView === 'list' && loadingState === 'loading' && 'Refreshing jobs...'}
-                  {activeView === 'list' && loadingState === 'partial' && 'Taking longer than expected...'}
+                  {activeView === 'list' && loadingState === 'initial' && t('jobMapView.initializingSearch', 'Loading jobs...')}
+                  {activeView === 'list' && loadingState === 'loading' && t('jobMapView.loadingJobs', 'Refreshing jobs...')}
+                  {activeView === 'list' && loadingState === 'partial' && t('jobMapView.pleaseWait', 'Taking longer than expected...')}
                   
                   {/* Map view loading states */}
-                  {activeView === 'map' && loadingState === 'initial' && 'Initializing map view...'}
+                  {activeView === 'map' && loadingState === 'initial' && t('jobMapView.initializingSearch', 'Initializing map view...')}
                   {activeView === 'map' && loadingState === 'loading' && (
                     totalPages > 0 
-                      ? `Loading all jobs for map: ${currentPagesFetched}/${totalPages} pages`
-                      : 'Fetching job data for map...'
+                      ? t('jobMapView.loadingAllJobs', 'Loading all jobs for map: {{currentPages}}/{{totalPages}} pages', { currentPages: currentPagesFetched, totalPages })
+                      : t('jobMapView.preparingData', 'Fetching job data for map...')
                   )}
-                  {activeView === 'map' && loadingState === 'partial' && 'Processing job locations...'}
+                  {activeView === 'map' && loadingState === 'partial' && t('jobMapView.processingLocations', 'Processing job locations...')}
                   
                   {/* Fallback */}
-                  {!loadingState && (activeView === 'list' ? 'Loading jobs...' : 'Loading map data...')}
+                  {!loadingState && (activeView === 'list' ? t('jobMapView.loadingJobs', 'Loading jobs...') : t('jobMapView.preparingData', 'Loading map data...'))}
                 </span>
               </div>
               
@@ -382,7 +384,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
                     ></div>
                   </div>
                   <div className="flex justify-center mt-1 text-xs text-muted-foreground">
-                    {Math.round(mapHookData.fetchProgress * 100)}% complete
+                    {Math.round(mapHookData.fetchProgress * 100)}% {t('jobMapView.complete', 'complete')}
                   </div>
                 </div>
               )}

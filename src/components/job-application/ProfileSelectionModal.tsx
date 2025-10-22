@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import CandidateProfileDialog from '@/components/candidates/CandidateProfileDialog';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface ProfileSelectionModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   const [preSelectedRole, setPreSelectedRole] = useState<string>('');
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const t = useTranslation('jobApplication');
 
   // Pre-select the currently active candidate when modal opens (only once when opening)
   useEffect(() => {
@@ -236,7 +238,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
     <div className="space-y-4">
       {user?.role === 'individual' && user.managedCandidates.length > 0 ? (
         <div className="space-y-3">
-          <div className="text-sm font-medium text-muted-foreground">Choose a profile to apply with:</div>
+          <div className="text-sm font-medium text-muted-foreground">{t('profileSelectionModal.chooseProfileToApply', 'Choose a profile to apply with:')}</div>
           
           {/* Mobile-friendly profile list */}
           {isMobile ? (
@@ -274,13 +276,13 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
                             {candidate.nickname || candidate.name}
                           </div>
                           <div className="text-sm text-muted-foreground truncate">
-                            {candidate.interestedRole || 'No role specified'}
+                            {candidate.interestedRole || t('profileSelectionModal.noRoleSpecified', 'No role specified')}
                           </div>
                         </div>
                       </div>
                       {tempSelectedCandidate?.id === candidate.id && (
                         <Badge variant="secondary" className="text-xs flex-shrink-0">
-                          Selected
+                          {t('profileSelectionModal.selected', 'Selected')}
                         </Badge>
                       )}
                     </div>
@@ -295,7 +297,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <User className="h-4 w-4 flex-shrink-0" />
                     <span className="font-medium truncate">
-                      {tempSelectedCandidate?.nickname || tempSelectedCandidate?.name || 'Select Profile'}
+                      {tempSelectedCandidate?.nickname || tempSelectedCandidate?.name || t('profileSelectionModal.selectProfile', 'Select Profile')}
                     </span>
                   </div>
                   <ChevronDown className="h-4 w-4 flex-shrink-0" />
@@ -310,7 +312,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
                 <div className="flex flex-col max-h-[40vh]">
                   {/* Header */}
                   <div className="p-2 border-b">
-                    <div className="text-sm font-medium text-muted-foreground">Switch Profile</div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('profileSelectionModal.switchProfile', 'Switch Profile')}</div>
                   </div>
                   
                   {/* Scrollable Profile List */}
@@ -330,12 +332,12 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
                             <div className="flex flex-col min-w-0 flex-1">
                               <span className="font-medium truncate">{candidate.nickname || candidate.name}</span>
                               <span className="text-xs text-muted-foreground truncate">
-                                {candidate.interestedRole || 'No role specified'}
+                                {candidate.interestedRole || t('profileSelectionModal.noRoleSpecified', 'No role specified')}
                               </span>
                             </div>
                           </div>
                           {tempSelectedCandidate?.id === candidate.id && (
-                            <Badge variant="secondary" className="text-xs ml-2 flex-shrink-0">Selected</Badge>
+                            <Badge variant="secondary" className="text-xs ml-2 flex-shrink-0">{t('profileSelectionModal.selected', 'Selected')}</Badge>
                           )}
                         </DropdownMenuItem>
                       ))}
@@ -349,7 +351,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
                       className="gap-2 p-2 cursor-pointer hover:bg-muted rounded-none"
                     >
                       <Plus className="h-4 w-4" />
-                      Add New Profile
+                      {t('profileSelectionModal.addNewProfile', 'Add New Profile')}
                     </DropdownMenuItem>
                   </div>
                 </div>
@@ -380,13 +382,13 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="text-sm font-medium text-muted-foreground">No profiles found. Create your first profile:</div>
+          <div className="text-sm font-medium text-muted-foreground">{t('profileSelectionModal.noProfilesFound', 'No profiles found. Create your first profile:')}</div>
           <Card className="border-dashed border-2 border-muted-foreground/25">
             <CardContent className="p-4 text-center">
               <div className="flex flex-col items-center gap-2">
                 <User className="h-8 w-8 text-muted-foreground" />
                 <div className="text-sm text-muted-foreground">
-                  No profiles available
+                  {t('profileSelectionModal.noProfilesAvailable', 'No profiles available')}
                 </div>
               </div>
             </CardContent>
@@ -402,14 +404,14 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
           variant="outline"
         >
           <Plus className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'} mr-2`} />
-          Add New Profile
+          {t('profileSelectionModal.addNewProfile', 'Add New Profile')}
         </Button>
         {tempSelectedCandidate && (
           <Button 
             onClick={handleContinueWithSelectedProfile}
             className={`${isMobile ? 'w-full h-12 text-base' : 'flex-1'}`}
           >
-            Continue with Selected Profile
+            {t('profileSelectionModal.continueWithSelectedProfile', 'Continue with Selected Profile')}
           </Button>
         )}
       </div>
@@ -424,7 +426,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
           <DrawerContent className="h-[95vh]">
             <DrawerHeader className="text-left border-b pb-3">
               <div className="flex items-center justify-between">
-                <DrawerTitle className="text-lg">Select Profile for {jobTitle}</DrawerTitle>
+                <DrawerTitle className="text-lg">{t('profileSelectionModal.selectProfileFor', 'Select Profile for {{jobTitle}}', { jobTitle })}</DrawerTitle>
                 <Button variant="ghost" size="sm" onClick={handleMainClose} className="h-8 w-8 p-0">
                   <X className="h-4 w-4" />
                 </Button>
@@ -462,7 +464,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
       <Dialog open={isOpen} onOpenChange={handleMainClose}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl">Select Profile for {jobTitle}</DialogTitle>
+            <DialogTitle className="text-xl">{t('profileSelectionModal.selectProfileFor', 'Select Profile for {{jobTitle}}', { jobTitle })}</DialogTitle>
           </DialogHeader>
           {renderContent()}
         </DialogContent>

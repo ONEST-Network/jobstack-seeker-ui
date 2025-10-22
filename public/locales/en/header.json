@@ -16,11 +16,13 @@
     "userMenu": {
       "login": "Login",
       "logout": "Logout",
+      "loggingOut": "Logging out...",
       "completeProfile": "Complete Profile",
       "myApplications": "My Applications",
       "viewAllProfiles": "View All Profiles",
       "manageEmployers": "Manage Employers",
       "manageCandidates": "Manage Candidates",
+      "adminDashboard": "Admin Dashboard",
       "accountSettings": "Account Settings",
       "user": "User",
       "contactInfo": "Contact Information",
@@ -50,6 +52,11 @@
       "selectCandidate": "Select Candidate",
       "noCandidates": "No candidates available",
       "manageCandidates": "Manage Candidates"
+    },
+    "headerActions": {
+      "createProfile": "Create Profile",
+      "create": "Create",
+      "mumbai": "Mumbai"
     }
   }
 }

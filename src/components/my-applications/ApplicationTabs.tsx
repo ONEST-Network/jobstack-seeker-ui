@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ApplicationCard from './ApplicationCard';
 // import DraftSyncButton from './DraftSyncButton';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from '@/hooks/useI18n';
 
 interface JobApplication {
   id: string;
@@ -40,6 +41,7 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
   onApplicationSubmitted
 }) => {
   const isMobile = useIsMobile();
+  const t = useTranslation('applications');
 
   return (
     <Tabs defaultValue="active" className="w-full">
@@ -70,7 +72,7 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
         {activeApplications.length === 0 ? (
           <Card>
             <CardContent className={`${isMobile ? 'p-6' : 'p-8'} text-center`}>
-              <p className="text-muted-foreground">No active applications found</p>
+              <p className="text-muted-foreground">{t('applicationTabs.noActiveApplications', 'No active applications found')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -88,7 +90,7 @@ const ApplicationTabs: React.FC<ApplicationTabsProps> = ({
         {completedApplications.length === 0 ? (
           <Card>
             <CardContent className={`${isMobile ? 'p-6' : 'p-8'} text-center`}>
-              <p className="text-muted-foreground">No completed applications found</p>
+              <p className="text-muted-foreground">{t('applicationTabs.noCompletedApplications', 'No completed applications found')}</p>
             </CardContent>
           </Card>
         ) : (
