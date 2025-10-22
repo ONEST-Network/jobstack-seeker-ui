@@ -305,9 +305,9 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
       });
     }
 
-    if (job.stayProvided) {
+    if (job.travelProvided) {
       details.push({
-        label: 'Stay Provided',
+        label: 'Travel Provided',
         value: 'Yes',
         icon: <Building className="h-4 w-4" />
       });

@@ -207,9 +207,9 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
         key: 'overtime'
       },
       {
-        label: 'Stay Provided',
-        value: job.tags?.jobDetails?.stayProvided || job.jobDetails?.stayProvided || 'Not specified',
-        key: 'stayProvided'
+        label: 'Travel Provided',
+        value: job.tags?.jobDetails?.travelProvided || job.jobDetails?.travelProvided || 'Not specified',
+        key: 'travelProvided'
       },
       {
         label: 'Minimum Age',

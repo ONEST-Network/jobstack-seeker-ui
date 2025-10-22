@@ -140,6 +140,14 @@
             "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
             "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"]
           },
+          "collegeName": {
+            "type": "string",
+            "title": "College Name",
+            "description": "Enter your college or institution name",
+            "ui:widget": "text",
+            "ui:placeholder": "Enter college name",
+            "ui:disabled": false
+          },
           "workExperience": {
             "type": "string",
             "title": "Work Experience",
@@ -199,7 +207,7 @@
         },
         "required": ["highestEducation"],
         "ui": {
-          "order": ["languagesKnown", "highestEducation", "workExperience", "communicationSkillsScore", "vehicleOwnership", "domainKnowledge", "taskVideo", "scanQRCode"],
+          "order": ["languagesKnown", "highestEducation", "collegeName", "workExperience", "communicationSkillsScore", "vehicleOwnership", "domainKnowledge", "taskVideo", "scanQRCode"],
           "description": "Tell us about your qualifications, skills, and experience"
         }
       },
@@ -225,8 +233,8 @@
             "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select work modes",
             "ui:hasOther": true,
-            "enum": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling"],
-            "enumNames": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling"]
+            "enum": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling", "Apprenticeship"],
+            "enumNames": ["On-site-no shift", "On-site-shift", "Remote", "Hybrid", "Travelling", "Apprenticeship"]
           },
           "maxDistanceofDailyTravel": {
             "type": "integer",

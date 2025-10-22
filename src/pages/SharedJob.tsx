@@ -23,7 +23,7 @@ interface SharedJobData {
   monthlyPfEsic?: string;
   monthlyOvertime?: string;
   costPerSharingBed?: string;
-  stayProvided?: boolean;
+  travelProvided?: boolean;
   trustScore?: number;
   matchScore?: number;
   verified?: boolean;
@@ -335,7 +335,7 @@ const SharedJob: React.FC = () => {
           monthlyPfEsic: tags?.jobDetails?.monthlyPfEsicBenefits?.toString(),
           monthlyOvertime: tags?.jobDetails?.monthlyAverageOt?.toString(),
           costPerSharingBed: tags?.jobDetails?.costPerSharingBed?.toString(),
-          stayProvided: tags?.jobDetails?.stayProvided === 'yes',
+          travelProvided: tags?.jobDetails?.travelProvided === 'yes',
           trustScore: tags?.assessment?.trustScore || 0,
           matchScore: tags?.assessment?.matchScore || 0,
           verified: true,
