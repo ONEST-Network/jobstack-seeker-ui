@@ -140,6 +140,14 @@
             "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
             "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"]
           },
+          "collegeName": {
+            "type": "string",
+            "title": "College Name",
+            "description": "Enter your college or institution name",
+            "ui:widget": "text",
+            "ui:placeholder": "Enter college name",
+            "ui:disabled": false
+          },
           "workExperience": {
             "type": "string",
             "title": "Work Experience",
@@ -181,7 +189,7 @@
         },
         "required": ["highestEducation"],
         "ui": {
-          "order": ["languagesKnown", "highestEducation", "workExperience", "softwareSkills", "taskVideo", "scanQRCode"],
+          "order": ["languagesKnown", "highestEducation", "collegeName", "workExperience", "softwareSkills", "taskVideo", "scanQRCode"],
           "description": "Tell us about your qualifications, skills, and experience"
         }
       },
