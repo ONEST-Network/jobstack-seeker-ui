@@ -1084,7 +1084,8 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
   }, [intentOverrides, currentSearchQuery, fetchJobsInternal]);
 
   // Track previous search query to detect actual changes
-  const prevSearchQueryRef = useRef<string | undefined>(currentSearchQuery);
+  // Initialize to null to ensure first render triggers the effect
+  const prevSearchQueryRef = useRef<string | undefined | null>(null);
   
   // Trigger search when currentSearchQuery changes (for centralized search management)
   useEffect(() => {
@@ -1097,6 +1098,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
     if (intentOverrides === null) return; // wait until computed
     if (options?.autoFetch !== false) { // Only if autoFetch is enabled
       // Only trigger if the search query actually changed (not just a re-render)
+      // Note: prevSearchQueryRef starts as null, so it will trigger on first render
       if (prevSearchQueryRef.current !== currentSearchQuery) {
         console.log(`🔍 Triggering search for query: "${currentSearchQuery}" (prev: "${prevSearchQueryRef.current}")`);
         prevSearchQueryRef.current = currentSearchQuery;
@@ -1118,7 +1120,8 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
   }, [currentSearchQuery, intentOverrides, options?.autoFetch, pagination.limit, fetchJobsInternal]);
 
   // Track previous profile change counter to detect actual changes
-  const prevProfileChangeCounterRef = useRef<number>(profileChangeCounter);
+  // Initialize to -1 to ensure first render with profile triggers the effect
+  const prevProfileChangeCounterRef = useRef<number>(-1);
   
   // Trigger search when profile selection changes or profile data is updated
   useEffect(() => {
@@ -1133,6 +1136,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
     if (intentOverrides === null) return; // wait until computed
     if (options?.autoFetch !== false) { // Only if autoFetch is enabled
       // Only trigger if profile actually changed (not just a re-render)
+      // Note: prevProfileChangeCounterRef starts as -1, so it will trigger if profileChangeCounter > 0
       if (profileChangeCounter > 0 && prevProfileChangeCounterRef.current !== profileChangeCounter) {
         console.log(`👤 Profile data changed, triggering search with updated profile:`, {
           profileId: selectedCandidate?.id,
@@ -1178,7 +1182,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
       }, 100);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [intentOverrides, options?.autoFetch, fetchJobsInternal]);
+  }, [intentOverrides, options?.autoFetch, currentSearchQuery, fetchJobsInternal]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
