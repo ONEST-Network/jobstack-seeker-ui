@@ -181,7 +181,8 @@
       "calculatingScores": "विश्वास और मैच स्कोर की गणना हो रही है...",
       "refresh": "रिफ्रेश करें",
       "lastUpdated": "अंतिम अपडेट: {{time}}",
-      "jobsFound": "{{count}} नौकरी{{plural}} मिली{{query}}",
+      "jobsFound": "{{count}} नौकरी{{plural}} मिली{{query}}{{openingsText}}",
+      "openings": "खाली पद",
       "retry": "पुनः प्रयास करें",
       "loadingPage": "पेज {{page}} लोड हो रहा है...",
       "pleaseWait": "कृपया प्रतीक्षा करें जब हम नौकरियां प्राप्त कर रहे हैं"
