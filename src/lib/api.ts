@@ -411,7 +411,7 @@ class ApiClient {
   }
 
   // BAP Job Search API
-  async searchJobs(intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30) {
+  async searchJobs(intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30, profile?: SearchProfileData) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v2/search`;
     
@@ -419,6 +419,12 @@ class ApiClient {
       limit,
       page,
     };
+
+    // Add profile data if available
+    if (profile) {
+      payload.profile = profile;
+      console.log(`📋 Adding profile data to search payload:`, { profileId: profile.id, profileName: profile.metadata?.name });
+    }
 
     // Add primary_filters if available in intentOverrides for organization-specific filtering
     if (intentOverrides?.primaryFilters) {
@@ -510,7 +516,7 @@ class ApiClient {
   }
 
   // BAP Job Search API with Query - Used for API-based search functionality
-  async searchJobsWithQuery(searchQuery: string, intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30) {
+  async searchJobsWithQuery(searchQuery: string, intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30, profile?: SearchProfileData) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v2/search`;
     
@@ -519,6 +525,12 @@ class ApiClient {
       page,
       query: searchQuery.trim() // Use the search query directly
     };
+
+    // Add profile data if available
+    if (profile) {
+      payload.profile = profile;
+      console.log(`📋 Adding profile data to search payload:`, { profileId: profile.id, profileName: profile.metadata?.name });
+    }
 
     // Add primary_filters if available in intentOverrides for organization-specific filtering
     if (intentOverrides?.primaryFilters) {
@@ -2145,6 +2157,14 @@ export interface ProfileResponse {
     };
   };
 } 
+
+// Type for profile data in search API payload
+export interface SearchProfileData {
+  id: string;
+  userId: string;
+  type: string;
+  metadata: Record<string, unknown>;
+}
 
 export interface ProfilesResponse {
   statusCode: number;
