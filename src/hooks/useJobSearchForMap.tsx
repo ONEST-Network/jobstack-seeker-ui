@@ -445,15 +445,22 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
         const batchResults = await Promise.all(
           batch.map(async (job) => {
             try {
+              // Fetch only trust score - match score comes from search API response
+              // COMMENTED OUT: Match score API call - using match score from search API instead
+              const trustResult = await apiClient.getTrustScore(job, seekerData);
+              
+              /* OLD CODE - Calling both APIs
               const [trustResult, matchResult] = await Promise.all([
                 apiClient.getTrustScore(job, seekerData),
                 apiClient.getMatchScore(job, seekerData)
               ]);
+              */
               
               return {
                 ...job,
                 trustScore: trustResult.trustScore,
-                matchScore: matchResult.matchScore
+                // Keep match score from search API response, don't overwrite it
+                matchScore: job.matchScore
               };
             } catch (error) {
               console.error(`Failed to get scores for job ${job.id}:`, error);

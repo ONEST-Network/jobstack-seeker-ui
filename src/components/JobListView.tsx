@@ -96,7 +96,8 @@ const JobListView: React.FC<JobListViewProps> = ({
     };
   }, []);
 
-  // Function to fetch trust and match scores for current jobs - FIXED VERSION
+  // Function to fetch trust scores for current jobs (match scores now come from search API)
+  // UPDATED: Only fetching trust scores - match scores come from search API response
   const fetchScoresForCurrentJobs = async () => {
     // Prevent concurrent calls
     if (isFetchingScores || !isMountedRef.current) {
@@ -108,20 +109,20 @@ const JobListView: React.FC<JobListViewProps> = ({
       return;
     }
 
-    // KEY FIX: Check if we already have scores for all jobs on this page
+    // KEY FIX: Check if we already have trust scores for all jobs on this page
     const jobsNeedingScores = displayJobs.filter(job => !scoredJobIds.has(job.id));
     
     if (jobsNeedingScores.length === 0) {
-      console.log('💡 All jobs on current page already have scores - skipping API calls');
+      console.log('💡 All jobs on current page already have trust scores - skipping API calls');
       return;
     }
 
-    console.log(`🎯 KEY FIX: Only fetching scores for ${jobsNeedingScores.length} jobs that need scores (out of ${displayJobs.length} visible jobs)`);
+    console.log(`🎯 KEY FIX: Only fetching trust scores for ${jobsNeedingScores.length} jobs that need scores (out of ${displayJobs.length} visible jobs)`);
     
     setIsFetchingScores(true); // Set flag to prevent concurrent calls
     
     try {
-      // THIS IS THE KEY - we only pass jobs that don't have scores yet
+      // Fetch trust scores (match scores already come from search API)
       const jobsWithScores = await fetchScoresForJobs(jobsNeedingScores);
       
       // Only update state if component is still mounted
@@ -130,13 +131,18 @@ const JobListView: React.FC<JobListViewProps> = ({
         return;
       }
       
-      // Update the jobs with scores
+      // Update the jobs with trust scores (preserve match scores from search API)
       setJobsWithScores(prev => {
         const updated = [...prev];
         jobsWithScores.forEach(jobWithScore => {
           const index = updated.findIndex(j => j.id === jobWithScore.id);
           if (index !== -1) {
-            updated[index] = jobWithScore;
+            // Preserve match score from search API, only update trust score
+            updated[index] = {
+              ...updated[index],
+              trustScore: jobWithScore.trustScore,
+              // Keep match score from search API response, don't overwrite it
+            };
           } else {
             updated.push(jobWithScore);
           }
@@ -151,7 +157,7 @@ const JobListView: React.FC<JobListViewProps> = ({
         return newSet;
       });
     } catch (error) {
-      console.error('Error fetching scores:', error);
+      console.error('Error fetching trust scores:', error);
     } finally {
       // Only clear flag if component is still mounted
       if (isMountedRef.current) {
@@ -160,20 +166,20 @@ const JobListView: React.FC<JobListViewProps> = ({
     }
   };
 
-  // Reset scored jobs when selected candidate changes (to recalculate scores with new profile)
+  // Reset scored jobs when selected candidate changes (to recalculate trust scores with new profile)
   useEffect(() => {
     if (selectedCandidate) {
-      console.log('Selected candidate changed, resetting scored jobs to recalculate scores');
-      setScoredJobIds(new Set()); // Clear the scored jobs set - this will cause scores to be refetched
+      console.log('Selected candidate changed, resetting scored jobs to recalculate trust scores');
+      setScoredJobIds(new Set()); // Clear the scored jobs set - this will cause trust scores to be refetched
       setJobsWithScores(jobs); // Reset to original jobs temporarily
       toast({
-        title: 'Selected candidate changed. Trust and match scores will be recalculated.',
-        description: `Your profile for ${selectedCandidate.name} has been updated.`,
+        title: 'Selected candidate changed. Trust scores will be recalculated.',
+        description: `Your profile for ${selectedCandidate.name} has been updated. Match scores are already updated.`,
       });
     }
   }, [selectedCandidate?.id]);
 
-  // CONSOLIDATED: Handle jobs change - reset cache and fetch scores (PREVENTS RACE CONDITION)
+  // CONSOLIDATED: Handle jobs change - reset cache and fetch trust scores (match scores from API)
   useEffect(() => {
     if (jobs.length === 0) {
       console.log('🔍 No jobs to process, clearing state');
@@ -184,23 +190,27 @@ const JobListView: React.FC<JobListViewProps> = ({
 
     console.log(`📄 Jobs changed - Page ${pagination.page} with ${jobs.length} jobs`);
     
-    // Step 1: SMART update of jobsWithScores - preserve existing scores where possible
+    // Step 1: SMART update of jobsWithScores - preserve existing trust scores, keep match scores from API
     setJobsWithScores(prev => {
       const newJobsWithScores = jobs.map(job => {
         // Check if we already have a scored version of this job
         const existingScoredJob = prev.find(scoredJob => scoredJob.id === job.id);
-        // If we have existing scores, use the scored version, otherwise use the new job
-        return existingScoredJob && (existingScoredJob.trustScore !== undefined || existingScoredJob.matchScore !== undefined) 
-          ? existingScoredJob 
-          : job;
+        // If we have existing trust scores, preserve them; match scores come from API
+        if (existingScoredJob && existingScoredJob.trustScore !== undefined) {
+          return {
+            ...job, // Use new job data (includes match score from API)
+            trustScore: existingScoredJob.trustScore, // Preserve trust score
+          };
+        }
+        return job; // Use new job data (includes match score from API)
       });
       
-      console.log(`🔄 Smart update: Preserved scores for ${newJobsWithScores.filter(job => job.trustScore !== undefined || job.matchScore !== undefined).length} jobs`);
+      console.log(`🔄 Smart update: Preserved trust scores for ${newJobsWithScores.filter(job => job.trustScore !== undefined).length} jobs, match scores from API`);
       return newJobsWithScores;
     });
     
-    // Step 2: SMART cache reset - only clear scores for jobs that are no longer present
-    // Preserve scores for jobs that are still in the new jobs array
+    // Step 2: SMART cache reset - only clear trust scores for jobs that are no longer present
+    // Preserve trust scores for jobs that are still in the new jobs array
     setScoredJobIds(prev => {
       const newJobIds = new Set(jobs.map(job => job.id));
       const preservedScoredIds = new Set<string>();
@@ -212,11 +222,11 @@ const JobListView: React.FC<JobListViewProps> = ({
         }
       });
       
-      console.log(`🧠 Smart cache: Preserved scores for ${preservedScoredIds.size} jobs, cleared ${prev.size - preservedScoredIds.size} jobs`);
+      console.log(`🧠 Smart cache: Preserved trust scores for ${preservedScoredIds.size} jobs, cleared ${prev.size - preservedScoredIds.size} jobs`);
       return preservedScoredIds;
     });
     
-    // Step 3: Fetch scores for the new jobs (but do it after state has been updated)
+    // Step 3: Fetch trust scores for the new jobs (match scores come from search API)
     // Use setTimeout to ensure state updates have been applied
     const timeoutId = setTimeout(() => {
       fetchScoresForCurrentJobs();

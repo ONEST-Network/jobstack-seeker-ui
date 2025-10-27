@@ -3,6 +3,7 @@ import { apiClient, cleanContaminatedProfile } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams } from 'react-router-dom';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
+import { useProfileChangeDetector } from '@/hooks/useProfileChangeDetector';
 
 export interface JobItem {
   id: string;
@@ -118,6 +119,7 @@ export interface JobSearchResponse {
               name: string;
             };
             id: string;
+            match_score?: number; // Sorting score from API response
             tags: {
               basicInfo?: {
                 jobProviderName?: string;
@@ -206,6 +208,12 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
   const [intentOverrides, setIntentOverrides] = useState<Record<string, any> | null>(null);
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string | undefined>(searchQuery);
   
+  // Add debouncing refs to prevent duplicate API calls
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastFetchParamsRef = useRef<string>('');
+  const isFetchingRef = useRef<boolean>(false);
+  const isManualPageChangeRef = useRef<boolean>(false); // Track manual page changes
+  
   // Sync currentSearchQuery with searchQuery prop changes
   useEffect(() => {
     console.log(`📝 Search query prop changed: "${searchQuery}" -> updating currentSearchQuery`);
@@ -280,6 +288,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
 
   
   const { user, getSelectedCandidate } = useAuth();
+  const profileChangeCounter = useProfileChangeDetector();
   const selectedCandidate = getSelectedCandidate();
   
   const maxRetries = 3;
@@ -465,8 +474,8 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
         return jobsToScore;
       }
 
-      // Fetch trust scores and match scores for each job - THIS IS THE KEY PART
-      console.log(`🚀 Actually fetching scores for ${jobsToScore.length} jobs (these should be ONLY the visible jobs)`);
+      // Fetch ONLY trust scores for each job - match scores come from search API
+      console.log(`🚀 Actually fetching TRUST SCORES for ${jobsToScore.length} jobs (match scores from search API)`);
       const jobsWithScores = await Promise.all(
         jobsToScore.map(async (job) => {
           try {
@@ -475,18 +484,24 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
             // Log the job data being sent
             console.log('Job data being sent to API:', JSON.stringify(job, null, 2));
             
-            // Fetch both trust score and match score
+            // Fetch only trust score - match score comes from search API response
+            // COMMENTED OUT: Match score API call - using match score from search API instead
+            const trustResult = await apiClient.getTrustScore(job, seekerData);
+            
+            /* OLD CODE - Calling both APIs
             const [trustResult, matchResult] = await Promise.all([
               apiClient.getTrustScore(job, seekerData),
               apiClient.getMatchScore(job, seekerData)
             ]);
+            */
             
-            console.log(`✅ Scores for job ${job.id}:`, { trustScore: trustResult.trustScore, matchScore: matchResult.matchScore });
+            console.log(`✅ Scores for job ${job.id}:`, { trustScore: trustResult.trustScore, matchScore: job.matchScore });
             
             return {
               ...job,
               trustScore: trustResult.trustScore,
-              matchScore: matchResult.matchScore
+              // Keep match score from search API response, don't overwrite it
+              matchScore: job.matchScore
             };
           } catch (error) {
             console.error(`❌ Failed to get scores for job ${job.id}:`, error);
@@ -551,8 +566,9 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
           // Extract trust score
           const trustScore = tags?.assessment?.trustScore || 0;
 
-          // Extract match score
-          const matchScore = tags?.assessment?.matchScore || 0;
+          // Extract match score from API response match_score (sorting score)
+          // This replaces the old separate API call for match score
+          const matchScore = item.match_score || 0;
 
           // Extract number of positions from jobDetails
           const positions = jobDetails.positions || 1;
@@ -834,17 +850,69 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
         hasUserSearch: !!userSearchQuery,
         hasOrgFilters: !!orgPrimaryFilters
       });
+
+      // Get active profile data to include in search payload
+      const selectedCandidate = getSelectedCandidate();
+      let profileData = null;
+      
+      if (selectedCandidate) {
+        // Transform candidate profile to the expected API format
+        profileData = {
+          id: selectedCandidate.id,
+          userId: selectedCandidate.id, // Using profile ID as userId for API compatibility
+          type: "personal",
+          metadata: {
+            name: selectedCandidate.name,
+            role: selectedCandidate.interestedRole,
+            age: selectedCandidate.age,
+            gender: selectedCandidate.gender,
+            skills: selectedCandidate.skills || [],
+            whoIAm: {
+              name: selectedCandidate.name,
+              phone: selectedCandidate.phone || selectedCandidate.whoIAm?.phone,
+              age: selectedCandidate.age,
+              gender: selectedCandidate.gender,
+              location: selectedCandidate.currentLocation,
+              locationData: selectedCandidate.whoIAm?.locationData,
+              ...(selectedCandidate.whoIAm || {})
+            },
+            whatIHave: {
+              age: selectedCandidate.age,
+              ...(selectedCandidate.whatIHave || {})
+            },
+            whatIWant: {
+              workHoursPerDay: selectedCandidate.workHoursPerDay,
+              monthlyInHandPreferred: selectedCandidate.monthlySalary,
+              ...(selectedCandidate.whatIWant || {})
+            },
+            industry: selectedCandidate.interestedIndustry,
+            education: selectedCandidate.education || [],
+            experience: selectedCandidate.experience || [],
+            certificates: selectedCandidate.certificates || [],
+            workExperience: selectedCandidate.workExperience || [],
+            skillCertifications: selectedCandidate.skillCertifications || []
+          }
+        };
+        
+        console.log(`📋 Including profile data in search:`, {
+          profileId: profileData.id,
+          profileName: profileData.metadata.name,
+          profileRole: profileData.metadata.role
+        });
+      } else {
+        console.log(`⚠️ No active profile selected for search`);
+      }
       
       let data;
       if (userSearchQuery) {
-        // User is actively searching - use search API with their query + org filters
+        // User is actively searching - use search API with their query + org filters + profile
         console.log(`➡️ Calling searchJobsWithQuery with user query: "${userSearchQuery}"`);
         const intentWithFilters = orgPrimaryFilters ? { ...intent, primaryFilters: orgPrimaryFilters } : intent;
-        data = await apiClient.searchJobsWithQuery(userSearchQuery, intentWithFilters || undefined, page, limit);
+        data = await apiClient.searchJobsWithQuery(userSearchQuery, intentWithFilters || undefined, page, limit, profileData);
       } else {
-        // No user search - use regular search API but include org filters via intent
+        // No user search - use regular search API but include org filters via intent + profile
         console.log(`➡️ Calling regular searchJobs (no user search, may have org filters)`);
-        data = await apiClient.searchJobs(intent || undefined, page, limit);
+        data = await apiClient.searchJobs(intent || undefined, page, limit, profileData);
       }
       
       if (loadingTimeoutRef.current) {
@@ -990,7 +1058,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
         }, delay);
       }
     }
-  }, [transformJobData, maxRetries, intentOverrides]);
+  }, [transformJobData, maxRetries, intentOverrides, getSelectedCandidate, currentSearchQuery, pagination.page, pagination.limit]);
 
   // Public fetch function
   const fetchJobs = useCallback(async (isRetry = false) => {
@@ -1003,20 +1071,98 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
     setCurrentSearchQuery(query);
     // Reset to first page when search query changes
     setPagination(prev => ({ ...prev, page: 1 }));
-    // Immediately trigger fetch with the new query - use current limit from state
-    fetchJobsInternal(false, 0, intentOverrides, 1, 30, query); // Use default limit of 30
-  }, [fetchJobsInternal, intentOverrides, currentSearchQuery]);
+    
+    // Create debounced call directly
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+    
+    fetchTimeoutRef.current = setTimeout(() => {
+      console.log(`🚀 updateSearchQuery: Executing fetch`);
+      fetchJobsInternal(false, 0, intentOverrides, 1, 30, query);
+    }, 100);
+  }, [intentOverrides, currentSearchQuery, fetchJobsInternal]);
 
+  // Track previous search query to detect actual changes
+  // Initialize to null to ensure first render triggers the effect
+  const prevSearchQueryRef = useRef<string | undefined | null>(null);
+  
   // Trigger search when currentSearchQuery changes (for centralized search management)
   useEffect(() => {
+    // Skip if we're in the middle of a manual page change
+    if (isManualPageChangeRef.current) {
+      console.log(`⏭️ Skipping search effect during manual page change`);
+      return;
+    }
+    
     if (intentOverrides === null) return; // wait until computed
     if (options?.autoFetch !== false) { // Only if autoFetch is enabled
-      console.log(`🔍 Triggering search for query: "${currentSearchQuery}"`);
-      // Reset to first page when search query changes and trigger fetch
-      setPagination(prev => ({ ...prev, page: 1 }));
-      fetchJobsInternal(false, 0, intentOverrides, 1, pagination.limit, currentSearchQuery);
+      // Only trigger if the search query actually changed (not just a re-render)
+      // Note: prevSearchQueryRef starts as null, so it will trigger on first render
+      if (prevSearchQueryRef.current !== currentSearchQuery) {
+        console.log(`🔍 Triggering search for query: "${currentSearchQuery}" (prev: "${prevSearchQueryRef.current}")`);
+        prevSearchQueryRef.current = currentSearchQuery;
+        
+        // Reset to first page when search query changes and trigger fetch
+        setPagination(prev => ({ ...prev, page: 1 }));
+        
+        // Debounce the call
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
+        
+        fetchTimeoutRef.current = setTimeout(() => {
+          console.log(`🚀 currentSearchQuery: Executing fetch`);
+          fetchJobsInternal(false, 0, intentOverrides, 1, pagination.limit, currentSearchQuery);
+        }, 100);
+      }
     }
-  }, [currentSearchQuery, intentOverrides, options?.autoFetch, fetchJobsInternal, pagination.limit]);
+  }, [currentSearchQuery, intentOverrides, options?.autoFetch, pagination.limit, fetchJobsInternal]);
+
+  // Track previous profile change counter to detect actual changes
+  // Initialize to -1 to ensure first render with profile triggers the effect
+  const prevProfileChangeCounterRef = useRef<number>(-1);
+  
+  // Trigger search when profile selection changes or profile data is updated
+  useEffect(() => {
+    // Skip if we're in the middle of a manual page change
+    if (isManualPageChangeRef.current) {
+      console.log(`⏭️ Skipping profile change effect during manual page change`);
+      return;
+    }
+    
+    const selectedCandidate = getSelectedCandidate();
+    
+    if (intentOverrides === null) return; // wait until computed
+    if (options?.autoFetch !== false) { // Only if autoFetch is enabled
+      // Only trigger if profile actually changed (not just a re-render)
+      // Note: prevProfileChangeCounterRef starts as -1, so it will trigger if profileChangeCounter > 0
+      if (profileChangeCounter > 0 && prevProfileChangeCounterRef.current !== profileChangeCounter) {
+        console.log(`👤 Profile data changed, triggering search with updated profile:`, {
+          profileId: selectedCandidate?.id,
+          profileName: selectedCandidate?.name,
+          profileRole: selectedCandidate?.interestedRole,
+          changeCounter: profileChangeCounter,
+          prevCounter: prevProfileChangeCounterRef.current
+        });
+        prevProfileChangeCounterRef.current = profileChangeCounter;
+        
+        // Reset to page 1 when profile changes (this is a new search context)
+        setPagination(prev => ({ ...prev, page: 1 }));
+        
+        // Debounce the call
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
+        
+        fetchTimeoutRef.current = setTimeout(() => {
+          console.log(`🚀 profile-change: Executing fetch`);
+          fetchJobsInternal(false, 0, intentOverrides, 1, pagination.limit, currentSearchQuery);
+        }, 100);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileChangeCounter, intentOverrides, options?.autoFetch, fetchJobsInternal]);
 
   // Initial fetch when intent overrides are ready (only if autoFetch is enabled)
   // Note: The currentSearchQuery effect above will handle search queries, this handles initial empty state
@@ -1024,10 +1170,19 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
     if (intentOverrides === null) return; // wait until computed
     if (options?.autoFetch !== false && currentSearchQuery === undefined) { // Only for undefined initial state
       console.log(`🔍 Initial fetch with undefined search query`);
-      fetchJobs();
+      
+      // Debounce the call
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+      
+      fetchTimeoutRef.current = setTimeout(() => {
+        console.log(`🚀 initial-load: Executing fetch`);
+        fetchJobsInternal(false, 0, intentOverrides, pagination.page, pagination.limit, currentSearchQuery);
+      }, 100);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [intentOverrides, options?.autoFetch]);
+  }, [intentOverrides, options?.autoFetch, currentSearchQuery, fetchJobsInternal]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -1037,6 +1192,9 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
       }
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
+      }
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
       }
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -1064,10 +1222,30 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
 
   // Function to fetch jobs for a specific page
   const fetchJobsForPage = useCallback(async (page: number, limit?: number, searchQuery?: string) => {
+    console.log(`📄 fetchJobsForPage called with page: ${page}, limit: ${limit}, query: "${searchQuery}"`);
     const actualLimit = limit || pagination.limit;
     const queryToUse = searchQuery !== undefined ? searchQuery : currentSearchQuery;
-    return fetchJobsInternal(false, 0, intentOverrides, page, actualLimit, queryToUse);
-  }, [fetchJobsInternal, intentOverrides, currentSearchQuery]);
+    
+    // Set flag to prevent effects from interfering with manual page change
+    isManualPageChangeRef.current = true;
+    
+    // Clear any pending debounced calls to prevent conflicts
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+      fetchTimeoutRef.current = null;
+    }
+    
+    try {
+      // Call fetch directly without debounce for pagination
+      await fetchJobsInternal(false, 0, intentOverrides, page, actualLimit, queryToUse);
+    } finally {
+      // Clear the flag after a short delay to allow state updates to complete
+      setTimeout(() => {
+        isManualPageChangeRef.current = false;
+        console.log(`✅ Manual page change complete, effects re-enabled`);
+      }, 500);
+    }
+  }, [fetchJobsInternal, intentOverrides, currentSearchQuery, pagination.limit]);
 
   return {
     jobs,
