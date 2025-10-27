@@ -6,6 +6,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Search, ZoomIn, ZoomOut, Navigation, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { calculateTotalOpenings } from '@/utils/jobUtils';
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -1092,23 +1093,10 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
                         </svg>
                         <span className="text-xl font-bold text-white">
-                          {(() => {
-                            // Calculate total openings from all jobs in this location
-                            const totalOpenings = locationCardData.jobs.reduce((sum, job) => {
-                              const openings = job.openings || job.positions || 1;
-                              return sum + openings;
-                            }, 0);
-                            return totalOpenings;
-                          })()}
+                          {calculateTotalOpenings(locationCardData.jobs)}
                         </span>
                       </div>
-                      <p className="text-blue-100 text-xs">Opening{(() => {
-                        const totalOpenings = locationCardData.jobs.reduce((sum, job) => {
-                          const openings = job.openings || job.positions || 1;
-                          return sum + openings;
-                        }, 0);
-                        return totalOpenings !== 1 ? 's' : '';
-                      })()}</p>
+                      <p className="text-blue-100 text-xs">Opening{calculateTotalOpenings(locationCardData.jobs) !== 1 ? 's' : ''}</p>
                     </div>
                   </div>
                 </div>

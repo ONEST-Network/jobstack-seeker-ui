@@ -181,7 +181,8 @@
       "calculatingScores": "ನಂಬಿಕೆ ಮತ್ತು ಹೊಂದಾಣಿಕೆ ಸ್ಕೋರ್‌ಗಳನ್ನು ಲೆಕ್ಕಾಚಾರ ಮಾಡಲಾಗುತ್ತಿದೆ...",
       "refresh": "ರಿಫ್ರೆಶ್ ಮಾಡಿ",
       "lastUpdated": "ಕೊನೆಯ ಅಪ್‌ಡೇಟ್: {{time}}",
-      "jobsFound": "{{count}} ಉದ್ಯೋಗ{{plural}} ಸಿಕ್ಕಿವೆ{{query}}",
+      "jobsFound": "{{count}} ಉದ್ಯೋಗ{{plural}} ಸಿಕ್ಕಿವೆ{{query}}{{openingsText}}",
+      "openings": "ವೇಕೆನ್ಸಿಗಳು",
       "retry": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
       "loadingPage": "ಪುಟ {{page}} ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
       "pleaseWait": "ದಯವಿಟ್ಟು ನಾವು ಉದ್ಯೋಗಗಳನ್ನು ಪಡೆಯುವಾಗ ನಿರೀಕ್ಷಿಸಿ"

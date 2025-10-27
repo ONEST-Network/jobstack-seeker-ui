@@ -180,7 +180,8 @@
       "calculatingScores": "Calculating trust & match scores...",
       "refresh": "Refresh",
       "lastUpdated": "Last updated: {{time}}",
-      "jobsFound": "{{count}} job{{plural}} found{{query}}",
+      "jobsFound": "{{count}} job{{plural}} found{{query}}{{openingsText}}",
+      "openings": "openings",
       "retry": "Retry",
       "loadingPage": "Loading page {{page}}...",
       "pleaseWait": "Please wait while we fetch the jobs"

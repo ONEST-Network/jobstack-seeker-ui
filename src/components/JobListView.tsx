@@ -16,19 +16,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTranslation } from '@/hooks/useI18n';
+import { calculateTotalOpenings } from '@/utils/jobUtils';
 
 interface JobListViewProps {
   searchQuery: string;
   onPromptLogin?: () => void;
   onClearSearch?: () => void; // Callback to clear search from parent component
   hookData?: any; // Pass hook data from parent to avoid duplicate calls
+  mapHookData?: any; // Pass map hook data to get total openings across all jobs
 }
 
 const JobListView: React.FC<JobListViewProps> = ({
   searchQuery,
   onPromptLogin,
   onClearSearch,
-  hookData
+  hookData,
+  mapHookData
 }) => {
   const t = useTranslation('jobs');
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
@@ -429,11 +432,21 @@ const JobListView: React.FC<JobListViewProps> = ({
               {(() => {
                 // Determine actual job count - if jobs array is empty but pagination shows count, trust the jobs array
                 const actualJobCount = jobs.length === 0 ? 0 : (pagination.totalCount || jobs.length);
+                
+                // Calculate total openings from map hook data if available (all jobs), otherwise calculate from current page
+                const totalOpenings = mapHookData?.allJobs ? calculateTotalOpenings(mapHookData.allJobs) : calculateTotalOpenings(jobs);
+                
                 const searchQueryText = currentSearchQuery && currentSearchQuery.trim() ? ` for "${currentSearchQuery.trim()}"` : '';
-                return t('jobListView.jobsFound', '{{count}} job{{plural}} found{{query}}', { 
+                
+                // Only show openings count if we have map data or if we're showing all jobs on current page
+                const showOpenings = mapHookData?.allJobs || jobs.length === actualJobCount;
+                const openingsText = showOpenings ? ` (${totalOpenings} ${t('jobListView.openings', 'openings')})` : '';
+                
+                return t('jobListView.jobsFound', '{{count}} job{{plural}} found{{query}}{{openingsText}}', { 
                   count: actualJobCount, 
                   plural: actualJobCount !== 1 ? 's' : '',
-                  query: searchQueryText
+                  query: searchQueryText,
+                  openingsText
                 });
               })()}
             </p>

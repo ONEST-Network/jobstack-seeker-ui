@@ -239,7 +239,15 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
     }
   }, [shouldApplyDefaultView, getDefaultView, markInitialViewApplied]);
 
-  // Trigger map fetch when map view is first accessed
+  // Trigger map fetch in background on mount to get all jobs data for both views
+  useEffect(() => {
+    if (!mapHookData.loading && mapHookData.loadingState === 'idle' && mapHookData.allJobs.length === 0) {
+      console.log('Background: Fetching all jobs for total openings count...');
+      mapHookData.refetch();
+    }
+  }, [mapHookData.loading, mapHookData.loadingState, mapHookData.allJobs.length, mapHookData]);
+
+  // Trigger map fetch when map view is first accessed (fallback)
   useEffect(() => {
     if (activeView === 'map' && !mapHookData.loading && mapHookData.loadingState === 'idle') {
       mapHookData.refetch();
@@ -402,6 +410,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
               onPromptLogin={handlePromptLogin}
               onClearSearch={handleClearSearch}
               hookData={listHookData}
+              mapHookData={mapHookData}
             />
           </TabsContent>
           <TabsContent value="map" className="mt-0 h-full">
