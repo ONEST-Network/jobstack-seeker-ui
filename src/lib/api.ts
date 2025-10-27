@@ -89,6 +89,7 @@ class ApiClient {
     phoneNumber?: string;
     email?: string;
     name?: string;
+    birthYear?: number;
   }): Promise<RequestOTPResponse> {
     return this.request('/auth/unified-otp/request', {
       method: 'POST',
@@ -112,6 +113,7 @@ class ApiClient {
     otp: string;
     name?: string;
     rememberMe?: boolean;
+    birthYear?: number;
     joinOrg?: {
       join: boolean;
       orgSlug: string;

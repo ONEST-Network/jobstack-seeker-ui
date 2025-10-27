@@ -13,6 +13,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from '@/hooks/useI18n';
 import OTPVerificationDialog from './OTPVerificationDialog';
 import RegistrationDialog from './RegistrationDialog';
+import AgeVerificationDialog from './AgeVerificationDialog';
 
 interface UnifiedAuthDialogProps {
   isOpen: boolean;
@@ -25,13 +26,16 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   onClose, 
   defaultRole = 'individual' 
 }) => {
-  const [step, setStep] = useState<'initial' | 'checking' | 'otp' | 'register'>('initial');
+  const [step, setStep] = useState<'initial' | 'checking' | 'otp' | 'age-verification' | 'register'>('initial');
   const [contactInput, setContactInput] = useState('');
   const [contactType, setContactType] = useState<'email' | 'phone'>('email');
   const [isLoading, setIsLoading] = useState(false);
   const [userExists, setUserExists] = useState(false);
   const [showOTPDialog, setShowOTPDialog] = useState(false);
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
+  const [showAgeVerificationDialog, setShowAgeVerificationDialog] = useState(false);
+  const [birthYear, setBirthYear] = useState<number | null>(null);
+  const [isMinor, setIsMinor] = useState(false);
   const [formattedPhoneNumber, setFormattedPhoneNumber] = useState('');
   
   const inputRef = useRef<HTMLInputElement>(null);
@@ -180,21 +184,22 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           setStep('initial');
         }
       } else {
-        // User doesn't exist - show registration
+        // User doesn't exist - show age verification first
         setUserExists(false);
-        setStep('register');
+        setStep('age-verification');
         
         // Show toast first
+        const contactValue = contactType === 'phone' ? formattedPhoneNumber || formatPhoneNumber(contactInput) : contactInput;
         toast({
           title: t('toastMessages.accountNotFound', 'Account Not Found'),
           description: contactType === 'email' 
-            ? t('toastMessages.accountNotFoundEmail', `No account found with email ${contactInput}. Please create a new account.`)
-            : t('toastMessages.accountNotFoundPhone', `No account found with phone number ${contactInput}. Please create a new account.`),
+            ? `No account found with email ${contactValue}. Please create a new account.`
+            : `No account found with phone number ${contactValue}. Please create a new account.`,
         });
         
-        // Small delay before showing registration dialog to ensure toast is properly established
+        // Small delay before showing age verification dialog to ensure toast is properly established
         setTimeout(() => {
-          setShowRegisterDialog(true);
+          setShowAgeVerificationDialog(true);
         }, 100);
       }
     } catch (error) {
@@ -228,6 +233,18 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     });
   };
 
+  const handleAgeVerificationContinue = (year: number, minor: boolean) => {
+    setBirthYear(year);
+    setIsMinor(minor);
+    setShowAgeVerificationDialog(false);
+    setStep('register');
+    
+    // Small delay before showing registration dialog
+    setTimeout(() => {
+      setShowRegisterDialog(true);
+    }, 100);
+  };
+
   const handleClose = () => {
     // Reset all state
     setStep('initial');
@@ -237,6 +254,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     setUserExists(false);
     setShowOTPDialog(false);
     setShowRegisterDialog(false);
+    setShowAgeVerificationDialog(false);
+    setBirthYear(null);
+    setIsMinor(false);
     setFormattedPhoneNumber('');
     
     // Close the modal
@@ -254,6 +274,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
       setUserExists(false);
       setShowOTPDialog(false);
       setShowRegisterDialog(false);
+      setShowAgeVerificationDialog(false);
+      setBirthYear(null);
+      setIsMinor(false);
       setFormattedPhoneNumber('');
     } else {
       // Reset state when modal is opened
@@ -264,6 +287,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
       setUserExists(false);
       setShowOTPDialog(false);
       setShowRegisterDialog(false);
+      setShowAgeVerificationDialog(false);
+      setBirthYear(null);
+      setIsMinor(false);
       setFormattedPhoneNumber('');
     }
   }, [isOpen]);
@@ -288,7 +314,15 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
 
   return (
     <>
-      <Dialog open={isOpen && step === 'initial'} onOpenChange={handleClose}>
+      <Dialog 
+        open={isOpen && step === 'initial'} 
+        onOpenChange={(open) => {
+          // Only allow closing if no sub-dialogs are open
+          if (!open && !showOTPDialog && !showAgeVerificationDialog && !showRegisterDialog) {
+            handleClose();
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-semibold">
@@ -386,6 +420,15 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
         />
       )}
 
+      {/* Age Verification Dialog */}
+      {showAgeVerificationDialog && (
+        <AgeVerificationDialog
+          isOpen={showAgeVerificationDialog}
+          onClose={() => setShowAgeVerificationDialog(false)}
+          onContinue={handleAgeVerificationContinue}
+        />
+      )}
+
       {/* Registration Dialog */}
       {showRegisterDialog && (
         <RegistrationDialog
@@ -394,6 +437,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           defaultRole={defaultRole}
           preFilledEmail={contactType === 'email' ? contactInput : undefined}
           preFilledPhone={contactType === 'phone' ? contactInput : undefined}
+          birthYear={birthYear || undefined}
+          isMinor={isMinor}
         />
       )}
     </>

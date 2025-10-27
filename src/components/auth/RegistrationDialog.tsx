@@ -19,14 +19,8 @@ interface RegistrationDialogProps {
   defaultRole: 'individual' | 'organization';
   preFilledEmail?: string;
   preFilledPhone?: string;
-}
-
-interface RegistrationDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  defaultRole: 'individual' | 'organization';
-  preFilledEmail?: string;
-  preFilledPhone?: string;
+  birthYear?: number;
+  isMinor?: boolean;
 }
 
 const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ 
@@ -34,9 +28,11 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   onClose, 
   defaultRole,
   preFilledEmail,
-  preFilledPhone
+  preFilledPhone,
+  birthYear,
+  isMinor
 }) => {
-  const [step, setStep] = useState<'register' | 'otp-verification'>('register');
+  const [step, setStep] = useState<'register' | 'guardian-otp-verification' | 'minor-register' | 'minor-otp-verification'>('register');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [formattedPhone, setFormattedPhone] = useState('');
@@ -45,6 +41,13 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
+  
+  // State for minor's own details (after guardian verification)
+  const [minorName, setMinorName] = useState('');
+  const [minorEmail, setMinorEmail] = useState('');
+  const [minorPhone, setMinorPhone] = useState('');
+  const [minorFormattedPhone, setMinorFormattedPhone] = useState('');
+  const [guardianVerified, setGuardianVerified] = useState(false);
   
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const { requestOTP, isLoading } = useAuth();
@@ -202,14 +205,22 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
       const otpData = {
         name,
         ...(email && { email }),
-        ...(phone && { phoneNumber: formattedPhone || formatPhoneNumber(phone) })
+        ...(phone && { phoneNumber: formattedPhone || formatPhoneNumber(phone) }),
+        ...(birthYear && { birthYear })
       };
 
       await requestOTP(otpData);
-      setStep('otp-verification');
+      
+      // For minors, go to guardian-otp-verification; for adults, go to regular otp-verification
+      if (isMinor) {
+        setStep('guardian-otp-verification');
+      } else {
+        setStep('otp-verification');
+      }
+      
       toast({
         title: "OTP Sent",
-        description: `A 6-digit OTP has been sent to your ${email ? 'email' : 'phone'}.`
+        description: `A 6-digit OTP has been sent to ${isMinor ? 'guardian\'s' : 'your'} ${email ? 'email' : 'phone'}.`
       });
     } catch (error: unknown) {
       toast({
@@ -234,6 +245,13 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   };
 
   const handleOTPVerificationSuccess = () => {
+    // If we're in guardian-otp-verification step and guardian is verified, move to minor-register
+    if (step === 'guardian-otp-verification') {
+      setGuardianVerified(true);
+      setStep('minor-register');
+      return;
+    }
+    
     // Check if user is on seeker path and role is individual
     const isSeeker = location.pathname.startsWith('/seeker');
     
@@ -256,8 +274,8 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
 
   return (
     <>
-      <Dialog open={isOpen && step !== 'otp-verification'} onOpenChange={handleClose}>
-        <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      <Dialog open={isOpen && step !== 'guardian-otp-verification' && step !== 'minor-otp-verification'} onOpenChange={handleClose}>
+        <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl">{t('register.title', 'Create Account')}</DialogTitle>
           </DialogHeader>
@@ -265,19 +283,32 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
           {step === 'register' && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">{t('register.nameLabel', 'Full Name')} *</Label>
+                <Label htmlFor="name">
+                  {isMinor 
+                    ? t('register.guardianNameLabel', 'My parent\'s or Guardian Name')
+                    : t('register.nameLabel', 'Full Name')
+                  } *
+                </Label>
                 <Input
                   id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder={t('register.namePlaceholder', 'Enter your full name')}
+                  placeholder={isMinor 
+                    ? t('register.guardianNamePlaceholder', 'Enter guardian name')
+                    : t('register.namePlaceholder', 'Enter your full name')
+                  }
                 />
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="email">{t('register.emailLabel', 'Email Address')}</Label>
+                  <Label htmlFor="email">
+                    {isMinor 
+                      ? t('register.guardianEmailLabel', 'Parent\'s or Guardian Email')
+                      : t('register.emailLabel', 'Email Address')
+                    }
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -288,7 +319,12 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">{t('register.phoneLabel', 'Phone Number')}</Label>
+                  <Label htmlFor="phone">
+                    {isMinor 
+                      ? t('register.guardianPhoneLabel', 'Parent\'s or Guardian Phone Number')
+                      : t('register.phoneLabel', 'Phone Number')
+                    }
+                  </Label>
                   <Input
                     ref={phoneInputRef}
                     id="phone"
@@ -304,28 +340,6 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <Label>{t('register.accountType', 'Account Type')}</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Button
-                    variant={role === 'individual' ? 'default' : 'outline'}
-                    onClick={() => setRole('individual')}
-                    className="h-16 sm:h-20 flex flex-col"
-                  >
-                    <span className="font-medium text-sm sm:text-base">{t('register.individual', 'Individual')}</span>
-                    <span className="text-xs text-muted-foreground">{t('register.individualDesc', 'Job seeker')}</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={true}
-                    className="h-16 sm:h-20 flex flex-col opacity-50 cursor-not-allowed"
-                  >
-                    <span className="font-medium text-sm sm:text-base">{t('register.organization', 'Organization')}</span>
-                    <span className="text-xs text-muted-foreground">{t('register.organizationDesc', 'Coming soon')}</span>
-                  </Button>
-                </div>
-              </div>
-
               <div className="space-y-3">
                 <div className="flex items-start space-x-2">
                   <Checkbox
@@ -335,7 +349,10 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     className="mt-0.5"
                   />
                   <Label htmlFor="terms" className="text-sm leading-relaxed">
-                    {t('register.termsAndConditions', 'I accept the Terms and Conditions')}
+                    {isMinor 
+                      ? t('register.guardianTermsAndConditions', 'On behalf of my ward, I accept the Terms and Conditions')
+                      : t('register.termsAndConditions', 'I accept the Terms and Conditions')
+                    }
                   </Label>
                 </div>
                 
@@ -347,7 +364,10 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     className="mt-0.5"
                   />
                   <Label htmlFor="privacy" className="text-sm leading-relaxed">
-                    {t('register.privacyPolicy', 'I consent to Data Privacy Policy')}
+                    {isMinor 
+                      ? t('register.guardianPrivacyPolicy', 'On behalf of my ward, I consent to Data Privacy Policy')
+                      : t('register.privacyPolicy', 'I consent to Data Privacy Policy')
+                    }
                   </Label>
                 </div>
               </div>
@@ -361,8 +381,133 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
               </Button>
             </div>
           )}
+
+          {/* Minor Registration Form (shows after guardian verification) */}
+          {step === 'minor-register' && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                Now let's create an account for you. Please provide your details:
+              </p>
+              
+              <div>
+                <Label htmlFor="minor-name">{t('register.nameLabel', 'Full Name')} *</Label>
+                <Input
+                  id="minor-name"
+                  type="text"
+                  value={minorName}
+                  onChange={(e) => setMinorName(e.target.value)}
+                  placeholder={t('register.namePlaceholder', 'Enter your full name')}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="minor-email">{t('register.emailLabel', 'Email Address')}</Label>
+                  <Input
+                    id="minor-email"
+                    type="email"
+                    value={minorEmail}
+                    onChange={(e) => setMinorEmail(e.target.value)}
+                    placeholder={t('register.emailPlaceholder', 'your@email.com')}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="minor-phone">{t('register.phoneLabel', 'Phone Number')}</Label>
+                  <Input
+                    id="minor-phone"
+                    type="tel"
+                    value={minorFormattedPhone || minorPhone}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setMinorPhone(value);
+                      setMinorFormattedPhone(formatPhoneNumber(value));
+                    }}
+                    placeholder={t('register.phonePlaceholder', '+91 98765 43210')}
+                  />
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  * {t('register.contactMethodNote', 'Please provide at least one contact method (email or phone)')}
+                </p>
+              </div>
+
+              <Button
+                onClick={async () => {
+                  // Validate minor details
+                  if (!minorName) {
+                    toast({
+                      title: "Error",
+                      description: "Please enter your full name.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+
+                  if (!minorEmail && !minorPhone) {
+                    toast({
+                      title: "Error",
+                      description: "Please enter either your email address or phone number.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+
+                  try {
+                    const otpData = {
+                      name: minorName,
+                      ...(minorEmail && { email: minorEmail }),
+                      ...(minorPhone && { phoneNumber: minorFormattedPhone || formatPhoneNumber(minorPhone) }),
+                      ...(birthYear && { birthYear })
+                    };
+
+                    await requestOTP(otpData);
+                    setStep('minor-otp-verification');
+                    toast({
+                      title: "OTP Sent",
+                      description: `A 6-digit OTP has been sent to your ${minorEmail ? 'email' : 'phone'}.`
+                    });
+                  } catch (error: unknown) {
+                    toast({
+                      title: "Error",
+                      description: error instanceof Error ? error.message : "Failed to send OTP. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                disabled={isLoading || !minorName.trim() || (!minorEmail.trim() && !minorPhone.trim())}
+                className="w-full"
+              >
+                {isLoading ? t('register.sendingOTP', 'Sending OTP...') : t('register.sendOTP', 'Send OTP')}
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
+
+      {/* Guardian OTP Verification Dialog */}
+      <OTPVerificationDialog
+        isOpen={step === 'guardian-otp-verification'}
+        onClose={handleClose}
+        onSuccess={handleOTPVerificationSuccess}
+        contactMethod={email || phone}
+        method={email ? 'email' : 'phone'}
+        email={email || undefined}
+        phoneNumber={formattedPhone || undefined}
+        name={name}
+      />
+
+      {/* Minor OTP Verification Dialog */}
+      <OTPVerificationDialog
+        isOpen={step === 'minor-otp-verification'}
+        onClose={handleClose}
+        onSuccess={handleOTPVerificationSuccess}
+        contactMethod={minorEmail || minorPhone}
+        method={minorEmail ? 'email' : 'phone'}
+        email={minorEmail || undefined}
+        phoneNumber={minorFormattedPhone || undefined}
+        name={minorName}
+      />
 
       <OTPVerificationDialog
         isOpen={step === 'otp-verification'}
