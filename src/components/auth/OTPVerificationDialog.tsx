@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'react-router-dom';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
 import { useTranslation } from '@/hooks/useI18n';
-import { apiClient } from '@/lib/api';
 
 interface OTPVerificationDialogProps {
   isOpen: boolean;
@@ -74,24 +73,6 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
       };
 
       const response = await verifyOTP(verifyPayload);
-      
-      // Create user consent if this is not a guardian flow and user was created
-      if (!isGuardianFlow && response?.user?.id) {
-        try {
-          await apiClient.createUserConsent({
-            entityId: response.user.id,
-            consentType: 'account'
-          });
-        } catch (consentError) {
-          console.error('Error creating user consent:', consentError);
-          // Don't block the flow if consent creation fails
-          toast({
-            title: t('toastMessages.warning', 'Warning'),
-            description: 'Account created but consent could not be recorded. Please contact support.',
-            variant: "default"
-          });
-        }
-      }
       
       // Clear OTP input
       setOtp('');

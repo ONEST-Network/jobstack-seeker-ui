@@ -279,6 +279,56 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  async getGuardianDetails() {
+    return this.request<{
+      status: boolean;
+      guardian?: {
+        id: string;
+        userId: string;
+        userEmail: string | null;
+        userPhone: string | null;
+        guardianName: string;
+        guardianEmail: string | null;
+        guardianPhone: string | null;
+        termsAccepted: boolean;
+        privacyAccepted: boolean;
+        createdAt: string;
+        updatedAt: string;
+      };
+    }>('/consent/guardian', {
+      method: 'GET',
+    });
+  }
+
+  async requestMinorJobApplicationConsent(data: {
+    profileId: string;
+    guardianId: string;
+  }) {
+    return this.request<{
+      id: string;
+      profileId: string;
+      guardianId: string;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    }>('/consent/minor/job-application', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async verifyMinorJobApplicationConsent(data: {
+    id: string;
+    otp: string;
+    termsAccepted: boolean;
+    privacyAccepted: boolean;
+  }) {
+    return this.request('/consent/minor/job-application', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
   async createProfile(profileData: {
     type: string;
     metadata: {
@@ -2160,6 +2210,7 @@ export interface SessionResponse {
     image?: string;
     createdAt: string;
     updatedAt: string;
+    isMinor?: boolean;
   } | null;
 }
 

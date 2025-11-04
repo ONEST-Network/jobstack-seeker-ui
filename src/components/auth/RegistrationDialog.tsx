@@ -104,21 +104,21 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
     return input;
   };
 
-  // Handle pre-filled contact information
+  // Handle pre-filled contact information - store for minor registration only
+  // Don't auto-fill guardian form fields
   useEffect(() => {
     if (preFilledEmail) {
-      setEmail(preFilledEmail);
+      // Store for minor registration only, don't set guardian email
+      setMinorUserEmail(preFilledEmail);
+      setEmail('');
       setPhone('');
       setFormattedPhone('');
-      // Store for minor registration
-      setMinorUserEmail(preFilledEmail);
     } else if (preFilledPhone) {
-      setPhone(preFilledPhone);
-      setEmail('');
-      const formatted = formatPhoneNumber(preFilledPhone);
-      setFormattedPhone(formatted);
-      // Store for minor registration
+      // Store for minor registration only, don't set guardian phone
       setMinorUserPhone(preFilledPhone);
+      setEmail('');
+      setPhone('');
+      setFormattedPhone('');
     }
   }, [preFilledEmail, preFilledPhone]);
   

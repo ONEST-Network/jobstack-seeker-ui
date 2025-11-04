@@ -29,6 +29,7 @@ export interface User {
     role: string;
     type: string;
   }>;
+  isMinor?: boolean;
 }
 
 export interface UserProfile {
@@ -293,6 +294,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             image: backendUser.image,
             createdAt: backendUser.createdAt,
             updatedAt: backendUser.updatedAt,
+            isMinor: backendUser.isMinor, // Extract isMinor flag from session
             managedEmployers: [],
             selectedEmployerId: undefined,
             managedCandidates: [],
@@ -1218,6 +1220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           image: backendUser.image,
           createdAt: backendUser.createdAt,
           updatedAt: backendUser.updatedAt,
+          isMinor: backendUser.isMinor, // Extract isMinor flag from session
           managedEmployers: [],
           selectedEmployerId: undefined,
           managedCandidates: [],

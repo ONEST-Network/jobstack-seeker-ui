@@ -11,6 +11,11 @@ import DynamicFormStep from '@/components/profile/DynamicFormStep';
 import { JobApplicationData } from '@/hooks/useJobApplication';
 import { getUnifiedSchema } from '@/schemas';
 import { useTranslation } from '@/hooks/useI18n';
+import { apiClient } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+import GuardianVerificationModal from './GuardianVerificationModal';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface ConsolidatedJobApplicationProps {
   isOpen: boolean;
@@ -36,6 +41,11 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
   const { user } = useAuth();
   const { profile, setProfile } = useProfileForm();
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [showGuardianModal, setShowGuardianModal] = useState(false);
+  const [guardianDetails, setGuardianDetails] = useState<any>(null);
+  const [pendingApplicationData, setPendingApplicationData] = useState<JobApplicationData | null>(null);
+  const [profileConsentAccepted, setProfileConsentAccepted] = useState(false);
+  const { toast } = useToast();
   const t = useTranslation('jobApplication');
 
   // Helper function to map job title to role name
@@ -178,6 +188,10 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
     }
   }, [isOpen, selectedProfile, isDataLoaded, setProfile]);
 
+  const submitApplication = async (applicationData: JobApplicationData) => {
+    await onSubmit(applicationData);
+  };
+
   const handleSubmit = async () => {
     const applicationData: JobApplicationData = {
       name: profile.name || profile.whoIAm?.name || user?.name || '',
@@ -209,8 +223,76 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
         ...profile
       }
     };
+
+    // Check if user is a minor
+    if (user?.isMinor === true) {
+      try {
+        // Call guardian details API
+        const guardianResponse = await apiClient.getGuardianDetails();
+        
+        if (guardianResponse.status === true && guardianResponse.guardian) {
+          // User has a guardian - show verification modal
+          setGuardianDetails(guardianResponse.guardian);
+          setPendingApplicationData(applicationData);
+          setShowGuardianModal(true);
+          return; // Don't submit yet, wait for guardian verification
+        } else {
+          // No guardian found - proceed with normal application flow
+          // (non-minor consent flow will be handled by backend)
+          await submitApplication(applicationData);
+        }
+      } catch (error) {
+        console.error('Error checking guardian details:', error);
+        // If guardian check fails, proceed with application (non-blocking)
+        toast({
+          title: 'Warning',
+          description: 'Could not verify guardian consent. Proceeding with application.',
+          variant: 'default'
+        });
+        await submitApplication(applicationData);
+      }
+    } else {
+      // User is not a minor - check if consent checkbox is checked
+      if (!profileConsentAccepted) {
+        toast({
+          title: 'Consent Required',
+          description: 'Please accept the consent checkbox to proceed with the application.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Create user consent before submitting application
+      try {
+        if (selectedProfile?.id) {
+          await apiClient.createUserConsent({
+            entityId: selectedProfile.id,
+            consentType: 'profile'
+          });
+        }
+      } catch (consentError) {
+        console.error('Error creating user consent:', consentError);
+        // Don't block the flow if consent creation fails
+        toast({
+          title: 'Warning',
+          description: 'Could not record consent. Proceeding with application.',
+          variant: 'default'
+        });
+      }
+
+      // Proceed with normal application
+      await submitApplication(applicationData);
+    }
+  };
+
+  const handleGuardianVerificationSuccess = async () => {
+    setShowGuardianModal(false);
     
-    await onSubmit(applicationData);
+    // After guardian verification succeeds, proceed with application submission
+    if (pendingApplicationData) {
+      await submitApplication(pendingApplicationData);
+      setPendingApplicationData(null);
+    }
   };
 
   const handleSaveDraft = async () => {
@@ -334,101 +416,136 @@ const ConsolidatedJobApplicationContent: React.FC<ConsolidatedJobApplicationProp
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-4xl h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
-            Application for {jobTitle}
-          </DialogTitle>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <User className="h-4 w-4" />
-            <span>Profile: {selectedProfile?.nickname || selectedProfile?.name}</span>
-            {selectedProfile?.interestedRole && (
-              <>
-                <span>•</span>
-                <span>{selectedProfile.interestedRole}</span>
-              </>
-            )}
-          </div>
-        </DialogHeader>
-        
-        <div className="flex-1 overflow-y-auto py-4 space-y-6">
-          {/* Profile Information Display */}
-          <div className="space-y-4">
-            {renderProfileSection(
-              "Who I Am",
-              profile.whoIAm,
-              <User className="h-5 w-5" />
-            )}
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="w-full max-w-4xl h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">
+              Application for {jobTitle}
+            </DialogTitle>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <User className="h-4 w-4" />
+              <span>Profile: {selectedProfile?.nickname || selectedProfile?.name}</span>
+              {selectedProfile?.interestedRole && (
+                <>
+                  <span>•</span>
+                  <span>{selectedProfile.interestedRole}</span>
+                </>
+              )}
+            </div>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto py-4 space-y-6">
+            {/* Profile Information Display */}
+            <div className="space-y-4">
+              {renderProfileSection(
+                "Who I Am",
+                profile.whoIAm,
+                <User className="h-5 w-5" />
+              )}
 
-            {renderProfileSection(
-              "What I Have",
-              profile.whatIHave,
-              <Briefcase className="h-5 w-5" />
-            )}
+              {renderProfileSection(
+                "What I Have",
+                profile.whatIHave,
+                <Briefcase className="h-5 w-5" />
+              )}
 
-            {renderProfileSection(
-              "What I Want",
-              profile.whatIWant,
-              <Target className="h-5 w-5" />
-            )}
-          </div>
+              {renderProfileSection(
+                "What I Want",
+                profile.whatIWant,
+                <Target className="h-5 w-5" />
+              )}
+            </div>
 
-          {/* Job Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Job Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-3 rounded-lg bg-blue-50">
-                  <div className="text-sm font-medium text-muted-foreground">Job Title</div>
-                  <div className="text-base font-semibold">{jobTitle}</div>
-                </div>
-                {job.provider?.descriptor?.name && (
+            {/* Job Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Job Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-3 rounded-lg bg-blue-50">
-                    <div className="text-sm font-medium text-muted-foreground">Company</div>
-                    <div className="text-base font-semibold">{job.provider.descriptor.name}</div>
+                    <div className="text-sm font-medium text-muted-foreground">Job Title</div>
+                    <div className="text-base font-semibold">{jobTitle}</div>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="flex-shrink-0 border-t pt-4">
-          <div className="flex gap-3">
-            <Button 
-              onClick={handleSubmit} 
-              className="flex-1 h-12 text-base font-medium"
-              disabled={applying || savingDraft || !canSubmit()}
-            >
-              {applying ? t('actions.submitting', 'Submitting...') : t('actions.submit', 'Submit Application')}
-            </Button>
-            {/* Save Draft button disabled
-            {onSaveDraft && (
-              <Button 
-                onClick={handleSaveDraft} 
-                variant="secondary"
-                className="h-12 px-6 text-base font-medium"
-                disabled={applying || savingDraft || !canSubmit()}
-              >
-                {savingDraft ? 'Saving...' : 'Save Draft'}
-              </Button>
-            )}
-            */}
-            <Button 
-              variant="outline" 
-              onClick={onClose} 
-              className="h-12 px-8 text-base"
-              disabled={applying || savingDraft}
-            >
-              {t('actions.cancel', 'Cancel')}
-            </Button>
+                  {job.provider?.descriptor?.name && (
+                    <div className="p-3 rounded-lg bg-blue-50">
+                      <div className="text-sm font-medium text-muted-foreground">Company</div>
+                      <div className="text-base font-semibold">{job.provider.descriptor.name}</div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+
+          {/* Consent Checkbox for Non-Minor Users */}
+          {user?.isMinor !== true && (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="pt-6">
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="profile-consent"
+                    checked={profileConsentAccepted}
+                    onCheckedChange={(checked) => setProfileConsentAccepted(checked === true)}
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="profile-consent" className="text-sm leading-relaxed cursor-pointer">
+                    I consent to share my profile and application details with the selected Job Provider to enable this application. I understand that the Job Provider will handle this information under their own policies, and EkStep is not responsible for its use once shared.
+                  </Label>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="flex-shrink-0 border-t pt-4">
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleSubmit} 
+                className="flex-1 h-12 text-base font-medium"
+                disabled={applying || savingDraft || !canSubmit() || (user?.isMinor !== true && !profileConsentAccepted)}
+              >
+                {applying ? t('actions.submitting', 'Submitting...') : t('actions.submit', 'Submit Application')}
+              </Button>
+              {/* Save Draft button disabled
+              {onSaveDraft && (
+                <Button 
+                  onClick={handleSaveDraft} 
+                  variant="secondary"
+                  className="h-12 px-6 text-base font-medium"
+                  disabled={applying || savingDraft || !canSubmit()}
+                >
+                  {savingDraft ? 'Saving...' : 'Save Draft'}
+                </Button>
+              )}
+              */}
+              <Button 
+                variant="outline" 
+                onClick={onClose} 
+                className="h-12 px-8 text-base"
+                disabled={applying || savingDraft}
+              >
+                {t('actions.cancel', 'Cancel')}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {guardianDetails && (
+        <GuardianVerificationModal
+          isOpen={showGuardianModal}
+          onClose={() => {
+            setShowGuardianModal(false);
+            setGuardianDetails(null);
+            setPendingApplicationData(null);
+          }}
+          onSuccess={handleGuardianVerificationSuccess}
+          guardianDetails={guardianDetails}
+          profileId={selectedProfile?.id || ''}
+        />
+      )}
+    </>
   );
 };
 
