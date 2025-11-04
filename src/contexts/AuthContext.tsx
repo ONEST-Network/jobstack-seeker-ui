@@ -7,6 +7,7 @@ export interface User {
   email?: string;
   phone?: string;
   name?: string;
+  dateOfBirth?: string;
   role: 'individual' | 'organization';
   isVerified: boolean;
   emailVerified?: boolean;
@@ -288,6 +289,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: backendUser.email,
             phone: backendUser.phoneNumber, // Add phone number from session
             name: backendUser.name,
+            dateOfBirth: backendUser.dateOfBirth, // Add dateOfBirth from session
             role: 'individual', // Default to individual, will be updated based on profile data
             isVerified: backendUser.emailVerified,
             emailVerified: backendUser.emailVerified,
@@ -756,6 +758,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: backendUser.id,
           email: backendUser.email,
           name: backendUser.name,
+          dateOfBirth: backendUser.dateOfBirth, // Add dateOfBirth from response
           role: 'individual', // Default to individual, will be updated based on profile data
           isVerified: backendUser.emailVerified,
           emailVerified: backendUser.emailVerified,
@@ -1001,6 +1004,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: backendUser.email,
           phone: backendUser.phoneNumber,
           name: backendUser.name,
+          dateOfBirth: backendUser.dateOfBirth, // Add dateOfBirth from response
           role: 'individual',
           isVerified: backendUser.emailVerified || backendUser.phoneNumberVerified,
           emailVerified: backendUser.emailVerified,
@@ -1214,6 +1218,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: backendUser.email,
           phone: backendUser.phoneNumber, // Add phone number from session
           name: backendUser.name,
+          dateOfBirth: backendUser.dateOfBirth, // Add dateOfBirth from session
           role: 'individual', // Default to individual, will be updated based on profile data
           isVerified: backendUser.emailVerified,
           emailVerified: backendUser.emailVerified,

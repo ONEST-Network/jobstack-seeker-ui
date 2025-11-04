@@ -84,16 +84,42 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           return mergedProfile as any;
         });
       } else {
-        // For new profiles, start with completely fresh data
+        // For new profiles, prefill with user data from get-session
+        // Calculate age from dateOfBirth if available
+        // Check user.dateOfBirth directly from session response first, then user.profile.dateOfBirth
+        let dateOfBirthValue: string | undefined = undefined;
+        if (user?.dateOfBirth) {
+          dateOfBirthValue = user.dateOfBirth;
+        } else if (user?.profile && 'dateOfBirth' in user.profile && user.profile.dateOfBirth) {
+          dateOfBirthValue = user.profile.dateOfBirth;
+        }
+        
+        let calculatedAge: number | undefined = undefined;
+        if (dateOfBirthValue) {
+          try {
+            const birthDate = new Date(dateOfBirthValue);
+            if (!isNaN(birthDate.getTime())) {
+              const today = new Date();
+              calculatedAge = today.getFullYear() - birthDate.getFullYear();
+              const monthDiff = today.getMonth() - birthDate.getMonth();
+              if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                calculatedAge--;
+              }
+            }
+          } catch (error) {
+            console.error('Error calculating age from dateOfBirth:', error);
+          }
+        }
+        
         const freshProfile = {
-          // Who I Am data - start empty
-          name: '',
-          dateOfBirth: '',
-          age: undefined,
+          // Who I Am data - prefill with user data
+          name: user?.name || '',
+          dateOfBirth: dateOfBirthValue || '',
+          age: calculatedAge !== undefined ? calculatedAge : ((user?.profile && 'age' in user.profile) ? user.profile.age : undefined),
           gender: undefined,
           hometown: '',
           aadharNumber: '',
-          phone: '',
+          phone: user?.phone || '',
           currentLocation: '',
           desiredLocation: '',
           isNameVerified: false,
@@ -143,8 +169,13 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           assessmentScores: [],
           documentVerificationStatus: [],
           
-          // Unified schema support - start empty
-          whoIAm: {},
+          // Unified schema support - prefill whoIAm with user data
+          whoIAm: {
+            name: user?.name || '',
+            phone: user?.phone || '',
+            ...(calculatedAge !== undefined && { age: calculatedAge }),
+            ...(dateOfBirthValue && { dateOfBirth: dateOfBirthValue }),
+          },
           whatIHave: {},
           whatIWant: {},
           
@@ -167,7 +198,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       setShowVoiceDialog(false);
       setIsSaving(false);
     }
-  }, [isOpen, initialProfile, preSelectedRole, isUpdate, mode, setProfile]);
+  }, [isOpen, initialProfile, preSelectedRole, isUpdate, mode, setProfile, user]);
 
 
 

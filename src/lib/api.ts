@@ -2211,6 +2211,9 @@ export interface SessionResponse {
     createdAt: string;
     updatedAt: string;
     isMinor?: boolean;
+    dateOfBirth?: string;
+    termsAccepted?: boolean;
+    privacyAccepted?: boolean;
   } | null;
 }
 

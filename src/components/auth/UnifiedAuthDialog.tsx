@@ -464,7 +464,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           onClose={() => setShowRegisterDialog(false)}
           defaultRole={defaultRole}
           preFilledEmail={contactType === 'email' ? contactInput : undefined}
-          preFilledPhone={contactType === 'phone' ? contactInput : undefined}
+          preFilledPhone={contactType === 'phone' ? (formattedPhoneNumber || formatPhoneNumber(contactInput)) : undefined}
           dateOfBirth={dateOfBirth || undefined}
           isMinor={isMinor}
         />
