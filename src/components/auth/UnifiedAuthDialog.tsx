@@ -34,7 +34,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   const [showOTPDialog, setShowOTPDialog] = useState(false);
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
   const [showAgeVerificationDialog, setShowAgeVerificationDialog] = useState(false);
-  const [birthYear, setBirthYear] = useState<number | null>(null);
+  const [dateOfBirth, setDateOfBirth] = useState<string | null>(null);
   const [isMinor, setIsMinor] = useState(false);
   const [formattedPhoneNumber, setFormattedPhoneNumber] = useState('');
   
@@ -162,7 +162,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
         ? { email: contactInput }
         : { phoneNumber: formattedPhoneNumber || formatPhoneNumber(contactInput) };
 
-      // First, check if user exists
+      // First, check if user exists (without dateOfBirth for existing users)
       const checkResponse = await apiClient.checkUser(checkPayload);
       
       if (checkResponse.userExists) {
@@ -184,7 +184,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           setStep('initial');
         }
       } else {
-        // User doesn't exist - show age verification first
+        // User doesn't exist - show age verification first to collect date of birth
         setUserExists(false);
         setStep('age-verification');
         
@@ -215,7 +215,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     }
   };
 
-  const handleOTPSuccess = () => {
+  const handleOTPSuccess = (response?: any) => {
     setShowOTPDialog(false);
     onClose();
     toast({
@@ -233,16 +233,44 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     });
   };
 
-  const handleAgeVerificationContinue = (year: number, minor: boolean) => {
-    setBirthYear(year);
+  const handleAgeVerificationContinue = async (year: number, minor: boolean, fullDateOfBirth?: Date) => {
     setIsMinor(minor);
-    setShowAgeVerificationDialog(false);
-    setStep('register');
     
-    // Small delay before showing registration dialog
-    setTimeout(() => {
-      setShowRegisterDialog(true);
-    }, 100);
+    // Convert Date to ISO string for API
+    const dobString = fullDateOfBirth ? fullDateOfBirth.toISOString() : new Date(year, 0, 1).toISOString();
+    setDateOfBirth(dobString);
+    
+    setShowAgeVerificationDialog(false);
+    
+    // Now verify with backend by calling checkUser with dateOfBirth
+    try {
+      const checkPayload = {
+        ...(contactType === 'email' ? { email: contactInput } : { phoneNumber: formattedPhoneNumber || formatPhoneNumber(contactInput) }),
+        dateOfBirth: dobString
+      };
+      
+      const checkResponse = await apiClient.checkUser(checkPayload);
+      
+      // Update isMinor based on backend response if available
+      if (checkResponse.isMinor !== undefined) {
+        setIsMinor(checkResponse.isMinor);
+      }
+      
+      setStep('register');
+      
+      // Small delay before showing registration dialog
+      setTimeout(() => {
+        setShowRegisterDialog(true);
+      }, 100);
+    } catch (error) {
+      console.error('Error verifying age with backend:', error);
+      // Continue with local calculation if backend check fails
+      setStep('register');
+      
+      setTimeout(() => {
+        setShowRegisterDialog(true);
+      }, 100);
+    }
   };
 
   const handleClose = () => {
@@ -255,7 +283,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     setShowOTPDialog(false);
     setShowRegisterDialog(false);
     setShowAgeVerificationDialog(false);
-    setBirthYear(null);
+    setDateOfBirth(null);
     setIsMinor(false);
     setFormattedPhoneNumber('');
     
@@ -275,7 +303,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
       setShowOTPDialog(false);
       setShowRegisterDialog(false);
       setShowAgeVerificationDialog(false);
-      setBirthYear(null);
+      setDateOfBirth(null);
       setIsMinor(false);
       setFormattedPhoneNumber('');
     } else {
@@ -288,7 +316,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
       setShowOTPDialog(false);
       setShowRegisterDialog(false);
       setShowAgeVerificationDialog(false);
-      setBirthYear(null);
+      setDateOfBirth(null);
       setIsMinor(false);
       setFormattedPhoneNumber('');
     }
@@ -437,7 +465,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           defaultRole={defaultRole}
           preFilledEmail={contactType === 'email' ? contactInput : undefined}
           preFilledPhone={contactType === 'phone' ? contactInput : undefined}
-          birthYear={birthYear || undefined}
+          dateOfBirth={dateOfBirth || undefined}
           isMinor={isMinor}
         />
       )}

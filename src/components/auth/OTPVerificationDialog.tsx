@@ -8,16 +8,19 @@ import { useToast } from '@/hooks/use-toast';
 import { useParams } from 'react-router-dom';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
 import { useTranslation } from '@/hooks/useI18n';
+import { apiClient } from '@/lib/api';
 
 interface OTPVerificationDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (response?: any) => void;
   contactMethod: string;
   method: 'email' | 'phone';
   phoneNumber?: string;
   email?: string;
   name?: string;
+  dateOfBirth?: string;
+  isGuardianFlow?: boolean; // Indicates if this is guardian verification (skip user consent)
 }
 
 const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
@@ -28,7 +31,9 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
   method,
   phoneNumber,
   email,
-  name
+  name,
+  dateOfBirth,
+  isGuardianFlow = false
 }) => {
   const [otp, setOtp] = useState('');
   const [resendCountdown, setResendCountdown] = useState(0);
@@ -58,6 +63,7 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
         // Include both email and phoneNumber if they are provided, regardless of the primary method
         ...(email ? { email } : {}),
         ...(phoneNumber ? { phoneNumber } : {}),
+        ...(dateOfBirth ? { dateOfBirth } : {}),
         ...(orgSlug && orgSlug !== '0' ? {
           joinOrg: {
             join: true,
@@ -67,13 +73,31 @@ const OTPVerificationDialog: React.FC<OTPVerificationDialogProps> = ({
         } : {})
       };
 
-      await verifyOTP(verifyPayload);
+      const response = await verifyOTP(verifyPayload);
+      
+      // Create user consent if this is not a guardian flow and user was created
+      if (!isGuardianFlow && response?.user?.id) {
+        try {
+          await apiClient.createUserConsent({
+            entityId: response.user.id,
+            consentType: 'account'
+          });
+        } catch (consentError) {
+          console.error('Error creating user consent:', consentError);
+          // Don't block the flow if consent creation fails
+          toast({
+            title: t('toastMessages.warning', 'Warning'),
+            description: 'Account created but consent could not be recorded. Please contact support.',
+            variant: "default"
+          });
+        }
+      }
       
       // Clear OTP input
       setOtp('');
       
-      // Call success callback
-      onSuccess();
+      // Call success callback with response including OTP for guardian flow
+      onSuccess({ ...response, otp: otp });
       
       // Show success toast
       toast({

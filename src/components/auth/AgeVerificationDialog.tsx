@@ -3,20 +3,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+import { DateOfBirthPicker } from '@/components/ui/date-picker';
 import { Info, ArrowRight } from 'lucide-react';
 import { useTranslation } from '@/hooks/useI18n';
 
 interface AgeVerificationDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onContinue: (birthYear: number, isMinor: boolean) => void;
+  onContinue: (birthYear: number, isMinor: boolean, fullDateOfBirth?: Date) => void;
 }
 
 const AgeVerificationDialog: React.FC<AgeVerificationDialogProps> = ({ 
@@ -24,25 +18,25 @@ const AgeVerificationDialog: React.FC<AgeVerificationDialogProps> = ({
   onClose,
   onContinue 
 }) => {
-  const [birthYear, setBirthYear] = useState<number | null>(null);
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
+  const [isMinor, setIsMinor] = useState<boolean>(false);
   const t = useTranslation('auth');
 
-  // Generate years from 1945 to 2025
-  const years = Array.from({ length: 81 }, (_, i) => 2025 - i);
-
-  // Calculate if user is a minor (less than 18 years old)
-  const calculateAge = (year: number): number => {
-    return new Date().getFullYear() - year;
+  const handleDateChange = (date: Date | undefined) => {
+    setBirthDate(date);
   };
 
-  const isMinor = birthYear ? calculateAge(birthYear) < 18 : false;
+  const handleAgeValidation = (minor: boolean, age: number) => {
+    setIsMinor(minor);
+  };
 
   const handleContinue = () => {
-    if (!birthYear) {
+    if (!birthDate) {
       return;
     }
 
-    onContinue(birthYear, isMinor);
+    const birthYear = birthDate.getFullYear();
+    onContinue(birthYear, isMinor, birthDate);
   };
 
   return (
@@ -55,32 +49,26 @@ const AgeVerificationDialog: React.FC<AgeVerificationDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Birth Year Selection */}
+          {/* Birth Date Selection */}
           <div className="space-y-2">
-            <Label htmlFor="birth-year" className="text-sm font-medium">
-              {t('ageVerification.birthYearLabel', 'Select birth year')}
+            <Label htmlFor="birth-date" className="text-sm font-medium">
+              {t('ageVerification.birthDateLabel', 'Select date of birth')}
             </Label>
-            <Select
-              value={birthYear?.toString() || ''}
-              onValueChange={(value) => setBirthYear(parseInt(value))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t('ageVerification.birthYearPlaceholder', 'Select your birth year')} />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {years.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <DateOfBirthPicker
+              date={birthDate}
+              onDateChange={handleDateChange}
+              placeholder={t('ageVerification.birthDatePlaceholder', 'Select your date of birth')}
+              maxAge={100}
+              minAge={0}
+              onAgeValidation={handleAgeValidation}
+              className="w-full"
+            />
           </div>
 
           {/* Continue Button */}
           <Button 
             onClick={handleContinue}
-            disabled={!birthYear}
+            disabled={!birthDate}
             className="w-full"
           >
             {t('ageVerification.continue', 'Continue')}

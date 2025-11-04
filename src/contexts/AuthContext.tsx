@@ -227,6 +227,7 @@ interface AuthContextType {
     otp: string;
     name?: string;
     rememberMe?: boolean;
+    dateOfBirth?: string;
     joinOrg?: {
       join: boolean;
       orgSlug: string;
@@ -730,6 +731,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     otp: string;
     name?: string;
     rememberMe?: boolean;
+    dateOfBirth?: string;
     joinOrg?: {
       join: boolean;
       orgSlug: string;

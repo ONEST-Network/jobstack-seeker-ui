@@ -89,7 +89,6 @@ class ApiClient {
     phoneNumber?: string;
     email?: string;
     name?: string;
-    birthYear?: number;
   }): Promise<RequestOTPResponse> {
     return this.request('/auth/unified-otp/request', {
       method: 'POST',
@@ -100,7 +99,8 @@ class ApiClient {
   async checkUser(data: {
     phoneNumber?: string;
     email?: string;
-  }): Promise<{ userExists: boolean }> {
+    dateOfBirth?: string;
+  }): Promise<{ userExists: boolean; isMinor?: boolean }> {
     return this.request('/auth/unified-otp/check-user', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -113,7 +113,7 @@ class ApiClient {
     otp: string;
     name?: string;
     rememberMe?: boolean;
-    birthYear?: number;
+    dateOfBirth?: string;
     joinOrg?: {
       join: boolean;
       orgSlug: string;
@@ -121,7 +121,27 @@ class ApiClient {
     };
     createAdmin?: boolean;
   }) {
-    const response = await this.request<{ token: string; user: any; redirect: string }>('/auth/unified-otp/verify', {
+    const response = await this.request<{ 
+      token: string; 
+      user: {
+        id: string;
+        name?: string;
+        email?: string;
+        emailVerified?: boolean;
+        phoneNumber?: string;
+        phoneNumberVerified?: boolean;
+        dateOfBirth?: string;
+        termsAccepted?: boolean;
+        privacyAccepted?: boolean;
+        isMinor?: boolean;
+        [key: string]: any;
+      }; 
+      redirect: string;
+      afterUserCreate?: {
+        status: boolean;
+        consentId?: string;
+      };
+    }>('/auth/unified-otp/verify', {
       method: 'POST',
       body: JSON.stringify({
         ...data,
@@ -209,7 +229,56 @@ class ApiClient {
     });
   }
 
-  // Profile creation method
+  // Consent API methods
+  async createUserConsent(data: {
+    entityId: string;
+    consentType: string;
+  }) {
+    return this.request('/consent/user/create', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createGuardianConsent(data: {
+    userEmail?: string;
+    userPhone?: string;
+    guardianName: string;
+    guardianEmail?: string;
+    guardianPhone?: string;
+  }) {
+    return this.request<{
+      success: boolean;
+      consent: {
+        id: string;
+        userId: string | null;
+        userEmail: string | null;
+        userPhone: string | null;
+        guardianName: string;
+        guardianEmail: string | null;
+        guardianPhone: string | null;
+        termsAccepted: boolean;
+        privacyAccepted: boolean;
+        createdAt: string;
+        updatedAt: string;
+      };
+    }>('/consent/guardian/create', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async verifyGuardianConsent(data: {
+    id: string;
+    otp: string;
+    termsAccepted: boolean;
+    privacyAccepted: boolean;
+  }) {
+    return this.request('/consent/guardian/verify', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
   async createProfile(profileData: {
     type: string;
     metadata: {
