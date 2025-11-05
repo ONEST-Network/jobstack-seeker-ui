@@ -269,7 +269,7 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       
       // Check age in both legacy and unified schema structures
       const age = profile.age || profile.whoIAm?.age;
-      if (!age || age < 18 || age > 65) {
+      if (!age || age < 14 || age > 65) {
         missingFields.push("Age");
       }
       
