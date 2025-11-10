@@ -210,24 +210,33 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   const handleProfileCreated = (newProfile: any) => {
     console.log('ProfileSelectionModal: handleProfileCreated called with profile:', newProfile.id, newProfile.name);
     
-    // In the new integrated flow, the profile creation and application submission happen together
-    // in CandidateProfileDialog, so we don't need the complex localStorage intent system anymore.
-    // We just need to handle the callback and show success message.
-    
-    // Show success message - this will be overridden by CandidateProfileDialog if application succeeds
-    toast({
-      title: "Profile Created Successfully!",
-      description: "Your profile has been created successfully.",
-      duration: 2000,
-    });
-    
-    // Close the dialogs
-    setShowCandidateDialog(false);
-    onClose(); // Close the profile selection modal as well
-    
-    // Page reload will happen automatically due to preventReload=false in CandidateProfileDialog
-    // In the new flow, if application submission was successful, the user will see the success message
-    // and be redirected appropriately. If application failed, they can try again manually.
+    // In apply flow, after creating a new profile, we need to show consent UI before submitting
+    // Select the newly created profile and navigate to ConsolidatedJobApplication which handles consent
+    if (newProfile) {
+      // Select the newly created profile
+      selectCandidate(newProfile.id);
+      console.log('ProfileSelectionModal: Selected newly created profile:', newProfile.id);
+      
+      // Refresh profile data to ensure the new profile is available
+      refreshProfileData().then(() => {
+        // Close the candidate dialog
+        setShowCandidateDialog(false);
+        
+        // Trigger navigation to ConsolidatedJobApplication with consent UI
+        // This will show consent checkbox for major users or guardian verification for minor users
+        console.log('ProfileSelectionModal: Navigating to ConsolidatedJobApplication with consent UI');
+        onProfileSelected(newProfile);
+      }).catch((error) => {
+        console.error('ProfileSelectionModal: Error refreshing profile data:', error);
+        // Still proceed with navigation even if refresh fails
+        setShowCandidateDialog(false);
+        onProfileSelected(newProfile);
+      });
+    } else {
+      // Fallback: if no profile provided, just close the dialog
+      console.warn('ProfileSelectionModal: handleProfileCreated called without profile');
+      setShowCandidateDialog(false);
+    }
   };
 
 
