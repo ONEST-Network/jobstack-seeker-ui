@@ -7,6 +7,7 @@ export interface User {
   email?: string;
   phone?: string;
   name?: string;
+  dateOfBirth?: string;
   role: 'individual' | 'organization';
   isVerified: boolean;
   emailVerified?: boolean;
@@ -29,6 +30,7 @@ export interface User {
     role: string;
     type: string;
   }>;
+  isMinor?: boolean;
 }
 
 export interface UserProfile {
@@ -227,6 +229,7 @@ interface AuthContextType {
     otp: string;
     name?: string;
     rememberMe?: boolean;
+    dateOfBirth?: string;
     joinOrg?: {
       join: boolean;
       orgSlug: string;
@@ -286,12 +289,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: backendUser.email,
             phone: backendUser.phoneNumber, // Add phone number from session
             name: backendUser.name,
+            dateOfBirth: backendUser.dateOfBirth, // Add dateOfBirth from session
             role: 'individual', // Default to individual, will be updated based on profile data
             isVerified: backendUser.emailVerified,
             emailVerified: backendUser.emailVerified,
             image: backendUser.image,
             createdAt: backendUser.createdAt,
             updatedAt: backendUser.updatedAt,
+            isMinor: backendUser.isMinor, // Extract isMinor flag from session
             managedEmployers: [],
             selectedEmployerId: undefined,
             managedCandidates: [],
@@ -730,6 +735,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     otp: string;
     name?: string;
     rememberMe?: boolean;
+    dateOfBirth?: string;
     joinOrg?: {
       join: boolean;
       orgSlug: string;
@@ -752,6 +758,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: backendUser.id,
           email: backendUser.email,
           name: backendUser.name,
+          dateOfBirth: backendUser.dateOfBirth, // Add dateOfBirth from response
           role: 'individual', // Default to individual, will be updated based on profile data
           isVerified: backendUser.emailVerified,
           emailVerified: backendUser.emailVerified,
@@ -997,6 +1004,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: backendUser.email,
           phone: backendUser.phoneNumber,
           name: backendUser.name,
+          dateOfBirth: backendUser.dateOfBirth, // Add dateOfBirth from response
           role: 'individual',
           isVerified: backendUser.emailVerified || backendUser.phoneNumberVerified,
           emailVerified: backendUser.emailVerified,
@@ -1210,12 +1218,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: backendUser.email,
           phone: backendUser.phoneNumber, // Add phone number from session
           name: backendUser.name,
+          dateOfBirth: backendUser.dateOfBirth, // Add dateOfBirth from session
           role: 'individual', // Default to individual, will be updated based on profile data
           isVerified: backendUser.emailVerified,
           emailVerified: backendUser.emailVerified,
           image: backendUser.image,
           createdAt: backendUser.createdAt,
           updatedAt: backendUser.updatedAt,
+          isMinor: backendUser.isMinor, // Extract isMinor flag from session
           managedEmployers: [],
           selectedEmployerId: undefined,
           managedCandidates: [],

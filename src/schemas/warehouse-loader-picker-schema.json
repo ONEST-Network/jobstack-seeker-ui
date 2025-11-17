@@ -45,7 +45,7 @@
           "type": "integer",
           "title": "Age",
           "description": "Your age",
-          "minimum": 18,
+          "minimum": 14,
           "maximum": 65,
           "ui:widget": "number",
           "ui:placeholder": "Enter your age",
