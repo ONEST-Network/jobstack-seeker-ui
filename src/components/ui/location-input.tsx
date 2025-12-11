@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { MapPin, AlertCircle, CheckCircle, Search } from 'lucide-react';
+import { MapPin, AlertCircle, CheckCircle, Search, Map } from 'lucide-react';
 import { parseLocationString, validateLocationForAPI, getCurrentLocation, formatLocationForDisplay, type LocationData } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { PlacesPrediction } from '@/services/mapService';
 
 interface LocationInputProps {
@@ -20,6 +21,9 @@ interface LocationInputProps {
   externalValidation?: { isValid: boolean; errors: string[] };
   onValidationChange?: (validation: { isValid: boolean; errors: string[] }) => void;
   onValidationSuccess?: () => void; // Callback when validation becomes valid
+  // Map selection props
+  enableMapSelection?: boolean;
+  onMapSelectClick?: () => void;
 }
 
 export const LocationInput: React.FC<LocationInputProps> = ({
@@ -33,7 +37,9 @@ export const LocationInput: React.FC<LocationInputProps> = ({
   className = "",
   externalValidation,
   onValidationChange,
-  onValidationSuccess
+  onValidationSuccess,
+  enableMapSelection = false,
+  onMapSelectClick
 }) => {
   const [isDetecting, setIsDetecting] = useState(false);
   const [internalValidation, setInternalValidation] = useState<{ isValid: boolean; errors: string[] }>({ isValid: true, errors: [] });
@@ -41,6 +47,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
@@ -256,32 +263,48 @@ export const LocationInput: React.FC<LocationInputProps> = ({
           value={value}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => value.length >= 4 && suggestions.length > 0 && setShowSuggestions(true)}
-          placeholder={placeholder}
+          placeholder={placeholder || (enableMapSelection ? "Type to search, tap map pin for current location, or click map icon" : "Enter your location (e.g., Bangalore, Karnataka)")}
           disabled={disabled || isDetecting}
-          className={`pr-20 ${validation.isValid ? '' : 'border-red-500'}`}
+          className={`${enableMapSelection ? 'pr-24' : 'pr-20'} ${validation.isValid ? '' : 'border-red-500'}`}
         />
         
-        {isLoadingSuggestions && (
-          <div className="absolute right-12 top-1/2 transform -translate-y-1/2">
-            <Search className="h-4 w-4 animate-spin" />
-          </div>
-        )}
-        
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleLocationDetection}
-          disabled={disabled || isDetecting}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
-          title="Get current location"
-        >
-          {isDetecting ? (
-            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-          ) : (
-            <MapPin className="h-4 w-4" />
+        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1 bg-white px-1">
+          {isLoadingSuggestions && (
+            <Search className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'} animate-spin text-gray-400`} />
           )}
-        </Button>
+          {enableMapSelection && onMapSelectClick && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMapSelectClick();
+              }}
+              disabled={disabled || isDetecting}
+              className={`${isMobile ? 'p-2 -m-2' : 'p-1 -m-1'} touch-manipulation`}
+              title="Select location on map"
+              aria-label="Select location on map"
+            >
+              <Map 
+                className={`${isMobile ? 'h-6 w-6' : 'h-5 w-5 md:h-4 md:w-4'} text-green-600 hover:text-green-700 transition-colors`} 
+              />
+            </button>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleLocationDetection}
+            disabled={disabled || isDetecting}
+            className={`h-8 w-8 p-0 ${isMobile ? 'h-10 w-10' : ''}`}
+            title="Get current location"
+          >
+            {isDetecting ? (
+              <div className={`animate-spin ${isMobile ? 'h-5 w-5' : 'h-4 w-4'} border-2 border-current border-t-transparent rounded-full`} />
+            ) : (
+              <MapPin className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'}`} />
+            )}
+          </Button>
+        </div>
 
         {/* Suggestions Dropdown */}
         {showSuggestions && suggestions.length > 0 && (
