@@ -8,18 +8,19 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { MapPin, Upload, QrCode, Shield, Lock, Loader2 } from 'lucide-react';
+import { MapPin, Upload, QrCode, Shield, Lock, Loader2, Map } from 'lucide-react';
 import WalletImportModal from './WalletImportModal';
 import QRCodeScannerDialog from './QRCodeScannerDialog';
 import { FileUploadField } from '@/components/ui/file-upload-field';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getSchema, getSchemaDescription } from '@/schemas';
-import { getCurrentLocation, parseLocationString, formatLocationForDisplay } from '@/lib/utils';
+import { getCurrentLocation, parseLocationString, formatLocationForDisplay, type LocationData } from '@/lib/utils';
 import { LocationInput } from '@/components/ui/location-input';
 import { useITIAutoFill } from '@/hooks/useITIAutoFill';
 import { ITIInstituteDropdown } from '@/components/ui/iti-institute-dropdown';
 import CertificateDisplay from '@/components/ui/certificate-display';
+import MapLocationSelector from './MapLocationSelector';
 
 interface DynamicFormStepProps {
   stepName: string;
@@ -37,6 +38,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
   const [dropdownStates, setDropdownStates] = React.useState<Record<string, boolean>>({});
   const dropdownRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const [searchQueries, setSearchQueries] = React.useState<Record<string, string>>({});
+  const [mapSelectorState, setMapSelectorState] = React.useState<{ isOpen: boolean; fieldName: string }>({ isOpen: false, fieldName: '' });
 
   // Use the ITI auto-fill hook
   useITIAutoFill({ profile, setProfile, role });
@@ -680,6 +682,39 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
           const fieldKey = `${stepName}.${fieldName}`;
           const currentValidation = fieldValidations[fieldKey];
           
+          // Get initial location data for map selector
+          const getInitialLocationData = (): LocationData | null => {
+            const stepProfile = profile[stepName as keyof typeof profile] as Record<string, unknown> | undefined;
+            const locationData = stepProfile?.[`${fieldName}Data`];
+            if (locationData && typeof locationData === 'object' && 'lat' in locationData && 'lng' in locationData) {
+              return locationData as LocationData;
+            }
+            return null;
+          };
+
+          const handleMapLocationSelect = (locationData: LocationData) => {
+            const displayLocation = formatLocationForDisplay(locationData);
+            handleFieldChange(fieldName, displayLocation);
+            
+            // Store the full location data for API use
+            setProfile(prevProfile => ({
+              ...prevProfile,
+              [stepName]: {
+                ...prevProfile[stepName],
+                [`${fieldName}Data`]: locationData
+              }
+            }));
+
+            // Update validation
+            const fieldKey = `${stepName}.${fieldName}`;
+            setFieldValidation(fieldKey, { isValid: true, errors: [] });
+
+            toast({
+              title: "Location selected",
+              description: `Selected: ${displayLocation}`,
+            });
+          };
+          
           return (
             <div key={fieldName} className="space-y-2">
               <LocationInput
@@ -708,6 +743,8 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                     setFieldValidation(fieldKey, { isValid: true, errors: [] });
                   }
                 }}
+                enableMapSelection={!isVerified}
+                onMapSelectClick={() => setMapSelectorState({ isOpen: true, fieldName })}
               />
               
               {/* Verification indicators */}
@@ -720,6 +757,17 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
               
               {fieldConfig.description && (
                 <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
+              )}
+
+              {/* Map Location Selector Dialog */}
+              {mapSelectorState.fieldName === fieldName && (
+                <MapLocationSelector
+                  isOpen={mapSelectorState.isOpen}
+                  onClose={() => setMapSelectorState({ isOpen: false, fieldName: '' })}
+                  onLocationSelect={handleMapLocationSelect}
+                  initialLocation={getInitialLocationData()}
+                  title={`Select ${fieldConfig.title}`}
+                />
               )}
             </div>
           );
