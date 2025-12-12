@@ -2,6 +2,15 @@ import { parseLocationString, LocationData, validateLocationForAPI } from './uti
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
 
+// Beckn Context interface for BAP/BPP information
+export interface BecknContext {
+  bap_id: string;
+  bap_uri: string;
+  bpp_id: string;
+  bpp_uri: string;
+  transaction_id?: string;
+}
+
 // API Client configuration
 class ApiClient {
   private baseUrl: string;
@@ -749,7 +758,8 @@ class ApiClient {
     jobId: string;
     userId: string;
     profileId?: string; // Profile ID to use as the primary identifier for the application
-    jobDetails?: any; // Job details from BAP search API response
+    jobDetails?: any; // Job details from BAP search API response (should contain context)
+    context?: BecknContext; // Optional context parameter (takes precedence over jobDetails.context)
     userData: {
       name: string;
       age?: string;
@@ -780,16 +790,26 @@ class ApiClient {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v1/apply`;
     
-    // Use provided transaction ID or generate a new one
-    const transactionId = applyData.transactionId || `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Extract context from passed context parameter or jobDetails.context
+    const context = applyData.context || applyData.jobDetails?.context;
+    
+    // Validate context exists and has required fields
+    if (!context || !context.bap_id || !context.bap_uri || !context.bpp_id || !context.bpp_uri) {
+      throw new Error('Missing BAP/BPP context from search response. Please refresh the job listing and try again.');
+    }
+    
+    // Use provided transaction ID, context transaction_id, or generate a new one
+    const transactionId = applyData.transactionId || context.transaction_id || `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     // Use profileId as the primary identifier for the application, fallback to userId if no profileId
     const applicationId = applyData.profileId || applyData.userId;
     
     const payload = {
       context: {
-        bpp_id: "bpp1.dhiway.com",
-        bpp_uri: "https://beckn-adapter.dhiway.net/bpp/receiver",
+        bap_id: context.bap_id,
+        bap_uri: context.bap_uri,
+        bpp_id: context.bpp_id,
+        bpp_uri: context.bpp_uri,
         transaction_id: transactionId
       },
       message: {
@@ -983,7 +1003,8 @@ class ApiClient {
     jobId: string;
     userId: string;
     profileId?: string; // Profile ID to use as the primary identifier for the application
-    jobDetails?: any; // Job details from BAP search API response
+    jobDetails?: any; // Job details from BAP search API response (should contain context)
+    context?: BecknContext; // Optional context parameter (takes precedence over jobDetails.context)
     userData: {
       name: string;
       age?: string;
@@ -1014,16 +1035,26 @@ class ApiClient {
     // Use the job-applications drafts endpoint as requested
     const url = `${BAP_URL}/api/v1/job-applications/drafts`;
 
-    // Generate a unique transaction ID
-    const transactionId = `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Extract context from passed context parameter or jobDetails.context
+    const context = applyData.context || applyData.jobDetails?.context;
+    
+    // Validate context exists and has required fields
+    if (!context || !context.bap_id || !context.bap_uri || !context.bpp_id || !context.bpp_uri) {
+      throw new Error('Missing BAP/BPP context from search response. Please refresh the job listing and try again.');
+    }
+
+    // Use context transaction_id or generate a new one
+    const transactionId = context.transaction_id || `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     // Use profileId as the primary identifier for the application, fallback to userId if no profileId
     const applicationId = applyData.profileId || applyData.userId;
 
     const payload = {
       context: {
-        bpp_id: "bpp1.dhiway.com",
-        bpp_uri: "https://beckn-adapter.dhiway.net/bpp/receiver",
+        bap_id: context.bap_id,
+        bap_uri: context.bap_uri,
+        bpp_id: context.bpp_id,
+        bpp_uri: context.bpp_uri,
         transaction_id: transactionId
       },
       message: {
@@ -1596,7 +1627,8 @@ class ApiClient {
     providerId: string;
     userId: string;
     profileId?: string; // Profile ID to use as the primary identifier for the application
-    jobDetails?: any; // Job details from BAP search API response
+    jobDetails?: any; // Job details from BAP search API response (should contain context)
+    context?: BecknContext; // Optional context parameter (takes precedence over jobDetails.context)
     userData: {
       name: string;
       age?: string;
@@ -1627,16 +1659,26 @@ class ApiClient {
     // Use the job-applications drafts update endpoint
     const url = `${BAP_URL}/api/v1/job-applications/drafts/${jobId}`;
 
-    // Generate a unique transaction ID
-    const transactionId = `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Extract context from passed context parameter or jobDetails.context
+    const context = applyData.context || applyData.jobDetails?.context;
+    
+    // Validate context exists and has required fields
+    if (!context || !context.bap_id || !context.bap_uri || !context.bpp_id || !context.bpp_uri) {
+      throw new Error('Missing BAP/BPP context from search response. Please refresh the job listing and try again.');
+    }
+
+    // Use context transaction_id or generate a new one
+    const transactionId = context.transaction_id || `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     // Use profileId as the primary identifier for the application, fallback to userId if no profileId
     const applicationId = applyData.profileId || applyData.userId;
 
     const payload = {
       context: {
-        bpp_id: "bpp1.dhiway.com",
-        bpp_uri: "https://beckn-adapter.dhiway.net/bpp/receiver",
+        bap_id: context.bap_id,
+        bap_uri: context.bap_uri,
+        bpp_id: context.bpp_id,
+        bpp_uri: context.bpp_uri,
         transaction_id: transactionId
       },
       message: {

@@ -306,7 +306,14 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
             descriptor: item.descriptor, // Preserve descriptor for job title
             jobDetails,
             tags,
-            media
+            media,
+            context: result.context ? {
+              bap_id: result.context.bap_id,
+              bap_uri: result.context.bap_uri,
+              bpp_id: result.context.bpp_id,
+              bpp_uri: result.context.bpp_uri,
+              transaction_id: result.context.transaction_id
+            } : undefined
           };
 
           transformedJobs.push(transformedJob);

@@ -83,6 +83,13 @@ export interface JobItem {
     };
     [key: string]: any;
   };
+  context?: {
+    bap_id: string;
+    bap_uri: string;
+    bpp_id: string;
+    bpp_uri: string;
+    transaction_id?: string;
+  };
 }
 
 export interface JobSearchResponse {
@@ -752,7 +759,14 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
             jobProviderLocation: jobProviderLocation,
             jobDetails,
             tags,
-            media
+            media,
+            context: result.context ? {
+              bap_id: result.context.bap_id,
+              bap_uri: result.context.bap_uri,
+              bpp_id: result.context.bpp_id,
+              bpp_uri: result.context.bpp_uri,
+              transaction_id: result.context.transaction_id
+            } : undefined
           };
 
           transformedJobs.push(transformedJob);
