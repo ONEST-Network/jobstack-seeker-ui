@@ -89,6 +89,13 @@ interface SharedJobData {
     };
     [key: string]: any;
   };
+  context?: {
+    bap_id: string;
+    bap_uri: string;
+    bpp_id: string;
+    bpp_uri: string;
+    transaction_id?: string;
+  };
 }
 
 const SharedJob: React.FC = () => {
@@ -322,6 +329,15 @@ const SharedJob: React.FC = () => {
         const item = data.message.order.items[0];
         const provider = data.message.order.provider;
         const tags = item.tags;
+        
+        // Extract context from selectJob response if available
+        const context = data.context ? {
+          bap_id: data.context.bap_id,
+          bap_uri: data.context.bap_uri,
+          bpp_id: data.context.bpp_id,
+          bpp_uri: data.context.bpp_uri,
+          transaction_id: data.context.transaction_id
+        } : undefined;
 
         // Transform the response to match our JobItem interface
         const transformedJob: SharedJobData = {
@@ -350,7 +366,8 @@ const SharedJob: React.FC = () => {
           jobProviderLocation: tags?.basicInfo?.jobProviderLocation,
           jobDetails: tags?.jobDetails || {},
           tags,
-          media: []
+          media: [],
+          context
         };
 
         // Extract media from job details
@@ -455,11 +472,16 @@ const SharedJob: React.FC = () => {
       const selectedCandidate = getSelectedCandidate();
       const profileId = selectedCandidate?.id || 'default';
 
+      // Extract context from jobData if available
+      const context = jobData?.context;
+      
       const response = await apiClient.applyToJobBAP({
         providerId,
         jobId,
         userId: user.id,
         profileId, // Use profile ID as the primary identifier for the application
+        jobDetails: jobData, // Pass jobData which may contain context
+        context, // Pass context separately for easier access
         userData: applicationData,
         profileData: applicationData.profileData
       });

@@ -88,12 +88,16 @@ export const useJobApplication = () => {
         throw new Error('Missing required application data (name or phone)');
       }
 
+      // Extract context from jobDetails if available
+      const context = jobDetails?.context;
+      
       const apiPayload = {
         providerId,
         jobId,
         userId: user.id,
         profileId, // Use profile ID as the primary identifier for the application
         jobDetails, // Pass job details from BAP search API response
+        context, // Pass context separately for easier access
         userData: applicationData,
         profileData: applicationData.profileData,
         transactionId // Pass the transaction ID if provided (for draft conversion)
@@ -185,12 +189,16 @@ export const useJobApplication = () => {
         'finalProfileId': profileId
       });
 
+      // Extract context from jobDetails if available
+      const context = jobDetails?.context;
+      
       const response = await apiClient.saveJobDraft({
         providerId,
         jobId,
         userId: user.id,
         profileId, // Use profile ID as the primary identifier
         jobDetails, // Pass job details from BAP search API response
+        context, // Pass context separately for easier access
         userData: {
           name: applicationData.name,
           age: applicationData.age,
@@ -255,11 +263,15 @@ export const useJobApplication = () => {
         'finalProfileId': profileId
       });
 
+      // Extract context from jobDetails if available
+      const context = jobDetails?.context;
+      
       const response = await apiClient.updateJobDraft(jobId, {
         providerId,
         userId: user.id,
         profileId, // Use profile ID as the primary identifier
         jobDetails, // Pass job details from BAP search API response
+        context, // Pass context separately for easier access
         userData: {
           name: applicationData.name,
           age: applicationData.age,
