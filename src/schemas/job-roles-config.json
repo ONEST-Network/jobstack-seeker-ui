@@ -59,6 +59,66 @@
     "Technical Support Technician": {
       "industry": "IT Support",
       "description": "Technical support and troubleshooting roles"
+    },
+    "Accounts Associate": {
+      "industry": "Finance",
+      "description": "Accounting and financial operations roles"
+    },
+    "Accounts Executive Trainee": {
+      "industry": "Finance",
+      "description": "Entry-level accounting and finance trainee roles"
+    },
+    "Junior Accountant": {
+      "industry": "Finance",
+      "description": "Junior level accounting and bookkeeping roles"
+    },
+    "Finance and Billing Coordinator": {
+      "industry": "Finance",
+      "description": "Finance coordination and billing operations roles"
+    },
+    "MIS/Reporting Executive": {
+      "industry": "Data Analysis",
+      "description": "Management Information Systems and reporting roles"
+    },
+    "Account Payable/Receivable Support Trainee": {
+      "industry": "Finance",
+      "description": "Accounts payable and receivable support trainee roles"
+    },
+    "Production Associate": {
+      "industry": "Manufacturing",
+      "description": "Manufacturing, production, and industrial roles"
+    },
+    "Production Trainee": {
+      "industry": "Manufacturing",
+      "description": "Entry-level production and manufacturing trainee roles"
+    },
+    "Manufacturing Trainee": {
+      "industry": "Manufacturing",
+      "description": "Trainee roles in manufacturing and industrial sectors"
+    },
+    "Graduate Engineer Trainee-Manufacturing": {
+      "industry": "Manufacturing",
+      "description": "Graduate trainee roles in production and manufacturing sectors"
+    },
+    "Assembly Trainee": {
+      "industry": "Manufacturing",
+      "description": "Trainee roles in assembly line and manufacturing processes"
+    },
+    "Machine Operator Trainee": {
+      "industry": "Manufacturing",
+      "description": "Trainee roles for operating and monitoring industrial machinery"
+    },
+    "QA-QC Technician Trainee": {
+      "industry": "Manufacturing",
+      "description": "Trainee roles in quality assurance and quality control"
+    },
+    "Packaging Operations Executive": {
+      "industry": "Manufacturing",
+      "description": "Roles in packaging operations and logistics"
+    },
+    "Plant Operations Executive": {
+      "industry": "Manufacturing",
+      "description": "Roles in plant operations and management"
     }
   } 
 }

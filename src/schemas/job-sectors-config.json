@@ -1,5 +1,26 @@
 {
   "sectors": {
+    "Garment Manufacturing": {
+      "description": "Manufacturing and garment industry positions",
+      "roles": [
+        "Industrial Tailor",
+        "Warehouse Loader & Picker"
+      ]
+    },
+    "Manufacturing and Industrial": {
+      "description": "Manufacturing, production, and industrial roles",
+      "roles": [
+        "Production Associate",
+        "Production Trainee",
+        "Manufacturing Trainee",
+        "Graduate Engineer Trainee-Manufacturing",
+        "Assembly Trainee",
+        "Machine Operator Trainee",
+        "QA-QC Technician Trainee",
+        "Packaging Operations Executive",
+        "Plant Operations Executive"
+      ]
+    },
     "Customer Facing": {
       "description": "Customer service and sales roles",
       "roles": [
