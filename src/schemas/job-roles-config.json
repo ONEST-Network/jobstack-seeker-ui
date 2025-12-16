@@ -39,6 +39,26 @@
     "ITI (Other)": {
       "industry": "Manufacturing",
       "description": "ITI (Industrial Training Institute) student roles and specializations"
+    },
+    "Customer Service Executive": {
+      "industry": "Customer Service",
+      "description": "Customer service and support roles"
+    },
+    "Call Center Representative": {
+      "industry": "Customer Service",
+      "description": "Call center and telecommunication support roles"
+    },
+    "Customer Support Associate": {
+      "industry": "Customer Service",
+      "description": "Customer support and assistance roles"
+    },
+    "Service Desk Coordinator": {
+      "industry": "Customer Service",
+      "description": "Service desk and IT support coordination roles"
+    },
+    "Technical Support Technician": {
+      "industry": "IT Support",
+      "description": "Technical support and troubleshooting roles"
     }
-  }
-} 
+  } 
+}

@@ -12,6 +12,11 @@ import welderSchema from './welder.json';
 import latheOperatorSchema from './lathe-operator.json';
 import jobRolesConfig from './job-roles-config.json';
 import jobSectorsConfig from './job-sectors-config.json';
+import customerServiceExecutiveSchema from './customer-service-executive.json';
+import callCenterRepresentativeSchema from './call-center-representative.json';
+import customerSupportAssociateSchema from './customer-support-associate.json';
+import serviceDeskCoordinatorSchema from './service-desk-coordinator.json';
+import technicalSupportTechnicianSchema from './technical-support-technician.json';
 
 export interface ProfileStepSchema {
   $schema: string;
@@ -99,6 +104,26 @@ export const getUnifiedSchema = (role?: string): any => {
   }
   if (role === 'Lathe Operator') {
     return latheOperatorSchema;
+  }
+
+  if (role === 'Customer Service Executive') {
+    return customerServiceExecutiveSchema;
+  }
+  if (role === 'Call Center Representative') {
+    return callCenterRepresentativeSchema;
+  }
+  if (role === 'Customer Support Associate') {
+    return customerSupportAssociateSchema;
+  }
+  if (role === 'Service Desk Coordinator') {
+    return serviceDeskCoordinatorSchema;
+  }
+  if (role === 'Technical Support Technician') {
+    return technicalSupportTechnicianSchema;
+  }
+  // For roles without specific schemas, fall back to Industrial Tailor
+  if (role === 'Field Sales Executive') {
+    return electricianSchema;
   }
   return null;
 };
