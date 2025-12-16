@@ -38,7 +38,13 @@
     "ITeS": {
       "description": "Information Technology enabled Services",
       "roles": [
-        "Data Entry Operator"
+        "Data Entry Operator",
+        "Accounts Associate",
+        "Accounts Executive Trainee",
+        "Junior Accountant",
+        "Finance and Billing Coordinator",
+        "MIS/Reporting Executive",
+        "Account Payable/Receivable Support Trainee"
       ]
     },
     "ITI/Polytechnic": {

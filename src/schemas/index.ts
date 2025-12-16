@@ -23,15 +23,6 @@ import juniorAccountantSchema from './junior-accountant.json';
 import financeAndBillingCoordinatorSchema from './finance-and-billing-coordinator.json';
 import misReportingExecutiveSchema from './mis-reporting-executive.json';
 import accountPayableOrReceivableSupportTraineeSchema from './account-payable-or-receivable-support-trainee.json';
-import productionAssociateSchema from './production-associate.json';
-import productionTraineeSchema from './production-trainee.json';
-import manufacturingTraineeSchema from './manufacturing-trainee.json';
-import graduateEngineerTraineeManufacturingSchema from './graduate-engineer-trainee-manufacturing.json';
-import assemblytraineeSchema from './assembly-trainee.json';
-import machineOperatorTraineeSchema from './machine-operator-trainee.json';
-import qaQcTechnicianTraineeSchema from './qa-qc-technician-trainee.json';
-import packagingOperationsExecutiveSchema from './packaging-operations-executive.json';
-import plantOperationsExecutiveSchema from './plant-operations-executive.json';
 
 export interface ProfileStepSchema {
   $schema: string;
@@ -153,33 +144,6 @@ export const getUnifiedSchema = (role?: string): any => {
   }
   if (role === 'Account Payable/Receivable Support Trainee') {
     return accountPayableOrReceivableSupportTraineeSchema;
-  }
-  if (role === 'Production Associate') {
-    return productionAssociateSchema;
-  }
-  if (role === 'Production Trainee') {
-    return productionTraineeSchema;
-  }
-  if (role === 'Manufacturing Trainee') {
-    return manufacturingTraineeSchema;
-  }
-  if (role === 'Graduate Engineer Trainee-Manufacturing') {
-    return graduateEngineerTraineeManufacturingSchema;
-  }
-  if (role === 'Assembly Trainee') {
-    return assemblytraineeSchema;
-  }
-  if (role === 'Machine Operator Trainee') {
-    return machineOperatorTraineeSchema;
-  }
-  if (role === 'QA-QC Technician Trainee') {
-    return qaQcTechnicianTraineeSchema;
-  }
-  if (role === 'Packaging Operations Executive') {
-    return packagingOperationsExecutiveSchema;
-  }
-  if (role === 'Plant Operations Executive') {
-    return plantOperationsExecutiveSchema;
   }
   // For roles without specific schemas, fall back to Industrial Tailor
   if (role === 'Field Sales Executive') {
