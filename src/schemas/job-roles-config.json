@@ -1,13 +1,5 @@
 {
   "jobRoles": {
-    "Industrial Tailor": {
-      "industry": "Textile Industry",
-      "description": "Manufacturing and garment industry positions"
-    },
-    "Warehouse Loader & Picker": {
-      "industry": "Warehousing Industry",
-      "description": "Logistics and warehouse operations"
-    },
     "Field Sales Executive": {
       "industry": "Sales",
       "description": "Sales and business development roles"
@@ -15,10 +7,6 @@
     "In Store Promoter": {
       "industry": "Retail",
       "description": "Retail and promotional activities"
-    },
-    "Recruitment Associate": {
-      "industry": "Human Resources",
-      "description": "HR and talent acquisition positions"
     },
     "Electrician": {
       "industry": "Manufacturing",
