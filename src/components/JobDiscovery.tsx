@@ -292,7 +292,6 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
                 onBlur={handleInputBlur}
                 onFocus={handleInputFocus}
                 className="pl-3 pr-20 h-touch text-base"
-                disabled={loading}
               />
               <div className="absolute right-1 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
                 {/* Clear button */}
