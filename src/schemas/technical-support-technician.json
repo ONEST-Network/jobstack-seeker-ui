@@ -150,8 +150,8 @@
             "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select qualifications",
             "ui:hasOther": true,
-            "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
-            "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"]
+            "enum": ["10th Pass", "12th Pass", "Graduate-B.Tech/B.E.", "Graduate - B.Com", "Graduate-B.A.", "Graduate-Other"],
+            "enumNames": ["10th Pass", "12th Pass", "Graduate-B.Tech/B.E.", "Graduate - B.Com", "Graduate-B.A.", "Graduate-Other"]
           },
           "taskVideo": {
             "type": "string",
@@ -175,6 +175,15 @@
         "title": "What I Want",
         "description": "Your salary expectations",
         "properties": {
+          "preferredWorkMode": {
+            "type": "array",
+            "title": "Preferred mode of work",
+            "description": "Select your preferred work arrangements",
+            "ui:widget": "multiselect-dropdown",
+            "ui:placeholder": "Select work modes",
+            "enum": ["Office", "Remote", "Travelling"],
+            "enumNames": ["Office", "Remote", "Travelling"]
+          },
           "monthlyInHandPreferred": {
             "type": "integer",
             "title": "Monthly In-hand Preferred (INR)",
@@ -188,7 +197,7 @@
           }
         },
         "ui": {
-          "order": ["monthlyInHandPreferred"],
+          "order": ["preferredWorkMode", "monthlyInHandPreferred"],
           "description": "Tell us about your salary expectations"
         }
       }
