@@ -1,19 +1,11 @@
 {
   "sectors": {
-    "Garment Manufacturing": {
-      "description": "Manufacturing and garment industry positions",
-      "roles": [
-        "Industrial Tailor",
-        "Warehouse Loader & Picker"
-      ]
-    },
     "Customer Facing": {
       "description": "Customer service and sales roles",
       "roles": [
         "Field Sales Person",
         "Tele Salesperson",
-        "In Store Promoter",
-        "Recruitment Associate"
+        "In Store Promoter"
       ]
     },
     "ITeS": {

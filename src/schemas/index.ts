@@ -1,6 +1,3 @@
-import industrialTailorSchema from './industrial-tailor-schema.json';
-import warehouseLoaderPickerSchema from './warehouse-loader-picker-schema.json';
-import recruitmentAssociateSchema from './recruitment-associate-schema.json';
 import inStorePromoterSchema from './in-store-promoter.json';
 import electricianSchema from './electrician.json';
 import fitterSchema from './fitter.json';
@@ -58,9 +55,6 @@ export interface ProfileStepSchema {
 }
 
 const schemas: Record<string, any> = {
-  'industrial-tailor': industrialTailorSchema,
-  'warehouse-loader-picker': warehouseLoaderPickerSchema,
-  'recruitment-associate': recruitmentAssociateSchema,
 };
 
 export const getSchema = (stepName: string, role?: string): ProfileStepSchema | null => {
@@ -70,15 +64,6 @@ export const getSchema = (stepName: string, role?: string): ProfileStepSchema | 
 };
 
 export const getUnifiedSchema = (role?: string): any => {
-  if (role === 'Industrial Tailor') {
-    return industrialTailorSchema;
-  }
-  if (role === 'Warehouse Loader & Picker') {
-    return warehouseLoaderPickerSchema;
-  }
-  if (role === 'Recruitment Associate') {
-    return recruitmentAssociateSchema;
-  }
   if (role === 'In Store Promoter') {
     return inStorePromoterSchema;
   }
@@ -114,10 +99,6 @@ export const getUnifiedSchema = (role?: string): any => {
   }
   if (role === 'Lathe Operator') {
     return latheOperatorSchema;
-  }
-  // For roles without specific schemas, fall back to Industrial Tailor
-  if (role === 'Field Sales Executive') {
-    return industrialTailorSchema;
   }
   return null;
 };
