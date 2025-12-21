@@ -90,8 +90,8 @@
           "items": {
             "type": "string"
           },
-          "enum": ["10th", "12th", "ITI","Diploma", "Graduate", "Other"],
-          "enumNames": ["10th Pass", "12th Pass", "ITI", "Diploma", "Graduate", "Other"],
+          "enum": ["10th Pass", "12th Pass", "ITI - Diploma", "Other"],
+          "enumNames": ["10th Pass", "12th Pass", "ITI - Diploma", "Other"],
           "ui:widget": "multiselect-dropdown",
           "ui:placeholder": "Select your highest qualification(s)",
           "ui:disabled": false,
@@ -473,12 +473,14 @@
           "ui:disabled": false
         },
         "trainingDuration": {
-          "type": "number",
-          "title": "Training Duration (Years)",
-          "description": "Enter your training duration in years",
+          "type": "string",
+          "title": "Duration of Study (Years)",
+          "description": "Select the duration of your study",
           "required": true,
-          "ui:widget": "number",
-          "ui:placeholder": "Enter your training duration in years",
+          "enum": ["1", "2", "Other"],
+          "enumNames": ["1", "2", "Other"],
+          "ui:widget": "select",
+          "ui:placeholder": "Select duration of study",
           "ui:disabled": false
         },
         "languageSpoken": {
@@ -623,12 +625,11 @@
           "items": {
             "type": "string"
           },
-          "enum": ["Full-time", "Contract", "On-site-no shift", "On-site-shift", "Remote","Hybrid", "Travelling", "Apprenticeship", "Okay to re-locate"],
-          "enumNames": ["Full-time", "Contract", "On-site-no shift", "On-site-shift", "Remote","Hybrid", "Travelling", "Apprenticeship", "Okay to re-locate"],
+          "enum": ["Office", "Remote", "Travelling"],
+          "enumNames": ["Office", "Remote", "Travelling"],
           "ui:widget": "multiselect-dropdown",
           "ui:placeholder": "Select preferred mode of work(s)",
-          "ui:disabled": false,
-          "ui:hasOther": true
+          "ui:disabled": false
         },
         "monthlyInHandPreferred": {
           "type": "integer",
