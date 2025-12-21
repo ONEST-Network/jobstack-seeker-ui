@@ -92,8 +92,8 @@
             "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select qualifications",
             "ui:hasOther": true,
-            "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
-            "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"]
+            "enum": ["ITI", "Diploma", "B.Tech", "Any Graduate"],
+            "enumNames": ["ITI", "Diploma", "B.Tech", "Any Graduate"]
           },
           "taskVideo": {
             "type": "string",
