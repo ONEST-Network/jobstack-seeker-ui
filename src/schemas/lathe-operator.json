@@ -277,7 +277,8 @@
                   "Welder (Structural) (NSQF)",
                   "Welder (Welding & Inspection) (NSQF)",
                   "Wireman (NSQF)",
-                  "Wood Work Technician (NSQF)"],
+                  "Wood Work Technician (NSQF)",
+                  "Other"],
             "enumNames": ["Additive Manufacturing Technician Three D Painting", "Additive Manufacturing Technician Three D Printing (NSQF)", "ADVANCED CNC MACHINING TECHNICIAN (NSQF)",
                   "Aeronautical Structure and Equipment Fitter (NSQF)",
                   "Agro Processing (NSQF)",
@@ -444,7 +445,8 @@
                   "Welder (Structural) (NSQF)",
                   "Welder (Welding & Inspection) (NSQF)",
                   "Wireman (NSQF)",
-                  "Wood Work Technician (NSQF)"],
+                  "Wood Work Technician (NSQF)",
+                  "Other"],
             "ui:widget": "multiselect-dropdown",
             "ui:placeholder": "Select your specialization(s)",
             "ui:disabled": false,
@@ -540,9 +542,16 @@
               "Urdu (اردو)"
             ]
           },
-  
+          "itiSpecialization_other": {
+            "type": "string",
+            "title": "Other Trade",
+            "description": "Please specify your trade",
+            "ui:widget": "text",
+            "ui:placeholder": "Enter your trade",
+            "ui:disabled": false
+          },
             "ui": {
-              "order": ["highestQualification", "workExperience", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "languageSpoken", "taskVideo", "qrCodeScan"],
+              "order": ["highestQualification", "workExperience", "itiSpecialization", "itiSpecialization_other", "rollNumber", "itiInstitute", "trainingDuration", "languageSpoken", "taskVideo", "qrCodeScan"],
               "description": "Assessment for Lathe Operator"
             }
           ,

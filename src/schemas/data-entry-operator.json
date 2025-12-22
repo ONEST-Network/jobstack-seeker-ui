@@ -137,8 +137,8 @@
             "ui:widget": "select",
             "ui:placeholder": "Select your highest qualification",
             "ui:hasOther": true,
-            "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"],
-            "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Graduate-Other", "Other"]
+            "enum": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Other"],
+            "enumNames": ["12th Pass", "Graduate-B.Tech/B.E.", "Graduate-MBA HR", "Other"]
           },
           "collegeName": {
             "type": "string",
