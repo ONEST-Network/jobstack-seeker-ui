@@ -92,8 +92,8 @@
             "ui:widget": "select",
             "ui:placeholder": "Select your highest qualification",
             "ui:hasOther": true,
-            "enum": ["ITI", "Diploma", "B.Tech", "Any Graduate"],
-            "enumNames": ["ITI", "Diploma", "B.Tech", "Any Graduate"]
+            "enum": ["ITI", "Diploma", "B.Tech", "Any Graduate", "Other"],
+            "enumNames": ["ITI", "Diploma", "B.Tech", "Any Graduate", "Other"]
           },
           "taskVideo": {
             "type": "string",
@@ -107,8 +107,8 @@
           },
           "itiSpecialization": {
             "type": "array",
-            "title": "ITI Trade",
-            "description": "What is your ITI Trade? (Select all that apply)",
+            "title": "Trade",
+            "description": "What is your Trade? (Select all that apply)",
             "items": {
               "type": "string"
             },
@@ -278,7 +278,8 @@
                   "Welder (Structural) (NSQF)",
                   "Welder (Welding & Inspection) (NSQF)",
                   "Wireman (NSQF)",
-                  "Wood Work Technician (NSQF)"],
+                  "Wood Work Technician (NSQF)",
+                  "Other"],
             "enumNames": ["Additive Manufacturing Technician Three D Painting", "Additive Manufacturing Technician Three D Printing (NSQF)", "ADVANCED CNC MACHINING TECHNICIAN (NSQF)",
                   "Aeronautical Structure and Equipment Fitter (NSQF)",
                   "Agro Processing (NSQF)",
@@ -445,9 +446,10 @@
                   "Welder (Structural) (NSQF)",
                   "Welder (Welding & Inspection) (NSQF)",
                   "Wireman (NSQF)",
-                  "Wood Work Technician (NSQF)"],
+                  "Wood Work Technician (NSQF)",
+                  "Other"],
             "ui:widget": "multiselect-dropdown",
-            "ui:placeholder": "Select your ITI specialization(s)",
+            "ui:placeholder": "Select your specialization(s)",
             "ui:disabled": false,
             "ui:hasOther": true,
             "ui:searchable": true

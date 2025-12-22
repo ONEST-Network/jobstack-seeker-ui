@@ -884,6 +884,13 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
         );
 
       case 'select':
+        const hasOtherField = fieldConfig['ui:hasOther'];
+        const otherFieldName = `${fieldName}_other`;
+        const otherValue = (stepData[otherFieldName] as string) || '';
+        // Handle case where value might be an array (from old multi-select data)
+        const stringValue = Array.isArray(value) ? (value[0] || '') : (value || '');
+        const isOtherSelected = typeof stringValue === 'string' && stringValue.toLowerCase() === 'other';
+
         return (
           <div key={fieldName} className="space-y-2">
             <Label htmlFor={fieldName} className="text-sm font-medium">
@@ -892,7 +899,7 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
             </Label>
             <div className="relative">
               <Select
-                value={value || ''}
+                value={stringValue}
                 onValueChange={(val) => handleFieldChange(fieldName, val)}
                 disabled={disabled || isVerified || isWalletImported}
               >
@@ -914,6 +921,19 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
                 </div>
               )}
             </div>
+            {/* Show text input when "Other" is selected */}
+            {isOtherSelected && hasOtherField && (
+              <div className="mt-2">
+                <Input
+                  type="text"
+                  value={otherValue}
+                  onChange={(e) => handleFieldChange(otherFieldName, e.target.value)}
+                  placeholder="Please specify..."
+                  disabled={disabled}
+                  className="text-sm"
+                />
+              </div>
+            )}
             {isVerified && (
               <p className="text-xs text-green-600">
                 {getDynamicVerificationMessage()}

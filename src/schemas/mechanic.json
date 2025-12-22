@@ -444,7 +444,8 @@
                 "Welder (Structural) (NSQF)",
                 "Welder (Welding & Inspection) (NSQF)",
                 "Wireman (NSQF)",
-                "Wood Work Technician (NSQF)"],
+                "Wood Work Technician (NSQF)",
+                "Other"],
           "ui:widget": "multiselect-dropdown",
           "ui:placeholder": "Select your specialization(s)",
           "ui:disabled": false,
@@ -540,8 +541,16 @@
             "Urdu (اردو)"
           ]
         },
+        "itiSpecialization_other": {
+          "type": "string",
+          "title": "Other Trade",
+          "description": "Please specify your trade",
+          "ui:widget": "text",
+          "ui:placeholder": "Enter your trade",
+          "ui:disabled": false
+        },
           "ui": {
-            "order": ["age", "highestQualification", "workExperience", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "languageSpoken", "taskVideo", "qrCodeScan"],
+            "order": ["age", "highestQualification", "workExperience", "itiSpecialization", "itiSpecialization_other", "rollNumber", "itiInstitute", "trainingDuration", "languageSpoken", "taskVideo", "qrCodeScan"],
             "description": "Assessment for ITI"
           }
         ,
