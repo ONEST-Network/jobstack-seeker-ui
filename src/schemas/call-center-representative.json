@@ -144,11 +144,11 @@
             ]
           },
           "highestEducation": {
-            "type": "array",
+            "type": "string",
             "title": "Highest Educational Qualification",
-            "description": "Select all your educational qualifications",
-            "ui:widget": "multiselect-dropdown",
-            "ui:placeholder": "Select qualifications",
+            "description": "What is your highest qualification?",
+            "ui:widget": "select",
+            "ui:placeholder": "Select your highest qualification",
             "ui:hasOther": true,
             "enum": ["10th Pass", "12th Pass", "Graduate-B.Tech/B.E.", "Graduate - B.Com", "Graduate-B.A.", "Graduate-Other"],
             "enumNames": ["10th Pass", "12th Pass", "Graduate-B.Tech/B.E.", "Graduate - B.Com", "Graduate-B.A.", "Graduate-Other"]

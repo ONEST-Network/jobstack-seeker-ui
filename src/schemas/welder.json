@@ -84,16 +84,13 @@
         "description": "Your qualifications, skills, and experience",
         "properties": {
           "highestQualification": {
-            "type": "array",
+            "type": "string",
             "title": "Highest Educational Qualification",
-            "description": "What is your highest qualification? (Select all that apply)",
-            "items": {
-              "type": "string"
-            },
+            "description": "What is your highest qualification?",
             "enum": ["10th Pass", "12th Pass", "ITI - Diploma", "Other"],
             "enumNames": ["10th Pass", "12th Pass", "ITI - Diploma", "Other"],
-            "ui:widget": "multiselect-dropdown",
-            "ui:placeholder": "Select your highest qualification(s)",
+            "ui:widget": "select",
+            "ui:placeholder": "Select your highest qualification",
             "ui:disabled": false,
             "ui:hasOther": true
           },
@@ -109,8 +106,8 @@
           },
           "itiSpecialization": {
             "type": "array",
-            "title": "ITI Trade",
-            "description": "What is your ITI Trade? (Select all that apply)",
+            "title": "Trade",
+            "description": "What is your Trade? (Select all that apply)",
             "items": {
               "type": "string"
             },
@@ -449,7 +446,7 @@
                   "Wireman (NSQF)",
                   "Wood Work Technician (NSQF)"],
             "ui:widget": "multiselect-dropdown",
-            "ui:placeholder": "Select your ITI specialization(s)",
+            "ui:placeholder": "Select your specialization(s)",
             "ui:disabled": false,
             "ui:hasOther": true,
             "ui:searchable": true
