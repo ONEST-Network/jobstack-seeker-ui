@@ -1,12 +1,5 @@
 {
   "sectors": {
-    "Garment Manufacturing": {
-      "description": "Manufacturing and garment industry positions",
-      "roles": [
-        "Industrial Tailor",
-        "Warehouse Loader & Picker"
-      ]
-    },
     "Manufacturing and Industrial": {
       "description": "Manufacturing, production, and industrial roles",
       "roles": [
