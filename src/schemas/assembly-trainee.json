@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "CNC Operator Profile Schema",
-    "description": "Complete profile schema for CNC Operator role",
+    "title": "Assembly Trainee Profile Schema",
+    "description": "Complete profile schema for assembly trainee role",
     "type": "object",
     "properties": {
       "whoIAm": {
@@ -16,19 +16,6 @@
             "required": true,
             "ui:widget": "text",
             "ui:placeholder": "Enter your full name",
-            "ui:disabled": false,
-            "ui:verified": false,
-            "ui:verificationMessage": "✓ Verified from DigiLocker"
-          },
-          "gender": {
-            "type": "string",
-            "title": "Gender",
-            "description": "Enter your gender",
-            "required": true,
-            "ui:widget": "radio",
-            "enum": ["Male", "Female", "Other"],
-            "enumNames": ["Male", "Female", "Other"],
-            "ui:placeholder": "Select your gender",
             "ui:disabled": false,
             "ui:verified": false,
             "ui:verificationMessage": "✓ Verified from DigiLocker"
@@ -58,16 +45,30 @@
             "type": "integer",
             "title": "Age",
             "description": "Your age",
+            "required": true,
             "minimum": 14,
             "maximum": 65,
             "ui:widget": "number",
             "ui:placeholder": "Enter your age",
             "ui:disabled": false
-          }
+          },
+          "gender": {
+          "type": "string",
+          "title": "Gender",
+          "description": "Gender of the candidate",
+          "required": false,
+          "ui:widget": "radio",
+          "enum": ["Male", "Female", "Other"],
+          "enumNames": ["Male", "Female", "Other"],
+          "ui:placeholder": "Select your gender",
+          "ui:disabled": false,
+          "ui:verified": false,
+          "ui:verificationMessage": "✓ Verified from DigiLocker"
+        }
         },
-        "required": ["name", "location", "phone", "age"],
+        "required": ["name", "age", "location", "phone"],
         "ui": {
-          "order": ["name", "gender", "location", "phone", "age"],
+          "order": ["name", "age",  "gender", "location", "phone"],
           "description": "Enter your basic details or import from supported wallets for quick setup",
           "showWallet": true,
           "walletConfig": {
@@ -83,29 +84,26 @@
         "title": "What I Have",
         "description": "Your qualifications, skills, and experience",
         "properties": {
-          "highestQualification": {
+          "highestEducation": {
             "type": "array",
             "title": "Highest Educational Qualification",
-            "description": "What is your highest qualification? (Select all that apply)",
-            "items": {
-              "type": "string"
-            },
-            "enum": ["10th Pass", "12th Pass", "ITI - Diploma", "Other"],
-            "enumNames": ["10th Pass", "12th Pass", "ITI - Diploma", "Other"],
+            "description": "Select all your educational qualifications",
+            "required": true,
             "ui:widget": "multiselect-dropdown",
-            "ui:placeholder": "Select your highest qualification(s)",
-            "ui:disabled": false,
-            "ui:hasOther": true
+            "ui:placeholder": "Select qualifications",
+            "ui:hasOther": true,
+            "enum": ["ITI", "Diploma", "B.Tech", "Any Graduate"],
+            "enumNames": ["ITI", "Diploma", "B.Tech", "Any Graduate"]
           },
-          "workExperience": {
+          "taskVideo": {
             "type": "string",
-            "title": "Work Experience",
-            "description": "What is your work experience level?",
-            "enum": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
-            "enumNames": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
-            "ui:widget": "select",
-            "ui:placeholder": "Select your work experience",
-            "ui:disabled": false
+            "title": "Document Upload",
+            "description": "Upload any file (document, image, video) showing your work",
+            "ui:widget": "file-upload",
+            "ui:placeholder": "Upload file showing your work",
+            "ui:disabled": false,
+            "ui:accept": "*/*",
+            "ui:noSizeLimit": true
           },
           "itiSpecialization": {
             "type": "array",
@@ -454,152 +452,35 @@
             "ui:hasOther": true,
             "ui:searchable": true
           },
-          "rollNumber": {
-            "type": "string",
-            "title": "Roll Number",
-            "description": "Enter your roll number",
-            "required": true,
-            "ui:widget": "text",
-            "ui:placeholder": "Enter your roll number (R250806027829)",
-            "ui:disabled": false
-          },
-          "itiInstitute": {
-            "type": "string",
-            "title": "ITI Institute",
-            "description": "Select your ITI institute from the dropdown list",
-            "ui:widget": "text",
-            "ui:placeholder": "Search and select your ITI Institute...",
-            "ui:disabled": false
-          },
-          "trainingDuration": {
-            "type": "string",
-            "title": "Duration of Study (Years)",
-            "description": "Select the duration of your study",
-            "required": true,
-            "enum": ["1", "2", "Other"],
-            "enumNames": ["1", "2", "Other"],
-            "ui:widget": "select",
-            "ui:placeholder": "Select duration of study",
-            "ui:disabled": false
-          },
-          "languageSpoken": {
-            "type": "array",
-            "title": "Language Spoken",
-            "description": "Select all the languages you are familiar with",
-            "ui:widget": "multiselect-dropdown",
-            "ui:placeholder": "Select language spoken",
-            "ui:disabled": false,
-            "ui:hasOther": true,
-            "enum": [
-              "Assamese",
-              "Bengali",
-              "Bodo",
-              "Dogri",
-              "English",
-              "Gujarati",
-              "Hindi",
-              "Kannada",
-              "Kashmiri",
-              "Konkani",
-              "Maithili",
-              "Malayalam",
-              "Manipuri",
-              "Marathi",
-              "Mizo",
-              "Nepali",
-              "Odia",
-              "Punjabi",
-              "Sanskrit",
-              "Santali",
-              "Sindhi",
-              "Tamil",
-              "Telugu",
-              "Urdu"
-            ],
-            "enumNames": [
-              "Assamese (অসমীয়া)",
-              "Bengali (বাংলা)",
-              "Bodo (बड़ो)",
-              "Dogri (डोगरी)",
-              "English",
-              "Gujarati (ગુજરાતી)",
-              "Hindi (हिन्दी)",
-              "Kannada (ಕನ್ನಡ)",
-              "Kashmiri (कॉशुर)",
-              "Konkani (कोंकणी)",
-              "Maithili (मैथिली)",
-              "Malayalam (മലയാളം)",
-              "Manipuri (মৈতৈলোন্)",
-              "Marathi (मराठी)",
-              "Mizo (Mizo ṭawng)",
-              "Nepali (नेपाली)",
-              "Odia (ଓଡ଼ିଆ)",
-              "Punjabi (ਪੰਜਾਬੀ)",
-              "Sanskrit (संस्कृतम्)",
-              "Santali (ᱥᱟᱱᱛᱟᱲᱤ)",
-              "Sindhi (سنڌي)",
-              "Tamil (தமிழ்)",
-              "Telugu (తెలుగు)",
-              "Urdu (اردو)"
-            ]
-          },
-  
-            "ui": {
-              "order": ["highestQualification", "itiSpecialization", "rollNumber", "itiInstitute", "trainingDuration", "languageSpoken", "taskVideo", "qrCodeScan"],
-              "description": "Assessment for CNC Operator"
-            }
-          ,
-          "taskVideo": {
-            "type": "string",
-            "title": "Task Upload",
-            "description": "Upload any file (document, image, video) showing your work",
-            "ui:widget": "file-upload",
-            "ui:placeholder": "Upload file showing your work",
-            "ui:disabled": false,
-            "ui:accept": "*/*",
-            "ui:noSizeLimit": true
-          },
-          "qrCodeScan": {
-            "type": "string",
-            "title": "Scan QR code",
-            "description": "Scan QR code for additional information",
-            "ui:widget": "qr-scanner",
-            "ui:placeholder": "Scan QR code",
-            "ui:disabled": false
-          }
+          "consent for safety requirements": {
+          "type": "boolean",
+          "title": "Consent to comply with safety requirements",
+          "description": "Link to safety norms that candidate has to agree to",
+          "required": false,
+          "ui:widget": "radio",
+          "enum": ["yes", "No"],
+          "enumNames": ["Yes", "No"],
+          "ui:placeholder": "Select your option",
+          "ui:disabled": false,
+          "ui:verified": false
         },
-        "required": ["highestQualification"],
+        "consent for physical health": {
+          "type": "boolean",
+          "title": "Consent to undergo physical/health check",
+          "description": "Link to physical/health constraints relevant to the role",
+          "required": false,
+          "ui:widget": "radio",
+          "enum": ["yes", "No"],
+          "enumNames": ["Yes", "No"],
+          "ui:placeholder": "Select your option",
+          "ui:disabled": false,
+          "ui:verified": false
+        }
+        },
+        "required": ["highestEducation"],
         "ui": {
-          "order": [
-            "highestQualification",
-            "workExperience",
-            "itiSpecialization",
-            "rollNumber",
-            "itiInstitute",
-            "trainingDuration",
-            "languageSpoken",
-            "taskVideo",
-            "qrCodeScan"
-          ],
-          "description": "Add your qualifications, skills, and work history",
-          "sections": [
-            {
-              "title": "Basic Information",
-              "fields": ["age", "highestQualification", "workExperience", "itiSpecialization"]
-            },
-            {
-              "title": "Assessment Scores",
-              "fields": ["itiAssessmentScore", "intentAssessmentScore"]
-            },
-            {
-              "title": "Task Video",
-              "fields": ["taskVideo"]
-            },
-            {
-              "title": "QR Code Scan",
-              "fields": ["qrCodeScan"]
-            }
-          ]
+          "order": ["highestEducation", "itiSpecialization","consent for safety requirements", "consent for physical health", "taskVideo"],
+          "description": "Tell us about your qualifications, skills, and experience"
         }
       },
       "whatIWant": {
@@ -607,68 +488,21 @@
         "title": "What I Want",
         "description": "Your salary expectations and work preferences",
         "properties": {
-          "workHoursPerDay": {
-            "type": "integer",
-            "title": "Number hours willing to work / day",
-            "description": "How many hours are you willing to work per day?",
-            "minimum": 1,
-            "maximum": 24,
-            "ui:widget": "number",
-            "ui:placeholder": "Enter hours per day",
-            "ui:disabled": false
-          },
-          "preferredModeOfWork": {
-            "type": "array",
-            "title": "Preferred Mode of Work",
-            "description": "Preferred Mode of Work (Select all that apply)",
-            "items": {
-              "type": "string"
-            },
-            "enum": ["Office", "Remote", "Travelling"],
-            "enumNames": ["Office", "Remote", "Travelling"],
-            "ui:widget": "multiselect-dropdown",
-            "ui:placeholder": "Select preferred mode of work(s)",
-            "ui:disabled": false
-          },
           "monthlyInHandPreferred": {
             "type": "integer",
             "title": "Monthly In-hand Preferred (INR)",
-            "description": "Your expected monthly in-hand salary in INR",
+            "description": "Your expected monthly take-home salary",
             "minimum": 0,
+            "maximum": 1000000,
             "ui:widget": "number",
-            "ui:placeholder": "Enter expected monthly salary",
-            "ui:currency": "₹",
-            "ui:disabled": false
-          },
-          "monthlyOTExpectation": {
-            "type": "integer",
-            "title": "Monthly Avg. Overtime OT (INR)",
-            "description": "Your expected monthly overtime earnings in INR",
-            "minimum": 0,
-            "ui:widget": "number",
-            "ui:placeholder": "Enter expected monthly OT earnings",
+            "ui:placeholder": "Enter amount in INR",
             "ui:currency": "₹",
             "ui:disabled": false
           }
         },
         "ui": {
-          "order": [
-            "workHoursPerDay",
-            "preferredModeOfWork",
-            "monthlyInHandPreferred",
-            "monthlyOTExpectation"
-          ],
-          "description": "Tell us about your salary expectations and work preferences",
-          "sections": [
-            {
-              "title": " Work Preferences",
-              "fields": ["workHoursPerDay", "preferredModeOfWork"]
-            },
-            {
-              "title": "Salary Expectations",
-              "fields": ["monthlyInHandPreferred", "monthlyOTExpectation"]
-            }
-          ]
+          "order": ["monthlyInHandPreferred"],
+          "description": "Tell us about your salary expectations and work preferences"
         }
       }
     },
@@ -694,4 +528,4 @@
         }
       ]
     }
-  }
+  } 

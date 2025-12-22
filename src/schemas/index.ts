@@ -12,6 +12,17 @@ import welderSchema from './welder.json';
 import latheOperatorSchema from './lathe-operator.json';
 import jobRolesConfig from './job-roles-config.json';
 import jobSectorsConfig from './job-sectors-config.json';
+import customerServiceExecutiveSchema from './customer-service-executive.json';
+import callCenterRepresentativeSchema from './call-center-representative.json';
+import customerSupportAssociateSchema from './customer-support-associate.json';
+import serviceDeskCoordinatorSchema from './service-desk-coordinator.json';
+import technicalSupportTechnicianSchema from './technical-support-technician.json';
+import accountsAssociateSchema from './accounts-associate.json';
+import accountsExecutiveTraineeSchema from './accounts-executive-trainee.json';
+import juniorAccountantSchema from './junior-accountant.json';
+import financeAndBillingCoordinatorSchema from './finance-and-billing-coordinator.json';
+import misReportingExecutiveSchema from './mis-reporting-executive.json';
+import accountPayableOrReceivableSupportTraineeSchema from './account-payable-or-receivable-support-trainee.json';
 
 export interface ProfileStepSchema {
   $schema: string;
@@ -99,6 +110,44 @@ export const getUnifiedSchema = (role?: string): any => {
   }
   if (role === 'Lathe Operator') {
     return latheOperatorSchema;
+  }
+
+  if (role === 'Customer Service Executive') {
+    return customerServiceExecutiveSchema;
+  }
+  if (role === 'Call Center Representative') {
+    return callCenterRepresentativeSchema;
+  }
+  if (role === 'Customer Support Associate') {
+    return customerSupportAssociateSchema;
+  }
+  if (role === 'Service Desk Coordinator') {
+    return serviceDeskCoordinatorSchema;
+  }
+  if (role === 'Technical Support Technician') {
+    return technicalSupportTechnicianSchema;
+  }
+  if (role === 'Accounts Associate') {
+    return accountsAssociateSchema;
+  }
+  if (role === 'Accounts Executive Trainee') {
+    return accountsExecutiveTraineeSchema;
+  }
+  if (role === 'Junior Accountant') {
+    return juniorAccountantSchema;
+  }
+  if (role === 'Finance and Billing Coordinator') {
+    return financeAndBillingCoordinatorSchema;
+  }
+  if (role === 'MIS/Reporting Executive') {
+    return misReportingExecutiveSchema;
+  }
+  if (role === 'Account Payable/Receivable Support Trainee') {
+    return accountPayableOrReceivableSupportTraineeSchema;
+  }
+  // For roles without specific schemas, fall back to Industrial Tailor
+  if (role === 'Field Sales Executive') {
+    return electricianSchema;
   }
   return null;
 };

@@ -39,6 +39,50 @@
     "ITI (Other)": {
       "industry": "Manufacturing",
       "description": "ITI (Industrial Training Institute) student roles and specializations"
+    },
+    "Customer Service Executive": {
+      "industry": "Customer Service",
+      "description": "Customer service and support roles"
+    },
+    "Call Center Representative": {
+      "industry": "Customer Service",
+      "description": "Call center and telecommunication support roles"
+    },
+    "Customer Support Associate": {
+      "industry": "Customer Service",
+      "description": "Customer support and assistance roles"
+    },
+    "Service Desk Coordinator": {
+      "industry": "Customer Service",
+      "description": "Service desk and IT support coordination roles"
+    },
+    "Technical Support Technician": {
+      "industry": "IT Support",
+      "description": "Technical support and troubleshooting roles"
+    },
+    "Accounts Associate": {
+      "industry": "Finance",
+      "description": "Accounting and financial operations roles"
+    },
+    "Accounts Executive Trainee": {
+      "industry": "Finance",
+      "description": "Entry-level accounting and finance trainee roles"
+    },
+    "Junior Accountant": {
+      "industry": "Finance",
+      "description": "Junior level accounting and bookkeeping roles"
+    },
+    "Finance and Billing Coordinator": {
+      "industry": "Finance",
+      "description": "Finance coordination and billing operations roles"
+    },
+    "MIS/Reporting Executive": {
+      "industry": "Data Analysis",
+      "description": "Management Information Systems and reporting roles"
+    },
+    "Account Payable/Receivable Support Trainee": {
+      "industry": "Finance",
+      "description": "Accounts payable and receivable support trainee roles"
     }
-  }
-} 
+  } 
+}

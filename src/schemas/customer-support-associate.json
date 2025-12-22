@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Field Sales Person Profile Schema",
-    "description": "Complete profile schema for field sales person role",
+    "title": "Customer Support Associate Profile Schema",
+    "description": "Complete profile schema for caustomer support associate role",
     "type": "object",
     "properties": {
       "whoIAm": {
@@ -50,11 +50,24 @@
             "ui:widget": "number",
             "ui:placeholder": "Enter your age",
             "ui:disabled": false
-          }
+          },
+          "gender": {
+          "type": "string",
+          "title": "Gender",
+          "description": "Gender of the candidate",
+          "required": false,
+          "ui:widget": "radio",
+          "enum": ["Male", "Female", "Other"],
+          "enumNames": ["Male", "Female", "Other"],
+          "ui:placeholder": "Select your gender",
+          "ui:disabled": false,
+          "ui:verified": false,
+          "ui:verificationMessage": "✓ Verified from DigiLocker"
+        }
         },
         "required": ["name", "location", "phone", "age"],
         "ui": {
-          "order": ["name", "location", "phone", "age"],
+          "order": ["name", "age", "location", "gender", "phone"],
           "description": "Enter your basic details or import from supported wallets for quick setup",
           "showWallet": true,
           "walletConfig": {
@@ -140,92 +153,28 @@
             "enum": ["10th Pass", "12th Pass", "Graduate-B.Tech/B.E.", "Graduate - B.Com", "Graduate-B.A.", "Graduate-Other"],
             "enumNames": ["10th Pass", "12th Pass", "Graduate-B.Tech/B.E.", "Graduate - B.Com", "Graduate-B.A.", "Graduate-Other"]
           },
-          "collegeName": {
-            "type": "string",
-            "title": "College Name",
-            "description": "Enter your college or institution name",
-            "ui:widget": "text",
-            "ui:placeholder": "Enter college name",
-            "ui:disabled": false
-          },
-          "workExperience": {
-            "type": "string",
-            "title": "Work Experience",
-            "description": "What is your work experience level?",
-            "enum": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
-            "enumNames": ["None", "Less than 1 year", "Less than 2 years", "More than 2 years"],
-            "ui:widget": "select",
-            "ui:placeholder": "Select your work experience",
-            "ui:disabled": false
-          },
-          "communicationSkillsScore": {
-            "type": "string",
-            "title": "Communication Skills Score",
-            "description": "Enter the score for communication skills",
-            "ui:widget": "text",
-            "ui:placeholder": "Enter the score for communication skills",
-            "ui:disabled": false
-          },
-          "vehicleOwnership": {
-            "type": "string",
-            "title": "Vehicle Owned",
-            "description": "Select all the vehicles you own",
-            "ui:widget": "multiselect-dropdown",
-            "ui:placeholder": "Select vehicle ownership",
-            "ui:disabled": false,
-            "enum": ["Motorbike", "Car", "Other"],
-            "enumNames": ["Motorbike", "Car", "Other"]
-          },
-          "domainKnowledge": {
-            "type": "array",
-            "title": "Domain Knowledge",
-            "description": "Select all the domains you are familiar with",
-            "ui:widget": "multiselect-dropdown",
-            "ui:placeholder": "Select domain knowledge",
-            "ui:disabled": false,
-            "enum": ["General", "Cashcards","Electronics","Mobile Phones","Kitchen Appliances", "Furniture","Other"],
-            "enumNames": ["General", "Cashcards","Electronics","Mobile Phones","Kitchen Appliances", "Furniture","Other"]
-          },
           "taskVideo": {
             "type": "string",
-            "title": "Task Upload",
-            "description": "Upload any file (document, image, video) showing your work",
+            "title": "Document Upload",
+            "description": "Upload any file (document, image, video) with no size limit",
             "ui:widget": "file-upload",
             "ui:placeholder": "Upload file showing your work",
             "ui:disabled": false,
             "ui:accept": "*/*",
             "ui:noSizeLimit": true
-          },
-          "scanQRCode": {
-            "type": "string",
-            "title": "Scan QR Code",
-            "description": "Scan QR code to import additional information",
-            "required": false,
-            "ui:widget": "qr-scanner",
-            "ui:placeholder": "Scan QR code"
           }
         },
         "required": ["highestEducation"],
         "ui": {
-          "order": ["languagesKnown", "highestEducation", "collegeName", "workExperience", "communicationSkillsScore", "vehicleOwnership", "domainKnowledge", "taskVideo", "scanQRCode"],
+          "order": ["highestEducation", "languagesKnown", "taskVideo"],
           "description": "Tell us about your qualifications, skills, and experience"
         }
       },
       "whatIWant": {
         "type": "object",
         "title": "What I Want",
-        "description": "Your salary expectations and work preferences",
+        "description": "Your salary expectations",
         "properties": {
-          "workHoursPerDay": {
-            "type": "integer",
-            "title": "Number of hours willing to work / day",
-            "description": "How many hours are you willing to work per day?",
-            "minimum": 4,
-            "maximum": 12,
-            "ui:widget": "number",
-            "ui:placeholder": "Enter hours (4-12)",
-            "ui:disabled": false
-          },
           "preferredWorkMode": {
             "type": "array",
             "title": "Preferred mode of work",
@@ -234,16 +183,6 @@
             "ui:placeholder": "Select work modes",
             "enum": ["Office", "Remote", "Travelling"],
             "enumNames": ["Office", "Remote", "Travelling"]
-          },
-          "maxDistanceofDailyTravel": {
-            "type": "integer",
-            "title": "Maximum distance of daily travel",
-            "description": "Enter the maximum distance you are willing to travel daily",
-            "minimum": 0,
-            "maximum": 1000,
-            "ui:widget": "number",
-            "ui:placeholder": "Enter distance in km",
-            "ui:disabled": false
           },
           "monthlyInHandPreferred": {
             "type": "integer",
@@ -255,34 +194,11 @@
             "ui:placeholder": "Enter amount in INR",
             "ui:currency": "₹",
             "ui:disabled": false
-          },
-          "monthlyPerformanceVariable": {
-            "type": "integer",
-            "title": "Monthly performance based variable expectation (INR)",
-            "description": "Expected performance-based variable pay",
-            "required": false,
-            "minimum": 0,
-            "maximum": 50000,
-            "ui:widget": "number",
-            "ui:placeholder": "Enter amount in INR",
-            "ui:currency": "₹",
-            "ui:disabled": false
-          },
-          "monthlyTravelAllowance": {
-            "type": "integer",
-            "title": "Monthly travel allowance (INR)",
-            "description": "Expected monthly travel allowance",
-            "minimum": 0,
-            "maximum": 50000,
-            "ui:widget": "number",
-            "ui:placeholder": "Enter amount in INR",
-            "ui:currency": "₹",
-            "ui:disabled": false
           }
         },
         "ui": {
-          "order": ["workHoursPerDay", "preferredWorkMode", "maxDistanceofDailyTravel", "monthlyInHandPreferred", "monthlyPerformanceVariable", "monthlyTravelAllowance"],
-          "description": "Tell us about your salary expectations and work preferences"
+          "order": ["preferredWorkMode", "monthlyInHandPreferred"],
+          "description": "Tell us about your salary expectations"
         }
       }
     },

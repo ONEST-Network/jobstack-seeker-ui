@@ -1,17 +1,50 @@
 {
   "sectors": {
+    "Garment Manufacturing": {
+      "description": "Manufacturing and garment industry positions",
+      "roles": [
+        "Industrial Tailor",
+        "Warehouse Loader & Picker"
+      ]
+    },
+    "Manufacturing and Industrial": {
+      "description": "Manufacturing, production, and industrial roles",
+      "roles": [
+        "Production Associate",
+        "Production Trainee",
+        "Manufacturing Trainee",
+        "Graduate Engineer Trainee-Manufacturing",
+        "Assembly Trainee",
+        "Machine Operator Trainee",
+        "QA-QC Technician Trainee",
+        "Packaging Operations Executive",
+        "Plant Operations Executive"
+      ]
+    },
     "Customer Facing": {
       "description": "Customer service and sales roles",
       "roles": [
         "Field Sales Person",
         "Tele Salesperson",
-        "In Store Promoter"
+        "In Store Promoter",
+        "Recruitment Associate",
+        "Customer Service Executive",
+        "Call Center Representative",
+        "Customer Support Associate",
+        "Service Desk Coordinator",
+        "Technical Support Technician"
       ]
     },
     "ITeS": {
       "description": "Information Technology enabled Services",
       "roles": [
-        "Data Entry Operator"
+        "Data Entry Operator",
+        "Accounts Associate",
+        "Accounts Executive Trainee",
+        "Junior Accountant",
+        "Finance and Billing Coordinator",
+        "MIS/Reporting Executive",
+        "Account Payable/Receivable Support Trainee"
       ]
     },
     "ITI/Polytechnic": {
