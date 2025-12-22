@@ -85,12 +85,22 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   return (
     <div className="flex flex-col h-full max-h-[60vh]">
       {/* Header - Fixed */}
-      <div className="text-center mb-4 flex-shrink-0">
-        <p className="text-sm text-muted-foreground">
-          {isUpdate ? 'Current role (cannot be changed)' : 'Find suitable work for you'}
-        </p>
+      <div className="mb-4 flex-shrink-0">
+        {isUpdate ? (
+          <p className="text-sm text-muted-foreground text-center">
+            Current role (cannot be changed)
+          </p>
+        ) : (
+          <div className="text-sm text-muted-foreground">
+            <p className="text-center mb-2">To create a profile:</p>
+            <ol className="list-decimal list-inside space-y-1.5 text-left max-w-md mx-auto px-4">
+              <li>Select a sector of interest in which you want work (e.g. ITeS)</li>
+              <li>Select a role within the sector (e.g. data entry operator)</li>
+            </ol>
+          </div>
+        )}
         {hasRestrictions && !isUpdate && (
-          <p className="text-xs text-blue-600 mt-1">
+          <p className="text-xs text-blue-600 mt-2 text-center">
             {allowedRoles.length} role{allowedRoles.length !== 1 ? 's' : ''} available for this organization
           </p>
         )}
@@ -137,7 +147,7 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
                       <li><strong>Garment Manufacturing:</strong> Industrial Tailor, Warehouse Loader & Picker</li>
                       <li><strong>Customer Facing:</strong> Field Sales Person, Tele Salesperson, In Store Promoter, Recruitment Associate</li>
                       <li><strong>ITeS:</strong> Data Entry Operator</li>
-                      <li><strong>ITI/Polytechnic:</strong> Electrician, Fitter, Mechanic, Machine Operator, ITI (Other)</li>
+                      <li><strong>Skilled Workers:</strong> Electrician, Fitter, Mechanic, Machine Operator, ITI (Other)</li>
                     </ul>
                   </div>
                 )}
