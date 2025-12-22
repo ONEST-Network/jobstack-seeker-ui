@@ -296,6 +296,54 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
           console.warn(`Schema not found for role: ${currentRole}`);
         }
       }
+
+       // Validate any "Other" fields defined in the unified schema
+      try {
+        const schema = getUnifiedSchema(currentRole);
+        if (schema && schema.properties) {
+          Object.keys(schema.properties).forEach((stepKey) => {
+            const stepProps = schema.properties[stepKey]?.properties;
+            if (!stepProps) return;
+            const stepData = (profile as any)[stepKey] || {};
+
+            Object.keys(stepProps).forEach((fieldKey) => {
+              const fieldCfg = stepProps[fieldKey];
+              if (!fieldCfg || !fieldCfg['ui:hasOther']) return;
+
+              const widget = fieldCfg['ui:widget'];
+              const mainValue = stepData[fieldKey] ?? (profile as any)[fieldKey];
+              const otherFieldName = `${fieldKey}_other`;
+              const otherValue = stepData[otherFieldName] ?? (profile as any)[otherFieldName];
+
+              let requiresOther = false;
+
+              // Single selects / radio
+              if (widget === 'select' || widget === 'radio') {
+                const stringValue = Array.isArray(mainValue) ? (mainValue[0] || '') : (mainValue || '');
+                if (typeof stringValue === 'string' && stringValue.toLowerCase() === 'other') {
+                  requiresOther = true;
+                }
+              }
+
+              // Multi selects (array values)
+              if (widget === 'multiselect' || widget === 'multiselect-dropdown' || Array.isArray(mainValue)) {
+                const arr = Array.isArray(mainValue) ? mainValue : [];
+                if (arr.some((v: any) => String(v || '').toLowerCase() === 'other')) {
+                  requiresOther = true;
+                }
+              }
+
+              if (requiresOther) {
+                if (!otherValue || (typeof otherValue === 'string' && otherValue.trim() === '')) {
+                  missingFields.push(`${fieldCfg.title} (Other value)`);
+                }
+              }
+            });
+          });
+        }
+      } catch (e) {
+        console.warn('Error while validating "Other" fields', e);
+      }
       
       // If there are missing fields, show a user-friendly message and stop
       if (missingFields.length > 0) {
