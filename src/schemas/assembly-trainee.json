@@ -68,7 +68,7 @@
         },
         "required": ["name", "age", "location", "phone"],
         "ui": {
-          "order": ["name", "age",  "gender", "location", "phone"],
+          "order": ["name", "age", "location", "gender", "phone"],
           "description": "Enter your basic details or import from supported wallets for quick setup",
           "showWallet": true,
           "walletConfig": {
