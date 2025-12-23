@@ -14,6 +14,7 @@ import UserProfileDialog from '@/components/profile/UserProfileDialog';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
 import { useTranslation } from '@/hooks/useI18n';
 import { apiClient } from '@/lib/api';
+import TermsPrivacyDialog from '@/components/ui/TermsPrivacyDialog';
 
 interface RegistrationDialogProps {
   isOpen: boolean;
@@ -43,6 +44,8 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [termsDialogOpen, setTermsDialogOpen] = useState(false);
+  const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
   
   // State for minor's own details (after guardian verification)
   const [minorName, setMinorName] = useState('');
@@ -446,8 +449,36 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                   />
                   <Label htmlFor="terms" className="text-sm leading-relaxed">
                     {isMinor 
-                      ? t('register.guardianTermsAndConditions', 'On behalf of my ward, I accept the Terms and Conditions')
-                      : t('register.termsAndConditions', 'I accept the Terms and Conditions')
+                      ? (
+                        <>
+                          On behalf of my ward, I accept the{' '}
+                          <span
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setTermsDialogOpen(true);
+                            }}
+                            className="text-primary underline cursor-pointer hover:text-primary/80"
+                          >
+                            Terms and Conditions
+                          </span>
+                        </>
+                      )
+                      : (
+                        <>
+                          I accept the{' '}
+                          <span
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setTermsDialogOpen(true);
+                            }}
+                            className="text-primary underline cursor-pointer hover:text-primary/80"
+                          >
+                            Terms and Conditions
+                          </span>
+                        </>
+                      )
                     }
                   </Label>
                 </div>
@@ -461,8 +492,36 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                   />
                   <Label htmlFor="privacy" className="text-sm leading-relaxed">
                     {isMinor 
-                      ? t('register.guardianPrivacyPolicy', 'On behalf of my ward, I consent to Data Privacy Policy')
-                      : t('register.privacyPolicy', 'I consent to Data Privacy Policy')
+                      ? (
+                        <>
+                          On behalf of my ward, I consent to Data{' '}
+                          <span
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setPrivacyDialogOpen(true);
+                            }}
+                            className="text-primary underline cursor-pointer hover:text-primary/80"
+                          >
+                            Privacy Policy
+                          </span>
+                        </>
+                      )
+                      : (
+                        <>
+                          I consent to Data{' '}
+                          <span
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setPrivacyDialogOpen(true);
+                            }}
+                            className="text-primary underline cursor-pointer hover:text-primary/80"
+                          >
+                            Privacy Policy
+                          </span>
+                        </>
+                      )
                     }
                   </Label>
                 </div>
@@ -656,6 +715,20 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
         }}
         mode="individual"
         initialProfile={undefined}
+      />
+
+      <TermsPrivacyDialog
+        isOpen={termsDialogOpen}
+        onClose={() => setTermsDialogOpen(false)}
+        url="https://onest.network/terms-of-use"
+        title="Terms and Conditions"
+      />
+
+      <TermsPrivacyDialog
+        isOpen={privacyDialogOpen}
+        onClose={() => setPrivacyDialogOpen(false)}
+        url="https://onest.network/privacy-policy"
+        title="Privacy Policy"
       />
     </>
   );
