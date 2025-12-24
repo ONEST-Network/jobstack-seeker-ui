@@ -314,27 +314,28 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
 
   // Helper to derive a readable salary string for a job
   const formatJobSalary = (job: any) => {
-    const minRaw = job.tags?.jobDetails?.minMonthlyInHand ?? job.jobDetails?.minMonthlyInHand;
-    const maxRaw = job.tags?.jobDetails?.maxMonthlyInHand ?? job.jobDetails?.maxMonthlyInHand;
-
-    const parseNum = (v: any) => {
-      if (v == null) return null;
-      if (typeof v === 'number') return v;
-      if (typeof v === 'string') {
-        const cleaned = v.replace(/[^0-9.-]+/g, '');
-        const n = parseFloat(cleaned);
-        return Number.isFinite(n) ? n : null;
-      }
-      return null;
-    };
-
-    const min = parseNum(minRaw);
-    const max = parseNum(maxRaw);
-
-    if (min != null && max != null) return `₹${min.toLocaleString()} - ₹${max.toLocaleString()}`;
-    if (max != null) return `Up to ₹${max.toLocaleString()}`;
-    if (min != null) return `From ₹${min.toLocaleString()}`;
+  const getNumber = (v: any) => {
+    if (v == null) return null;
+    const n = Number(String(v).replace(/[^0-9.-]/g, ''));
+    return Number.isFinite(n) ? n : null;
   };
+
+  const details = job.tags?.jobDetails || job.jobDetails || {};
+  const min = getNumber(details.minMonthlyInHand);
+  const max = getNumber(details.maxMonthlyInHand);
+
+  if (min != null && max != null)
+    return `₹${min.toLocaleString()} - ₹${max.toLocaleString()}`;
+
+  if (max != null)
+    return `Up to ₹${max.toLocaleString()}`;
+
+  if (min != null)
+    return `From ₹${min.toLocaleString()}`;
+
+  return null;
+};
+
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
