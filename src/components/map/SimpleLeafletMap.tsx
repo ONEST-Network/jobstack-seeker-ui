@@ -989,7 +989,7 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
         }`}>
           <h3 className={`font-semibold mb-2 ${
             zoom >= 10 ? 'text-xs' : 'text-sm'
-          }`}>{showIndividualJobs ? 'Individual Jobs' : 'Job Density'}</h3>
+          }`}>{showIndividualJobs ? 'Marker References' : 'Job Density'}</h3>
           <div className={zoom >= 10 ? 'space-y-1' : 'space-y-2'}>
             {showIndividualJobs ? (
               <>
@@ -999,7 +999,7 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
                   }`} style={{ backgroundColor: '#1d4ed8' }}></div>
                   <span className={`text-gray-600 ${
                     zoom >= 10 ? 'text-xs' : 'text-xs'
-                  }`}>Individual Job</span>
+                  }`}>Jobs</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className={`rounded-full bg-orange-600 ${
