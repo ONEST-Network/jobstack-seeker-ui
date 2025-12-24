@@ -311,6 +311,32 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Helper to derive a readable salary string for a job
+  const formatJobSalary = (job: any) => {
+  const getNumber = (v: any) => {
+    if (v == null) return null;
+    const n = Number(String(v).replace(/[^0-9.-]/g, ''));
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const details = job.tags?.jobDetails || job.jobDetails || {};
+  const min = getNumber(details.minMonthlyInHand);
+  const max = getNumber(details.maxMonthlyInHand);
+
+  if (min != null && max != null)
+    return `₹${min.toLocaleString()} - ₹${max.toLocaleString()}`;
+
+  if (max != null)
+    return `Up to ₹${max.toLocaleString()}`;
+
+  if (min != null)
+    return `From ₹${min.toLocaleString()}`;
+
+  return null;
+};
+
+
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -1109,20 +1135,30 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-2">Available roles</p>
                 <div className="space-y-1 overflow-y-auto max-h-40 pr-2">
-                  {locationCardData.jobs.map((job, index) => (
-                    <div 
-                      key={index} 
-                      className="text-xs p-2 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded cursor-pointer transition-colors group"
-                      onClick={() => onViewJobsFromCard?.(locationCardData, job)}
-                    >
-                      <div className="font-medium text-gray-800 group-hover:text-blue-700">
-                        {job.title}
-                      </div>
-                      <div className="text-gray-600 group-hover:text-blue-600">
-                        at {job.company || job.jobProviderName || 'Company Name'}
-                      </div>
-                    </div>
-                  ))}
+                  {locationCardData.jobs.map((job, index) => {
+                    const salaryText = formatJobSalary(job);
+                    return (
+                      <div 
+                        key={index} 
+                        className="text-xs p-2 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded cursor-pointer transition-colors group"
+                        onClick={() => onViewJobsFromCard?.(locationCardData, job)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium text-gray-800 group-hover:text-blue-700 truncate">
+                            {job.title}
+                          </div>
+                          {salaryText ? (
+                            <div className="text-xs text-gray-500 group-hover:text-blue-600 ml-2 whitespace-nowrap">
+                              {salaryText}
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="text-gray-600 group-hover:text-blue-600">
+                          at {job.company || job.jobProviderName || 'Company Name'}
+                        </div>
+                        </div>
+                      );
+                  })}
                 </div>
               </div>
               
