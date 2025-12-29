@@ -27,7 +27,7 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
       case 'loading':
         return isAutoRetrying ? 'Retrying...' : 'Refreshing jobs...';
       case 'partial':
-        return 'Taking longer than expected...';
+        return 'Gathering the best matches for you...';
       case 'error':
         return 'No jobs found currently';
       case 'complete':
@@ -76,7 +76,7 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
       
       {loadingState === 'partial' && (
         <p className="text-xs text-muted-foreground">
-          The server is taking longer than usual to respond. Please wait...
+          Searching through opportunities to find the best matches...
         </p>
       )}
       
