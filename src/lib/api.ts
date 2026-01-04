@@ -1243,14 +1243,14 @@ class ApiClient {
   }
 
   // BAP Job Select API
-  async selectJob(providerId: string, jobId: string) {
+  async selectJob(providerId: string, jobId: string, bpp_id?: string, bpp_uri?: string) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
     const url = `${BAP_URL}/api/v1/select`;
     
     const payload = {
       context: {
-        bpp_id: "bpp1.dhiway.com",
-        bpp_uri: "https://beckn-adapter.dhiway.net/bpp/receiver",
+        bpp_id: bpp_id || "bpp1.dhiway.com",
+        bpp_uri: bpp_uri || "https://beckn-adapter.dhiway.net/bpp/receiver",
         transaction_id: `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       },
       message: {
