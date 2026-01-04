@@ -86,7 +86,7 @@ const MyApplications = () => {
   };
 
   // Function to fetch status for a specific application with retry and better error handling
-  const fetchApplicationStatus = async (orderId: string, transactionId: string, retryCount = 0): Promise<string> => {
+  const fetchApplicationStatus = async (orderId: string, transactionId: string, bpp_id?: string, bpp_uri?: string, retryCount = 0): Promise<string> => {
     // Check cache first
     const cacheKey = `${orderId}-${transactionId}`;
     const cachedResult = statusCache.current.get(cacheKey);
@@ -102,8 +102,8 @@ const MyApplications = () => {
         },
         body: JSON.stringify({
           context: {
-            bpp_id: "bpp1.dhiway.com",
-            bpp_uri: "https://beckn-adapter.dhiway.net/bpp/receiver",
+            bpp_id: bpp_id || "bpp1.dhiway.com",
+            bpp_uri: bpp_uri || "https://beckn-adapter.dhiway.net/bpp/receiver",
             transaction_id: transactionId
           },
           message: {
@@ -189,7 +189,7 @@ const MyApplications = () => {
       // Retry logic for failed requests
       if (retryCount < 2) {
         await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
-        return fetchApplicationStatus(orderId, transactionId, retryCount + 1);
+        return fetchApplicationStatus(orderId, transactionId, bpp_id, bpp_uri, retryCount + 1);
       }
       
       const fallbackStatus = 'applied';
@@ -209,9 +209,12 @@ const MyApplications = () => {
       const batchPromises = batch.map(async (app) => {
         const orderId = app.raw?.metadata?.message?.order?.id || app.raw?.order_id;
         const transactionId = app.raw?.metadata?.context?.transaction_id || app.raw?.transaction_id;
+        const context = app.raw?.metadata?.context;
+        const bpp_id = context?.bpp_id;
+        const bpp_uri = context?.bpp_uri;
 
         if (orderId && transactionId) {
-          const status = await fetchApplicationStatus(orderId, transactionId);
+          const status = await fetchApplicationStatus(orderId, transactionId, bpp_id, bpp_uri);
           return {
             ...app,
             status: status as JobApplication['status']
