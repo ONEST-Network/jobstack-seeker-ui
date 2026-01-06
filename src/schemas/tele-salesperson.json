@@ -178,25 +178,17 @@
           },
           "taskVideo": {
             "type": "string",
-            "title": "Task Upload",
+            "title": "Document Upload",
             "description": "Upload any file (document, image, video) showing your work",
             "ui:widget": "file-upload",
             "ui:placeholder": "Upload file showing your work",
             "ui:disabled": false,
             "ui:accept": "*/*",
             "ui:noSizeLimit": true
-          },
-          "scanQRCode": {
-            "type": "string",
-            "title": "Scan QR Code",
-            "description": "Scan QR code to import additional information",
-            "required": false,
-            "ui:widget": "qr-scanner",
-            "ui:placeholder": "Scan QR code"
           }
         },
         "ui": {
-          "order": ["languagesKnown", "highestEducation", "collegeName", "workExperience", "communicationSkillsScore", "domainKnowledge", "taskVideo", "scanQRCode"],
+          "order": ["languagesKnown", "highestEducation", "collegeName", "workExperience", "communicationSkillsScore", "domainKnowledge", "taskVideo"],
           "description": "Tell us about your qualifications, skills, and experience"
         },
         "required": ["highestEducation"]

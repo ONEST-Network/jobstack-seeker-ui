@@ -552,27 +552,19 @@
             "ui:disabled": false
           },
             "ui": {
-              "order": ["highestQualification", "itiSpecialization", "itiSpecialization_other", "rollNumber", "itiInstitute", "trainingDuration", "languageSpoken", "taskVideo", "qrCodeScan"],
+              "order": ["highestQualification", "itiSpecialization", "itiSpecialization_other", "rollNumber", "itiInstitute", "trainingDuration", "languageSpoken", "taskVideo"],
               "description": "Assessment for fitter"
             }
           ,
           "taskVideo": {
             "type": "string",
-            "title": "Task Upload",
+            "title": "Document Upload",
             "description": "Upload any file (document, image, video) showing your work",
             "ui:widget": "file-upload",
             "ui:placeholder": "Upload file showing your work",
             "ui:disabled": false,
             "ui:accept": "*/*",
             "ui:noSizeLimit": true
-          },
-          "qrCodeScan": {
-            "type": "string",
-            "title": "Scan QR code",
-            "description": "Scan QR code for additional information",
-            "ui:widget": "qr-scanner",
-            "ui:placeholder": "Scan QR code",
-            "ui:disabled": false
           }
         },
         "ui": {
@@ -584,8 +576,7 @@
             "itiInstitute",
             "trainingDuration",
             "languageSpoken",
-            "taskVideo",
-            "qrCodeScan"
+            "taskVideo"
           ],
           "description": "Add your qualifications, skills, and work history",
           "sections": [
@@ -600,10 +591,6 @@
             {
               "title": "Task Video",
               "fields": ["taskVideo"]
-            },
-            {
-              "title": "QR Code Scan",
-              "fields": ["qrCodeScan"]
             }
           ]
         },
