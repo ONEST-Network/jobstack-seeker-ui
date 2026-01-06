@@ -806,10 +806,19 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
       
       {/* Map Search Controls - Inside Map Container */}
       <div className={`absolute z-[1000] ${
-        showLocationCard 
-          ? (zoom >= 10 ? 'top-2 left-80 w-64' : 'top-4 left-4 w-80')
-          : (zoom >= 10 ? 'top-2 left-4 w-64' : 'top-4 left-4 w-80')
-      }`}>
+        showLocationCard
+          ? (zoom >= 10
+            ? 'top-2 left-80 w-64'
+            : 'top-4 left-4 w-80')
+          : (zoom >= 10
+            ? 'top-2 left-4 w-64'
+            : 'top-4 left-4 w-80')
+      }
+        max-sm:top-4
+        max-sm:left-1/2
+        max-sm:-translate-x-1/2
+        max-sm:w-[90%]
+    `}>
         <div className={`bg-white rounded-lg shadow-lg border ${
           zoom >= 10 ? 'p-2' : 'p-3'
         }`}>
@@ -1085,9 +1094,12 @@ const SimpleLeafletMap: React.FC<SimpleLeafletMapProps> = ({
 
       {/* Location Detail Card - Inside Map Container */}
       {showLocationCard && locationCardData && (
-        <div className={`absolute z-[1000] ${
-          zoom >= 10 ? 'top-2 left-2 w-72' : 'top-20 left-4 w-80'
-        }`}>
+        <div className={`absolute z-[1000]
+          top-24 left-1/2 -translate-x-1/2 w-[90%]
+          sm:translate-x-0 sm:left-2
+          ${zoom >= 10 ? 'sm:top-2 sm:w-72' : 'sm:top-20 sm:w-80'}
+        `}
+      >
           <div className="bg-white/95 backdrop-blur-sm border-0 shadow-xl rounded-lg animate-fade-in max-h-[calc(100vh-120px)] overflow-hidden">
             {/* Header */}
             <div className="relative p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
