@@ -136,10 +136,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ onShowLogin }) => {
                 <FileText className="h-4 w-4 mr-2" />
                 {t('userMenu.myApplications', 'My Applications')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleViewAllProfiles}>
+              {/* <DropdownMenuItem onClick={handleViewAllProfiles}>
                 <Eye className="h-4 w-4 mr-2" />
                 {t('userMenu.viewAllProfiles', 'View All Profiles')}
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </>
           )}
           {user.role === 'organization' && (
