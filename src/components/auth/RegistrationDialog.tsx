@@ -152,8 +152,22 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   const handlePhoneChange = (value: string) => {
     const currentCursorPosition = phoneInputRef.current?.selectionStart || 0;
     
-    setPhone(value);
-    const formatted = formatPhoneNumber(value);
+    // Restrict to digits, +, and spaces only
+    let sanitizedValue = value.replace(/[^\d+\s]/g, '');
+    
+    // If user tries to type +, only allow it at the start
+    if (sanitizedValue.includes('+') && !sanitizedValue.startsWith('+')) {
+      sanitizedValue = sanitizedValue.replace(/\+/g, '');
+    }
+    
+    // Limit to one + sign
+    const plusCount = (sanitizedValue.match(/\+/g) || []).length;
+    if (plusCount > 1) {
+      sanitizedValue = '+' + sanitizedValue.replace(/\+/g, '');
+    }
+    
+    setPhone(sanitizedValue);
+    const formatted = formatPhoneNumber(sanitizedValue);
     setFormattedPhone(formatted);
     
     // Handle cursor position after formatting
@@ -162,7 +176,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
         let newCursorPosition = currentCursorPosition;
         
         // If the formatted value has +91 prefix and the original input didn't start with it
-        if (formatted.startsWith('+91') && !value.startsWith('+91')) {
+        if (formatted.startsWith('+91') && !sanitizedValue.startsWith('+91')) {
           // Position cursor after the +91 prefix
           newCursorPosition = Math.max(currentCursorPosition + 3, 3);
         }
@@ -232,14 +246,25 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
       return;
     }
 
-    // Validate phone if provided
-    if (phone && phone.replace(/\D/g, '').length < 10) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid phone number.",
-        variant: "destructive"
-      });
-      return;
+    // Validate phone if provided - must be exactly 10 digits (excluding country code)
+    // The +91 prefix will be added automatically by formatPhoneNumber
+    if (phone) {
+      let phoneDigits: number;
+      // If input starts with +91, check digits after that
+      if (phone.startsWith('+91')) {
+        phoneDigits = phone.substring(3).replace(/\D/g, '').length;
+      } else {
+        phoneDigits = phone.replace(/\D/g, '').length;
+      }
+      
+      if (phoneDigits !== 10) {
+        toast({
+          title: t('toastMessages.error', 'Error'),
+          description: t('toastMessages.invalidPhoneExactDigits', 'Please enter exactly 10 digits for the phone number'),
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     try {
@@ -367,8 +392,41 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
     }
   };
 
+  // Helper function to validate phone number has exactly 10 digits
+  const isValidPhoneNumber = (phoneValue: string): boolean => {
+    if (!phoneValue.trim()) {
+      return false;
+    }
+    let phoneDigits: number;
+    // If input starts with +91, check digits after that
+    if (phoneValue.startsWith('+91')) {
+      phoneDigits = phoneValue.substring(3).replace(/\D/g, '').length;
+    } else {
+      phoneDigits = phoneValue.replace(/\D/g, '').length;
+    }
+    return phoneDigits === 10;
+  };
+
   const canSubmit = () => {
-    return name.trim() && (email.trim() || phone.trim()) && termsAccepted && privacyAccepted;
+    if (!name.trim() || !termsAccepted || !privacyAccepted) {
+      return false;
+    }
+    
+    // Check if email or phone is provided
+    if (email.trim()) {
+      // If email is provided, validate it has @
+      if (!email.includes('@')) {
+        return false;
+      }
+      return true;
+    }
+    
+    if (phone.trim()) {
+      // Validate phone - must be exactly 10 digits (excluding country code)
+      return isValidPhoneNumber(phone);
+    }
+    
+    return false;
   };
 
   return (
@@ -574,7 +632,22 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     type="tel"
                     value={minorFormattedPhone || minorPhone}
                     onChange={(e) => {
-                      const value = e.target.value;
+                      let value = e.target.value;
+                      
+                      // Restrict to digits, +, and spaces only
+                      value = value.replace(/[^\d+\s]/g, '');
+                      
+                      // If user tries to type +, only allow it at the start
+                      if (value.includes('+') && !value.startsWith('+')) {
+                        value = value.replace(/\+/g, '');
+                      }
+                      
+                      // Limit to one + sign
+                      const plusCount = (value.match(/\+/g) || []).length;
+                      if (plusCount > 1) {
+                        value = '+' + value.replace(/\+/g, '');
+                      }
+                      
                       setMinorPhone(value);
                       setMinorFormattedPhone(formatPhoneNumber(value));
                     }}
@@ -608,6 +681,27 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     return;
                   }
 
+                  // Validate minor phone if provided - must be exactly 10 digits (excluding country code)
+                  // The +91 prefix will be added automatically by formatPhoneNumber
+                  if (minorPhone) {
+                    let phoneDigits: number;
+                    // If input starts with +91, check digits after that
+                    if (minorPhone.startsWith('+91')) {
+                      phoneDigits = minorPhone.substring(3).replace(/\D/g, '').length;
+                    } else {
+                      phoneDigits = minorPhone.replace(/\D/g, '').length;
+                    }
+                    
+                    if (phoneDigits !== 10) {
+                      toast({
+                        title: t('toastMessages.error', 'Error'),
+                        description: t('toastMessages.invalidPhoneExactDigits', 'Please enter exactly 10 digits for the phone number'),
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                  }
+
                   try {
                     const otpData = {
                       name: minorName,
@@ -629,7 +723,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     });
                   }
                 }}
-                disabled={isLoading || !minorName.trim() || (!minorEmail.trim() && !minorPhone.trim())}
+                disabled={isLoading || !minorName.trim() || (!minorEmail.trim() && !minorPhone.trim()) || (minorPhone.trim() && !isValidPhoneNumber(minorPhone))}
                 className="w-full"
               >
                 {isLoading ? t('register.sendingOTP', 'Sending OTP...') : t('register.sendOTP', 'Send OTP')}
