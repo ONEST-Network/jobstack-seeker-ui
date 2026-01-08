@@ -27,6 +27,9 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
     return null;
   }
 
+  const limitText = (text = '', max = 25) =>
+    text.length > max ? text.slice(0, max) + '…' : text;
+
   const handleEditProfile = (profileId: string) => {
     setEditingProfileId(profileId);
     setShowProfileDialog(true);
@@ -113,7 +116,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
           <Button variant="outline" className="gap-2 min-w-0 flex-1 sm:flex-none">
             <User className="h-4 w-4 flex-shrink-0" />
             <span className="font-medium truncate">
-              {selectedCandidate?.nickname || selectedCandidate?.name || t('selectProfile', 'Select Profile')}
+              {limitText(selectedCandidate?.nickname || selectedCandidate?.name || t('selectProfile', 'Select Profile'),25)}
             </span>
             <ChevronDown className="h-4 w-4 flex-shrink-0" />
           </Button>
@@ -199,10 +202,10 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({ onAddCandidate })
                     >
                       <div className="flex flex-col min-w-0 flex-1">
                         <span className="font-medium truncate">
-                          {candidate.nickname || candidate.name}
+                          {limitText(candidate.nickname || candidate.name, 25)}
                         </span>
                         <span className="text-xs text-muted-foreground truncate">
-                          {candidate.interestedRole || t('noRoleSpecified', 'No role specified')}
+                          {limitText(candidate.interestedRole || t('noRoleSpecified', 'No role specified'),25)}
                         </span>
                       </div>
                       {selectedCandidate?.id === candidate.id && !isSelectionMode && (
