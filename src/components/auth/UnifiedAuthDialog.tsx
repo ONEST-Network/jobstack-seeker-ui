@@ -100,11 +100,29 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   const handleContactInputChange = (value: string) => {
     const currentCursorPosition = inputRef.current?.selectionStart || 0;
     
-    setContactInput(value);
+    // If it's detected as phone or looks like phone, restrict to digits and + only
+    let sanitizedValue = value;
+    if (contactType === 'phone' || (value.replace(/\D/g, '').length >= 3 && !value.includes('@'))) {
+      // Allow only digits, +, and spaces (spaces will be removed by formatPhoneNumber)
+      sanitizedValue = value.replace(/[^\d+\s]/g, '');
+      
+      // If user tries to type +, only allow it at the start
+      if (sanitizedValue.includes('+') && !sanitizedValue.startsWith('+')) {
+        sanitizedValue = sanitizedValue.replace(/\+/g, '');
+      }
+      
+      // Limit to one + sign
+      const plusCount = (sanitizedValue.match(/\+/g) || []).length;
+      if (plusCount > 1) {
+        sanitizedValue = '+' + sanitizedValue.replace(/\+/g, '');
+      }
+    }
+    
+    setContactInput(sanitizedValue);
     
     // Format phone number if it's a phone input
-    if (contactType === 'phone' || value.replace(/\D/g, '').length >= 10) {
-      const formatted = formatPhoneNumber(value);
+    if (contactType === 'phone' || sanitizedValue.replace(/\D/g, '').length >= 10) {
+      const formatted = formatPhoneNumber(sanitizedValue);
       setFormattedPhoneNumber(formatted);
       
       // Handle cursor position after formatting
@@ -113,7 +131,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
           let newCursorPosition = currentCursorPosition;
           
           // If the formatted value has +91 prefix and the original input didn't start with it
-          if (formatted.startsWith('+91') && !value.startsWith('+91')) {
+          if (formatted.startsWith('+91') && !sanitizedValue.startsWith('+91')) {
             // Position cursor after the +91 prefix
             newCursorPosition = Math.max(currentCursorPosition + 3, 3);
           }
@@ -135,9 +153,17 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailRegex.test(contactInput);
     } else {
-      // Phone validation - should have at least 10 digits
+      // Phone validation - should have exactly 10 digits (excluding country code)
+      // The +91 prefix will be added automatically by formatPhoneNumber
       const phoneDigits = contactInput.replace(/\D/g, '');
-      return phoneDigits.length >= 10;
+      // Check if we have exactly 10 digits (not counting the +91 prefix if present)
+      // If input starts with +91, we need to check digits after that
+      if (contactInput.startsWith('+91')) {
+        const digitsAfterPrefix = contactInput.substring(3).replace(/\D/g, '');
+        return digitsAfterPrefix.length === 10;
+      }
+      // Otherwise, check total digits (should be exactly 10)
+      return phoneDigits.length === 10;
     }
   };
 
@@ -147,7 +173,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
         title: t('toastMessages.error', 'Error'),
         description: contactType === 'email' 
           ? t('toastMessages.invalidEmail', 'Please enter a valid email address')
-          : t('toastMessages.invalidPhone', 'Please enter a valid phone number'),
+          : t('toastMessages.invalidPhoneExactDigits', 'Please enter exactly 10 digits for the phone number'),
         variant: "destructive"
       });
       return;
@@ -371,7 +397,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
                 <Input
                   ref={inputRef}
                   id="contact"
-                  type="text"
+                  type={contactType === 'phone' ? 'tel' : 'text'}
                   placeholder={getPlaceholder()}
                   value={getDisplayValue()}
                   onChange={(e) => handleContactInputChange(e.target.value)}
