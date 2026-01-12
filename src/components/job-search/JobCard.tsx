@@ -23,6 +23,9 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
   const [showAllDetails, setShowAllDetails] = useState(false);
   const t = useTranslation('jobs');
 
+  const limitText = (text = '', max = 25) =>
+    text.length > max ? text.slice(0, max) + '…' : text; 
+
   // Helper function to get provider and job IDs for sharing
   const getShareableLink = () => {
     // Try to find provider and job IDs from the job data
@@ -175,7 +178,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
     const structuredDetails = [
       {
         label: t('card.roleName', 'Role Name'),
-        value: job.title, // Using title as role name
+        value: limitText(job.title,25), // Using title as role name
         key: 'roleName'
       },
       {
@@ -320,7 +323,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
         {/* Job Title */}
         <div className="space-y-2">
           <h3 className="text-lg sm:text-xl font-semibold text-foreground line-clamp-2">
-            {job.title}
+            {limitText(job.title, 25)}
             {positions && positions > 0 && (
               <span className="text-muted-foreground font-normal"> ({positions})</span>
             )}
@@ -338,7 +341,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
           </div>
           <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
             <span className="font-medium text-sm sm:text-base text-foreground truncate">
-              {job.tags?.basicInfo?.jobProviderName || job.company}
+              {limitText(job.tags?.basicInfo?.jobProviderName || job.company, 25)}
             </span>
 {/*             {job.verified && (
               <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs flex-shrink-0">

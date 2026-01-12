@@ -62,6 +62,9 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
   const industrialTailorDetails = tags.industrialTailorDetails || {};
   const hiringManager = tags.hiringManager || {};
 
+  const limitText = (text = '', max = 25) =>
+    text.length > max ? text.slice(0, max) + '…' : text;
+
   // Helper function to format field names
   const formatFieldName = (key: string) => {
     return key
@@ -414,7 +417,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
             {detailsArray.map(([key, value], index) => (
               <div key={index} className="flex justify-between">
                 <span className="text-sm text-muted-foreground">{formatFieldName(key)}:</span>
-                <span className="text-sm font-semibold">{formatFieldValue(value)}</span>
+                <span className="text-sm font-semibold">{limitText(formatFieldValue(value), 25)}</span>
               </div>
             ))}
           </div>
@@ -428,7 +431,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
       <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto p-0 sm:p-6 w-[95vw] sm:w-full">
         <DialogHeader className="p-4 sm:p-6 pb-0 sticky top-0 bg-background z-10 border-b">
           <DialogTitle className="text-lg sm:text-xl font-bold overflow-hidden text-ellipsis whitespace-nowrap">
-            {job.title}
+          {limitText(job.title, 25)}
             {job.openings && job.openings > 0 && (
               <span className="text-muted-foreground font-normal"> ({job.openings})</span>
             )}
@@ -442,7 +445,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               <div className="space-y-3 flex-1">
                 <div className="flex items-center gap-2">
                   <Building className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-semibold">{job.company}</span>
+                  <span className="font-semibold">{limitText(job.company, 25)}</span>
                   {job.verified && (
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
                       ✓ Verified
