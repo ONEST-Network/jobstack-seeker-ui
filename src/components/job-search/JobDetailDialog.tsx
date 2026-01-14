@@ -612,14 +612,16 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               <Building className="h-5 w-5" />
             )}
 
-            {/* Job Needs - Use NEW logic */}
-            {Object.keys(jobNeeds).length > 0 && renderSectionWithSubsections(
-              'Job Requirements',
-              [],
-              processSubsectionsJobNeeds(jobNeeds, 'jobNeeds'),
-              <Users className="h-5 w-5" />,
-              false
-            )}
+            {/* Job Needs */}
+            {Object.keys(jobNeeds).length > 0 &&
+              processSubsectionsJobNeeds(jobNeeds, 'jobNeeds').length > 0 &&
+              renderSectionWithSubsections(
+                'Job Requirements',
+                [],
+                processSubsectionsJobNeeds(jobNeeds, 'jobNeeds'),
+                <Users className="h-5 w-5" />,
+                false
+              )}
 
             {/* Industrial Tailor Details - Use OLD logic */}
             {Object.keys(industrialTailorDetails).length > 0 && renderSectionWithSubsections(
