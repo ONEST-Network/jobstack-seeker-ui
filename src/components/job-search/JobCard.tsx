@@ -44,7 +44,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    const shareUrl = getShareableLink();
+    let shareUrl = getShareableLink();
     
     if (!shareUrl) {
       toast({
@@ -53,6 +53,17 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails }) => {
         variant: "destructive"
       });
       return;
+    }
+
+    // Append BPP context to the URL if available
+    if (job.context?.bpp_id && job.context?.bpp_uri) {
+      const url = new URL(shareUrl);
+      url.searchParams.set('bpp_id', job.context.bpp_id);
+      url.searchParams.set('bpp_uri', job.context.bpp_uri);
+      shareUrl = url.toString();
+      console.log('🔗 Share URL with BPP context:', shareUrl);
+    } else {
+      console.warn('⚠️ BPP context not available in job data');
     }
 
     try {
