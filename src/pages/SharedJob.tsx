@@ -105,6 +105,11 @@ const SharedJob: React.FC = () => {
   const { toast } = useToast();
   const { applyToJob, applying } = useJobApplication();
   
+  // Extract BPP context from URL parameters
+  const searchParams = new URLSearchParams(window.location.search);
+  const bppIdFromUrl = searchParams.get('bpp_id');
+  const bppUriFromUrl = searchParams.get('bpp_uri');
+  
   const [jobData, setJobData] = useState<SharedJobData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -320,7 +325,19 @@ const SharedJob: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        const data = await apiClient.selectJob(providerId, jobId);
+        // Use BPP context from URL if available, otherwise throw error
+        let bpp_id: string | undefined = bppIdFromUrl || undefined;
+        let bpp_uri: string | undefined = bppUriFromUrl || undefined;
+        
+        if (bpp_id && bpp_uri) {
+          console.log('✅ Using BPP context from URL:', { bpp_id, bpp_uri });
+        } else {
+          console.error('❌ BPP context not found in URL');
+          throw new Error('This job link is invalid or outdated. Please request a new share link.');
+        }
+
+        // Call select with the BPP context from URL
+        const data = await apiClient.selectJob(providerId, jobId, bpp_id, bpp_uri);
         
         if (!data?.message?.order?.items?.[0]) {
           throw new Error('Job not found');
@@ -422,7 +439,15 @@ const SharedJob: React.FC = () => {
   };
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/${orgSlug || '0'}/${providerId}/${jobId}`;
+    let shareUrl = `${window.location.origin}/${orgSlug || '0'}/${providerId}/${jobId}`;
+    
+    // Re-add BPP context to the shared URL if available
+    if (jobData?.context?.bpp_id && jobData?.context?.bpp_uri) {
+      const url = new URL(shareUrl);
+      url.searchParams.set('bpp_id', jobData.context.bpp_id);
+      url.searchParams.set('bpp_uri', jobData.context.bpp_uri);
+      shareUrl = url.toString();
+    }
     
     try {
       // Always copy to clipboard first

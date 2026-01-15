@@ -1245,12 +1245,19 @@ class ApiClient {
   // BAP Job Select API
   async selectJob(providerId: string, jobId: string, bpp_id?: string, bpp_uri?: string) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    
+    // Validate that BPP context is provided (no defaults)
+    if (!bpp_id || !bpp_uri) {
+      console.error('❌ BPP context (bpp_id and bpp_uri) is required for selectJob');
+      throw new Error('Job provider context is required. Please use a valid job share link.');
+    }
+    
     const url = `${BAP_URL}/api/v1/select`;
     
     const payload = {
       context: {
-        bpp_id: bpp_id || "bpp1.dhiway.com",
-        bpp_uri: bpp_uri || "https://beckn-adapter.dhiway.net/bpp/receiver",
+        bpp_id: bpp_id,
+        bpp_uri: bpp_uri,
         transaction_id: `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       },
       message: {
@@ -1266,6 +1273,13 @@ class ApiClient {
         }
       }
     };
+
+    console.log('🔍 Select API Request:', {
+      url,
+      payload: JSON.stringify(payload, null, 2),
+      bpp_id_provided: !!bpp_id,
+      bpp_uri_provided: !!bpp_uri
+    });
 
     try {
       // Create an AbortController for timeout
@@ -1294,9 +1308,10 @@ class ApiClient {
         throw new Error('Invalid response format from BAP API');
       }
 
+      console.log('✅ Select API Response received successfully');
       return data;
     } catch (error) {
-      console.error('BAP Select API Error:', error);
+      console.error('❌ BAP Select API Error:', error);
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('Request timeout - please try again');
       }
