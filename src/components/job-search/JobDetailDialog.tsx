@@ -3,19 +3,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  MapPin, 
-  Clock, 
-  Users, 
-  Star, 
-  Building, 
-  Calendar, 
-  DollarSign, 
-  Home, 
-  BedDouble, 
-  Award, 
-  Phone, 
-  Mail, 
+import {
+  MapPin,
+  Clock,
+  Users,
+  Star,
+  Building,
+  Calendar,
+  DollarSign,
+  Home,
+  BedDouble,
+  Award,
+  Phone,
+  Mail,
   Globe,
   ChevronDown,
   ChevronRight,
@@ -51,7 +51,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
   const { toast } = useToast();
   const t = useTranslation('jobs');
   const { orgSlug } = useParams<{ orgSlug?: string }>();
-  
+
   if (!job) return null;
 
   // Extract all tag data from the job object
@@ -124,14 +124,25 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
     return iconMap[subsectionName] || <Star className="h-4 w-4" />;
   };
 
+  // Helper function to check if a value is a nested object (not array, not primitive)
+  const isNestedObject = (value: any): boolean => {
+    return value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      Object.keys(value).length > 0 &&
+      // Exclude location objects which should be treated as values
+      !(value.city && value.state) &&
+      !value.address;
+  };
+
   // Process subsections from tags
   const processSubsections = (data: any): SubsectionData[] => {
     const subsections: SubsectionData[] = [];
-    
+
     Object.entries(data).forEach(([key, value]) => {
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         const subsectionData: Array<{ key: string; value: string }> = [];
-        
+
         Object.entries(value).forEach(([subKey, subValue]) => {
           if (shouldDisplayValue(subValue)) {
             subsectionData.push({
@@ -140,7 +151,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
             });
           }
         });
-        
+
         if (subsectionData.length > 0) {
           subsections.push({
             title: formatFieldName(key),
@@ -150,25 +161,67 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
         }
       }
     });
-    
+
     return subsections;
   };
+  //Process subsections for Job Needs (flattens everything into single Details section)
+  const processSubsectionsJobNeeds = (data: any, sectionName: string): SubsectionData[] => {
+    const subsections: SubsectionData[] = [];
+    const allValues: Array<{ key: string; value: string }> = [];
 
+    // Recursive function to flatten all nested data
+    const extractAllValues = (obj: any) => {
+      Object.entries(obj).forEach(([key, value]) => {
+        if (isNestedObject(value)) {
+          // If it's a nested object, extract its values
+          Object.entries(value).forEach(([subKey, subValue]) => {
+            if (shouldDisplayValue(subValue)) {
+              allValues.push({
+                key: formatFieldName(subKey),
+                value: formatFieldValue(subValue)
+              });
+            }
+          });
+        } else if (shouldDisplayValue(value)) {
+          // Direct value
+          allValues.push({
+            key: formatFieldName(key),
+            value: formatFieldValue(value)
+          });
+        }
+      });
+    };
+
+    // Extract all values
+    extractAllValues(data);
+
+    // Create single subsection with all values
+    if (allValues.length > 0) {
+      subsections.push({
+        title: 'Details',
+        data: allValues,
+        icon: getSubsectionIcon(sectionName)
+      });
+    }
+
+    return subsections;
+  };
   // Render subsection
-  const renderSubsection = (subsection: SubsectionData) => {
-    const isExpanded = expandedSubsections.has(subsection.title);
-    
+  const renderSubsection = (subsection: SubsectionData, parentSection: string) => {
+    const uniqueKey = `${parentSection}-${subsection.title}`;
+    const isExpanded = expandedSubsections.has(uniqueKey);
+
     return (
       <Card key={subsection.title} className="border">
         <CardContent className="p-0">
-          <div 
+          <div
             className="flex items-center justify-between cursor-pointer p-4 hover:bg-gray-50 transition-colors"
             onClick={() => {
               const newExpanded = new Set(expandedSubsections);
               if (isExpanded) {
-                newExpanded.delete(subsection.title);
+                newExpanded.delete(uniqueKey);
               } else {
-                newExpanded.add(subsection.title);
+                newExpanded.add(uniqueKey);
               }
               setExpandedSubsections(newExpanded);
             }}
@@ -183,7 +236,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             )}
           </div>
-          
+
           {isExpanded && (
             <div className="px-4 pb-4 space-y-3 border-t">
               {subsection.data.map((item, index) => (
@@ -201,10 +254,11 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
 
   // Render section with subsections
   const renderSectionWithSubsections = (
-    title: string, 
-    data: any[], 
-    subsections: SubsectionData[], 
-    icon: React.ReactNode
+    title: string,
+    data: any[],
+    subsections: SubsectionData[],
+    icon: React.ReactNode,
+    isExpandable: boolean = true  // added parameter to control expandability
   ) => {
     return (
       <div key={title} className="space-y-4">
@@ -212,19 +266,37 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
           {icon}
           <h3 className="text-lg font-semibold">{title}</h3>
         </div>
-        
+
         {subsections.length > 0 && (
           <div className="space-y-3">
-            {subsections.map(renderSubsection)}
+            {isExpandable ? (
+              // Expandable subsections for Basic Info, etc.
+              subsections.map((subsection) => renderSubsection(subsection, title))
+            ) : (
+              // Flat display for Job Requirements
+              <Card className="border">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    {subsections.map((subsection) =>
+                      subsection.data.map((item, index) => (
+                        <div key={index} className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                          <span className="text-sm text-muted-foreground font-medium">{item.key}:</span>
+                          <span className="text-sm font-semibold text-foreground">{item.value}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </div>
     );
   };
-
   // Determine if we should show real trust scores
   const shouldShowRealScores = user && user.profile;
-  
+
   // Get display scores - show 0 if user not logged in, real scores if logged in
   const displayTrustScore = shouldShowRealScores ? job.trustScore : 0;
   const displayMatchScore = shouldShowRealScores ? job.matchScore : 0;
@@ -235,20 +307,20 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
     // This assumes the job data contains the necessary IDs from the search API
     const providerId = job.providerId;
     const jobId = job.id;
-    
+
     if (providerId && jobId) {
       // Use the new route structure with organization slug
       return `${window.location.origin}/${orgSlug || '0'}/${providerId}/${jobId}`;
     }
-    
+
     return null;
   };
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    let shareUrl = getShareableLink();
-    
+
+    const shareUrl = getShareableLink();
+
     if (!shareUrl) {
       toast({
         title: "Share Unavailable",
@@ -370,7 +442,6 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
       if (value === null || value === undefined || value === '') {
         return false;
       }
-      
       // Skip video and photo related fields that should be in media carousel
       const skipFields = [
         'jobDetailsVideo',
@@ -391,7 +462,6 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
         'media',
         'url'
       ];
-      
       const keyLower = key.toLowerCase();
       return !skipFields.some(field => keyLower.includes(field));
     });
@@ -428,7 +498,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
             {detailsArray.map(([key, value], index) => (
               <div key={index} className="flex justify-between">
                 <span className="text-sm text-muted-foreground">{formatFieldName(key)}:</span>
-                <span className="text-sm font-semibold">{limitText(formatFieldValue(value), 25)}</span>
+                <span className="text-sm font-semibold">{formatFieldValue(value)}</span>
               </div>
             ))}
           </div>
@@ -448,7 +518,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
             )}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="p-4 sm:p-6 pt-0 space-y-6">
           {/* Header with basic info */}
           <div className="space-y-4">
@@ -456,14 +526,14 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               <div className="space-y-3 flex-1">
                 <div className="flex items-center gap-2">
                   <Building className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-semibold">{limitText(job.company, 25)}</span>
+                  <span className="font-semibold">{job.company}</span>
                   {job.verified && (
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
                       ✓ Verified
                     </Badge>
                   )}
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-4 w-4" />
@@ -483,12 +553,12 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
                   )}
                 </div>
               </div>
-              
+
               <div className="flex flex-col gap-3">
                 {(jobDetails.salaryCTC || (job.salary && job.salary !== 'Salary not specified' && job.salary !== 'Not specified')) && (
                   <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                     <div className="text-2xl sm:text-3xl font-bold text-green-700 mb-1">
-                      {jobDetails.salaryCTC 
+                      {jobDetails.salaryCTC
                         ? `₹${jobDetails.salaryCTC.toLocaleString()}`
                         : job.salary && job.salary !== 'Salary not specified' && job.salary !== 'Not specified'
                           ? job.salary
@@ -534,8 +604,8 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
                 <h3 className="text-lg font-semibold">Media & Photos</h3>
               </div>
               <div className="w-full">
-                <JobMediaCarousel 
-                  media={job.media} 
+                <JobMediaCarousel
+                  media={job.media}
                   title={job.title}
                   className="w-full"
                 />
@@ -545,7 +615,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
 
           {/* Job Details Sections */}
           <div className="space-y-6">
-            {/* Basic Info */}
+            {/* Basic Info - Use OLD logic */}
             {Object.keys(basicInfo).length > 0 && renderSectionWithSubsections(
               'Basic Information',
               [],
@@ -553,23 +623,18 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               <Building className="h-5 w-5" />
             )}
 
-            {/* Job Details */}
-            {Object.keys(jobDetails).length > 0 && renderSectionWithSubsections(
-              'Job Details',
-              [],
-              processSubsections(jobDetails),
-              <Award className="h-5 w-5" />
-            )}
-
             {/* Job Needs */}
-            {Object.keys(jobNeeds).length > 0 && renderSectionWithSubsections(
-              'Job Requirements',
-              [],
-              processSubsections(jobNeeds),
-              <Users className="h-5 w-5" />
-            )}
+            {Object.keys(jobNeeds).length > 0 &&
+              processSubsectionsJobNeeds(jobNeeds, 'jobNeeds').length > 0 &&
+              renderSectionWithSubsections(
+                'Job Requirements',
+                [],
+                processSubsectionsJobNeeds(jobNeeds, 'jobNeeds'),
+                <Users className="h-5 w-5" />,
+                false
+              )}
 
-            {/* Industrial Tailor Details */}
+            {/* Industrial Tailor Details - Use OLD logic */}
             {Object.keys(industrialTailorDetails).length > 0 && renderSectionWithSubsections(
               'Industrial Tailor Details',
               [],
@@ -577,7 +642,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               <Star className="h-5 w-5" />
             )}
 
-            {/* Hiring Manager */}
+            {/* Hiring Manager - Use OLD logic */}
             {Object.keys(hiringManager).length > 0 && renderSectionWithSubsections(
               'Contact Information',
               [],
@@ -588,7 +653,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t mt-6 sticky bottom-0 bg-background pb-4">
-            <Button 
+            <Button
               onClick={() => onApply(job)}
               className="flex-1 bg-primary hover:bg-primary/90 h-12 text-base font-medium"
             >
@@ -602,8 +667,8 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
               <Copy className="h-4 w-4 mr-2" />
               {t('actions.shareJob', 'Share Job')}
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={onClose}
               className="h-12"
             >
