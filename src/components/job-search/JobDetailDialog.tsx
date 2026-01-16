@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,7 +23,8 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   Copy,
-  Share2
+  Share2,
+  X
 } from 'lucide-react';
 import { JobItem } from '@/hooks/useJobSearch';
 import { useAuth } from '@/contexts/AuthContext';
@@ -335,8 +336,8 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
       const url = new URL(shareUrl);
       url.searchParams.set('bpp_id', job.context.bpp_id);
       url.searchParams.set('bpp_uri', job.context.bpp_uri);
-      shareUrl = url.toString();
-      console.log('🔗 Share URL with BPP context:', shareUrl);
+      //shareUrl = url.toString();
+      console.log('🔗 Share URL with BPP context:', shareUrl.toString);
     } else {
       console.warn('⚠️ BPP context not available in job data');
     }
@@ -509,17 +510,24 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto p-0 sm:p-6 w-[95vw] sm:w-full">
-        <DialogHeader className="p-4 sm:p-6 pb-0 sticky top-0 bg-background z-10 border-b">
-          <DialogTitle className="text-lg sm:text-xl font-bold overflow-hidden text-ellipsis whitespace-nowrap">
-          {limitText(job.title, 25)}
-            {job.openings && job.openings > 0 && (
-              <span className="text-muted-foreground font-normal"> ({job.openings})</span>
-            )}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto p-0  w-[95vw] sm:w-full" >
 
-        <div className="p-4 sm:p-6 pt-0 space-y-6">
+        <DialogHeader className="p-4 sm:p-6 pb-0 sticky top-0 bg-background z-10 border-b">
+          <div className='flex justify-between items-center'>
+
+            <DialogTitle className="text-lg py-3 sm:text-xl font-bold overflow-hidden text-ellipsis whitespace-nowrap">
+              {job.title}
+              {job.openings && job.openings > 0 && (
+                <span className="text-muted-foreground font-normal"> ({job.openings})</span>
+              )}
+            </DialogTitle>
+            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
+        </DialogHeader>
+        <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-6">
           {/* Header with basic info */}
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
