@@ -32,6 +32,7 @@ import machineOperatorTraineeSchema from './machine-operator-trainee.json';
 import qaQcTechnicianTraineeSchema from './qa-qc-technician-trainee.json';
 import packagingOperationsExecutiveSchema from './packaging-operations-executive.json';
 import plantOperationsExecutiveSchema from './plant-operations-executive.json';
+import anySchema from './any.json';
 
 export interface ProfileStepSchema {
   $schema: string;
@@ -181,7 +182,10 @@ export const getUnifiedSchema = (role?: string): any => {
   if (role === 'Plant Operations Executive') {
     return plantOperationsExecutiveSchema;
   }
-  // For roles without specific schemas, fall back to Electrician
+  if (role === 'Any') {
+    return anySchema;
+  }
+  // For roles without specific schemas, fall back to Industrial Tailor
   if (role === 'Field Sales Executive') {
     return electricianSchema;
   }

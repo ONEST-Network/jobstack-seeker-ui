@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useProfileForm } from './ProfileFormProvider';
 import { getUnifiedSchemaStep, getUnifiedSchema } from '@/schemas';
+import genericITISchema from '@/schemas/GenericITI.json';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -342,8 +343,32 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     }
   };
 
+  // Helper function to check if a field should be conditionally shown
+  const shouldShowField = (fieldName: string, fieldConfig: any): boolean => {
+    const conditional = fieldConfig['ui:conditional'];
+    if (!conditional) return true;
+
+    const { dependsOn, when } = conditional;
+    if (!dependsOn || !when) return true;
+
+    // Get the value of the field that controls this conditional field
+    const controllingFieldValue = getFieldValue(dependsOn);
+    
+    // Check if the controlling field value matches any of the "when" values
+    if (Array.isArray(when)) {
+      return when.includes(controllingFieldValue);
+    }
+    
+    return controllingFieldValue === when;
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderField = (fieldName: string, fieldConfig: any) => {
+    // Check if field should be conditionally shown
+    if (!shouldShowField(fieldName, fieldConfig)) {
+      return null;
+    }
+
     const value = getFieldValue(fieldName);
     const isRequired = schema.required?.includes(fieldName);
     const widget = fieldConfig['ui:widget'];
@@ -393,6 +418,165 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
     const setSearchQuery = (q: string) => {
       setSearchQueries(prev => ({ ...prev, [fieldName]: q }));
     };
+
+    // Handle nested-dropdown widget (special case for highestQualificationOrSkill)
+    if (widget === 'nested-dropdown' && fieldConfig.type === 'object') {
+      const nestedData = value || {};
+      const category = nestedData.category || '';
+      const subCategory = nestedData.subCategory || '';
+      const otherValue = nestedData.other || '';
+
+      // Get trade list from GenericITI schema for ITI category
+      const getITISpecializationList = () => {
+        const itiSchema = genericITISchema as any;
+        const itiSpecializationField = itiSchema?.properties?.whatIHave?.properties?.itiSpecialization;
+        if (itiSpecializationField?.enum) {
+          return itiSpecializationField.enum;
+        }
+        // Fallback list if schema not available
+        return [
+          "Electrician", "Fitter", "Mechanic", "Machine Operator", "Welder", 
+          "CNC Operator", "Lathe Operator", "ITI (Other)"
+        ];
+      };
+
+      const handleCategoryChange = (newCategory: string) => {
+        handleFieldChange(fieldName, {
+          category: newCategory,
+          subCategory: '',
+          other: ''
+        });
+      };
+
+      const handleSubCategoryChange = (newSubCategory: string) => {
+        handleFieldChange(fieldName, {
+          ...nestedData,
+          subCategory: newSubCategory,
+          other: newSubCategory === 'Other' ? otherValue : ''
+        });
+      };
+
+      const handleOtherChange = (newOther: string) => {
+        handleFieldChange(fieldName, {
+          ...nestedData,
+          other: newOther
+        });
+      };
+
+      // Define sub-options based on category
+      const getSubOptions = () => {
+        switch (category) {
+          case 'School':
+            return {
+              enum: ['10th', '12th', 'Other'],
+              enumNames: ['10th', '12th', 'Other']
+            };
+          case 'College':
+            return {
+              enum: ['B.Tech/B.E.', 'B.Com', 'B.A.', 'B.B.A', 'Other'],
+              enumNames: ['B.Tech/B.E.', 'B.Com', 'B.A.', 'B.B.A', 'Other']
+            };
+          case 'ITI / Other Vocational Trainings':
+            // Use comprehensive trade list
+            const tradeList = getITISpecializationList();
+            const tradeEnumNames = genericITISchema?.properties?.whatIHave?.properties?.itiSpecialization?.enumNames || tradeList;
+            return {
+              enum: [...tradeList, 'Other'],
+              enumNames: [...tradeEnumNames, 'Other']
+            };
+          case 'Certification / Learned on the job':
+            return null; // Free text field
+          default:
+            return null;
+        }
+      };
+
+      const subOptions = getSubOptions();
+      const showSubCategory = category && subOptions;
+      const showFreeText = category === 'Certification / Learned on the job';
+      const showOtherInput = subCategory === 'Other' && !showFreeText;
+
+      return (
+        <div key={fieldName} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor={`${fieldName}_category`} className="text-sm font-medium">
+              {fieldConfig.title}
+              {isRequired && <span className="text-red-500 ml-1">*</span>}
+            </Label>
+            {fieldConfig.description && (
+              <p className="text-xs text-muted-foreground">{fieldConfig.description}</p>
+            )}
+            
+            {/* Category Dropdown */}
+            <Select
+              value={category}
+              onValueChange={handleCategoryChange}
+              disabled={disabled}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {fieldConfig.properties?.category?.enum?.map((option: string, index: number) => (
+                  <SelectItem key={option} value={option}>
+                    {fieldConfig.properties?.category?.enumNames?.[index] || option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Sub-category Dropdown */}
+            {showSubCategory && (
+              <div className="mt-2">
+                <Select
+                  value={subCategory}
+                  onValueChange={handleSubCategoryChange}
+                  disabled={disabled}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select sub category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subOptions.enum.map((option: string, index: number) => (
+                      <SelectItem key={option} value={option}>
+                        {subOptions.enumNames[index] || option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Free text for Certification */}
+            {showFreeText && (
+              <div className="mt-2">
+                <Input
+                  type="text"
+                  value={subCategory || ''}
+                  onChange={(e) => handleSubCategoryChange(e.target.value)}
+                  placeholder="Enter certification or skill learned on the job"
+                  disabled={disabled}
+                />
+              </div>
+            )}
+
+            {/* Other option input */}
+            {showOtherInput && (
+              <div className="mt-2 ml-6">
+                <Input
+                  type="text"
+                  value={otherValue}
+                  onChange={(e) => handleOtherChange(e.target.value)}
+                  placeholder="Please specify..."
+                  disabled={disabled}
+                  className="text-sm"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
 
     // Handle object type fields (subsections)
     if (fieldConfig.type === 'object') {
