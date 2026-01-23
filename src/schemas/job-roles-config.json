@@ -83,6 +83,10 @@
     "Account Payable/Receivable Support Trainee": {
       "industry": "Finance",
       "description": "Accounts payable and receivable support trainee roles"
+    },
+    "Any": {
+      "industry": "Any",
+      "description": "Open to any sector or role"
     }
   } 
 }

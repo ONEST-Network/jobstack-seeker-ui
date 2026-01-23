@@ -51,6 +51,12 @@
         "Welder",
         "Lathe Operator"
       ]
+    },
+    "Any": {
+      "description": "Open to any sector or role",
+      "roles": [
+        "Any"
+      ]
     }
   }
 }
