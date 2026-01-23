@@ -442,12 +442,53 @@ class ApiClient {
     });
   }
 
-  // Delete profile method
-  async deleteProfile(profileId: string): Promise<{ success: boolean; message: string }> {
-    return this.request('/profile', {
-      method: 'DELETE',
-      body: JSON.stringify({ profileId }),
-    });
+  // Soft delete profile method - marks profile as archived
+  async deleteProfile(
+    profileId: string, 
+    profileData?: { type: string; metadata: any }
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      let profileToArchive = profileData;
+      
+      // Only fetch if profile data not provided
+      if (!profileToArchive) {
+        const profilesResponse = await this.getProfiles() as ProfilesResponse;
+        
+        if (!profilesResponse.data || profilesResponse.data.length === 0) {
+          throw new Error('Profile not found');
+        }
+        
+        // Find the specific profile by ID
+        const foundProfile = profilesResponse.data.find(p => p.id === profileId);
+        
+        if (!foundProfile) {
+          throw new Error('Profile not found');
+        }
+        
+        profileToArchive = {
+          type: foundProfile.type,
+          metadata: foundProfile.metadata
+        };
+      }
+      
+      // Update the profile with archived status while preserving all other data
+      const updatePayload = {
+        profileId,
+        type: profileToArchive.type,
+        metadata: {
+          ...profileToArchive.metadata,
+          status: 'archived'
+        }
+      };
+      
+      return this.request('/profile', {
+        method: 'PUT',
+        body: JSON.stringify(updatePayload),
+      });
+    } catch (error) {
+      console.error('Error archiving profile:', error);
+      throw error;
+    }
   }
 
   // Job-related methods (for future use)
@@ -2318,6 +2359,7 @@ export interface ProfileResponse {
       isNameVerified?: boolean;
       isAgeVerified?: boolean;
       desiredLocation?: string;
+      status?: 'active' | 'archived'; // Status for soft delete
       [key: string]: any;
     };
     location: {
@@ -2361,6 +2403,7 @@ export interface ProfilesResponse {
       industry?: string;
       notes?: string;
       skills?: string[];
+      status?: 'active' | 'archived'; // Status for soft delete
       whoIAm?: {
         name?: string;
         phone?: string;
