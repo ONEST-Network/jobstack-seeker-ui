@@ -84,42 +84,6 @@
       "industry": "Finance",
       "description": "Accounts payable and receivable support trainee roles"
     },
-    "Production Associate": {
-      "industry": "Manufacturing",
-      "description": "Manufacturing, production, and industrial roles"
-    },
-    "Production Trainee": {
-      "industry": "Manufacturing",
-      "description": "Entry-level production and manufacturing trainee roles"
-    },
-    "Manufacturing Trainee": {
-      "industry": "Manufacturing",
-      "description": "Trainee roles in manufacturing and industrial sectors"
-    },
-    "Graduate Engineer Trainee-Manufacturing": {
-      "industry": "Manufacturing",
-      "description": "Graduate trainee roles in production and manufacturing sectors"
-    },
-    "Assembly Trainee": {
-      "industry": "Manufacturing",
-      "description": "Trainee roles in assembly line and manufacturing processes"
-    },
-    "Machine Operator Trainee": {
-      "industry": "Manufacturing",
-      "description": "Trainee roles for operating and monitoring industrial machinery"
-    },
-    "QA-QC Technician Trainee": {
-      "industry": "Manufacturing",
-      "description": "Trainee roles in quality assurance and quality control"
-    },
-    "Packaging Operations Executive": {
-      "industry": "Manufacturing",
-      "description": "Roles in packaging operations and logistics"
-    },
-    "Plant Operations Executive": {
-      "industry": "Manufacturing",
-      "description": "Roles in plant operations and management"
-    },
     "Any": {
       "industry": "Any",
       "description": "Open to any sector or role"
