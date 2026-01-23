@@ -73,6 +73,9 @@ export interface UserProfile {
   gradeUpgradation?: boolean;
   factoryTrustScore?: number;
   
+  // Status for soft delete
+  status?: 'active' | 'archived';
+  
   // Legacy fields for backward compatibility
   interestedRole?: string;
   interestedIndustry?: string;
@@ -128,6 +131,9 @@ export interface CandidateProfile {
   overtimePayMultiplier?: number;
   gradeUpgradation?: boolean;
   factoryTrustScore?: number;
+  
+  // Status for soft delete
+  status?: 'active' | 'archived';
   
   // Legacy and metadata fields
   interestedRole?: string;
@@ -662,7 +668,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const profilesResponse = await apiClient.getProfiles() as ProfilesResponse;
       
       if (profilesResponse.data && profilesResponse.data.length > 0) {
-        const transformedProfiles = profilesResponse.data.map((profile, index) => {
+        // Filter out archived profiles at the client side as an additional safety measure
+        const activeProfiles = profilesResponse.data.filter(
+          profile => profile.metadata?.status !== 'archived'
+        );
+        
+        const transformedProfiles = activeProfiles.map((profile, index) => {
           const metadata = profile.metadata;
           
           // Transform API profile to CandidateProfile format
@@ -684,6 +695,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             createdAt: profile.createdAt,
             isActive: true,
             nickname: metadata.name || metadata.whoIAm?.name || `Profile ${index + 1}`,
+            status: metadata.status as 'active' | 'archived' | undefined,
             // Add unified schema data (cleaned for role)
             whoIAm: metadata.whoIAm as any,
             whatIHave: metadata.whatIHave as any,
@@ -1754,8 +1766,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     
     try {
-      // Call the API to delete the profile
-      await apiClient.deleteProfile(profileId);
+      // Find the profile data we already have in managedCandidates
+      const candidateProfile = user.managedCandidates.find(cand => cand.id === profileId);
+      
+      // Prepare profile data for API call to avoid unnecessary fetch
+      const profileData = candidateProfile ? {
+        type: 'personal',
+        metadata: {
+          name: candidateProfile.name,
+          role: candidateProfile.interestedRole,
+          industry: candidateProfile.interestedIndustry,
+          whoIAm: candidateProfile.whoIAm,
+          whatIHave: candidateProfile.whatIHave,
+          whatIWant: candidateProfile.whatIWant,
+          // Include other metadata fields
+          experience: candidateProfile.experience,
+          skills: candidateProfile.skills,
+          certificates: candidateProfile.certificates,
+          assessmentScores: candidateProfile.assessmentScores,
+          documentVerificationStatus: candidateProfile.documentVerificationStatus,
+          education: candidateProfile.education,
+          skillCertifications: candidateProfile.skillCertifications,
+          workExperience: candidateProfile.workExperience,
+          isNameVerified: candidateProfile.isNameVerified,
+          isAgeVerified: candidateProfile.isAgeVerified,
+          isGenderVerified: candidateProfile.isGenderVerified,
+          isAadharVerified: candidateProfile.isAadharVerified,
+          isHometownVerified: candidateProfile.isHometownVerified,
+        }
+      } : undefined;
+      
+      // Call the API to archive the profile
+      await apiClient.deleteProfile(profileId, profileData);
       
       // Remove the profile from managed candidates
       const updatedCandidates = user.managedCandidates.filter(cand => cand.id !== profileId);

@@ -36,6 +36,7 @@ interface Profile {
     name?: string;
     role?: string;
     gender?: string;
+    status?: 'active' | 'archived'; // Status for soft delete
     whoIAm?: {
       phone?: string;
       hometown?: string;
@@ -157,9 +158,14 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
       if (response.data) {
         let filteredProfiles = response.data;
         
+        // Filter out archived profiles as an additional safety measure
+        filteredProfiles = filteredProfiles.filter(
+          profile => profile.metadata?.status !== 'archived'
+        );
+        
         // Apply client-side filtering for more precise search
         if (search && search.trim()) {
-          filteredProfiles = response.data.filter(profile => matchesSearch(profile, search));
+          filteredProfiles = filteredProfiles.filter(profile => matchesSearch(profile, search));
         }
         
         setProfiles(filteredProfiles);
@@ -359,7 +365,15 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
   const handleDeleteProfile = async (profileId: string) => {
     if (window.confirm('Are you sure you want to delete this profile? This action cannot be undone.')) {
       try {
-        await deleteProfile(profileId);
+        // Find the profile data we already have
+        const profile = profiles.find(p => p.id === profileId);
+        
+        // Pass profile data to avoid unnecessary API call
+        await deleteProfile(profileId, profile ? {
+          type: profile.type,
+          metadata: profile.metadata
+        } : undefined);
+        
         // Refresh the profiles list after deletion
         fetchProfiles(currentPage, searchQuery);
       } catch (error) {
@@ -395,7 +409,14 @@ const ViewAllProfiles: React.FC<ViewAllProfilesProps> = ({ isOpen, onClose }) =>
     try {
       // Delete each selected profile
       for (const profileId of selectedProfiles) {
-        await deleteProfile(profileId);
+        // Find the profile data we already have
+        const profile = profiles.find(p => p.id === profileId);
+        
+        // Pass profile data to avoid unnecessary API call
+        await deleteProfile(profileId, profile ? {
+          type: profile.type,
+          metadata: profile.metadata
+        } : undefined);
       }
       
       // Clear selection and refresh

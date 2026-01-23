@@ -1,3 +1,5 @@
+// Profile status type for soft delete functionality
+export type ProfileStatus = 'active' | 'archived';
 
 export interface Education {
   id: string;
