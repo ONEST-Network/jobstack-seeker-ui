@@ -320,7 +320,7 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    const shareUrl = getShareableLink();
+    let shareUrl = getShareableLink();
 
     if (!shareUrl) {
       toast({
@@ -336,8 +336,8 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
       const url = new URL(shareUrl);
       url.searchParams.set('bpp_id', job.context.bpp_id);
       url.searchParams.set('bpp_uri', job.context.bpp_uri);
-      //shareUrl = url.toString();
-      console.log('🔗 Share URL with BPP context:', shareUrl.toString);
+      shareUrl = url.toString();
+      console.log('🔗 Share URL with BPP context:', shareUrl);
     } else {
       console.warn('⚠️ BPP context not available in job data');
     }
