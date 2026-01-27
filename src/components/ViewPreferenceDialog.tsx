@@ -64,17 +64,18 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children, o
       <DialogTrigger asChild>
         {triggerButton}
       </DialogTrigger>
-      <DialogClose asChild>
-        <button
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
-          aria-label="Close">
-          <X className="h-4 w-4" />
-        </button>
-      </DialogClose>
       <DialogContent className={`${isMobile ? 'w-[95vw] max-w-[95vw]' : 'w-[90vw] max-w-md'} max-h-[90vh] overflow-y-auto`}
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
+      <DialogClose asChild>
+      <button
+        className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+        aria-label="Close"
+      >
+      <X className="h-4 w-4" />
+      </button>
+    </DialogClose>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
