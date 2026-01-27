@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +15,7 @@ import DynamicFormStep from './DynamicFormStep';
 import { getUnifiedSchema } from '@/schemas';
 import { apiClient, transformProfileForAPI, ProfilesResponse } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
+import { X } from "lucide-react"
 
 interface UserProfileDialogProps {
   isOpen: boolean;
@@ -667,7 +668,13 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col">
+        <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+            <X className="h-4 w-4" />
+          </DialogClose>
           <DialogHeader className="flex-shrink-0 border-b pb-4">
             <DialogTitle>{getStepTitle()}</DialogTitle>
           </DialogHeader>

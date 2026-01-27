@@ -1,6 +1,6 @@
 import React from 'react';
 import { Settings, Map, List, RotateCcw } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useViewPreference, ViewType } from '@/hooks/useViewPreference';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from '@/hooks/useI18n';
+import { X } from "lucide-react"
 
 interface ViewPreferenceDialogProps {
   children?: React.ReactNode;
@@ -63,7 +64,18 @@ const ViewPreferenceDialog: React.FC<ViewPreferenceDialogProps> = ({ children, o
       <DialogTrigger asChild>
         {triggerButton}
       </DialogTrigger>
-      <DialogContent className={`${isMobile ? 'w-[95vw] max-w-[95vw]' : 'w-[90vw] max-w-md'} max-h-[90vh] overflow-y-auto`}>
+      <DialogContent className={`${isMobile ? 'w-[95vw] max-w-[95vw]' : 'w-[90vw] max-w-md'} max-h-[90vh] overflow-y-auto`}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+      <DialogClose asChild>
+      <button
+        className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+        aria-label="Close"
+      >
+      <X className="h-4 w-4" />
+      </button>
+    </DialogClose>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />

@@ -510,7 +510,10 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto p-0  w-[95vw] sm:w-full" >
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto p-0  w-[95vw] sm:w-full" 
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
 
         <DialogHeader className="p-4 sm:p-6 pb-0 sticky top-0 bg-background z-10 border-b">
           <div className='flex justify-between items-center'>
