@@ -1660,7 +1660,7 @@ class ApiClient {
 
   // Organization management APIs
   async getOrganizationList(): Promise<OrganizationListResponse> {
-    return this.request('/auth/organization/list/', {
+    return this.request('/auth/organization/list', {
       method: 'GET',
     });
   }
