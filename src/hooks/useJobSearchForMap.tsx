@@ -275,11 +275,8 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
         });
       });
 
-      // Build context from v3 job fields.
-      // v3 does not provide bap_id / bap_uri; use bpp_id / bpp_uri as substitutes.
+      // Build context from v3 job fields
       const context = {
-        bap_id: item.job.bpp_id,
-        bap_uri: item.job.bpp_uri,
         bpp_id: item.job.bpp_id,
         bpp_uri: item.job.bpp_uri,
         transaction_id: item.job.transaction_id

@@ -2,10 +2,8 @@ import { parseLocationString, LocationData, validateLocationForAPI } from './uti
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
 
-// Beckn Context interface for BAP/BPP information
+// Beckn Context interface for BPP information
 export interface BecknContext {
-  bap_id: string;
-  bap_uri: string;
   bpp_id: string;
   bpp_uri: string;
   transaction_id?: string;
@@ -835,8 +833,8 @@ class ApiClient {
     const context = applyData.context || applyData.jobDetails?.context;
     
     // Validate context exists and has required fields
-    if (!context || !context.bap_id || !context.bap_uri || !context.bpp_id || !context.bpp_uri) {
-      throw new Error('Missing BAP/BPP context from search response. Please refresh the job listing and try again.');
+    if (!context || !context.bpp_id || !context.bpp_uri) {
+      throw new Error('Missing BPP context from search response. Please refresh the job listing and try again.');
     }
     
     // Use provided transaction ID, context transaction_id, or generate a new one
@@ -847,8 +845,6 @@ class ApiClient {
     
     const payload = {
       context: {
-        bap_id: context.bap_id,
-        bap_uri: context.bap_uri,
         bpp_id: context.bpp_id,
         bpp_uri: context.bpp_uri,
         transaction_id: transactionId
@@ -1080,8 +1076,8 @@ class ApiClient {
     const context = applyData.context || applyData.jobDetails?.context;
     
     // Validate context exists and has required fields
-    if (!context || !context.bap_id || !context.bap_uri || !context.bpp_id || !context.bpp_uri) {
-      throw new Error('Missing BAP/BPP context from search response. Please refresh the job listing and try again.');
+    if (!context || !context.bpp_id || !context.bpp_uri) {
+      throw new Error('Missing BPP context from search response. Please refresh the job listing and try again.');
     }
 
     // Use context transaction_id or generate a new one
@@ -1092,8 +1088,6 @@ class ApiClient {
 
     const payload = {
       context: {
-        bap_id: context.bap_id,
-        bap_uri: context.bap_uri,
         bpp_id: context.bpp_id,
         bpp_uri: context.bpp_uri,
         transaction_id: transactionId
@@ -1719,8 +1713,8 @@ class ApiClient {
     const context = applyData.context || applyData.jobDetails?.context;
     
     // Validate context exists and has required fields
-    if (!context || !context.bap_id || !context.bap_uri || !context.bpp_id || !context.bpp_uri) {
-      throw new Error('Missing BAP/BPP context from search response. Please refresh the job listing and try again.');
+    if (!context || !context.bpp_id || !context.bpp_uri) {
+      throw new Error('Missing BPP context from search response. Please refresh the job listing and try again.');
     }
 
     // Use context transaction_id or generate a new one
@@ -1731,8 +1725,6 @@ class ApiClient {
 
     const payload = {
       context: {
-        bap_id: context.bap_id,
-        bap_uri: context.bap_uri,
         bpp_id: context.bpp_id,
         bpp_uri: context.bpp_uri,
         transaction_id: transactionId
