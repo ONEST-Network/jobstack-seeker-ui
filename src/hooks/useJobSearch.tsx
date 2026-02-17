@@ -93,91 +93,32 @@ export interface JobItem {
 }
 
 export interface JobSearchResponse {
-  pagination: {
-    limit: number;
-    page: number;
-    totalCount: string; // Note: v2 API returns totalCount as string
-  };
-  results: Array<{
-    context: {
-      action: string;
-      bap_id: string;
-      bap_uri: string;
-      bpp_id: string;
-      bpp_uri: string;
-      domain: string;
-      message_id: string;
-      timestamp: string;
-      transaction_id: string;
-      version: string;
-    };
-    message: {
-      catalog: {
-        descriptor: {
-          name: string;
-        };
-        providers: Array<{
+  status: string;
+  page: number;
+  limit: number;
+  data: {
+    total: number; // v3 API returns total as a number
+    items: Array<{
+      match_score: number | null;
+      profile_id: string | null;
+      job: {
+        id: string;
+        job_id: string;
+        bpp_id: string;
+        bpp_uri: string;
+        provider_id: string;
+        transaction_id: string;
+        hash?: string;
+        created_at?: string;
+        updated_at?: string;
+        last_synced_at?: string;
+        metadata?: Record<string, any> | null;
+        beckn_structure: {
           descriptor: {
             name: string;
           };
           id: string;
-          items: Array<{
-            descriptor: {
-              name: string;
-            };
-            id: string;
-            match_score?: number; // Sorting score from API response
-            tags: {
-              basicInfo?: {
-                jobProviderName?: string;
-                jobProviderLocation?: {
-                  address: string;
-                  city: string;
-                  state: string;
-                  country: string;
-                  gps?: {
-                    lat: number;
-                    lng: number;
-                  };
-                };
-                jobProviderLogo?: string;
-                jobProviderRegistration?: string;
-              };
-              industry?: string;
-              jobDetails?: Record<string, any>;
-              jobNeeds?: Record<string, any>;
-              status?: string;
-              role?: string;
-              assessment?: {
-                trustScore?: number;
-                matchScore?: number;
-              };
-              contactPerson?: {
-                name: string;
-                email: string;
-                phone: string;
-              };
-              [key: string]: any;
-            };
-          }>;
-          fulfillments?: Array<{
-            id: string;
-            stops: Array<{
-              location: {
-                address?: string;
-                city?: string;
-                country?: string;
-                gps?: {
-                  lat: number;
-                  lng: number;
-                };
-                state?: string;
-                tag?: string;
-              };
-              type: string;
-            }>;
-          }>;
-          locations: Array<{
+          locations: {
             address: string;
             city: string;
             state: string;
@@ -187,11 +128,53 @@ export interface JobSearchResponse {
               lng: number;
             };
             tag?: string;
-          }>;
-        }>;
+          };
+          tags: {
+            basicInfo?: {
+              jobProviderName?: string;
+              jobProviderLocation?: {
+                address: string;
+                city: string;
+                state: string;
+                country: string;
+                gps?: {
+                  lat: number;
+                  lng: number;
+                };
+              };
+              jobProviderLogo?: string;
+              jobProviderRegistration?: string;
+            };
+            industry?: string;
+            jobDetails?: Record<string, any>;
+            jobNeeds?: Record<string, any>;
+            status?: string;
+            role?: string;
+            assessment?: {
+              trustScore?: number;
+              matchScore?: number;
+            };
+            contactPerson?: {
+              name: string;
+              email: string;
+              phone: string;
+            };
+            jobProviderLocation?: {
+              address: string;
+              city: string;
+              state: string;
+              country: string;
+              gps?: {
+                lat: number;
+                lng: number;
+              };
+            };
+            [key: string]: any;
+          };
+        };
       };
-    };
-  }>;
+    }>;
+  };
 }
 
 export type LoadingState = 'idle' | 'initial' | 'loading' | 'partial' | 'complete' | 'error';
@@ -304,29 +287,21 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to find provider and job IDs from original response
+  // Function to find provider and job IDs from original v3 response
   const findProviderAndJobIds = useCallback((jobId: string): { providerId: string; jobId: string } | null => {
-    if (!originalResponse?.results) {
+    if (!originalResponse?.data?.items) {
       return null;
     }
 
-    for (const result of originalResponse.results) {
-      if (!result?.message?.catalog?.providers) continue;
-      
-      for (const provider of result.message.catalog.providers) {
-        if (!provider?.items) continue;
-        
-        for (const item of provider.items) {
-          if (item.id === jobId) {
-            return {
-              providerId: provider.id,
-              jobId: item.id
-            };
-          }
-        }
+    for (const item of originalResponse.data.items) {
+      if (item?.job?.job_id === jobId) {
+        return {
+          providerId: item.job.provider_id,
+          jobId: item.job.job_id
+        };
       }
     }
-    
+
     return null;
   }, [originalResponse]);
 
@@ -527,251 +502,250 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
     }
   }, [user, selectedCandidate]);
 
-  // Transform job data from API response
+  // Transform job data from API response (v3)
   const transformJobData = useCallback((data: JobSearchResponse): JobItem[] => {
     const transformedJobs: JobItem[] = [];
 
-    data.results.forEach(result => {
-      const catalog = result.message.catalog;
-      
-      catalog.providers.forEach(provider => {
-        provider.items.forEach(item => {
-          const tags = item.tags;
-          
-          // Only show jobs with status 'open'
-          if (tags?.status !== 'open') {
-            return;
-          }
-          
-          // Extract location from the new BAP API format
-          const jobProviderLocation = tags?.basicInfo?.jobProviderLocation || tags?.jobProviderLocation;
-          const locationString = jobProviderLocation ? 
-            `${jobProviderLocation.city}, ${jobProviderLocation.state}` : 
-            'Location not specified';
-          
-          // Extract salary information from jobDetails
-          const jobDetails = tags?.jobDetails || {};
-          const salary = jobDetails.monthlyInHand ? 
-            `₹${jobDetails.monthlyInHand.toLocaleString()}` : 
-            'Salary not specified';
-          const workingHours = jobDetails.workingHoursPerDay ? 
-            `${jobDetails.workingHoursPerDay} hours/day` : 
-            'Not specified';
-          const monthlyInHand = jobDetails.monthlyInHand ? 
-            `₹${jobDetails.monthlyInHand.toLocaleString()}` : 
-            'Not specified';
-          const monthlyOvertime = jobDetails.monthlyAverageOT || jobDetails.monthlyAverageOt ? 
-            `₹${(jobDetails.monthlyAverageOT || jobDetails.monthlyAverageOt).toLocaleString()}` : 
-            'Not specified';
-          const costPerSharingBed = jobDetails.costPerSharingBed ? 
-            `₹${jobDetails.costPerSharingBed}` : 
-            'Not specified';
+    data.data.items.forEach(item => {
+      const beckn = item.job.beckn_structure;
+      const tags = beckn.tags;
 
-          // Extract travel provided
-          const travelProvided = jobDetails.travelProvided === 'yes-free' || jobDetails.travelProvided === 'yes-paid';
+      // Only show jobs with status 'open'
+      if (tags?.status !== 'open') {
+        return;
+      }
 
-          // Extract trust score
-          const trustScore = tags?.assessment?.trustScore || 0;
+      // Extract location from the v3 BAP API format (locations is a single object, not array)
+      const jobProviderLocation = tags?.basicInfo?.jobProviderLocation || tags?.jobProviderLocation;
+      const locationString = jobProviderLocation ?
+        `${jobProviderLocation.city}, ${jobProviderLocation.state}` :
+        'Location not specified';
 
-          // Extract match score from API response match_score (sorting score)
-          // This replaces the old separate API call for match score
-          const matchScore = item.match_score || 0;
+      // Extract salary information from jobDetails
+      const jobDetails = tags?.jobDetails || {};
+      const salary = jobDetails.monthlyInHand ?
+        `₹${jobDetails.monthlyInHand.toLocaleString()}` :
+        'Salary not specified';
+      const workingHours = jobDetails.workingHoursPerDay ?
+        `${jobDetails.workingHoursPerDay} hours/day` :
+        'Not specified';
+      const monthlyInHand = jobDetails.monthlyInHand ?
+        `₹${jobDetails.monthlyInHand.toLocaleString()}` :
+        'Not specified';
+      const monthlyOvertime = jobDetails.monthlyAverageOT || jobDetails.monthlyAverageOt ?
+        `₹${(jobDetails.monthlyAverageOT || jobDetails.monthlyAverageOt).toLocaleString()}` :
+        'Not specified';
+      const costPerSharingBed = jobDetails.costPerSharingBed ?
+        `₹${jobDetails.costPerSharingBed}` :
+        'Not specified';
 
-          // Extract number of positions from jobDetails
-          const positions = jobDetails.positions || 1;
+      // Extract travel provided
+      const travelProvided = jobDetails.travelProvided === 'yes-free' || jobDetails.travelProvided === 'yes-paid';
 
-          // Extract job description
-          const description = item.descriptor.name;
+      // Extract trust score
+      const trustScore = tags?.assessment?.trustScore || 0;
 
-          // Extract industry
-          const industry = tags?.industry || 'Not specified';
+      // Extract match score — top-level on each v3 item
+      const matchScore = item.match_score || 0;
 
-          // Extract experience
-          const experience = tags?.jobNeeds?.hrWorkExperienceOther || 'Not specified';
+      // Extract number of positions from jobDetails
+      const positions = jobDetails.positions || 1;
 
-          // Extract job status
-          const jobStatus = tags?.status || 'active';
+      // Extract job description (title from beckn descriptor)
+      const description = beckn.descriptor.name;
 
-          // Extract contact person
-          const contactPerson = tags?.contactPerson ? {
-            name: tags.contactPerson.name || 'Not specified',
-            email: tags.contactPerson.email || 'Not specified',
-            phone: tags.contactPerson.phone || 'Not specified'
-          } : undefined;
+      // Extract industry
+      const industry = tags?.industry || 'Not specified';
 
-          // Extract media (images/videos) - Dynamic approach
-          const media: Array<{
-            type: 'image' | 'video';
-            url: string;
-            thumbnail?: string;
-            alt?: string;
-            duration?: string;
-          }> = [];
+      // Extract experience
+      const experience = tags?.jobNeeds?.hrWorkExperienceOther || 'Not specified';
 
-          // Helper function to check if a string is a Google Storage URL
-          const isGoogleStorageUrl = (url: string): boolean => {
-            return url && typeof url === 'string' && (
-              url.includes('storage.googleapis.com') ||
-              url.includes('firebasestorage.googleapis.com') ||
-              url.startsWith('gs://') ||
-              url.includes('googleapis.com/storage') ||
-              url.includes('firebaseapp.com') ||
-              url.includes('appspot.com') ||
-              // Also include other common storage URLs that might be used
-              url.includes('amazonaws.com') ||
-              url.includes('blob.core.windows.net') ||
-              url.includes('digitaloceanspaces.com') ||
-              // Check for common image/video file extensions
-              /\.(jpg|jpeg|png|gif|bmp|webp|svg|mp4|avi|mov|wmv|flv|webm|mkv)$/i.test(url) ||
-              // Check for URLs that look like media files (no extension but have ID patterns)
-              /\/job\/id\d+$/.test(url) ||
-              /\/media\/id\d+$/.test(url) ||
-              /\/file\/id\d+$/.test(url)
-            );
-          };
+      // Extract job status
+      const jobStatus = tags?.status || 'active';
 
-          // Helper function to determine media type from URL and field name
-          const getMediaType = (url: string, fieldName: string): 'image' | 'video' => {
-            const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp'];
-            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
-            
-            const lowerUrl = url.toLowerCase();
-            const lowerFieldName = fieldName.toLowerCase();
-            
-            // Check for video extensions in URL
-            if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
-              return 'video';
+      // Extract contact person
+      const contactPerson = tags?.contactPerson ? {
+        name: tags.contactPerson.name || 'Not specified',
+        email: tags.contactPerson.email || 'Not specified',
+        phone: tags.contactPerson.phone || 'Not specified'
+      } : undefined;
+
+      // Extract media (images/videos) - Dynamic approach
+      const media: Array<{
+        type: 'image' | 'video';
+        url: string;
+        thumbnail?: string;
+        alt?: string;
+        duration?: string;
+      }> = [];
+
+      // Helper function to check if a string is a Google Storage URL
+      const isGoogleStorageUrl = (url: string): boolean => {
+        return url && typeof url === 'string' && (
+          url.includes('storage.googleapis.com') ||
+          url.includes('firebasestorage.googleapis.com') ||
+          url.startsWith('gs://') ||
+          url.includes('googleapis.com/storage') ||
+          url.includes('firebaseapp.com') ||
+          url.includes('appspot.com') ||
+          // Also include other common storage URLs that might be used
+          url.includes('amazonaws.com') ||
+          url.includes('blob.core.windows.net') ||
+          url.includes('digitaloceanspaces.com') ||
+          // Check for common image/video file extensions
+          /\.(jpg|jpeg|png|gif|bmp|webp|svg|mp4|avi|mov|wmv|flv|webm|mkv)$/i.test(url) ||
+          // Check for URLs that look like media files (no extension but have ID patterns)
+          /\/job\/id\d+$/.test(url) ||
+          /\/media\/id\d+$/.test(url) ||
+          /\/file\/id\d+$/.test(url)
+        );
+      };
+
+      // Helper function to determine media type from URL and field name
+      const getMediaType = (url: string, fieldName: string): 'image' | 'video' => {
+        const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp'];
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+
+        const lowerUrl = url.toLowerCase();
+        const lowerFieldName = fieldName.toLowerCase();
+
+        // Check for video extensions in URL
+        if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
+          return 'video';
+        }
+
+        // Check for image extensions in URL
+        if (imageExtensions.some(ext => lowerUrl.includes(ext))) {
+          return 'image';
+        }
+
+        // Check for video-related keywords in the URL path
+        const videoKeywords = ['video', 'mp4', 'mov', 'avi', 'webm'];
+        if (videoKeywords.some(keyword => lowerUrl.includes(keyword))) {
+          return 'video';
+        }
+
+        // Check field name for video indicators
+        const videoFieldKeywords = ['video', 'mp4', 'mov', 'avi', 'webm', 'testimonial', 'walkthrough'];
+        if (videoFieldKeywords.some(keyword => lowerFieldName.includes(keyword))) {
+          return 'video';
+        }
+
+        // Check field name for image indicators
+        const imageFieldKeywords = ['photo', 'image', 'logo', 'picture'];
+        if (imageFieldKeywords.some(keyword => lowerFieldName.includes(keyword))) {
+          return 'image';
+        }
+
+        // Default to image if extension is not recognized
+        return 'image';
+      };
+
+      // Helper function to generate video thumbnail URL
+      const generateVideoThumbnail = (videoUrl: string): string => {
+        // For Google Storage videos, we can't generate thumbnails easily
+        // So we'll use a placeholder approach
+        return videoUrl; // For now, use the same URL, but the carousel will handle it properly
+      };
+
+      // Recursive function to extract Google Storage URLs from any object
+      const extractGoogleStorageUrls = (obj: any, path: string = ''): Array<{url: string, path: string}> => {
+        const urls: Array<{url: string, path: string}> = [];
+
+        if (!obj || typeof obj !== 'object') {
+          return urls;
+        }
+
+        if (Array.isArray(obj)) {
+          obj.forEach((el, index) => {
+            if (typeof el === 'string' && isGoogleStorageUrl(el)) {
+              urls.push({ url: el, path: `${path}[${index}]` });
+            } else if (typeof el === 'object') {
+              urls.push(...extractGoogleStorageUrls(el, `${path}[${index}]`));
             }
-            
-            // Check for image extensions in URL
-            if (imageExtensions.some(ext => lowerUrl.includes(ext))) {
-              return 'image';
-            }
-            
-            // Check for video-related keywords in the URL path
-            const videoKeywords = ['video', 'mp4', 'mov', 'avi', 'webm'];
-            if (videoKeywords.some(keyword => lowerUrl.includes(keyword))) {
-              return 'video';
-            }
-            
-            // Check field name for video indicators
-            const videoFieldKeywords = ['video', 'mp4', 'mov', 'avi', 'webm', 'testimonial', 'walkthrough'];
-            if (videoFieldKeywords.some(keyword => lowerFieldName.includes(keyword))) {
-              return 'video';
-            }
-            
-            // Check field name for image indicators
-            const imageFieldKeywords = ['photo', 'image', 'logo', 'picture'];
-            if (imageFieldKeywords.some(keyword => lowerFieldName.includes(keyword))) {
-              return 'image';
-            }
-            
-            // Default to image if extension is not recognized
-            return 'image';
-          };
-
-          // Helper function to generate video thumbnail URL
-          const generateVideoThumbnail = (videoUrl: string): string => {
-            // For Google Storage videos, we can't generate thumbnails easily
-            // So we'll use a placeholder approach
-            return videoUrl; // For now, use the same URL, but the carousel will handle it properly
-          };
-
-          // Recursive function to extract Google Storage URLs from any object
-          const extractGoogleStorageUrls = (obj: any, path: string = ''): Array<{url: string, path: string}> => {
-            const urls: Array<{url: string, path: string}> = [];
-            
-            if (!obj || typeof obj !== 'object') {
-              return urls;
-            }
-            
-            if (Array.isArray(obj)) {
-              obj.forEach((item, index) => {
-                if (typeof item === 'string' && isGoogleStorageUrl(item)) {
-                  urls.push({ url: item, path: `${path}[${index}]` });
-                } else if (typeof item === 'object') {
-                  urls.push(...extractGoogleStorageUrls(item, `${path}[${index}]`));
-                }
-              });
-            } else {
-              Object.entries(obj).forEach(([key, value]) => {
-                const currentPath = path ? `${path}.${key}` : key;
-                
-                if (typeof value === 'string' && isGoogleStorageUrl(value)) {
-                  urls.push({ url: value, path: currentPath });
-                } else if (typeof value === 'object' && value !== null) {
-                  urls.push(...extractGoogleStorageUrls(value, currentPath));
-                }
-              });
-            }
-            
-            return urls;
-          };
-
-          // Extract all Google Storage URLs from the entire job data
-          const allUrls = extractGoogleStorageUrls(tags);
-
-          // Also check jobDetails for any media URLs
-          const jobDetailsUrls = extractGoogleStorageUrls(jobDetails);
-
-          // Combine all URLs and remove duplicates
-          const allUniqueUrls = [...allUrls, ...jobDetailsUrls]
-            .filter((item, index, self) => 
-              index === self.findIndex(t => t.url === item.url)
-            );
-
-          // Convert URLs to media objects
-          allUniqueUrls.forEach(({ url, path }, index) => {
-            const fieldName = path.split('.').pop() || 'media';
-            const mediaType = getMediaType(url, fieldName);
-            
-            media.push({
-              type: mediaType,
-              url: url,
-              alt: `${item.descriptor.name} ${fieldName} ${index + 1}`,
-              thumbnail: mediaType === 'video' ? generateVideoThumbnail(url) : undefined // For videos, use the same URL as thumbnail for now
-            });
           });
+        } else {
+          Object.entries(obj).forEach(([key, value]) => {
+            const currentPath = path ? `${path}.${key}` : key;
 
-          const transformedJob: JobItem = {
-            id: item.id,
-            title: item.descriptor.name,
-            company: tags?.basicInfo?.jobProviderName || provider.descriptor?.name || 'Unknown Company',
-            location: locationString,
-            salary,
-            workingHours,
-            monthlyInHand,
-            monthlyOvertime,
-            costPerSharingBed,
-            travelProvided,
-            trustScore,
-            matchScore,
-            verified: true, // Assume verified for now
-            openings: positions,
-            description,
-            industry,
-            experience,
-            positions,
-            status: jobStatus, // Include job status
-            providerId: provider.id, // Add provider ID for sharing
-            contactPerson,
-            jobProviderName: tags?.basicInfo?.jobProviderName || provider.descriptor?.name || 'Unknown Company',
-            jobProviderLocation: jobProviderLocation,
-            jobDetails,
-            tags,
-            media,
-            context: result.context ? {
-              bap_id: result.context.bap_id,
-              bap_uri: result.context.bap_uri,
-              bpp_id: result.context.bpp_id,
-              bpp_uri: result.context.bpp_uri,
-              transaction_id: result.context.transaction_id
-            } : undefined
-          };
+            if (typeof value === 'string' && isGoogleStorageUrl(value)) {
+              urls.push({ url: value, path: currentPath });
+            } else if (typeof value === 'object' && value !== null) {
+              urls.push(...extractGoogleStorageUrls(value, currentPath));
+            }
+          });
+        }
 
-          transformedJobs.push(transformedJob);
+        return urls;
+      };
+
+      // Extract all Google Storage URLs from the entire job tags
+      const allUrls = extractGoogleStorageUrls(tags);
+
+      // Also check jobDetails for any media URLs
+      const jobDetailsUrls = extractGoogleStorageUrls(jobDetails);
+
+      // Combine all URLs and remove duplicates
+      const allUniqueUrls = [...allUrls, ...jobDetailsUrls]
+        .filter((el, index, self) =>
+          index === self.findIndex(t => t.url === el.url)
+        );
+
+      // Convert URLs to media objects
+      allUniqueUrls.forEach(({ url, path }, index) => {
+        const fieldName = path.split('.').pop() || 'media';
+        const mediaType = getMediaType(url, fieldName);
+
+        media.push({
+          type: mediaType,
+          url: url,
+          alt: `${beckn.descriptor.name} ${fieldName} ${index + 1}`,
+          thumbnail: mediaType === 'video' ? generateVideoThumbnail(url) : undefined
         });
       });
+
+      // Build context from v3 job fields.
+      // v3 does not provide bap_id / bap_uri; use bpp_id / bpp_uri as substitutes
+      // so the apply flow still has a valid context object.
+      const context = {
+        bap_id: item.job.bpp_id,
+        bap_uri: item.job.bpp_uri,
+        bpp_id: item.job.bpp_id,
+        bpp_uri: item.job.bpp_uri,
+        transaction_id: item.job.transaction_id
+      };
+
+      const transformedJob: JobItem = {
+        id: item.job.job_id,
+        title: beckn.descriptor.name,
+        company: tags?.basicInfo?.jobProviderName || 'Unknown Company',
+        location: locationString,
+        salary,
+        workingHours,
+        monthlyInHand,
+        monthlyOvertime,
+        costPerSharingBed,
+        travelProvided,
+        trustScore,
+        matchScore,
+        verified: true,
+        openings: positions,
+        description,
+        industry,
+        experience,
+        positions,
+        status: jobStatus,
+        providerId: item.job.provider_id,
+        contactPerson,
+        jobProviderName: tags?.basicInfo?.jobProviderName || 'Unknown Company',
+        jobProviderLocation: jobProviderLocation,
+        jobDetails,
+        tags,
+        media,
+        context
+      };
+
+      transformedJobs.push(transformedJob);
     });
 
     return transformedJobs;
@@ -938,24 +912,18 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
       // Transform the data
       const transformedJobs = transformJobData(data);
       
-      // Extract pagination info from the top-level pagination object (v2 API)
-      const paginationInfo = data?.pagination || {
-        page: page,
-        limit: limit,
-        totalCount: "0"
-      };
-      
-      // Always use the requested page number instead of API response page
-      // The API might return page: 1 even when we request page: 2
-      const actualPage = page; // Use the page we requested
-      const actualLimit = limit || paginationInfo.limit;
-      const totalCount = parseInt(paginationInfo.totalCount || "0", 10);
+      // Extract pagination info from v3 API response (page/limit at top level, total inside data)
+      const actualPage = page; // Always use the requested page number
+      const actualLimit = limit || data?.limit || 30;
+      const totalCount = data?.data?.total ?? 0; // v3 returns total as a number
       const totalPages = Math.ceil(totalCount / actualLimit) || 1;
-      
+
       console.log('Pagination Debug:', {
         requestedPage: page,
         requestedLimit: limit,
-        paginationFromAPI: paginationInfo,
+        apiPage: data?.page,
+        apiLimit: data?.limit,
+        apiTotal: data?.data?.total,
         calculatedValues: { actualPage, actualLimit, totalCount, totalPages }
       });
       

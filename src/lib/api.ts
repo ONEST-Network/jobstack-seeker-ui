@@ -584,7 +584,7 @@ class ApiClient {
   // BAP Job Search API
   async searchJobs(intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30, profile?: SearchProfileData) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
-    const url = `${BAP_URL}/api/v2/search`;
+    const url = `${BAP_URL}/api/v3/search`;
     
     const payload: any = {
       limit,
@@ -641,20 +641,20 @@ class ApiClient {
 
       const data = await response.json();
       
-      // Validate the v2 response structure
+      // Validate the v3 response structure
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format from job service');
       }
 
-      // Check if the response has the expected v2 structure
-      // v2 API has top-level pagination and results objects
-      if (!data.pagination || !data.results) {
+      // Check if the response has the expected v3 structure
+      // v3 API has top-level status, page, limit and a data object with total and items
+      if (!data.data || !data.data.items) {
         throw new Error('No job data received from server');
       }
 
-      // If results is an empty array, that's valid - it means no jobs are available
-      if (Array.isArray(data.results) && data.results.length === 0) {
-        console.log('API returned empty results array - no jobs available');
+      // If items is an empty array, that's valid - it means no jobs are available
+      if (Array.isArray(data.data.items) && data.data.items.length === 0) {
+        console.log('API returned empty items array - no jobs available');
         return data; // Return the empty result as valid
       }
 
@@ -689,7 +689,7 @@ class ApiClient {
   // BAP Job Search API with Query - Used for API-based search functionality
   async searchJobsWithQuery(searchQuery: string, intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30, profile?: SearchProfileData) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
-    const url = `${BAP_URL}/api/v2/search`;
+    const url = `${BAP_URL}/api/v3/search`;
     
     const payload: any = {
       limit,
@@ -748,20 +748,20 @@ class ApiClient {
 
       const data = await response.json();
       
-      // Validate the v2 response structure
+      // Validate the v3 response structure
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format from job service');
       }
 
-      // Check if the response has the expected v2 structure
-      // v2 API has top-level pagination and results objects
-      if (!data.pagination || !data.results) {
+      // Check if the response has the expected v3 structure
+      // v3 API has top-level status, page, limit and a data object with total and items
+      if (!data.data || !data.data.items) {
         throw new Error('No job data received from server');
       }
 
-      // If results is an empty array, that's valid - it means no jobs are available
-      if (Array.isArray(data.results) && data.results.length === 0) {
-        console.log('API returned empty results array - no jobs available for search:', searchQuery);
+      // If items is an empty array, that's valid - it means no jobs are available
+      if (Array.isArray(data.data.items) && data.data.items.length === 0) {
+        console.log('API returned empty items array - no jobs available for search:', searchQuery);
         return data; // Return the empty result as valid
       }
 
