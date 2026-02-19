@@ -275,7 +275,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
   }, [orgSlug, orgLoading, orgDetails?.data?.metadata]);
 
   
-  const { user, getSelectedCandidate } = useAuth();
+  const { user, getSelectedCandidate, authReady } = useAuth();
   const profileChangeCounter = useProfileChangeDetector();
   const selectedCandidate = getSelectedCandidate();
   
@@ -1071,6 +1071,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
       return;
     }
     
+    if (!authReady) return; // wait until auth session check completes so profile is available
     if (intentOverrides === null) return; // wait until computed
     if (options?.autoFetch !== false) { // Only if autoFetch is enabled
       // Only trigger if the search query actually changed (not just a re-render)
@@ -1093,13 +1094,16 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
         }, 100);
       }
     }
-  }, [currentSearchQuery, intentOverrides, options?.autoFetch, pagination.limit, fetchJobsInternal]);
+  }, [currentSearchQuery, intentOverrides, options?.autoFetch, pagination.limit, fetchJobsInternal, authReady]);
 
   // Track previous profile change counter to detect actual changes
-  // Initialize to -1 to ensure first render with profile triggers the effect
+  // Initialize to -1; the first profile change from auth init is skipped since
+  // the initial fetch (gated by authReady) already includes the profile
   const prevProfileChangeCounterRef = useRef<number>(-1);
   
   // Trigger search when profile selection changes or profile data is updated
+  // This handles real profile switches (e.g., user selects a different candidate),
+  // NOT the initial auth restoration which is handled by the authReady-gated effects above
   useEffect(() => {
     // Skip if we're in the middle of a manual page change
     if (isManualPageChangeRef.current) {
@@ -1107,13 +1111,22 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
       return;
     }
     
+    if (!authReady) return; // wait until auth is ready
+    
     const selectedCandidate = getSelectedCandidate();
     
     if (intentOverrides === null) return; // wait until computed
     if (options?.autoFetch !== false) { // Only if autoFetch is enabled
       // Only trigger if profile actually changed (not just a re-render)
-      // Note: prevProfileChangeCounterRef starts as -1, so it will trigger if profileChangeCounter > 0
       if (profileChangeCounter > 0 && prevProfileChangeCounterRef.current !== profileChangeCounter) {
+        // Skip the first profile change from auth initialization — the initial fetch
+        // (gated by authReady) already includes the profile data
+        if (prevProfileChangeCounterRef.current === -1) {
+          console.log(`⏭️ Skipping first profile change (auth init) — initial fetch already has profile`);
+          prevProfileChangeCounterRef.current = profileChangeCounter;
+          return;
+        }
+        
         console.log(`👤 Profile data changed, triggering search with updated profile:`, {
           profileId: selectedCandidate?.id,
           profileName: selectedCandidate?.name,
@@ -1138,11 +1151,12 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileChangeCounter, intentOverrides, options?.autoFetch, fetchJobsInternal]);
+  }, [profileChangeCounter, intentOverrides, options?.autoFetch, fetchJobsInternal, authReady]);
 
   // Initial fetch when intent overrides are ready (only if autoFetch is enabled)
   // Note: The currentSearchQuery effect above will handle search queries, this handles initial empty state
   useEffect(() => {
+    if (!authReady) return; // wait until auth session check completes so profile is available
     if (intentOverrides === null) return; // wait until computed
     if (options?.autoFetch !== false && currentSearchQuery === undefined) { // Only for undefined initial state
       console.log(`🔍 Initial fetch with undefined search query`);
@@ -1158,7 +1172,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
       }, 100);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [intentOverrides, options?.autoFetch, currentSearchQuery, fetchJobsInternal]);
+  }, [intentOverrides, options?.autoFetch, currentSearchQuery, fetchJobsInternal, authReady]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {

@@ -3,6 +3,7 @@ import { apiClient, cleanContaminatedProfile } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams } from 'react-router-dom';
 import { useOrgDetails } from '@/hooks/useOrgDetails';
+import { useProfileChangeDetector } from '@/hooks/useProfileChangeDetector';
 import { JobItem, JobSearchResponse, LoadingState } from '@/hooks/useJobSearch';
 
 export interface AllJobsFetchState {
@@ -43,11 +44,14 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
   const [intentOverrides, setIntentOverrides] = useState<Record<string, any> | null>(null);
   const { orgSlug } = useParams<{ orgSlug?: string }>();
   const { data: orgDetails, isLoading: orgLoading } = useOrgDetails(orgSlug || null);
-  const { user, getSelectedCandidate } = useAuth();
+  const { user, getSelectedCandidate, authReady } = useAuth();
   const selectedCandidate = getSelectedCandidate();
+  const profileChangeCounter = useProfileChangeDetector();
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const fetchingRef = useRef<boolean>(false);
+  const prevProfileChangeCounterRef = useRef<number>(-1);
+  const fetchAllJobsForMapRef = useRef<(() => Promise<JobItem[] | undefined>) | null>(null);
   const maxRetries = 3;
 
   // Derive intent overrides from organization metadata (same as useJobSearch)
@@ -493,16 +497,67 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
       
       console.log(`🔍 Map view: Using org primary_filters: "${orgPrimaryFilters}"`);
       
+      // Get active profile data to include in search payload (same as list view)
+      const candidate = getSelectedCandidate();
+      let profileData = null;
+      
+      if (candidate) {
+        profileData = {
+          id: candidate.id,
+          userId: candidate.id,
+          type: "personal",
+          metadata: {
+            name: candidate.name,
+            role: candidate.interestedRole,
+            age: candidate.age,
+            gender: candidate.gender,
+            skills: candidate.skills || [],
+            whoIAm: {
+              name: candidate.name,
+              phone: candidate.phone || candidate.whoIAm?.phone,
+              age: candidate.age,
+              gender: candidate.gender,
+              location: candidate.currentLocation,
+              locationData: candidate.whoIAm?.locationData,
+              ...(candidate.whoIAm || {})
+            },
+            whatIHave: {
+              age: candidate.age,
+              ...(candidate.whatIHave || {})
+            },
+            whatIWant: {
+              workHoursPerDay: candidate.workHoursPerDay,
+              monthlyInHandPreferred: candidate.monthlySalary,
+              ...(candidate.whatIWant || {})
+            },
+            industry: candidate.interestedIndustry,
+            education: candidate.education || [],
+            experience: candidate.experience || [],
+            certificates: candidate.certificates || [],
+            workExperience: candidate.workExperience || [],
+            skillCertifications: candidate.skillCertifications || []
+          }
+        };
+        
+        console.log(`📋 Map view: Including profile data in search:`, {
+          profileId: profileData.id,
+          profileName: profileData.metadata.name,
+          profileRole: profileData.metadata.role
+        });
+      } else {
+        console.log(`⚠️ Map view: No active profile selected for search`);
+      }
+      
       let data;
       if (orgPrimaryFilters) {
-        // Map view with organization filters - use regular search with primary_filters
+        // Map view with organization filters - use regular search with primary_filters + profile
         console.log(`➡️ Map view calling regular searchJobs with primary_filters`);
         const intentWithFilters = { primaryFilters: orgPrimaryFilters };
-        data = await apiClient.searchJobs(intentWithFilters, page, limit);
+        data = await apiClient.searchJobs(intentWithFilters, page, limit, profileData);
       } else {
-        // No filters - regular search
+        // No filters - regular search with profile
         console.log(`➡️ Map view calling regular searchJobs (no filters)`);
-        data = await apiClient.searchJobs(undefined, page, limit);
+        data = await apiClient.searchJobs(undefined, page, limit, profileData);
       }
       
       const transformedJobs = transformJobData(data);
@@ -522,7 +577,7 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
       console.error(`Failed to fetch page ${page}:`, error);
       throw error;
     }
-  }, [transformJobData, intentOverrides]);
+  }, [transformJobData, intentOverrides, getSelectedCandidate]);
 
   // Main function to fetch all jobs from all pages
   const fetchAllJobsForMap = useCallback(async () => {
@@ -672,6 +727,9 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
     }
   }, [fetchSinglePage, intentOverrides, state.retryCount]);
 
+  // Keep ref always pointing to latest fetchAllJobsForMap
+  fetchAllJobsForMapRef.current = fetchAllJobsForMap;
+
   // Function to find provider and job IDs (shared with main hook)
   const findProviderAndJobIds = useCallback((jobId: string): { providerId: string; jobId: string } | null => {
     // Since we don't store the original response here, we can extract from the job item itself
@@ -687,11 +745,44 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
 
   // Trigger fetch when intent overrides are ready (only if autoFetch is enabled)
   useEffect(() => {
+    if (!authReady) return; // wait until auth session check completes so profile is available
     if (intentOverrides === null) return; // wait until computed
     if (options?.autoFetch !== false) { // Default to true if not specified
       fetchAllJobsForMap();
     }
-  }, [intentOverrides, fetchAllJobsForMap, options?.autoFetch]);
+  }, [intentOverrides, fetchAllJobsForMap, options?.autoFetch, authReady]);
+
+  // Re-fetch map jobs when profile selection changes (e.g., user switches candidate)
+  // The initial auth restoration is already handled by the authReady gate above
+  useEffect(() => {
+    if (!authReady) return;
+    if (!user?.selectedCandidateId) return;
+    
+    // Only trigger if profile actually changed (not the first auth init)
+    if (profileChangeCounter > 0 && prevProfileChangeCounterRef.current !== profileChangeCounter) {
+      // Skip the first profile change from auth initialization
+      if (prevProfileChangeCounterRef.current === -1) {
+        prevProfileChangeCounterRef.current = profileChangeCounter;
+        return;
+      }
+
+      const selectedCand = getSelectedCandidate();
+      console.log(`👤 Map view: Profile switched, re-fetching all jobs with new profile:`, {
+        profileId: selectedCand?.id,
+        profileName: selectedCand?.name,
+        changeCounter: profileChangeCounter
+      });
+      prevProfileChangeCounterRef.current = profileChangeCounter;
+
+      // Abort any in-flight request and force a fresh fetch
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      fetchingRef.current = false;
+      fetchAllJobsForMapRef.current?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileChangeCounter, authReady]);
 
   // Cleanup on unmount
   useEffect(() => {
