@@ -1357,6 +1357,7 @@ class ApiClient {
   // Trust Score API
   async getTrustScore(jobData: any, seekerData: any): Promise<{ trustScore: number; matchScore: number }> {
     const TRUST_SCORE_URL = import.meta.env.VITE_TRUST_MATCH_SCORE_URL;
+    const TRUST_SCORE_API_KEY = import.meta.env.VITE_TRUST_MATCH_SCORE_API_KEY;
     
     if (!TRUST_SCORE_URL) {
       console.warn('Trust score URL not configured, returning default scores');
@@ -1370,11 +1371,21 @@ class ApiClient {
       seeker: seekerData
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (TRUST_SCORE_API_KEY) {
+      headers['x-api-key'] = TRUST_SCORE_API_KEY;
+    }
+
     // Log the exact payload being sent to the API
     console.log('=== TRUST SCORE API PAYLOAD ===');
     console.log('URL:', url);
     console.log('Method: POST');
-    console.log('Headers:', { 'Content-Type': 'application/json' });
+    console.log('Headers:', {
+      'Content-Type': 'application/json',
+      ...(TRUST_SCORE_API_KEY ? { 'x-api-key': '[REDACTED]' } : {}),
+    });
     console.log('Full Payload:', JSON.stringify(payload, null, 2));
     console.log('Job Data:', JSON.stringify(jobData, null, 2));
     console.log('Seeker Data:', JSON.stringify(seekerData, null, 2));
@@ -1387,9 +1398,7 @@ class ApiClient {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
@@ -1430,6 +1439,7 @@ class ApiClient {
   // Match Score API
   async getMatchScore(jobData: any, seekerData: any): Promise<{ trustScore: number; matchScore: number }> {
     const TRUST_SCORE_URL = import.meta.env.VITE_TRUST_MATCH_SCORE_URL;
+    const TRUST_SCORE_API_KEY = import.meta.env.VITE_TRUST_MATCH_SCORE_API_KEY;
     
     if (!TRUST_SCORE_URL) {
       console.warn('Trust score URL not configured, returning default scores');
@@ -1443,11 +1453,21 @@ class ApiClient {
       seeker: seekerData
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (TRUST_SCORE_API_KEY) {
+      headers['x-api-key'] = TRUST_SCORE_API_KEY;
+    }
+
     // Log the exact payload being sent to the API
     console.log('=== MATCH SCORE API PAYLOAD ===');
     console.log('URL:', url);
     console.log('Method: POST');
-    console.log('Headers:', { 'Content-Type': 'application/json' });
+    console.log('Headers:', {
+      'Content-Type': 'application/json',
+      ...(TRUST_SCORE_API_KEY ? { 'x-api-key': '[REDACTED]' } : {}),
+    });
     console.log('Full Payload:', JSON.stringify(payload, null, 2));
     console.log('Job Data:', JSON.stringify(jobData, null, 2));
     console.log('Seeker Data:', JSON.stringify(seekerData, null, 2));
@@ -1460,9 +1480,7 @@ class ApiClient {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });

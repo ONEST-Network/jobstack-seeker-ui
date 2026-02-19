@@ -138,6 +138,17 @@ pnpm run ensure-pnpm
 VITE_BAP_URL=https://your-bap-api-url.com
 VITE_BPP_URL=https://your-bpp-api-url.com
 
+# Trust/Match Score Service (Optional)
+VITE_TRUST_MATCH_SCORE_URL=https://your-trust-service-url.com/api
+VITE_TRUST_MATCH_SCORE_API_KEY=your_trust_service_api_key_here
+
+# BAP Search Exclude Filter (Optional)
+# Exclude certain sectors/industries/roles from search results
+# Supports single value: "ITI/Polytechnic"
+# Or multiple comma-separated values: "ITI/Polytechnic,Manufacturing,Skilled Workers"
+VITE_BAP_SEARCH_EXCLUDE=ITI/Polytechnic
+
+
 # DigiLocker Integration (Optional)
 VITE_AGENT_URL=https://your-agent-api-url.com
 VITE_AGENT_TOKEN=your-agent-api-token-here
@@ -302,4 +313,3 @@ For support and questions:
 ---
 
 Built with ❤️ using modern web technologies by Dhiway Team.
-
