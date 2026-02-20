@@ -682,11 +682,6 @@ const SharedJob: React.FC = () => {
                   <span className="font-medium text-lg text-foreground truncate">
                     {jobData.tags?.basicInfo?.jobProviderName || jobData.company}
                   </span>
-                  {jobData.verified && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs flex-shrink-0">
-                      ✓ Verified
-                    </Badge>
-                  )}
                 </div>
               </div>
             </div>

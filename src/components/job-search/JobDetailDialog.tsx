@@ -538,11 +538,6 @@ const JobDetailDialog: React.FC<JobDetailDialogProps> = ({ job, isOpen, onClose,
                 <div className="flex items-center gap-2">
                   <Building className="h-5 w-5 text-muted-foreground" />
                   <span className="font-semibold">{job.company}</span>
-                  {job.verified && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      ✓ Verified
-                    </Badge>
-                  )}
                 </div>
 
                 <div className="space-y-2">
