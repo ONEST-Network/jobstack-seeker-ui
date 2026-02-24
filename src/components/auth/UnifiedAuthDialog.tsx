@@ -55,7 +55,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     const timer = setTimeout(() => {
       if (contactInput.includes('@')) {
         setContactType('email');
-      } else {
+      } else if (/^\d/.test(contactInput)) {
         const phoneDigits = contactInput.replace(/\D/g, '');
         if (phoneDigits.length >= 3) {
           setContactType('phone');
@@ -101,9 +101,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
   const handleContactInputChange = (value: string) => {
     const currentCursorPosition = inputRef.current?.selectionStart || 0;
     
-    // If it's detected as phone or looks like phone, restrict to digits and + only
+    // If it's detected as phone or looks like phone (starts with digit), restrict to digits and + only
     let sanitizedValue = value;
-    if (contactType === 'phone' || (value.replace(/\D/g, '').length >= 3 && !value.includes('@'))) {
+    if (contactType === 'phone' || (/^\d/.test(value) && value.replace(/\D/g, '').length >= 3 && !value.includes('@'))) {
       // Allow only digits, +, and spaces (spaces will be removed by formatPhoneNumber)
       sanitizedValue = value.replace(/[^\d+\s]/g, '');
       
@@ -121,8 +121,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({
     
     setContactInput(sanitizedValue);
     
-    // Format phone number if it's a phone input
-    if (contactType === 'phone' || sanitizedValue.replace(/\D/g, '').length >= 10) {
+    // Format phone number if it's a phone input (only if starts with digit)
+    if (contactType === 'phone' || (/^\d/.test(sanitizedValue) && sanitizedValue.replace(/\D/g, '').length >= 10)) {
       const formatted = formatPhoneNumber(sanitizedValue);
       setFormattedPhoneNumber(formatted);
       
