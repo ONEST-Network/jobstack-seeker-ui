@@ -365,11 +365,6 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
   }, []);
 
   const handleJobClick = useCallback((jobOrJobs: JobItem | JobItem[]) => {
-    if (!user) {
-      onPromptLogin?.();
-      return;
-    }
-
     // Check if it's an array of jobs (multiple jobs at same location)
     if (Array.isArray(jobOrJobs)) {
       // Create a JobLocation object from the jobs array to use existing location card modal

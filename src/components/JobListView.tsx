@@ -51,12 +51,8 @@ const JobListView: React.FC<JobListViewProps> = ({
   // Debounce search query to reduce API calls - require at least 3 characters
   const debouncedSearchQuery = useDebounce(searchQuery, 500, 3);
 
-  // Prevent unauthenticated users from opening the job detail dialog
+  // Allow viewing job details without authentication
   const handleViewDetails = (job: JobItem) => {
-    if (!user) {
-      onPromptLogin?.();
-      return;
-    }
     setDetailJob(job);
   };
   
