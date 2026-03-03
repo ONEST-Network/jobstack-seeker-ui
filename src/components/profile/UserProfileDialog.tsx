@@ -264,8 +264,25 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       
       // Check location in both legacy and unified schema structures
       const location = profile.currentLocation || profile.whoIAm?.location;
+      const locationData = profile.whoIAm?.locationData || {};
+      
+      // Validate location - must have valid lat/lng coordinates
+      const hasValidCoordinates = locationData?.lat && locationData?.lng && 
+        locationData.lat >= -90 && locationData.lat <= 90 &&
+        locationData.lng >= -180 && locationData.lng <= 180 &&
+        locationData.lat !== 0 && locationData.lng !== 0;
+      
       if (!location?.trim()) {
         missingFields.push("Current Location");
+      } else if (!hasValidCoordinates) {
+        // Location text exists but no valid coordinates - likely manually entered invalid location
+        missingFields.push("Current Location (please select a valid location from the suggestions)");
+      }
+      
+      // Also validate city/state if they exist
+      if (locationData?.city && !hasValidCoordinates) {
+        // If we have a city but no valid coordinates, still mark as invalid
+        missingFields.push("City (please select a valid location from the suggestions)");
       }
       
       // Check age in both legacy and unified schema structures
@@ -280,16 +297,44 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       if (currentRole) {
         try {
           const schema = getUnifiedSchema(currentRole);
-          const hasEducationField = schema?.properties?.whatIHave?.properties && (
-            schema.properties.whatIHave.properties.highestQualification ||
-            schema.properties.whatIHave.properties.highestEducation ||
-            schema.properties.whatIHave.properties.highestEducationalQualification
-          );
+          const whatIHaveProps = schema?.properties?.whatIHave?.properties || {};
           
-          if (hasEducationField) {
+          // Check for highest education/qualification fields (legacy and new schema)
+          const hasHighestQualification = whatIHaveProps.highestQualification || 
+            whatIHaveProps.highestEducation || 
+            whatIHaveProps.highestEducationalQualification;
+          
+          if (hasHighestQualification) {
             const highestEducation = profile.highestQualification || profile.highestEducation || profile.highestEducationalQualification || profile.whatIHave?.highestQualification || profile.whatIHave?.highestEducation || profile.whatIHave?.highestEducationalQualification;
             if (!highestEducation || (Array.isArray(highestEducation) && highestEducation.length === 0)) {
               missingFields.push("Highest Educational Qualification");
+            }
+          }
+          
+          // Check for highestQualificationOrSkill (used in "any" role schema)
+          const hasHighestQualificationOrSkill = whatIHaveProps.highestQualificationOrSkill;
+          if (hasHighestQualificationOrSkill) {
+            const highestQualificationOrSkill = profile.whatIHave?.highestQualificationOrSkill;
+            if (!highestQualificationOrSkill || (typeof highestQualificationOrSkill === 'object' && !highestQualificationOrSkill.category)) {
+              missingFields.push("Highest Qualification or Skill");
+            }
+          }
+          
+          // Check for highestEducationalInstituteAttended (used in "any" role schema)
+          const hasHighestInstitute = whatIHaveProps.highestEducationalInstituteAttended;
+          if (hasHighestInstitute) {
+            const highestInstitute = profile.highestEducationalInstituteAttended || profile.whatIHave?.highestEducationalInstituteAttended;
+            if (!highestInstitute || (Array.isArray(highestInstitute) && highestInstitute.length === 0)) {
+              missingFields.push("Highest Educational Institute Attended");
+            }
+          }
+          
+          // Check for workExperience (used in "any" role schema)
+          const hasWorkExperience = whatIHaveProps.workExperience;
+          if (hasWorkExperience) {
+            const workExperience = profile.whatIHave?.workExperience || profile.workExperience;
+            if (!workExperience || (Array.isArray(workExperience) && workExperience.length === 0)) {
+              missingFields.push("Work Experience");
             }
           }
         } catch (error) {
