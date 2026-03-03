@@ -663,6 +663,90 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
+  // Normalize values stored by DIALFLOW/call-bot to match the any.json schema enum values
+  // so that fields render correctly in DynamicFormStep dropdowns when editing.
+  const normalizeDialflowProfile = (profile: CandidateProfile): CandidateProfile => {
+    if (profile.interestedRole !== 'Any') return profile;
+
+    // --- whatIHave normalization ---
+    const whatIHave = profile.whatIHave ? { ...profile.whatIHave } : {};
+
+    // workExperience: DIALFLOW stores uppercase enum keys; any.json uses display labels
+    const workExperienceMap: Record<string, string> = {
+      'FRESHER': 'Fresher',
+      'EXPERIENCED': 'Worked before',
+      'RETURNING_AFTER_A_BREAK': 'Returning after a break',
+    };
+    if (whatIHave.workExperience && typeof whatIHave.workExperience === 'string') {
+      whatIHave.workExperience = workExperienceMap[whatIHave.workExperience] ?? whatIHave.workExperience;
+    }
+
+    // workExperienceYears: DIALFLOW may store as a number; any.json enum values are strings like "5-10 Years"
+    // Normalize number → closest string label so the select renders correctly
+    if (whatIHave.workExperienceYears !== undefined && typeof whatIHave.workExperienceYears === 'number') {
+      const yrs = whatIHave.workExperienceYears as number;
+      if (yrs === 0) whatIHave.workExperienceYears = '0';
+      else if (yrs < 1) whatIHave.workExperienceYears = '< 1 Year';
+      else if (yrs === 1) whatIHave.workExperienceYears = '1 Year';
+      else if (yrs === 2) whatIHave.workExperienceYears = '2 Years';
+      else if (yrs === 3) whatIHave.workExperienceYears = '3 Years';
+      else if (yrs <= 5) whatIHave.workExperienceYears = '3-5 Years';
+      else if (yrs <= 10) whatIHave.workExperienceYears = '5-10 Years';
+      else if (yrs <= 15) whatIHave.workExperienceYears = '10-15 Years';
+      else whatIHave.workExperienceYears = '15+ Years';
+    }
+
+    // workExperienceYearsConditional: normalize each item in the array
+    if (Array.isArray(whatIHave.workExperienceYearsConditional)) {
+      const yearsLabelMap: Record<string, string> = {
+        '5-10 years': '5-10 Years',
+        '3-5 years': '3-5 Years',
+        '1-3 years': '1 Year',
+        '0-1 years': '< 1 Year',
+        '10-15 years': '10-15 Years',
+        '15+ years': '15+ Years',
+      };
+      whatIHave.workExperienceYearsConditional = (whatIHave.workExperienceYearsConditional as string[]).map(
+        (v: string) => yearsLabelMap[v.toLowerCase()] ?? v
+      );
+    }
+
+    // --- whatIWant normalization ---
+    const whatIWant = profile.whatIWant ? { ...profile.whatIWant } : {};
+
+    // natureOfJobsInterestedIn: DIALFLOW stores ["FULL_TIME"]; any.json uses ["Full-time"]
+    const jobNatureMap: Record<string, string> = {
+      'FULL_TIME': 'Full-time',
+      'PART_TIME': 'Part-time',
+      'INTERNSHIP': 'Internship',
+      'APPRENTICESHIP': 'Apprenticeship',
+      'FLEXIBLE': 'Flexible',
+    };
+    if (Array.isArray(whatIWant.natureOfJobsInterestedIn)) {
+      whatIWant.natureOfJobsInterestedIn = (whatIWant.natureOfJobsInterestedIn as string[]).map(
+        (v: string) => jobNatureMap[v] ?? v
+      );
+    }
+
+    // otherHelpNeeded: DIALFLOW may store lowercase ["travel", "accommodation"];
+    // any.json enums are Title Case: ["Travel", "Accommodation"]
+    if (Array.isArray(whatIWant.otherHelpNeeded)) {
+      whatIWant.otherHelpNeeded = (whatIWant.otherHelpNeeded as string[]).map((v: string) => {
+        const titleCased = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+        // Map to exact schema enum values
+        const helpMap: Record<string, string> = {
+          'Training': 'Training',
+          'Accommodation': 'Accommodation',
+          'Travel': 'Travel',
+          'Other': 'Other',
+        };
+        return helpMap[titleCased] ?? titleCased;
+      });
+    }
+
+    return { ...profile, whatIHave, whatIWant };
+  };
+
   const fetchAndTransformProfiles = async (): Promise<CandidateProfile[]> => {
     try {
       const profilesResponse = await apiClient.getProfiles() as ProfilesResponse;
@@ -712,8 +796,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           // Clean contaminated profile data based on role
           const cleanedProfile = cleanContaminatedProfile(candidateProfile);
-          
-          return cleanedProfile;
+
+          // Normalize DIALFLOW/call-bot enum values to match any.json schema enum labels
+          return normalizeDialflowProfile(cleanedProfile);
         });
         
         return transformedProfiles;
