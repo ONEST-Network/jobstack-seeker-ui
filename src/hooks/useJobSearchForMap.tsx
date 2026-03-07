@@ -19,6 +19,7 @@ export interface AllJobsFetchState {
   lastFetchTime: number | null;
   scoresLoading: boolean;
   isAutoRetrying: boolean;
+  isFallbackSearch: boolean;
 }
 
 const OPTIMIZED_PAGE_SIZE = 1000; // Increased from 20 to reduce API calls by ~98%
@@ -39,6 +40,7 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
     lastFetchTime: null,
     scoresLoading: false,
     isAutoRetrying: false,
+    isFallbackSearch: false,
   });
 
   const [intentOverrides, setIntentOverrides] = useState<Record<string, any> | null>(null);
@@ -616,21 +618,95 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
       console.log(`Map view: Total ${totalCount} jobs across ${totalPages} pages (${limit} jobs per page)`);
       console.log(`Performance: Reduced API calls from ${Math.ceil(totalCount / ORIGINAL_PAGE_SIZE)} to ${totalPages} calls (${Math.round(((Math.ceil(totalCount / ORIGINAL_PAGE_SIZE) - totalPages) / Math.ceil(totalCount / ORIGINAL_PAGE_SIZE)) * 100)}% reduction)`);
 
+      // If profile search returned nothing, fire a fallback without profile so the map still has jobs
       if (totalPages === 0) {
-        setState(prev => ({
-          ...prev,
-          allJobs: [],
-          loading: false,
-          loadingState: 'complete',
-          totalJobsCount: 0,
-          totalPages: 0,
-          currentPagesFetched: 0,
-          fetchProgress: 100,
-          lastFetchTime: Date.now()
-        }));
+        const candidate = getSelectedCandidate();
+        if (candidate) {
+          console.log('⚠️ Map: Profile search returned 0 jobs — firing fallback without profile');
+          setState(prev => ({ ...prev, loadingState: 'calculating-match-score' }));
+
+          try {
+            const orgPrimaryFilters = intentOverrides?.primaryFilters;
+            let fallbackData;
+            if (orgPrimaryFilters) {
+              fallbackData = await apiClient.searchJobs({ primaryFilters: orgPrimaryFilters }, 1, OPTIMIZED_PAGE_SIZE);
+            } else {
+              fallbackData = await apiClient.searchJobs(undefined, 1, OPTIMIZED_PAGE_SIZE);
+            }
+
+            const fallbackJobs = transformJobData(fallbackData);
+            const fallbackTotal = fallbackData?.data?.total ?? 0;
+
+            // Fetch remaining pages if needed
+            const fallbackLimit = fallbackData?.limit ?? OPTIMIZED_PAGE_SIZE;
+            const fallbackTotalPages = Math.ceil(fallbackTotal / fallbackLimit);
+            let allFallbackJobs = [...fallbackJobs];
+
+            if (fallbackTotalPages > 1) {
+              for (let p = 2; p <= fallbackTotalPages; p++) {
+                if (abortControllerRef.current?.signal.aborted) break;
+                try {
+                  const pageData = orgPrimaryFilters
+                    ? await apiClient.searchJobs({ primaryFilters: orgPrimaryFilters }, p, fallbackLimit)
+                    : await apiClient.searchJobs(undefined, p, fallbackLimit);
+                  allFallbackJobs = [...allFallbackJobs, ...transformJobData(pageData)];
+                  setState(prev => ({
+                    ...prev,
+                    allJobs: allFallbackJobs,
+                    currentPagesFetched: p,
+                    fetchProgress: Math.round((p / fallbackTotalPages) * 100)
+                  }));
+                } catch { /* continue */ }
+              }
+            }
+
+            setState(prev => ({
+              ...prev,
+              allJobs: allFallbackJobs,
+              loading: false,
+              loadingState: 'complete',
+              totalJobsCount: fallbackTotal,
+              totalPages: fallbackTotalPages,
+              currentPagesFetched: fallbackTotalPages,
+              fetchProgress: 100,
+              lastFetchTime: Date.now(),
+              isFallbackSearch: allFallbackJobs.length > 0,
+            }));
+          } catch (fallbackError) {
+            console.error('Map fallback search failed:', fallbackError);
+            setState(prev => ({
+              ...prev,
+              allJobs: [],
+              loading: false,
+              loadingState: 'complete',
+              totalJobsCount: 0,
+              totalPages: 0,
+              fetchProgress: 100,
+              lastFetchTime: Date.now(),
+              isFallbackSearch: false,
+            }));
+          }
+        } else {
+          // No profile was sent — genuine empty result
+          setState(prev => ({
+            ...prev,
+            allJobs: [],
+            loading: false,
+            loadingState: 'complete',
+            totalJobsCount: 0,
+            totalPages: 0,
+            currentPagesFetched: 0,
+            fetchProgress: 100,
+            lastFetchTime: Date.now(),
+            isFallbackSearch: false,
+          }));
+        }
         fetchingRef.current = false;
         return;
       }
+
+      // Got real jobs — clear any previous fallback state
+      setState(prev => ({ ...prev, isFallbackSearch: false }));
 
       let allJobs = [...firstPageResult.jobs];
       
@@ -808,6 +884,7 @@ export const useJobSearchForMap = (options?: { autoFetch?: boolean }) => {
     lastFetchTime: state.lastFetchTime,
     scoresLoading: state.scoresLoading,
     isAutoRetrying: state.isAutoRetrying,
+    isFallbackSearch: state.isFallbackSearch,
     refetch: fetchAllJobsForMap,
     retry: fetchAllJobsForMap,
     fetchScoresForJobs,

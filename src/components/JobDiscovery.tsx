@@ -371,6 +371,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
                   {activeView === 'list' && loadingState === 'initial' && t('jobMapView.initializingSearch', 'Loading jobs...')}
                   {activeView === 'list' && loadingState === 'loading' && t('jobMapView.loadingJobs', 'Refreshing jobs...')}
                   {activeView === 'list' && loadingState === 'partial' && t('jobMapView.pleaseWait', 'Gathering the best matches for you...')}
+                  {activeView === 'list' && loadingState === 'calculating-match-score' && t('jobMapView.calculatingMatchScore', 'Calculating your match score...')}
                   
                   {/* Map view loading states */}
                   {activeView === 'map' && loadingState === 'initial' && t('jobMapView.initializingSearch', 'Initializing map view...')}
