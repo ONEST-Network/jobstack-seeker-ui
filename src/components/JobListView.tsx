@@ -8,7 +8,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { RefreshCw, AlertCircle, Wifi, WifiOff, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useJobSearch, JobItem, LoadingState } from '@/hooks/useJobSearch';
 import { useJobApplication, JobApplicationData } from '@/hooks/useJobApplication';
@@ -74,7 +74,8 @@ const JobListView: React.FC<JobListViewProps> = ({
     fetchJobsForPage,
     isAutoRetrying,
     updateSearchQuery,
-    currentSearchQuery
+    currentSearchQuery,
+    isFallbackSearch
   } = hookData || localHookData;
   const { applyToJob, applying } = useJobApplication();
 
@@ -429,13 +430,17 @@ const JobListView: React.FC<JobListViewProps> = ({
                 // Determine actual job count - if jobs array is empty but pagination shows count, trust the jobs array
                 const actualJobCount = jobs.length === 0 ? 0 : (pagination.totalCount || jobs.length);
                 
-                // Calculate total openings from map hook data if available (all jobs), otherwise calculate from current page
-                const totalOpenings = mapHookData?.allJobs ? calculateTotalOpenings(mapHookData.allJobs) : calculateTotalOpenings(jobs);
+                // Calculate total openings:
+                // - Prefer map hook's full dataset when it has jobs
+                // - Fall back to current page jobs (covers the isFallbackSearch case where map may still be empty)
+                const mapJobs = mapHookData?.allJobs;
+                const jobsForOpenings = (mapJobs && mapJobs.length > 0) ? mapJobs : jobs;
+                const totalOpenings = calculateTotalOpenings(jobsForOpenings);
                 
                 const searchQueryText = currentSearchQuery && currentSearchQuery.trim() ? ` for "${currentSearchQuery.trim()}"` : '';
                 
-                // Only show openings count if we have map data or if we're showing all jobs on current page
-                const showOpenings = mapHookData?.allJobs || jobs.length === actualJobCount;
+                // Always show openings count when we have any jobs to count
+                const showOpenings = jobsForOpenings.length > 0;
                 const openingsText = showOpenings ? ` (${totalOpenings} ${t('jobListView.openings', 'openings')})` : '';
                 
                 return t('jobListView.jobsFound', '{{count}} job{{plural}} found{{query}}{{openingsText}}', { 
@@ -547,6 +552,17 @@ const JobListView: React.FC<JobListViewProps> = ({
         {/* Jobs List - Only show when not loading and not changing pages */}
         {!loading && !isPageChanging && !error && (
           <>
+            {/* Fallback search banner — shown when profile search returned empty but fallback jobs are available */}
+            {isFallbackSearch && (
+              <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 mb-4">
+                <Sparkles className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500 animate-pulse" />
+                <div>
+                  <p className="font-medium">Your match score is being calculated</p>
+                  <p className="text-blue-700 mt-0.5">Surf the available jobs till then — personalised results will appear once your profile is indexed.</p>
+                </div>
+              </div>
+            )}
+
             <div ref={jobsListRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {finalDisplayJobs.length > 0 ? (
                 finalDisplayJobs.map(job => (

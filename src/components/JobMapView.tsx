@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { ZoomIn, ZoomOut, Navigation, Search, CheckCircle, XCircle, AlertCircle, X, MapPin, Filter, Settings, Loader2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Navigation, Search, CheckCircle, XCircle, AlertCircle, X, MapPin, Filter, Settings, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SimpleLeafletMap from './map/SimpleLeafletMap';
@@ -29,6 +29,7 @@ interface JobMapViewProps {
     fetchScoresForJobs: (jobs: JobItem[]) => Promise<JobItem[]>;
     scoresLoading: boolean;
     retryCount: number;
+    isFallbackSearch?: boolean;
   }; // Pass hook data from parent to avoid duplicate calls
 }
 
@@ -90,7 +91,8 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
     findProviderAndJobIds, 
     fetchScoresForJobs, 
     scoresLoading,
-    retryCount
+    retryCount,
+    isFallbackSearch
   } = hookData || localHookData;
   const { applyToJob, applying } = useJobApplication();
 
@@ -592,6 +594,14 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
             </>
           )}
           
+          {loadingState === 'calculating-match-score' && (
+            <>
+              <Sparkles className="h-8 w-8 text-blue-500 animate-pulse mx-auto mb-3" />
+              <p className="text-gray-700 font-medium mb-2">Calculating your match score...</p>
+              <p className="text-gray-500 text-sm">Loading available jobs while your profile is being indexed</p>
+            </>
+          )}
+
           {/* Fallback for any other loading state */}
           {!loadingState && (
             <>
@@ -621,6 +631,16 @@ const JobMapView: React.FC<JobMapViewProps> = ({ searchQuery, onPromptLogin, hoo
 
   return (
     <>
+      {/* Fallback banner — shown when profile search returned empty but fallback jobs are available */}
+      {isFallbackSearch && (
+        <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 mx-4 mb-2">
+          <Sparkles className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500 animate-pulse" />
+          <div>
+            <p className="font-medium">Your match score is being calculated</p>
+            <p className="text-blue-700 mt-0.5">Surf the available jobs on the map till then — personalised results will appear once your profile is indexed.</p>
+          </div>
+        </div>
+      )}
       <div className="relative h-[calc(100vh-140px)] bg-gradient-to-br from-slate-50 to-blue-50">
         {/* OpenStreetMap with Job Locations */}
         <SimpleLeafletMap

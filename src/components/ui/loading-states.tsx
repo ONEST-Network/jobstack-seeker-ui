@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, Clock, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Loader2, Clock, Wifi, WifiOff, RefreshCw, Sparkles } from 'lucide-react';
 import { Button } from './button';
 import { LoadingState } from '@/hooks/useJobSearch';
 
@@ -28,6 +28,8 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
         return isAutoRetrying ? 'Retrying...' : 'Refreshing jobs...';
       case 'partial':
         return 'Gathering the best matches for you...';
+      case 'calculating-match-score':
+        return 'Calculating your match score...';
       case 'error':
         return 'No jobs found currently';
       case 'complete':
@@ -41,6 +43,8 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
     switch (loadingState) {
       case 'partial':
         return <Clock className="h-4 w-4 animate-pulse" />;
+      case 'calculating-match-score':
+        return <Sparkles className="h-4 w-4 animate-pulse text-blue-500" />;
       case 'error':
         return <WifiOff className="h-4 w-4" />;
       case 'complete':
@@ -77,6 +81,12 @@ export const LoadingMessage: React.FC<LoadingMessageProps> = ({
       {loadingState === 'partial' && (
         <p className="text-xs text-muted-foreground">
           Searching through opportunities to find the best matches...
+        </p>
+      )}
+
+      {loadingState === 'calculating-match-score' && (
+        <p className="text-xs text-muted-foreground">
+          Loading available jobs while your match score gets ready...
         </p>
       )}
       

@@ -175,7 +175,7 @@ export interface JobSearchResponse {
   };
 }
 
-export type LoadingState = 'idle' | 'initial' | 'loading' | 'partial' | 'complete' | 'error';
+export type LoadingState = 'idle' | 'initial' | 'loading' | 'partial' | 'complete' | 'error' | 'calculating-match-score';
 
 export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boolean }) => {
   const [jobs, setJobs] = useState<JobItem[]>([]);
@@ -195,6 +195,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
   const [isAutoRetrying, setIsAutoRetrying] = useState(false);
   const [intentOverrides, setIntentOverrides] = useState<Record<string, any> | null>(null);
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string | undefined>(searchQuery);
+  const [isFallbackSearch, setIsFallbackSearch] = useState(false);
   
   // Add debouncing refs to prevent duplicate API calls
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -923,8 +924,54 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
       
       // Check if we got any jobs after transformation
       if (transformedJobs.length === 0) {
-        // No jobs available - this is a valid state, not an error
+        // If a profile was sent in the payload and the API returned empty results,
+        // it likely means the match-score index for this profile isn't ready yet.
+        // Fire a fallback search without the profile so the user sees jobs immediately.
+        if (profileData) {
+          console.log('⚠️ Profile search returned 0 jobs — match score index may not be ready. Firing fallback search without profile.');
+          setLoadingState('calculating-match-score');
+          setIsFallbackSearch(false); // reset while fallback loads
+
+          try {
+            let fallbackData;
+            if (userSearchQuery) {
+              fallbackData = await apiClient.searchJobsWithQuery(userSearchQuery, orgPrimaryFilters ? { primaryFilters: orgPrimaryFilters } : undefined, page, limit);
+            } else {
+              fallbackData = await apiClient.searchJobs(intent || undefined, page, limit);
+            }
+
+            const fallbackJobs = transformJobData(fallbackData);
+            const fallbackTotal = fallbackData?.data?.total ?? 0;
+            const fallbackTotalPages = Math.ceil(fallbackTotal / actualLimit) || 1;
+
+            setJobs(fallbackJobs);
+            setIsFallbackSearch(fallbackJobs.length > 0); // only show banner if fallback actually returned jobs
+            setPagination({
+              limit: actualLimit,
+              page: actualPage,
+              totalCount: fallbackTotal,
+              totalPages: fallbackTotalPages
+            });
+            setOriginalResponse(fallbackData);
+          } catch (fallbackError) {
+            console.error('Fallback search also failed:', fallbackError);
+            setJobs([]);
+            setIsFallbackSearch(false);
+            setPagination({ limit: actualLimit, page: actualPage, totalCount: 0, totalPages: 0 });
+          }
+
+          setLastFetchTime(Date.now());
+          setLoadingState('complete');
+          setIsInitialLoad(false);
+          setIsAutoRetrying(false);
+          setRetryCount(0);
+          setError(null);
+          return;
+        }
+
+        // No profile was sent — genuine empty result, not a match-score issue
         setJobs([]);
+        setIsFallbackSearch(false);
         setPagination({
           limit: actualLimit,
           page: actualPage,
@@ -939,6 +986,9 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
         setError(null); // Clear any previous errors
         return;
       }
+
+      // Got real jobs — clear any previous fallback state
+      setIsFallbackSearch(false);
       
       // Set jobs without trust scores initially
       setJobs(transformedJobs);
@@ -1239,7 +1289,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
 
   return {
     jobs,
-    loading: loadingState === 'loading' || loadingState === 'partial',
+    loading: loadingState === 'loading' || loadingState === 'partial' || loadingState === 'calculating-match-score',
     loadingState,
     error,
     pagination,
@@ -1254,6 +1304,7 @@ export const useJobSearch = (searchQuery?: string, options?: { autoFetch?: boole
     fetchJobsForPage,
     isAutoRetrying,
     updateSearchQuery,
-    currentSearchQuery
+    currentSearchQuery,
+    isFallbackSearch
   };
 }; 
