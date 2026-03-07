@@ -72,17 +72,13 @@ const DraftSyncButton: React.FC<DraftSyncButtonProps> = ({
       // Extract context from draft metadata if available, otherwise use default
       // Drafts saved after this update should have context in metadata.context
       const draftContext = drafts[0]?.metadata?.context;
-      const context = draftContext && draftContext.bap_id && draftContext.bap_uri && draftContext.bpp_id && draftContext.bpp_uri
+      const context = draftContext && draftContext.bpp_id && draftContext.bpp_uri
         ? {
-            bap_id: draftContext.bap_id,
-            bap_uri: draftContext.bap_uri,
             bpp_id: draftContext.bpp_id,
             bpp_uri: draftContext.bpp_uri,
             transaction_id: `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
           }
         : {
-            bap_id: "bap.dhiway.com", // Default fallback - should ideally come from search response
-            bap_uri: "https://beckn-adapter.dhiway.net/bap/receiver",
             bpp_id: "bpp1.dhiway.com",
             bpp_uri: "https://beckn-adapter.dhiway.net/bpp/receiver",
             transaction_id: `txn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`

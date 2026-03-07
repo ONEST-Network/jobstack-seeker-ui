@@ -2,10 +2,8 @@ import { parseLocationString, LocationData, validateLocationForAPI } from './uti
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
 
-// Beckn Context interface for BAP/BPP information
+// Beckn Context interface for BPP information
 export interface BecknContext {
-  bap_id: string;
-  bap_uri: string;
   bpp_id: string;
   bpp_uri: string;
   transaction_id?: string;
@@ -584,7 +582,7 @@ class ApiClient {
   // BAP Job Search API
   async searchJobs(intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30, profile?: SearchProfileData) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
-    const url = `${BAP_URL}/api/v2/search`;
+    const url = `${BAP_URL}/api/v3/search`;
     
     const payload: any = {
       limit,
@@ -641,20 +639,20 @@ class ApiClient {
 
       const data = await response.json();
       
-      // Validate the v2 response structure
+      // Validate the v3 response structure
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format from job service');
       }
 
-      // Check if the response has the expected v2 structure
-      // v2 API has top-level pagination and results objects
-      if (!data.pagination || !data.results) {
+      // Check if the response has the expected v3 structure
+      // v3 API has top-level status, page, limit and a data object with total and items
+      if (!data.data || !data.data.items) {
         throw new Error('No job data received from server');
       }
 
-      // If results is an empty array, that's valid - it means no jobs are available
-      if (Array.isArray(data.results) && data.results.length === 0) {
-        console.log('API returned empty results array - no jobs available');
+      // If items is an empty array, that's valid - it means no jobs are available
+      if (Array.isArray(data.data.items) && data.data.items.length === 0) {
+        console.log('API returned empty items array - no jobs available');
         return data; // Return the empty result as valid
       }
 
@@ -689,7 +687,7 @@ class ApiClient {
   // BAP Job Search API with Query - Used for API-based search functionality
   async searchJobsWithQuery(searchQuery: string, intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30, profile?: SearchProfileData) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
-    const url = `${BAP_URL}/api/v2/search`;
+    const url = `${BAP_URL}/api/v3/search`;
     
     const payload: any = {
       limit,
@@ -748,20 +746,20 @@ class ApiClient {
 
       const data = await response.json();
       
-      // Validate the v2 response structure
+      // Validate the v3 response structure
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format from job service');
       }
 
-      // Check if the response has the expected v2 structure
-      // v2 API has top-level pagination and results objects
-      if (!data.pagination || !data.results) {
+      // Check if the response has the expected v3 structure
+      // v3 API has top-level status, page, limit and a data object with total and items
+      if (!data.data || !data.data.items) {
         throw new Error('No job data received from server');
       }
 
-      // If results is an empty array, that's valid - it means no jobs are available
-      if (Array.isArray(data.results) && data.results.length === 0) {
-        console.log('API returned empty results array - no jobs available for search:', searchQuery);
+      // If items is an empty array, that's valid - it means no jobs are available
+      if (Array.isArray(data.data.items) && data.data.items.length === 0) {
+        console.log('API returned empty items array - no jobs available for search:', searchQuery);
         return data; // Return the empty result as valid
       }
 
@@ -835,8 +833,8 @@ class ApiClient {
     const context = applyData.context || applyData.jobDetails?.context;
     
     // Validate context exists and has required fields
-    if (!context || !context.bap_id || !context.bap_uri || !context.bpp_id || !context.bpp_uri) {
-      throw new Error('Missing BAP/BPP context from search response. Please refresh the job listing and try again.');
+    if (!context || !context.bpp_id || !context.bpp_uri) {
+      throw new Error('Missing BPP context from search response. Please refresh the job listing and try again.');
     }
     
     // Use provided transaction ID, context transaction_id, or generate a new one
@@ -847,8 +845,6 @@ class ApiClient {
     
     const payload = {
       context: {
-        bap_id: context.bap_id,
-        bap_uri: context.bap_uri,
         bpp_id: context.bpp_id,
         bpp_uri: context.bpp_uri,
         transaction_id: transactionId
@@ -1080,8 +1076,8 @@ class ApiClient {
     const context = applyData.context || applyData.jobDetails?.context;
     
     // Validate context exists and has required fields
-    if (!context || !context.bap_id || !context.bap_uri || !context.bpp_id || !context.bpp_uri) {
-      throw new Error('Missing BAP/BPP context from search response. Please refresh the job listing and try again.');
+    if (!context || !context.bpp_id || !context.bpp_uri) {
+      throw new Error('Missing BPP context from search response. Please refresh the job listing and try again.');
     }
 
     // Use context transaction_id or generate a new one
@@ -1092,8 +1088,6 @@ class ApiClient {
 
     const payload = {
       context: {
-        bap_id: context.bap_id,
-        bap_uri: context.bap_uri,
         bpp_id: context.bpp_id,
         bpp_uri: context.bpp_uri,
         transaction_id: transactionId
@@ -1363,6 +1357,7 @@ class ApiClient {
   // Trust Score API
   async getTrustScore(jobData: any, seekerData: any): Promise<{ trustScore: number; matchScore: number }> {
     const TRUST_SCORE_URL = import.meta.env.VITE_TRUST_MATCH_SCORE_URL;
+    const TRUST_SCORE_API_KEY = import.meta.env.VITE_TRUST_MATCH_SCORE_API_KEY;
     
     if (!TRUST_SCORE_URL) {
       console.warn('Trust score URL not configured, returning default scores');
@@ -1376,11 +1371,21 @@ class ApiClient {
       seeker: seekerData
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (TRUST_SCORE_API_KEY) {
+      headers['x-api-key'] = TRUST_SCORE_API_KEY;
+    }
+
     // Log the exact payload being sent to the API
     console.log('=== TRUST SCORE API PAYLOAD ===');
     console.log('URL:', url);
     console.log('Method: POST');
-    console.log('Headers:', { 'Content-Type': 'application/json' });
+    console.log('Headers:', {
+      'Content-Type': 'application/json',
+      ...(TRUST_SCORE_API_KEY ? { 'x-api-key': '[REDACTED]' } : {}),
+    });
     console.log('Full Payload:', JSON.stringify(payload, null, 2));
     console.log('Job Data:', JSON.stringify(jobData, null, 2));
     console.log('Seeker Data:', JSON.stringify(seekerData, null, 2));
@@ -1393,9 +1398,7 @@ class ApiClient {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
@@ -1436,6 +1439,7 @@ class ApiClient {
   // Match Score API
   async getMatchScore(jobData: any, seekerData: any): Promise<{ trustScore: number; matchScore: number }> {
     const TRUST_SCORE_URL = import.meta.env.VITE_TRUST_MATCH_SCORE_URL;
+    const TRUST_SCORE_API_KEY = import.meta.env.VITE_TRUST_MATCH_SCORE_API_KEY;
     
     if (!TRUST_SCORE_URL) {
       console.warn('Trust score URL not configured, returning default scores');
@@ -1449,11 +1453,21 @@ class ApiClient {
       seeker: seekerData
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (TRUST_SCORE_API_KEY) {
+      headers['x-api-key'] = TRUST_SCORE_API_KEY;
+    }
+
     // Log the exact payload being sent to the API
     console.log('=== MATCH SCORE API PAYLOAD ===');
     console.log('URL:', url);
     console.log('Method: POST');
-    console.log('Headers:', { 'Content-Type': 'application/json' });
+    console.log('Headers:', {
+      'Content-Type': 'application/json',
+      ...(TRUST_SCORE_API_KEY ? { 'x-api-key': '[REDACTED]' } : {}),
+    });
     console.log('Full Payload:', JSON.stringify(payload, null, 2));
     console.log('Job Data:', JSON.stringify(jobData, null, 2));
     console.log('Seeker Data:', JSON.stringify(seekerData, null, 2));
@@ -1466,9 +1480,7 @@ class ApiClient {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
@@ -1719,8 +1731,8 @@ class ApiClient {
     const context = applyData.context || applyData.jobDetails?.context;
     
     // Validate context exists and has required fields
-    if (!context || !context.bap_id || !context.bap_uri || !context.bpp_id || !context.bpp_uri) {
-      throw new Error('Missing BAP/BPP context from search response. Please refresh the job listing and try again.');
+    if (!context || !context.bpp_id || !context.bpp_uri) {
+      throw new Error('Missing BPP context from search response. Please refresh the job listing and try again.');
     }
 
     // Use context transaction_id or generate a new one
@@ -1731,8 +1743,6 @@ class ApiClient {
 
     const payload = {
       context: {
-        bap_id: context.bap_id,
-        bap_uri: context.bap_uri,
         bpp_id: context.bpp_id,
         bpp_uri: context.bpp_uri,
         transaction_id: transactionId

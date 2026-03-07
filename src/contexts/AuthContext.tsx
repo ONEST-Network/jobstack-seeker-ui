@@ -264,6 +264,7 @@ interface AuthContextType {
   initializeOrganizationData: () => Promise<void>;
   setActiveOrganization: (organizationId: string) => Promise<void>;
   isLoading: boolean;
+  authReady: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -279,6 +280,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
     // Check for existing session with backend
@@ -570,6 +572,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // No active session found
         // Clear any invalid session data
         localStorage.removeItem('user');
+      } finally {
+        setAuthReady(true);
       }
     };
 
@@ -2068,7 +2072,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       hasAdminRole,
       initializeOrganizationData,
       setActiveOrganization,
-      isLoading
+      isLoading,
+      authReady
     }}>
       {children}
     </AuthContext.Provider>

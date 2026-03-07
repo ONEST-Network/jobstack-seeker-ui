@@ -90,8 +90,6 @@ interface SharedJobData {
     [key: string]: any;
   };
   context?: {
-    bap_id: string;
-    bap_uri: string;
     bpp_id: string;
     bpp_uri: string;
     transaction_id?: string;
@@ -349,8 +347,6 @@ const SharedJob: React.FC = () => {
         
         // Extract context from selectJob response if available
         const context = data.context ? {
-          bap_id: data.context.bap_id,
-          bap_uri: data.context.bap_uri,
           bpp_id: data.context.bpp_id,
           bpp_uri: data.context.bpp_uri,
           transaction_id: data.context.transaction_id

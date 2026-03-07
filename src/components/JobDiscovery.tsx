@@ -14,6 +14,7 @@ import { useJobSearch } from '@/hooks/useJobSearch';
 import { useJobSearchForMap } from '@/hooks/useJobSearchForMap';
 import { useViewPreference } from '@/hooks/useViewPreference';
 import { useTranslation } from '@/hooks/useI18n';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface JobDiscoveryProps {
   onPromptLogin?: () => void;
@@ -26,6 +27,7 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showUnifiedAuth, setShowUnifiedAuth] = useState(false);
   const isMobile = useIsMobile();
+  const { authReady } = useAuth();
   
   // View preference management
   const { getDefaultView, shouldApplyDefaultView, markInitialViewApplied, isLoaded } = useViewPreference();
@@ -240,19 +242,22 @@ const JobDiscovery: React.FC<JobDiscoveryProps> = ({ onPromptLogin }) => {
   }, [shouldApplyDefaultView, getDefaultView, markInitialViewApplied]);
 
   // Trigger map fetch in background on mount to get all jobs data for both views
+  // Waits for authReady so the search call includes the user's profile if logged in
   useEffect(() => {
+    if (!authReady) return; // wait until auth session check completes
     if (!mapHookData.loading && mapHookData.loadingState === 'idle' && mapHookData.allJobs.length === 0) {
       console.log('Background: Fetching all jobs for total openings count...');
       mapHookData.refetch();
     }
-  }, [mapHookData.loading, mapHookData.loadingState, mapHookData.allJobs.length, mapHookData]);
+  }, [authReady, mapHookData.loading, mapHookData.loadingState, mapHookData.allJobs.length, mapHookData]);
 
   // Trigger map fetch when map view is first accessed (fallback)
   useEffect(() => {
+    if (!authReady) return; // wait until auth session check completes
     if (activeView === 'map' && !mapHookData.loading && mapHookData.loadingState === 'idle') {
       mapHookData.refetch();
     }
-  }, [activeView, mapHookData]);
+  }, [authReady, activeView, mapHookData]);
 
   const handlePromptLogin = () => {
     if (onPromptLogin) {
