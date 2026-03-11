@@ -235,11 +235,17 @@ const DraftSyncButton: React.FC<DraftSyncButtonProps> = ({
           // Call the PATCH API with the numeric draft ID
           const url = `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications/drafts/${draftId}`;
           
+          const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
+          if (BAP_API_KEY) {
+            headers['x-api-key'] = BAP_API_KEY;
+          }
+          
           const response = await fetch(url, {
             method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify(profileData),
           });
 
