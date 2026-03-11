@@ -512,14 +512,20 @@ class ApiClient {
   // BAP Job Applications API - Get applications from BAP
   async getBAPJobApplications(userId: string) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
     const url = `${BAP_URL}/api/v1/job-applications?user_id=${userId}`;
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (BAP_API_KEY) {
+      headers['x-api-key'] = BAP_API_KEY;
+    }
     
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -537,6 +543,7 @@ class ApiClient {
   // BAP Job Drafts API - Get draft applications from BAP
   async getBAPJobDrafts(userId: string) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
     
     // Get profile ID the same way MyApplications does
     let profileUserId: string = userId;
@@ -552,12 +559,17 @@ class ApiClient {
     
     const url = `${BAP_URL}/api/v1/job-applications/drafts?user_id=${profileUserId}`;
     
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (BAP_API_KEY) {
+      headers['x-api-key'] = BAP_API_KEY;
+    }
+    
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -582,6 +594,7 @@ class ApiClient {
   // BAP Job Search API
   async searchJobs(intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30, profile?: SearchProfileData) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
     const url = `${BAP_URL}/api/v3/search`;
     
     const payload: any = {
@@ -603,6 +616,13 @@ class ApiClient {
 
     console.log(`🚀 Regular search API payload:`, payload);
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (BAP_API_KEY) {
+      headers['x-api-key'] = BAP_API_KEY;
+    }
+
     try {
       // Create an AbortController for timeout
       const controller = new AbortController();
@@ -610,9 +630,7 @@ class ApiClient {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
@@ -687,6 +705,7 @@ class ApiClient {
   // BAP Job Search API with Query - Used for API-based search functionality
   async searchJobsWithQuery(searchQuery: string, intentOverrides?: Record<string, any>, page: number = 1, limit: number = 30, profile?: SearchProfileData) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
     const url = `${BAP_URL}/api/v3/search`;
     
     const payload: any = {
@@ -709,6 +728,12 @@ class ApiClient {
 
     console.log(`🚀 Search API payload:`, payload);
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (BAP_API_KEY) {
+      headers['x-api-key'] = BAP_API_KEY;
+    }
 
     try {
       // Create an AbortController for timeout
@@ -717,9 +742,7 @@ class ApiClient {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
@@ -997,6 +1020,14 @@ class ApiClient {
       }
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
+    if (BAP_API_KEY) {
+      headers['x-api-key'] = BAP_API_KEY;
+    }
+
     try {
       // Create an AbortController for timeout
       const controller = new AbortController();
@@ -1004,9 +1035,7 @@ class ApiClient {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
@@ -1240,6 +1269,14 @@ class ApiClient {
       }
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
+    if (BAP_API_KEY) {
+      headers['x-api-key'] = BAP_API_KEY;
+    }
+
     try {
       // Create an AbortController for timeout
       const controller = new AbortController();
@@ -1247,9 +1284,7 @@ class ApiClient {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
@@ -1280,6 +1315,7 @@ class ApiClient {
   // BAP Job Select API
   async selectJob(providerId: string, jobId: string, bpp_id?: string, bpp_uri?: string) {
     const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
     
     // Validate that BPP context is provided (no defaults)
     if (!bpp_id || !bpp_uri) {
@@ -1316,6 +1352,13 @@ class ApiClient {
       bpp_uri_provided: !!bpp_uri
     });
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (BAP_API_KEY) {
+      headers['x-api-key'] = BAP_API_KEY;
+    }
+
     try {
       // Create an AbortController for timeout
       const controller = new AbortController();
@@ -1323,9 +1366,7 @@ class ApiClient {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
@@ -1895,6 +1936,14 @@ class ApiClient {
       }
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
+    if (BAP_API_KEY) {
+      headers['x-api-key'] = BAP_API_KEY;
+    }
+
     try {
       // Create an AbortController for timeout
       const controller = new AbortController();
@@ -1902,9 +1951,7 @@ class ApiClient {
 
       const response = await fetch(url, {
         method: 'PATCH', // Use PATCH method for updates as requested
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });

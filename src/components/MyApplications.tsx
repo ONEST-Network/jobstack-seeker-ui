@@ -95,11 +95,17 @@ const MyApplications = () => {
     }
 
     try {
+      const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (BAP_API_KEY) {
+        headers['x-api-key'] = BAP_API_KEY;
+      }
+
       const response = await fetch(`${import.meta.env.VITE_BAP_URL}/api/v1/status`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           context: {
             bpp_id: bpp_id || "bpp1.dhiway.com",
@@ -296,7 +302,14 @@ const MyApplications = () => {
       }
 
       const url = `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications/drafts?user_id=${profileUserId}`;
-      const response = await fetch(url);
+      const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (BAP_API_KEY) {
+        headers['x-api-key'] = BAP_API_KEY;
+      }
+      const response = await fetch(url, { headers });
       const data = await response.json();
 
       // Support different response shapes: try common fields used elsewhere
@@ -482,7 +495,14 @@ const MyApplications = () => {
       const url = `${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${profileIdForApi}`;
       console.log('🌐 MyApplications: Making API request to:', url);
       
-      const response = await fetch(url);
+      const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (BAP_API_KEY) {
+        headers['x-api-key'] = BAP_API_KEY;
+      }
+      const response = await fetch(url, { headers });
       const data = await response.json();
       
       console.log('📊 MyApplications: Detailed API response analysis:', {

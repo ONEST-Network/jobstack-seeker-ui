@@ -136,6 +136,7 @@ pnpm run ensure-pnpm
 - **Build failures in Amplify**: Ensure you're using pnpm in your build settings
 - **Dependency conflicts**: Use `pnpm run clean` to reset the environment
 VITE_BAP_URL=https://your-bap-api-url.com
+VITE_BAP_API_KEY=your_bap_api_key_here
 VITE_BPP_URL=https://your-bpp-api-url.com
 
 # Trust/Match Score Service (Optional)

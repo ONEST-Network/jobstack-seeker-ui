@@ -72,7 +72,14 @@ const ApplicationViewModal: React.FC<ApplicationViewModalProps> = ({
     try {
       // Use profile ID (selected candidate ID) instead of user ID for fetching applications
       const profileIdForApi = selectedCandidate?.id || user?.id;
-      const response = await fetch(`${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${profileIdForApi}`);
+      const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (BAP_API_KEY) {
+        headers['x-api-key'] = BAP_API_KEY;
+      }
+      const response = await fetch(`${import.meta.env.VITE_BAP_URL}/api/v1/job-applications?user_id=${profileIdForApi}`, { headers });
       const data = await response.json();
       
       const applications = data?.applications || [];
