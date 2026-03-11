@@ -91,14 +91,20 @@ export function DatePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-auto p-0 max-h-[70vh] sm:max-h-none overflow-y-auto" 
+        className={cn(
+          "w-auto p-0",
+          "max-h-[min(60vh,340px)] sm:max-h-none overflow-y-auto overflow-x-hidden",
+          "[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-thumb]:rounded-full",
+          "overscroll-contain"
+        )}
         align="start"
         side="bottom"
         sideOffset={4}
         avoidCollisions={true}
         collisionPadding={8}
+        style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
       >
-        <div className="p-3 space-y-3 border-b">
+        <div className="p-3 space-y-3 border-b shrink-0">
           <div className="flex flex-col sm:flex-row gap-2">
             <Select
               value={month.getMonth().toString()}
