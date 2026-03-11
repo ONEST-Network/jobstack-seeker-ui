@@ -91,9 +91,12 @@ export function DatePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-auto p-0" 
+        className="w-auto p-0 max-h-[70vh] sm:max-h-none overflow-y-auto" 
         align="start"
+        side="bottom"
         sideOffset={4}
+        avoidCollisions={true}
+        collisionPadding={8}
       >
         <div className="p-3 space-y-3 border-b">
           <div className="flex flex-col sm:flex-row gap-2">
