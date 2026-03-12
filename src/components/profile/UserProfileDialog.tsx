@@ -14,7 +14,7 @@ import WhatIWantStep from './steps/WhatIWantStep';
 import DynamicFormStep from './DynamicFormStep';
 import { getUnifiedSchema } from '@/schemas';
 import { apiClient, transformProfileForAPI, ProfilesResponse } from '@/lib/api';
-import { validateLocationForAPI } from '@/lib/utils';
+import { validateLocationForAPI, parseLocationString } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import { X } from "lucide-react"
 
@@ -264,22 +264,32 @@ const UserProfileDialogContent: React.FC<UserProfileDialogProps> = ({
       }
       
       // Check location in both legacy and unified schema structures
-      const location = profile.currentLocation || profile.whoIAm?.location;
-      const locationData = profile.whoIAm?.locationData || profile.locationData;
+      // Also check initialProfile as fallback for edit mode
+      const location = profile.currentLocation 
+        || profile.whoIAm?.location 
+        || profile.whoIAm?.currentLocation
+        || (initialProfile as any)?.currentLocation
+        || (initialProfile as any)?.whoIAm?.location
+        || (initialProfile as any)?.whoIAm?.currentLocation
+        || '';
 
       if (!location?.trim()) {
         missingFields.push("Current Location");
-      } else if (location.trim().length < 2) {
-        missingFields.push("Current Location (please enter a valid location)");
-      } else if (locationData) {
-        const locationValidation = validateLocationForAPI(locationData);
-        if (!locationValidation.isValid) {
-          missingFields.push(`Current Location (${locationValidation.errors.join(', ')})`);
-        }
       } else {
-        const invalidLocations = ['na', 'n/a', 'none', 'null', 'undefined', 'test', 'abc', 'xxx'];
+        // Check for invalid location values first
+        const invalidLocations = ['na', 'n/a', 'none', 'null', 'undefined', 'test', 'abc', 'xxx', '111', '222', '333', 'aaa', 'bbb', 'asdf', 'qwerty', 'xyz'];
         if (invalidLocations.includes(location.trim().toLowerCase())) {
           missingFields.push("Current Location (please enter a valid location)");
+        } else if (location.trim().length < 2) {
+          missingFields.push("Current Location (please enter a valid location)");
+        } else {
+          // Always parse and validate the current location string directly
+          // This ensures we validate the actual user input, not any old stored data
+          const parsedLocationData = parseLocationString(location);
+          const locationValidation = validateLocationForAPI(parsedLocationData);
+          if (!locationValidation.isValid) {
+            missingFields.push(`Current Location (${locationValidation.errors.join(', ')})`);
+          }
         }
       }
       

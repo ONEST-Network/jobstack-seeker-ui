@@ -188,6 +188,18 @@ const DynamicFormStep: React.FC<DynamicFormStepProps> = ({ stepName, role }) => 
       }));
     }
 
+    // Special handling for location field - update whoIAm.location
+    if (fieldName === 'location' && stepName === 'whoIAm') {
+      setProfile(prev => ({
+        ...prev,
+        whoIAm: {
+          ...prev.whoIAm,
+          location: value
+        },
+        currentLocation: value
+      }));
+    }
+
     // Special handling for itiInstitute field - update whatIHave section
     if (fieldName === 'itiInstitute') {
       setProfile(prev => ({
