@@ -99,7 +99,7 @@ interface SharedJobData {
 const SharedJob: React.FC = () => {
   const { orgSlug, providerId, jobId } = useParams<{ orgSlug: string; providerId: string; jobId: string }>();
   const navigate = useNavigate();
-  const { user, getSelectedCandidate } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const { applyToJob, applying } = useJobApplication();
   
@@ -489,55 +489,30 @@ const SharedJob: React.FC = () => {
     // setApplying(true); // This line is removed as applying state is now managed by useJobApplication hook
 
     try {
-      // Get the selected candidate/profile ID (same as regular application flow)
-      const selectedCandidate = getSelectedCandidate();
-      const profileId = selectedCandidate?.id || 'default';
+      const result = await applyToJob(jobId, providerId, applicationData, undefined, jobData);
 
-      // Extract context from jobData if available
-      const context = jobData?.context;
-      
-      const response = await apiClient.applyToJobBAP({
-        providerId,
-        jobId,
-        userId: user.id,
-        profileId, // Use profile ID as the primary identifier for the application
-        jobDetails: jobData, // Pass jobData which may contain context
-        context, // Pass context separately for easier access
-        userData: applicationData,
-        profileData: applicationData.profileData
-      });
+      if (result.success) {
+        setShowApplicationDialog(false);
 
-      toast({
-        title: "Application Submitted!",
-        description: "Your job application has been successfully submitted!",
-      });
-
-      setShowApplicationDialog(false);
-      
-      // Show a follow-up message with navigation option
-      setTimeout(() => {
-        toast({
-          title: "View Your Application",
-          description: "Click here to view all your applications",
-          action: (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate(`/${orgSlug || '0'}/seeker?tab=applications`)}
-            >
-              View Applications
-            </Button>
-          ),
-        });
-      }, 2000);
-
+        // Show a follow-up message with navigation option
+        setTimeout(() => {
+          toast({
+            title: "View Your Application",
+            description: "Click here to view all your applications",
+            action: (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate(`/${orgSlug || '0'}/seeker?tab=applications`)}
+              >
+                View Applications
+              </Button>
+            ),
+          });
+        }, 2000);
+      }
     } catch (error: any) {
       console.error('Job application error:', error);
-      toast({
-        title: "Application Failed",
-        description: error.message || "Failed to submit application. Please try again.",
-        variant: "destructive"
-      });
     } finally {
       // setApplying(false); // This line is removed as applying state is now managed by useJobApplication hook
     }

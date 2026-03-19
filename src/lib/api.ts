@@ -814,7 +814,61 @@ class ApiClient {
     }
   }
 
-  // BAP Job Apply API
+  // BAP Job Apply API v2
+  async applyToJobBAPv2(applyData: {
+    jobId: string;
+    profileId: string;
+  }) {
+    const BAP_URL = import.meta.env.VITE_BAP_URL || 'https://onest-lite-bap.dhiway.net';
+    const url = `${BAP_URL}/api/v2/apply`;
+
+    const payload = {
+      job_id: applyData.jobId,
+      profile_id: applyData.profileId,
+    };
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    const BAP_API_KEY = import.meta.env.VITE_BAP_API_KEY;
+    if (BAP_API_KEY) {
+      headers['x-api-key'] = BAP_API_KEY;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from BAP API');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('BAP Apply API v2 Error:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again');
+      }
+      throw error;
+    }
+  }
+
+  // BAP Job Apply API v1
   async applyToJobBAP(applyData: {
     providerId: string;
     jobId: string;
