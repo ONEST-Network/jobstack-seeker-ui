@@ -106,9 +106,23 @@ export const useJobApplication = () => {
       console.log('useJobApplication: Complete API payload being sent:', JSON.stringify(apiPayload, null, 2));
       console.log('useJobApplication: Critical validation check passed - profileId:', profileId, 'name:', applicationData.name, 'phone:', applicationData.phone);
 
-      console.log('🌐 useJobApplication: About to call apiClient.applyToJobBAP with payload:', JSON.stringify(apiPayload, null, 2));
+      console.log('🌐 useJobApplication: About to call apiClient.applyToJobBAPv2 with payload:', {
+        job_id: jobId,
+        profile_id: profileId
+      });
       
-      const response = await apiClient.applyToJobBAP(apiPayload);
+      let response: any;
+      try {
+        response = await apiClient.applyToJobBAPv2({
+          jobId,
+          profileId
+        });
+        console.log('🌐 useJobApplication: v2 apply succeeded, response:', JSON.stringify(response, null, 2));
+      } catch (v2Error) {
+        console.warn('useJobApplication: v2 apply failed, falling back to v1 apply API', v2Error);
+        console.log('🌐 useJobApplication: About to call apiClient.applyToJobBAP with payload:', JSON.stringify(apiPayload, null, 2));
+        response = await apiClient.applyToJobBAP(apiPayload);
+      }
       
       console.log('🌐 useJobApplication: Raw API response received:', JSON.stringify(response, null, 2));
 
