@@ -8125,6 +8125,16 @@
               "address": "Vidyagiri, Dharwad",
               "state": "KARNATAKA",
               "district": "DHARWAD"
+            },
+            {
+              "name": "Karnataka German Technical Training Institute, Vidyanagar Hubballi",
+              "code": "GU29000112",
+              "slug": "karnataka-german-technical-training-institute-vidyanagar-hubballi",
+              "type": "Govt.",
+              "location": "Urban",
+              "address": "Vidyanagar, Hubballi",
+              "state": "KARNATAKA",
+              "district": "DHARWAD"
             }
           ]
         },
