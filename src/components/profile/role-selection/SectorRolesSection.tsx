@@ -30,7 +30,11 @@ const SectorRolesSection: React.FC<SectorRolesSectionProps> = ({
   } = useProfileRestrictions();
 
   // Filter sectors and roles based on search query AND profile restrictions
-  const getFilteredSectors = () => {
+  const getFilteredSectors = (): Record<string, { description: string; roles: string[] }> => {
+    // When not in update mode, only show "Any" sector
+    if (!isUpdate) {
+      return { "Any": sectors["Any"] };
+    }
     let sectorsToFilter = sectors;
 
     // Apply profile restrictions first if they exist
@@ -52,7 +56,7 @@ const SectorRolesSection: React.FC<SectorRolesSectionProps> = ({
         }
       });
       
-      sectorsToFilter = restrictedSectors;
+      sectorsToFilter = restrictedSectors as typeof sectors;
     }
 
     // Then apply search filtering
@@ -98,10 +102,12 @@ const SectorRolesSection: React.FC<SectorRolesSectionProps> = ({
 
   return (
     <div>
-      <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-        <span className="text-lg">⭐</span>
-        {isUpdate ? 'Current Role (Read Only)' : 'Popular Roles by Sector'}
-      </h4>
+     {isUpdate && (
+        <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <span className="text-lg">⭐</span>
+          Current Role (Read Only)
+        </h4>
+      )}
       
       {hasRestrictions && !isUpdate && (
         <Alert className="mb-4">
