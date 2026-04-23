@@ -250,28 +250,13 @@
             "when": ["Certification", "Learned Informally"]
           }
         },
-        "instituteName": {
+         "itiInstitute": {
           "type": "string",
           "title": "College / Institute Name",
-          "description": "Select your college or institute name",
-          "enum": ["Govt Polytechnic Hubli", "Tippu Shahed Polytechnic Hubli", "Govt Women Polytechnic Hubli", "Mount Carmel Polytechnic Hubli", "Govt Polytechnic Tarihal", "Govt Polytechnic Kamadolli Kundagol", "Nettur Technical Training Foundation (NTTF), Dharwad", "Oxford Polytechnic, Hubli", "JSS K H Kabbur Polytechnic College", "KLE Polytechnic, Hubli", "Government Toolroom and Training Center, Hubli", "JSS ITI Vidyagiri Dharwad", "Karnataka German Technical Training Institute, Vidyanagar Hubballi", "Other"],
-          "enumNames": ["Govt Polytechnic Hubli", "Tippu Shahed Polytechnic Hubli", "Govt Women Polytechnic Hubli", "Mount Carmel Polytechnic Hubli", "Govt Polytechnic Tarihal", "Govt Polytechnic Kamadolli Kundagol", "Nettur Technical Training Foundation (NTTF), Dharwad", "Oxford Polytechnic, Hubli", "JSS K H Kabbur Polytechnic College", "KLE Polytechnic, Hubli", "Government Toolroom and Training Center, Hubli", "JSS ITI Vidyagiri Dharwad", "Karnataka German Technical Training Institute, Vidyanagar Hubballi", "Other"],
-          "ui:widget": "select",
-          "ui:placeholder": "Select your college/institute name",
-          "ui:disabled": false,
-          "ui:searchable": true
-        },
-        "instituteNameOther": {
-          "type": "string",
-          "title": "Other Institute Name",
-          "description": "Please specify your institute name",
+          "description": "Select your college or institute from the dropdown list",
           "ui:widget": "text",
-          "ui:placeholder": "Enter your institute name",
-          "ui:disabled": false,
-          "ui:conditional": {
-            "dependsOn": "instituteName",
-            "when": ["Other"]
-          }
+          "ui:placeholder": "Search and select your College / Institute...",
+          "ui:disabled": false
         },
         "workExperienceYears": {
           "type": "string",
@@ -319,8 +304,7 @@
           "polytechnicDiploma",
           "polytechnicDiplomaOther",
           "certificationDetails",
-          "instituteName",
-          "instituteNameOther",
+          "itiInstitute",
           "workExperienceYears",
           "nameOfLastRoleHeld",
           "languageSpoken"
@@ -333,7 +317,7 @@
           },
           {
             "title": "Education & Qualifications",
-            "fields": ["educationCategory", "schoolQualification", "schoolQualificationOther", "collegeQualification", "collegeQualificationOther", "itiTrade", "itiTradeOther", "vocationalTrainingOther", "polytechnicDiploma", "polytechnicDiplomaOther", "certificationDetails"]
+            "fields": ["educationCategory", "schoolQualification", "schoolQualificationOther", "collegeQualification", "collegeQualificationOther", "itiTrade", "itiTradeOther", "vocationalTrainingOther", "polytechnicDiploma", "polytechnicDiplomaOther", "certificationDetails",  "itiInstitute"]
           },
           {
             "title": "Language",
